@@ -17,7 +17,7 @@ const HELP = `usage: node scripts/privacy/scan.mjs [options]
   --history         every git object (also deleted ones), commit messages, authors, tags, ref names, remote URLs
   --build <dir>     build output (for example .next or out); cache directories are skipped
   --media <dir>     media and model files with their embedded metadata
-  --all             --tree --history, plus --media public and --build .next when those directories exist
+  --all             --tree --history, plus --media public and --build .next/static and .next/server/app when those exist
   --message <file>  a commit message file (commit-msg hook)
   --remote-url <u>  the URL of a push target (pre-push hook): network remotes must be the project repository
   --identity        check the author and committer identity git would use for the next commit
@@ -79,7 +79,9 @@ async function main() {
     modes.tree = true;
     modes.history = true;
     if (fs.existsSync(path.join(ctx.root, "public"))) modes.media.push("public");
-    if (fs.existsSync(path.join(ctx.root, ".next"))) modes.build.push(".next");
+    // only what is actually served: client chunks and the prerendered pages; the server bundle, source maps and
+    // required-server-files are build internals that are never deployed to the public (and carry local paths)
+    for (const d of [".next/static", ".next/server/app"]) if (fs.existsSync(path.join(ctx.root, d))) modes.build.push(d);
   }
   if (!(modes.tree || modes.staged || modes.history || modes.identity || modes.message || modes.remoteUrl || modes.build.length || modes.media.length)) {
     console.log(HELP);
