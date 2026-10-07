@@ -1,0 +1,45 @@
+{
+  "name": "house-sample",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A fictional single-storey house as a data-driven portfolio project: one data model drives the floor plan, the procedural Blender model, the calculations and the renders.",
+  "license": "MIT",
+  "author": "Filip Tomanec",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "next dev -p 3400",
+    "build": "next build",
+    "start": "next start -p 3401",
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "check:bundles": "node scripts/check-bundles.mjs"
+  },
+  "dependencies": {
+    "geist": "^1.7.2",
+    "n8ao": "^1.9.4",
+    "next": "16.3.6",
+    "polygon-clipping": "^0.15.7",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "three": "^0.169.0",
+    "three-mesh-bvh": "^0.8.3",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.63.0",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^22",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@types/three": "^0.169.0",
+    "eslint": "^9",
+    "eslint-config-next": "16.3.6",
+    "tailwindcss": "^4",
+    "tsx": "^4.23.15",
+    "typescript": "^5",
+    "vitest": "^3.2.7"
+  }
+}
