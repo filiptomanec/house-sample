@@ -1,0 +1,212 @@
+{
+  "schema": "media/1",
+  "day": {
+    "date": "2026-06-21",
+    "times": [
+      "08:00",
+      "09:00",
+      "10:00",
+      "11:00",
+      "12:00",
+      "13:00",
+      "14:00",
+      "15:00",
+      "16:00",
+      "16:20",
+      "16:40",
+      "17:00",
+      "17:20",
+      "17:40",
+      "18:00",
+      "18:20",
+      "18:40",
+      "19:00",
+      "19:20",
+      "19:40",
+      "20:00",
+      "20:15",
+      "20:30",
+      "20:45",
+      "21:00",
+      "21:15",
+      "21:30",
+      "21:45",
+      "22:00",
+      "22:15"
+    ],
+    "stillTime": "17:40",
+    "hash": "45b4136b48",
+    "landscape": {
+      "pattern": "media/day/l/{time}.{hash}.jpg",
+      "width": 1024,
+      "height": 576
+    },
+    "portrait": {
+      "pattern": "media/day/p/{time}.{hash}.jpg",
+      "width": 480,
+      "height": 720
+    }
+  },
+  "orbit": {
+    "frames": 60,
+    "degPerFrame": 6,
+    "hash": "ace4e72efd",
+    "landscape": {
+      "pattern": "media/orbit/l/{i}.{hash}.jpg",
+      "width": 1024,
+      "height": 576
+    },
+    "portrait": {
+      "pattern": "media/orbit/p/{i}.{hash}.jpg",
+      "width": 480,
+      "height": 720
+    }
+  },
+  "stills": [
+    {
+      "id": "garden-afternoon",
+      "file": "media/stills/garden-afternoon.f16b658810.jpg",
+      "width": 1024,
+      "height": 576,
+      "date": "2026-06-21",
+      "time": "17:30",
+      "category": "exterior",
+      "title": {
+        "cs": "Pohled ze zahrady",
+        "en": "Garden view"
+      },
+      "alt": {
+        "cs": "Pohled ze zahrady (zástupný render)",
+        "en": "Garden view (placeholder render)"
+      }
+    },
+    {
+      "id": "garden-dusk",
+      "file": "media/stills/garden-dusk.bd340bef92.jpg",
+      "width": 1024,
+      "height": 576,
+      "date": "2026-06-21",
+      "time": "21:10",
+      "category": "exterior",
+      "title": {
+        "cs": "Pohled ze zahrady",
+        "en": "Garden view"
+      },
+      "alt": {
+        "cs": "Pohled ze zahrady (zástupný render)",
+        "en": "Garden view (placeholder render)"
+      }
+    },
+    {
+      "id": "street-morning",
+      "file": "media/stills/street-morning.266355fb82.jpg",
+      "width": 1024,
+      "height": 576,
+      "date": "2026-05-15",
+      "time": "09:30",
+      "category": "exterior",
+      "title": {
+        "cs": "Pohled od ulice",
+        "en": "Street view"
+      },
+      "alt": {
+        "cs": "Pohled od ulice (zástupný render)",
+        "en": "Street view (placeholder render)"
+      }
+    },
+    {
+      "id": "entry-morning",
+      "file": "media/stills/entry-morning.6711f640c2.jpg",
+      "width": 1024,
+      "height": 576,
+      "date": "2026-05-15",
+      "time": "10:00",
+      "category": "exterior",
+      "title": {
+        "cs": "Příchod ke vchodu",
+        "en": "Approach to the entrance"
+      },
+      "alt": {
+        "cs": "Příchod ke vchodu (zástupný render)",
+        "en": "Approach to the entrance (placeholder render)"
+      }
+    },
+    {
+      "id": "terrace-summer",
+      "file": "media/stills/terrace-summer.295d97b8db.jpg",
+      "width": 1024,
+      "height": 576,
+      "date": "2026-07-15",
+      "time": "16:30",
+      "category": "detail",
+      "title": {
+        "cs": "Krytá terasa",
+        "en": "Covered terrace"
+      },
+      "alt": {
+        "cs": "Krytá terasa (zástupný render)",
+        "en": "Covered terrace (placeholder render)"
+      }
+    },
+    {
+      "id": "aerial-south-west",
+      "file": "media/stills/aerial-south-west.22958513be.jpg",
+      "width": 1024,
+      "height": 576,
+      "date": "2026-09-23",
+      "time": "14:00",
+      "category": "aerial",
+      "title": {
+        "cs": "Z ptačí perspektivy od jihozápadu",
+        "en": "Aerial view from the south-west"
+      },
+      "alt": {
+        "cs": "Z ptačí perspektivy od jihozápadu (zástupný render)",
+        "en": "Aerial view from the south-west (placeholder render)"
+      }
+    },
+    {
+      "id": "aerial-south-east",
+      "file": "media/stills/aerial-south-east.c8702c0b6e.jpg",
+      "width": 1024,
+      "height": 576,
+      "date": "2026-09-23",
+      "time": "16:30",
+      "category": "aerial",
+      "title": {
+        "cs": "Z ptačí perspektivy od jihovýchodu",
+        "en": "Aerial view from the south-east"
+      },
+      "alt": {
+        "cs": "Z ptačí perspektivy od jihovýchodu (zástupný render)",
+        "en": "Aerial view from the south-east (placeholder render)"
+      }
+    },
+    {
+      "id": "street-dusk",
+      "file": "media/stills/street-dusk.6cff3b1bce.jpg",
+      "width": 1024,
+      "height": 576,
+      "date": "2026-06-21",
+      "time": "21:15",
+      "category": "exterior",
+      "title": {
+        "cs": "Pohled od ulice",
+        "en": "Street view"
+      },
+      "alt": {
+        "cs": "Pohled od ulice (zástupný render)",
+        "en": "Street view (placeholder render)"
+      }
+    }
+  ],
+  "compare": {
+    "a": "garden-afternoon",
+    "b": "garden-dusk"
+  },
+  "og": {
+    "file": "media/og.e2f899f7e6.jpg",
+    "width": 1200,
+    "height": 630
+  }
+}

@@ -1,0 +1,113 @@
+{
+  "_comment": "Render settings. Quality presets are per mode (stills, day, orbit); `scale` multiplies the size that generated/render-inputs.json gives the shot. Environment: BLENDER, FFMPEG, RENDER_DEVICE (auto|gpu|cpu), RENDER_SAMPLES (overrides the samples of the preset).",
+  "cycles": {
+    "maxBounces": 8,
+    "diffuseBounces": 3,
+    "glossyBounces": 3,
+    "transmissionBounces": 6,
+    "volumeBounces": 0,
+    "clampIndirect": 8,
+    "clampDirect": 0,
+    "blurGlossy": 1.0,
+    "minSamples": 0,
+    "denoiser": "OPENIMAGEDENOISE",
+    "tileSize": 2048
+  },
+  "look": {
+    "viewTransform": "AgX",
+    "look": "AgX - Base Contrast",
+    "exposure": 0.0,
+    "skyStrength": 0.3,
+    "dusk": {
+      "fromElevationDeg": 6.0,
+      "toElevationDeg": -4.5,
+      "ev": 2.3
+    },
+    "belowHorizonHoldDeg": 0.5,
+    "belowHorizonFalloff": 0.2,
+    "categoryEv": {
+      "interior": 0.9,
+      "compare": 0.0
+    },
+    "daylightLampsEv": 0.7,
+    "glare": {
+      "mix": -0.92,
+      "threshold": 1.2,
+      "size": 8
+    }
+  },
+  "quality": {
+    "draft": {
+      "stills": {
+        "scale": 0.5,
+        "samples": 12,
+        "threshold": 0.08,
+        "quality": 90
+      },
+      "day": {
+        "scale": 0.5,
+        "samples": 12,
+        "threshold": 0.08,
+        "quality": 90
+      },
+      "orbit": {
+        "scale": 0.5,
+        "portraitScale": 0.3333,
+        "samples": 12,
+        "threshold": 0.08,
+        "quality": 90,
+        "motionBlur": 0.15
+      },
+      "grassDensity": 0.5,
+      "farTrees": 20
+    },
+    "final": {
+      "stills": {
+        "scale": 1.0,
+        "samples": 256,
+        "threshold": 0.01,
+        "quality": 95
+      },
+      "day": {
+        "scale": 1.0,
+        "samples": 96,
+        "threshold": 0.02,
+        "quality": 95
+      },
+      "orbit": {
+        "scale": 0.8333,
+        "portraitScale": 0.6667,
+        "samples": 48,
+        "threshold": 0.015,
+        "quality": 95,
+        "motionBlur": 0.15
+      },
+      "grassDensity": 1.0,
+      "farTrees": 70
+    }
+  },
+  "seed": {
+    "stills": 7,
+    "day": 7,
+    "orbit": 5
+  },
+  "ground": {
+    "grassPatchM": 0.35,
+    "grassBladesPerPatch": 380,
+    "grassDensityPerM2": {
+      "stills": 16,
+      "day": 16,
+      "orbit": 6
+    },
+    "grassFullRadiusM": 16,
+    "grassFadeRadiusM": 42,
+    "farGroundRadiusM": 1800,
+    "lawnColors": [
+      "#2d4a1a",
+      "#46692a"
+    ]
+  },
+  "lampScale": 1.0,
+  "lampColorMix": 0.6,
+  "interiorLampBoost": 1.0
+}

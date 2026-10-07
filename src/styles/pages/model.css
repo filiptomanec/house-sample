@@ -1,0 +1,64 @@
+/* 3D model page: the stage with its overlay, the view chips, the side panel and the export section.
+   Tokens and layout classes only; breakpoints 640 / 900 / 1180 (max-width). The stage itself (canvas, messages, compass,
+   joystick) is styled by the 3D engine; this file sizes it and places the page's own controls over it. */
+
+.model-tool { padding-bottom: var(--section-y-sm); }
+
+/* ---------------------------------------------------------------- layout: stage and chips | side panel */
+.model-layout { display: grid; grid-template-columns: minmax(0, 1fr) clamp(320px, 28vw, 380px); gap: var(--sp-5); align-items: start; }
+.model-main { position: sticky; top: calc(var(--nav-h) + env(safe-area-inset-top) + var(--sp-4)); display: grid; gap: var(--sp-3); min-width: 0; }
+
+.model-stage { position: relative; min-width: 0; border-radius: var(--r-md); overflow: hidden; border: 1px solid var(--rule); background: var(--stage-bg); }
+.model-stage .stage { height: min(70svh, 760px); min-height: 360px; }
+.model-stage[data-walking] .stage { height: min(78svh, 820px); }
+
+/* over the stage: how a drag moves the camera, the walk button, a readout */
+.model-tools { position: absolute; z-index: 2; top: var(--sp-3); left: var(--sp-3); max-width: calc(100% - 96px); display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2); }
+.model-walk:disabled { opacity: 0.5; cursor: default; }
+.model-hud { position: absolute; z-index: 2; left: var(--sp-3); right: var(--sp-3); bottom: var(--sp-3); pointer-events: none; }
+.model-hud p { display: inline-block; max-width: 100%; padding: 6px 12px; border-radius: var(--r-md); border: 1px solid var(--rule); background: var(--scrim); color: var(--ink); font-size: var(--fs-sm); line-height: 1.4; }
+.model-hud .num { border-radius: var(--r-pill); }
+
+.model-views { display: grid; gap: var(--sp-2); min-width: 0; }
+.model-help { display: grid; gap: var(--sp-1); }
+.only-coarse { display: none; }
+@media (pointer: coarse) {
+  .only-fine { display: none; }
+  .only-coarse { display: block; }
+}
+
+/* ---------------------------------------------------------------- side panel */
+.model-controls { min-width: 0; }
+.model-controls .grp:last-child { border-bottom: 0; padding-bottom: 0; }
+.model-controls .dot { box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 40%, transparent); }
+.model-controls .note { max-width: none; }
+
+/* ---------------------------------------------------------------- export */
+.model-export .h2 { margin-bottom: clamp(24px, 3vw, 40px); }
+.export-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-4); align-items: start; }
+.export-grid .btn { justify-self: start; }
+.export-grid .note.warn { color: var(--bad); }
+.ar-link img { border-radius: var(--r-xs); }
+.ar-size { font: var(--weight-medium) var(--fs-xs) / 1 var(--font-mono); opacity: 0.7; }
+
+/* ---------------------------------------------------------------- narrower: the panel goes below, the stage stays in view */
+@media (max-width: 1180px) {
+  .model-layout { grid-template-columns: minmax(0, 1fr); gap: var(--sp-3); }
+  .model-main { display: contents; }
+  .model-stage { position: sticky; top: calc(var(--nav-h) + env(safe-area-inset-top)); z-index: 3; }
+  .model-stage .stage { height: clamp(300px, 52svh, 640px); min-height: 0; }
+  .model-stage[data-walking] .stage { height: calc(100svh - var(--nav-h) - env(safe-area-inset-top) - env(safe-area-inset-bottom)); }
+  .model-controls { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: var(--sp-6); align-items: start; }
+  .model-controls .grp:nth-last-child(2) { border-bottom: 0; }
+}
+@media (max-width: 900px) {
+  .export-grid { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 640px) {
+  /* full width, edge to edge */
+  .model-stage { margin-inline: calc(-1 * var(--gutter-l)) calc(-1 * var(--gutter-r)); border-radius: 0; border-inline: 0; }
+  .model-stage .stage { height: min(46svh, 440px); border-radius: 0; }
+  .model-tools { left: max(var(--sp-3), env(safe-area-inset-left)); }
+  .model-controls { grid-template-columns: minmax(0, 1fr); }
+  .model-controls .grp:nth-last-child(2) { border-bottom: 1px solid var(--rule); }
+}

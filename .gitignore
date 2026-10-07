@@ -20,6 +20,7 @@ npm-debug.log*
 /assets/
 /pipeline/out/
 /render-out/
+/generated/render-inputs.json
 *.blend
 *.blend1
 # e2e artefacts

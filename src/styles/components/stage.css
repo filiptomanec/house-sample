@@ -1,0 +1,75 @@
+/* The 3D stage (src/components/three/Stage.tsx): canvas, room tags, compass, messages and the walk joystick.
+   Imported by Stage.tsx, so it only reaches the Model and Sun routes. The page CSS sizes the stage and positions its overlay
+   controls; the defaults here keep an unsized stage usable. Tokens only. */
+
+:where(.stage) {
+  position: relative; overflow: hidden; isolation: isolate;
+  height: min(74svh, 780px); min-height: 320px;
+  border-radius: var(--r-md); background: var(--stage-bg);
+  outline: none;
+}
+.stage:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
+
+.stage > canvas.gl { position: absolute; inset: 0; z-index: 0; width: 100%; height: 100%; display: block; outline: none; cursor: grab; touch-action: none; }
+.stage > canvas.gl:active { cursor: grabbing; }
+.stage[data-walking] > canvas.gl { cursor: crosshair; touch-action: none; }
+.stage > .gl-labels { position: absolute; inset: 0; z-index: 1; pointer-events: none; overflow: hidden; }
+
+/* room tags: HTML over the canvas, positioned by CSS2DRenderer */
+.room-tag {
+  display: grid; gap: 1px; justify-items: center; padding: 3px 8px;
+  border-radius: var(--r-xs); background: var(--scrim); color: var(--ink);
+  font-size: var(--fs-xs); line-height: 1.2; white-space: nowrap; pointer-events: none;
+  box-shadow: var(--shadow-1);
+}
+.room-tag b { font-weight: var(--weight-strong); letter-spacing: -0.01em; }
+.room-tag span { font: var(--fs-2xs) / 1.2 var(--font-mono); color: var(--ink-2); }
+
+/* overlay controls of the page (view chips, walk button, hints) sit above the canvas */
+.stage > :not(canvas, .gl-labels, .stage-msg, .compass) { z-index: 2; }
+
+/* compass: the dial turns against the heading, north is the marked tip */
+.compass {
+  position: absolute; z-index: 3; inset-block-start: var(--sp-3); inset-inline-end: var(--sp-3);
+  width: var(--touch); height: var(--touch); pointer-events: none;
+  display: grid; place-items: center; border-radius: 50%;
+  background: var(--scrim); color: var(--ink); box-shadow: var(--shadow-1);
+}
+.compass[hidden] { display: none; }
+.compass-dial { position: relative; width: 100%; height: 100%; transition: transform 0.12s linear; }
+.compass-dial svg { width: 100%; height: 100%; display: block; }
+.compass-ring { fill: none; stroke: var(--rule-2); stroke-width: 1; }
+.compass-needle { fill: var(--accent); }
+.compass-n {
+  position: absolute; inset-block-start: 1px; inset-inline-start: 50%; transform: translateX(-50%);
+  font: var(--weight-strong) 0.5625rem / 1 var(--font-sans); color: var(--ink);
+}
+
+/* messages: loading with progress, error, lost context, no WebGL */
+.stage-msg {
+  position: absolute; inset: 0; z-index: 4; display: grid; place-content: center; justify-items: center; gap: var(--sp-3);
+  padding: var(--sp-5); text-align: center; color: var(--ink);
+  background: color-mix(in srgb, var(--stage-bg) 84%, transparent);
+  opacity: 1; transition: opacity var(--dur-2) var(--ease);
+}
+.stage-msg[data-visible="false"] { opacity: 0; pointer-events: none; }
+.stage-msg p { margin: 0; max-width: 36ch; font-size: var(--fs-sm); color: var(--ink-2); }
+.stage-bar { width: min(220px, 60vw); height: 3px; border-radius: var(--r-pill); background: var(--rule-2); overflow: hidden; }
+.stage-bar i { display: block; height: 100%; width: 100%; background: var(--accent); transform-origin: left; transform: scaleX(var(--stage-p, 0)); transition: transform var(--dur-1) linear; }
+
+/* walk mode: an on-screen joystick for touch devices, above the safe area */
+.joy {
+  position: absolute; z-index: 3; inset-inline-start: max(var(--sp-4), env(safe-area-inset-left));
+  /* above the page's hint line, which sits along the bottom edge */
+  inset-block-end: calc(max(var(--sp-4), env(safe-area-inset-bottom)) + 3.5rem);
+  width: 128px; height: 128px; border-radius: 50%; touch-action: none; user-select: none; -webkit-user-select: none;
+  background: color-mix(in srgb, var(--surface) 60%, transparent); border: 1px solid var(--rule-2); box-shadow: var(--shadow-2);
+}
+.joy i {
+  position: absolute; inset-block-start: 50%; inset-inline-start: 50%; width: 56px; height: 56px; margin: -28px 0 0 -28px;
+  border-radius: 50%; background: var(--ink); opacity: 0.55; pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stage-msg, .stage-bar i, .compass-dial { transition: none; }
+}

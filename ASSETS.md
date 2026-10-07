@@ -35,3 +35,8 @@ generated at build time and cached in `pipeline/out/tex`.
 ## Fonts, icons, other media
 
 Not part of this file (see the web app and `docs/DESIGN.md`).
+
+## Draco decoder
+
+`public/draco/{draco_decoder.js,draco_decoder.wasm,draco_wasm_wrapper.js}`: Google Draco geometry decoder, Apache-2.0,
+copied unmodified from the `three` package (`examples/jsm/libs/draco/gltf`, r169). Used to decode the Draco-compressed GLB files.

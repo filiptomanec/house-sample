@@ -8,7 +8,7 @@ describe("calendar", () => {
     expect(monthNames("cs")[2]).toBe("březen");
     expect(monthNames("en")[2]).toBe("March");
     expect(monthNames("cs", "short")[0]).toMatch(/^led/);
-    expect(monthNames("en", "short")[8]).toBe("Sept");
+    expect(monthNames("en", "short")[8]).toBe("Sep");
   });
   it("writes a day and month the way a sentence needs it", () => {
     expect(dayMonth("cs", 2, 15)).toBe(`15.${NBSP}března`);

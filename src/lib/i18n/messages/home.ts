@@ -1,13 +1,160 @@
 import { defineMessages } from "../translate";
 
-// Namespace "home". The page agent fills in the rest; `meta` is read by buildMetadata() and must stay.
+// Namespace "home": the start page. `meta` is read by buildMetadata() and must stay. Numbers are never written here: they arrive as
+// {placeholders} from the model and the calc modules, formatted by format.ts.
 export default defineMessages({
   cs: {
     meta: { title: "Dům Dlouhá střecha", description: "Fiktivní přízemní dům jako datově řízený portfolio projekt: půdorys, pozemek, 3D model, slunce, energie, rozpočet a galerie z jednoho datového modelu." },
     lede: "Fiktivní přízemní dům s dlouhou valbovou střechou, spočítaný a vykreslený z jednoho datového modelu.",
+    hero: {
+      kicker: "Fiktivní dům · datově řízený projekt",
+      hint: "Posouvejte a projděte jeden den",
+      alt: "Dům od rána do setmění v jednom dni",
+    },
+    day: {
+      moments: {
+        morning: { title: "Ráno", text: "Slunce vychází v {sunrise} a nejdřív osvětlí východní fasádu.", textAlways: "Slunce je nad obzorem celý den." },
+        noon: { title: "Poledne", text: "V {noon} je slunce nejvýš, {altitude} nad obzorem. Střecha přesahuje o {overhang} a stíní okna před vysokým sluncem." },
+        evening: { title: "Večer", text: "Slunce se sklání k západu a stíny se táhnou přes zahradu." },
+        afterSunset: { title: "Po západu", text: "Slunce zapadá v {sunset}. Zbývá soumrak." },
+      },
+      hud: {
+        sun: "Slunce: výška {altitude}, azimut {azimuth}",
+        readout: "výška {altitude} · azimut {azimuth}",
+        compass: { E: "V", S: "J", W: "Z" },
+      },
+    },
+    numbers: {
+      kicker: "Dům",
+      title: "Dům v číslech",
+      lede: "Každá hodnota na tomto webu se počítá z jednoho datového modelu domu a pozemku, žádná není napsaná ručně.",
+      area: { unit: "m²", label: "podlahové plochy bez garáže" },
+      rooms: { label: "místností včetně garáže" },
+      size: { unit: "m", label: "vnější rozměry" },
+      plot: { unit: "m²", label: "pozemku" },
+    },
+    orbit: {
+      label: "Dům ze všech stran",
+      alt: "Kamera obíhá dům dokola",
+      terrace: { title: "Terasa", text: "{area} terasy, z toho {covered} pod střechou.", textCovered: "{area} terasy, celá pod střechou." },
+      roof: { title: "Dlouhá střecha", text: "Sklon {pitch}, přesah {overhang}, hřeben {ridge} nad podlahou." },
+      garage: { title: "Garáž", text: "Garáž má {area}, vrata jsou na {side} fasádě." },
+      entry: { title: "Vstup", text: "Hlavní vstup je na {side} fasádě." },
+    },
+    side: { N: "severní", E: "východní", S: "jižní", W: "západní" },
+    plan: {
+      kicker: "Dispozice",
+      title: "Čtyři zóny, jeden půdorys",
+      text: "Půdorys se kreslí přímo z modelu: stěny, otvory a plochy místností. Součty zón jsou čisté plochy bez zdí.",
+      link: "Půdorys s rozměry",
+      alt: "Půdorys přízemí barevně rozdělený na zóny",
+      terrace: "Terasa",
+    },
+    compare: {
+      kicker: "Světlo",
+      title: "Stejné místo, jiná hodina",
+      lede: "Posuňte předěl. Vlevo {a}, vpravo {b}.",
+      slider: "Posun mezi snímkem v {a} a snímkem v {b}",
+    },
+    energy: {
+      kicker: "Energie",
+      title: "Střecha, která vyrábí",
+      lede: "Orientační výpočet s výchozími předpoklady: {panels} panelů ({kwp}) a tepelné čerpadlo. Vlastní čísla zadáte na stránce Energie.",
+      designLoad: { unit: "kW", label: "tepelná ztráta při {outdoor}" },
+      heat: { unit: "kWh/m²", label: "potřeba tepla na vytápění za rok" },
+      pv: { unit: "MWh", label: "výroba fotovoltaiky za rok" },
+      self: { unit: "%", label: "spotřeby elektřiny pokryje střecha, s baterií {battery}" },
+      selfNoBattery: { unit: "%", label: "spotřeby elektřiny pokryje střecha, bez baterie" },
+      link: "Spočítat s vlastními čísly",
+    },
+    gallery: {
+      kicker: "Galerie",
+      title: "Pohledy na dům",
+      label: "Rendery domu",
+      link: "Celá galerie",
+      prev: "Předchozí snímek",
+      next: "Další snímek",
+    },
+    explore: {
+      kicker: "Prozkoumat",
+      title: "Co všechno vzniká z modelu",
+    },
   },
   en: {
     meta: { title: "Long Roof House", description: "A fictional single-storey house as a data-driven portfolio project: floor plan, plot, 3D model, sun, energy, budget and gallery from one data model." },
     lede: "A fictional single-storey house with a long hipped roof, calculated and rendered from a single data model.",
+    hero: {
+      kicker: "Fictional house · data-driven project",
+      hint: "Scroll to move through one day",
+      alt: "The house from morning to dusk in a single day",
+    },
+    day: {
+      moments: {
+        morning: { title: "Morning", text: "The sun rises at {sunrise} and lights the east facade first.", textAlways: "The sun stays above the horizon all day." },
+        noon: { title: "Noon", text: "At {noon} the sun is highest, {altitude} above the horizon. The roof overhangs by {overhang} and shades the windows from the high sun." },
+        evening: { title: "Evening", text: "The sun sinks towards the west and shadows stretch across the garden." },
+        afterSunset: { title: "After sunset", text: "The sun sets at {sunset}. Twilight follows." },
+      },
+      hud: {
+        sun: "Sun: altitude {altitude}, azimuth {azimuth}",
+        readout: "altitude {altitude} · azimuth {azimuth}",
+        compass: { E: "E", S: "S", W: "W" },
+      },
+    },
+    numbers: {
+      kicker: "House",
+      title: "The house in numbers",
+      lede: "Every value on this site is calculated from one data model of the house and the plot; none is typed by hand.",
+      area: { unit: "m²", label: "floor area, garage excluded" },
+      rooms: { label: "rooms, garage included" },
+      size: { unit: "m", label: "outer dimensions" },
+      plot: { unit: "m²", label: "plot" },
+    },
+    orbit: {
+      label: "The house from all sides",
+      alt: "The camera circles the house",
+      terrace: { title: "Terrace", text: "{area} of terrace, {covered} of it under the roof.", textCovered: "{area} of terrace, all of it under the roof." },
+      roof: { title: "Long roof", text: "Pitch {pitch}, overhang {overhang}, ridge {ridge} above the floor." },
+      garage: { title: "Garage", text: "The garage measures {area}, its doors face the {side} facade." },
+      entry: { title: "Entrance", text: "The main entrance is on the {side} facade." },
+    },
+    side: { N: "north", E: "east", S: "south", W: "west" },
+    plan: {
+      kicker: "Layout",
+      title: "Four zones, one floor plan",
+      text: "The plan is drawn straight from the model: walls, openings and room areas. Zone totals are net areas without walls.",
+      link: "Floor plan with dimensions",
+      alt: "Floor plan of the ground floor coloured by zone",
+      terrace: "Terrace",
+    },
+    compare: {
+      kicker: "Light",
+      title: "Same place, another hour",
+      lede: "Drag the divider. {a} on the left, {b} on the right.",
+      slider: "Divider between the picture at {a} and the picture at {b}",
+    },
+    energy: {
+      kicker: "Energy",
+      title: "A roof that produces",
+      lede: "An indicative calculation with default assumptions: {panels} panels ({kwp}) and a heat pump. Enter your own numbers on the Energy page.",
+      designLoad: { unit: "kW", label: "heat loss at {outdoor}" },
+      heat: { unit: "kWh/m²", label: "heat demand for heating per year" },
+      pv: { unit: "MWh", label: "photovoltaic yield per year" },
+      self: { unit: "%", label: "of the electricity covered by the roof, with a {battery} battery" },
+      selfNoBattery: { unit: "%", label: "of the electricity covered by the roof, no battery" },
+      link: "Calculate with your own numbers",
+    },
+    gallery: {
+      kicker: "Gallery",
+      title: "Views of the house",
+      label: "Renders of the house",
+      link: "Full gallery",
+      prev: "Previous picture",
+      next: "Next picture",
+    },
+    explore: {
+      kicker: "Explore",
+      title: "What the model produces",
+    },
   },
 });

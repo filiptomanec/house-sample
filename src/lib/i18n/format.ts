@@ -143,6 +143,13 @@ export class Formatter {
   money(v: number, opts: MoneyOptions = {}): string {
     if (!Number.isFinite(v)) return EN_DASH;
     const { digits = 0, compact = false } = opts;
+    if (compact) {
+      // Intl compact notation differs between engines ("M" vs "m"), which breaks hydration: spell it out ourselves.
+      const abs = Math.abs(v);
+      const [div, cs, en] = abs >= 1e6 ? [1e6, "mil.", "M"] : abs >= 1e3 ? [1e3, "tis.", "k"] : [1, "", ""];
+      const n = this.num(v / div, div === 1 ? digits : Math.max(digits, 1));
+      return this.locale === "cs" ? `${n}${NBSP}${cs ? cs + NBSP : ""}Kč` : `CZK${NBSP}${n}${en}`;
+    }
     const k = `${digits}:${compact}`;
     let f = this.currencies.get(k);
     if (!f) {

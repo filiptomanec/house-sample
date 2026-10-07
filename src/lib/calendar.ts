@@ -16,8 +16,13 @@ export function monthNames(locale: Locale, width: MonthWidth = "long"): readonly
   const k = `${locale}:${width}`;
   let v = cache.get(k);
   if (!v) {
-    const f = new Intl.DateTimeFormat(LOCALE_META[locale].intl, { month: width, timeZone: "UTC" });
-    v = Array.from({ length: 12 }, (_, m) => f.format(new Date(Date.UTC(2001, m, 15))));
+    // ICU differs between engines ("Sept" in Node, "Sep" in Safari), which breaks hydration: derive English short names
+    // deterministically from the long names.
+    const f = new Intl.DateTimeFormat(LOCALE_META[locale].intl, { month: width === "short" && locale === "en" ? "long" : width, timeZone: "UTC" });
+    v = Array.from({ length: 12 }, (_, m) => {
+      const name = f.format(new Date(Date.UTC(2001, m, 15)));
+      return width === "short" && locale === "en" ? name.slice(0, 3) : name;
+    });
     cache.set(k, v);
   }
   return v;

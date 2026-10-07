@@ -1,0 +1,248 @@
+{
+  "schema": "render/1",
+  "fictional": true,
+  "date": "2026-06-21",
+  "sensorWidthMm": 36,
+  "sky": { "model": "MULTIPLE_SCATTERING", "airDensity": 1.0, "aerosolDensity": 0.7, "ozoneDensity": 1.0 },
+  "terrain": { "extentM": 90, "stepM": 0.5 },
+  "lights": {
+    "schedule": {
+      "interior": { "offAboveElevationDeg": 9, "fullBelowElevationDeg": -2 },
+      "exterior": { "offAboveElevationDeg": 5, "fullBelowElevationDeg": -3 }
+    },
+    "ceiling": { "spacingM": 2.4, "marginM": 0.6, "lumens": 800, "kelvin": 2700, "radiusM": 0.06, "coneDeg": 110, "blend": 0.6 },
+    "terrace": { "spacingM": 2.2, "marginM": 0.7, "lumens": 600, "kelvin": 2700, "radiusM": 0.06, "coneDeg": 100, "blend": 0.6 },
+    "wall": { "kinds": { "entry": 1, "garage": 2 }, "height": 2.15, "offsetM": 0.12, "sideOffsetM": 0.5, "lumens": 450, "kelvin": 2700, "radiusM": 0.05, "coneDeg": 120, "blend": 0.7 },
+    "bollard": { "outdoorTypes": ["path"], "spacingM": 3.2, "height": 0.42, "sideOffsetM": 0.12, "lumens": 120, "kelvin": 2700, "radiusM": 0.04 },
+    "decor": {
+      "pendant": { "group": "interior", "lumens": 550, "kelvin": 2700, "radiusM": 0.09 },
+      "floor_lamp": { "group": "interior", "lumens": 700, "kelvin": 2700, "radiusM": 0.12, "lift": 1.45 },
+      "table_lamp": { "group": "interior", "lumens": 450, "kelvin": 2700, "radiusM": 0.1, "lift": 0.28 },
+      "desk_lamp": { "group": "interior", "lumens": 400, "kelvin": 3000, "radiusM": 0.06, "lift": 0.3 },
+      "lantern": { "group": "exterior", "lumens": 90, "kelvin": 2200, "radiusM": 0.05, "lift": 0.14 }
+    }
+  },
+  "blinds": {
+    "boxDepth": 0.14,
+    "railWidth": 0.03,
+    "railDepth": 0.045,
+    "slatPitch": 0.06,
+    "slatWidth": 0.06,
+    "slatThickness": 0.0025,
+    "standoff": 0.05,
+    "maxDrop": 1.0,
+    "cutoffMarginDeg": 8,
+    "closedSlatAngleDeg": 80
+  },
+  "pv": { "thicknessM": 0.035, "frameM": 0.03, "standoffM": 0.08 },
+  "vegetation": {
+    "species": {
+      "walnut": { "form": "broadleaf-round", "leaf": "#5f7f3a" },
+      "pine": { "form": "conifer-pine", "leaf": "#2e4a35" },
+      "apple": { "form": "orchard-round", "leaf": "#6f9448" },
+      "pear": { "form": "orchard-oval", "leaf": "#6a8f45" },
+      "birch": { "form": "birch-airy", "leaf": "#82a653" },
+      "crabapple": { "form": "orchard-round", "leaf": "#6c8f4a" },
+      "cherry": { "form": "broadleaf-oval", "leaf": "#5e8a3e" },
+      "yew_hedge": { "form": "hedge-dense", "leaf": "#263f2f" },
+      "hornbeam_hedge": { "form": "hedge-dense", "leaf": "#55803a" },
+      "lavender": { "form": "perennial-mound", "leaf": "#7d8f6d", "flower": "#8d78b5" },
+      "hydrangea": { "form": "shrub-round", "leaf": "#5c8040", "flower": "#e8e6dc" },
+      "miscanthus": { "form": "grass-tuft", "leaf": "#8aa65a" },
+      "yew_topiary": { "form": "topiary-ball", "leaf": "#2b4533" }
+    }
+  },
+  "stills": [
+    {
+      "id": "street-sunset",
+      "label": { "cs": "Vstup od ulice při západu slunce", "en": "Entrance from the street at sunset" },
+      "alt": {
+        "cs": "Severní fasáda s vraty garáže a vstupem v zlatém večerním světle, v oknech se rozsvěcí světlo.",
+        "en": "The north facade with the garage door and the entrance in golden evening light, the windows starting to glow."
+      },
+      "category": "exterior",
+      "time": "20:15",
+      "size": [1920, 1080],
+      "camera": { "position": [24.0, 29.5, 3.2], "target": [11.5, 9.5, 1.9], "focalMm": 22, "shift": [0, 0.02] },
+      "lights": { "interior": 0.55, "exterior": 0.5 },
+      "blinds": "open",
+      "notes": "Low sun from the north-west rakes across the facade and the drive. Keep the street side of the plot calm: plinth fence, gates, a little verge."
+    },
+    {
+      "id": "garden-afternoon",
+      "label": { "cs": "Zahrada a terasa odpoledne", "en": "Garden and terrace in the afternoon" },
+      "alt": {
+        "cs": "Krytá terasa s jídelním stolem a lehátkem, za ní zahrada a jižní fasáda domu v odpoledním slunci.",
+        "en": "The covered terrace with the dining table and the lounger, the garden and the south facade of the house in afternoon sun."
+      },
+      "category": "exterior",
+      "time": "16:40",
+      "size": [1920, 1080],
+      "camera": { "position": [-2.4, -2.6, 1.65], "target": [8.0, 1.8, 1.6], "focalMm": 22 },
+      "lights": "off",
+      "blinds": "auto",
+      "notes": "Sun from the west-south-west behind the camera, soft long shadows on the lawn. Show the terrace furniture and the long roof."
+    },
+    {
+      "id": "terrace-evening",
+      "label": { "cs": "Osvětlená terasa za soumraku", "en": "The lit terrace at dusk" },
+      "alt": {
+        "cs": "Osvětlená terasa a okna obýváku po západu slunce, na obloze doznívá oranžová záře.",
+        "en": "The lit terrace and the living room windows after sunset, an orange glow fading in the sky."
+      },
+      "category": "evening",
+      "time": "21:15",
+      "size": [1920, 1080],
+      "camera": { "position": [12.5, -9.5, 1.5], "target": [4.0, 2.0, 1.6], "focalMm": 24, "shift": [0, 0.04] },
+      "lights": "on",
+      "blinds": "open",
+      "notes": "Blue hour. Terrace downlights, lanterns, lit interior; sky glow in the north-west (right of the terrace)."
+    },
+    {
+      "id": "aerial",
+      "label": { "cs": "Dům z ptačí perspektivy", "en": "The house from above" },
+      "alt": {
+        "cs": "Pohled shora od jihozápadu: dlouhá valbová střecha s fotovoltaikou, zahrada, sousední domy a ulice.",
+        "en": "A view from above from the south-west: the long hip roof with solar panels, the garden, the neighbouring houses and the street."
+      },
+      "category": "aerial",
+      "time": "18:30",
+      "size": [1920, 1080],
+      "camera": { "position": [-22.0, -30.0, 30.0], "target": [11.5, 3.5, 1.5], "focalMm": 42 },
+      "lights": "off",
+      "blinds": "auto",
+      "notes": "Whole plot visible with the house at the centre of attention. Keep the horizon out or very high."
+    },
+    {
+      "id": "terrace-detail",
+      "label": { "cs": "Detail terasy", "en": "Terrace detail" },
+      "alt": {
+        "cs": "Dřevěné svislé lamely stíní západní stranu terasy, závěsné lehátko a stolek s lucernou.",
+        "en": "Vertical timber slats shade the west side of the terrace, with a hanging daybed and a side table with a lantern."
+      },
+      "category": "exterior",
+      "time": "17:45",
+      "size": [1920, 1080],
+      "camera": { "position": [5.2, 2.2, 1.35], "target": [-0.1, 4.0, 1.1], "focalMm": 26 },
+      "lights": "off",
+      "blinds": "auto",
+      "notes": "The low west sun shines through the slats and draws stripes on the floor."
+    },
+    {
+      "id": "living-garden",
+      "label": { "cs": "Obývací pokoj s kuchyní a výhledem do zahrady", "en": "Living room and kitchen looking to the garden" },
+      "alt": {
+        "cs": "Světlý otevřený prostor s kuchyňským ostrovem, jídelním stolem a pohovkou, prosklená stěna otevřená do zahrady.",
+        "en": "A bright open-plan space with a kitchen island, a dining table and a sofa, a glass wall opening to the garden."
+      },
+      "category": "interior",
+      "time": "11:00",
+      "size": [1920, 1080],
+      "camera": { "position": [13.1, 7.9, 1.4], "target": [8.8, 0.8, 1.15], "focalMm": 18 },
+      "lights": "off",
+      "blinds": "open",
+      "notes": "Daylight only. Blinds raised so the garden shows through the slider."
+    },
+    {
+      "id": "bedroom",
+      "label": { "cs": "Hlavní ložnice ráno", "en": "Primary bedroom in the morning" },
+      "alt": {
+        "cs": "Ložnice s dvoulůžkem a křeslem, ranní slunce proniká východním oknem a jižním oknem do zahrady.",
+        "en": "The bedroom with a double bed and an armchair, morning sun entering through the east window, the south window facing the garden."
+      },
+      "category": "interior",
+      "time": "08:30",
+      "size": [1920, 1080],
+      "camera": { "position": [19.0, 0.6, 1.3], "target": [21.4, 3.2, 0.95], "focalMm": 20 },
+      "lights": "off",
+      "blinds": "auto",
+      "notes": "Warm low sun from the east. Do not let the window glass go white."
+    },
+    {
+      "id": "garage",
+      "label": { "cs": "Garáž pro dvě auta", "en": "The two-car garage" },
+      "alt": {
+        "cs": "Garáž se dvěma zaparkovanými auty, policemi a vraty, osvětlená stropními světly.",
+        "en": "The garage with two parked cars, shelving and the garage door, lit by ceiling lights."
+      },
+      "category": "interior",
+      "time": "11:00",
+      "size": [1920, 1080],
+      "camera": { "position": [6.2, 11.2, 1.45], "target": [1.2, 6.4, 0.8], "focalMm": 16 },
+      "lights": "on",
+      "blinds": "auto",
+      "notes": "Interior lights on, daylight only from the small west window and the door seams."
+    },
+    {
+      "id": "south-facade",
+      "label": { "cs": "Jižní fasáda s fotovoltaikou a žaluziemi", "en": "South facade with solar panels and blinds" },
+      "alt": {
+        "cs": "Jižní strana domu v poledním slunci: 36 fotovoltaických panelů na střeše a spuštěné venkovní žaluzie.",
+        "en": "The south side of the house in midday sun: 36 solar panels on the roof and the external blinds lowered."
+      },
+      "category": "exterior",
+      "time": "13:30",
+      "size": [1920, 1080],
+      "camera": { "position": [11.5, -16.5, 3.4], "target": [11.5, 3.0, 2.8], "focalMm": 26 },
+      "lights": "off",
+      "blinds": "auto",
+      "notes": "The blinds on the sunny glazing are lowered by the rule. The PV field fills the south roof plane."
+    }
+  ],
+  "day": {
+    "ranges": [
+      { "from": "08:00", "to": "15:00", "stepMin": 60 },
+      { "from": "16:00", "to": "19:40", "stepMin": 20 },
+      { "from": "20:00", "to": "21:30", "stepMin": 10 }
+    ],
+    "size": [1920, 1080],
+    "camera": { "position": [1.0, 0.45, 1.45], "target": [-7.0, -0.9, 1.9], "focalMm": 18, "shift": [0, 0.06] },
+    "portrait": { "aspect": [2, 3], "centerX": 0.5 },
+    "stillTime": "13:00",
+    "lights": "auto",
+    "blinds": "auto"
+  },
+  "orbit": {
+    "time": "19:55",
+    "frameCount": 300,
+    "fps": 24,
+    "scrollStep": 5,
+    "targetZ": 1.8,
+    "startAzimuthDeg": 215,
+    "direction": "counterclockwise",
+    "elevationDeg": 27,
+    "focalMm": 28,
+    "fitMargin": 0.1,
+    "radiusSlack": 1.0,
+    "breathing": { "heightM": 0.9, "radiusFraction": 0.0 },
+    "lights": { "interior": 0.35, "exterior": 0.25 },
+    "blinds": "auto",
+    "variants": [
+      { "id": "landscape", "size": [1920, 1080], "frameSelection": "all" },
+      { "id": "portrait", "size": [1080, 1620], "frameSelection": "scroll", "focalMm": 24, "fitMargin": -0.12 }
+    ]
+  },
+  "compare": {
+    "id": "day-night",
+    "size": [1920, 1080],
+    "camera": { "position": [13.1, 7.9, 1.4], "target": [8.8, 0.8, 1.15], "focalMm": 18 },
+    "alt": {
+      "cs": "Obývací pokoj s kuchyní ve dne a večer: stejný pohled, večer svítí závěsná světla a venku se stmívá.",
+      "en": "The living room and kitchen by day and in the evening: the same view, with the pendant lights on and dusk outside."
+    },
+    "before": { "time": "14:00", "lights": "off", "blinds": "open", "label": { "cs": "Odpoledne", "en": "Afternoon" } },
+    "after": { "time": "21:20", "lights": "on", "blinds": "open", "label": { "cs": "Večer", "en": "Evening" } }
+  },
+  "og": {
+    "id": "og",
+    "size": [1200, 630],
+    "time": "19:50",
+    "camera": { "position": [11.5, -23.0, 3.2], "target": [11.5, 3.0, 2.7], "focalMm": 24 },
+    "lights": { "interior": 0.4, "exterior": 0.3 },
+    "blinds": "open",
+    "alt": {
+      "cs": "Dům Dlouhá střecha v zlatém večerním světle.",
+      "en": "The Long Roof House in golden evening light."
+    }
+  }
+}
