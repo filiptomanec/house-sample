@@ -1,0 +1,12 @@
+#!/bin/sh
+# Privacy gate for commits: scans the staged files (index version) and their names, and checks the commit identity.
+# The scanner never prints a matched value. Bypass for emergencies only: git commit --no-verify.
+# Without the local denylist the hook refuses to run; set PRIVACY_ALLOW_NO_DENYLIST=1 to run the generic checks only.
+HOOK_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+ROOT=$(git rev-parse --show-toplevel) || exit 1
+SCAN="$HOOK_DIR/../scripts/privacy/scan.mjs"
+command -v node >/dev/null 2>&1 || { echo "privacy: node is required to run the scanner" >&2; exit 1; }
+STRICT="--strict"
+[ -n "$PRIVACY_ALLOW_NO_DENYLIST" ] && STRICT=""
+# shellcheck disable=SC2086
+exec node "$SCAN" --staged --identity $STRICT --root "$ROOT" --quiet

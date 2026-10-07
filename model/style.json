@@ -1,0 +1,409 @@
+{
+  "schema": "style/1",
+  "description": {
+    "cs": "Materiály podle rolí a varianty vzhledu pro web i rendery. Barvy jsou sladěné s tokeny webu (src/styles/tokens.css).",
+    "en": "Materials by role and look variants for the web and the renders. Colours are in step with the design tokens (src/styles/tokens.css)."
+  },
+  "palette": {
+    "graphite": "#1b1e21",
+    "ivory": "#f4f1e8",
+    "mint": "#5fd6ae"
+  },
+  "materials": {
+    "plaster": {
+      "name": {
+        "cs": "Venkovní omítka",
+        "en": "Exterior plaster"
+      },
+      "color": "#e9e5d8",
+      "roughness": 0.92
+    },
+    "wood_cladding": {
+      "name": {
+        "cs": "Dřevěný obklad",
+        "en": "Timber cladding"
+      },
+      "color": "#cdc4ae",
+      "roughness": 0.7
+    },
+    "frame": {
+      "name": {
+        "cs": "Rámy oken a dveří",
+        "en": "Window and door frames"
+      },
+      "color": "#2b2e31",
+      "roughness": 0.42,
+      "metallic": 0.55
+    },
+    "glass": {
+      "name": {
+        "cs": "Sklo",
+        "en": "Glass"
+      },
+      "color": "#bcd2d6",
+      "roughness": 0.03,
+      "metallic": 0.0,
+      "alpha": 0.18
+    },
+    "sill": {
+      "name": {
+        "cs": "Parapety",
+        "en": "Sills"
+      },
+      "color": "#8c9196",
+      "roughness": 0.35,
+      "metallic": 0.7
+    },
+    "soffit": {
+      "name": {
+        "cs": "Podhled přesahu",
+        "en": "Eaves soffit"
+      },
+      "color": "#cfc7b3",
+      "roughness": 0.8
+    },
+    "fascia": {
+      "name": {
+        "cs": "Okapní deska",
+        "en": "Fascia"
+      },
+      "color": "#2d3033",
+      "roughness": 0.5,
+      "metallic": 0.4
+    },
+    "gutter": {
+      "name": {
+        "cs": "Žlaby",
+        "en": "Gutters"
+      },
+      "color": "#3a3f43",
+      "roughness": 0.4,
+      "metallic": 0.7
+    },
+    "roof_tile": {
+      "name": {
+        "cs": "Střešní krytina",
+        "en": "Roof covering"
+      },
+      "color": "#34383c",
+      "roughness": 0.75
+    },
+    "ridge_cap": {
+      "name": {
+        "cs": "Hřebenáče",
+        "en": "Ridge caps"
+      },
+      "color": "#2c3034",
+      "roughness": 0.7
+    },
+    "ceiling": {
+      "name": {
+        "cs": "Strop",
+        "en": "Ceiling"
+      },
+      "color": "#f4f2ea",
+      "roughness": 0.95
+    },
+    "plaster_in": {
+      "name": {
+        "cs": "Vnitřní omítka",
+        "en": "Interior plaster"
+      },
+      "color": "#f1efe7",
+      "roughness": 0.95
+    },
+    "door_leaf": {
+      "name": {
+        "cs": "Vstupní dveře",
+        "en": "Entrance door"
+      },
+      "color": "#3fb48f",
+      "roughness": 0.5
+    },
+    "slab": {
+      "name": {
+        "cs": "Základová deska",
+        "en": "Floor slab"
+      },
+      "color": "#9b9e9d",
+      "roughness": 0.9
+    },
+    "floor_oak": {
+      "name": {
+        "cs": "Dubová podlaha",
+        "en": "Oak floor"
+      },
+      "color": "#c8bea9",
+      "roughness": 0.6
+    },
+    "floor_tile": {
+      "name": {
+        "cs": "Dlažba",
+        "en": "Floor tiles"
+      },
+      "color": "#b8bbb9",
+      "roughness": 0.35
+    },
+    "floor_stone": {
+      "name": {
+        "cs": "Kamenná podlaha",
+        "en": "Stone floor"
+      },
+      "color": "#a6a8a3",
+      "roughness": 0.6
+    },
+    "floor_concrete": {
+      "name": {
+        "cs": "Leštěný beton",
+        "en": "Polished concrete"
+      },
+      "color": "#8f9293",
+      "roughness": 0.8
+    },
+    "terrace_paving": {
+      "name": {
+        "cs": "Dlažba terasy",
+        "en": "Terrace paving"
+      },
+      "color": "#a4a7a3",
+      "roughness": 0.85
+    },
+    "drive_paving": {
+      "name": {
+        "cs": "Zpevněná plocha",
+        "en": "Driveway paving"
+      },
+      "color": "#7e8184",
+      "roughness": 0.9
+    },
+    "path": {
+      "name": {
+        "cs": "Chodníky",
+        "en": "Paths"
+      },
+      "color": "#b9bab2",
+      "roughness": 0.9
+    },
+    "gravel": {
+      "name": {
+        "cs": "Štěrk",
+        "en": "Gravel"
+      },
+      "color": "#aaa8a0",
+      "roughness": 1.0
+    },
+    "post": {
+      "name": {
+        "cs": "Sloupky",
+        "en": "Posts"
+      },
+      "color": "#2d3033",
+      "roughness": 0.5,
+      "metallic": 0.5
+    },
+    "screen_slats": {
+      "name": {
+        "cs": "Latě stínění",
+        "en": "Screen slats"
+      },
+      "color": "#cdc4ae",
+      "roughness": 0.7
+    },
+    "lawn": {
+      "name": {
+        "cs": "Trávník",
+        "en": "Lawn"
+      },
+      "color": "#7da36d",
+      "roughness": 1.0
+    },
+    "mulch": {
+      "name": {
+        "cs": "Mulč",
+        "en": "Mulch"
+      },
+      "color": "#675f58",
+      "roughness": 1.0
+    }
+  },
+  "looks": {
+    "facade": {
+      "label": {
+        "cs": "Fasáda",
+        "en": "Façade"
+      },
+      "options": [
+        {
+          "id": "ivory",
+          "name": {
+            "cs": "Slonová kost",
+            "en": "Ivory"
+          },
+          "default": true,
+          "set": {
+            "plaster": {
+              "color": "#e9e5d8"
+            }
+          }
+        },
+        {
+          "id": "pale-grey",
+          "name": {
+            "cs": "Světle šedá",
+            "en": "Pale grey"
+          },
+          "set": {
+            "plaster": {
+              "color": "#cfd2d0"
+            }
+          }
+        },
+        {
+          "id": "mint-mist",
+          "name": {
+            "cs": "Mátová mlha",
+            "en": "Mint mist"
+          },
+          "set": {
+            "plaster": {
+              "color": "#cfe0d6"
+            }
+          }
+        },
+        {
+          "id": "graphite",
+          "name": {
+            "cs": "Grafit",
+            "en": "Graphite"
+          },
+          "set": {
+            "plaster": {
+              "color": "#3c4146"
+            }
+          }
+        }
+      ]
+    },
+    "wood": {
+      "label": {
+        "cs": "Dřevo",
+        "en": "Timber"
+      },
+      "options": [
+        {
+          "id": "pale-ash",
+          "name": {
+            "cs": "Světlý jasan",
+            "en": "Pale ash"
+          },
+          "default": true,
+          "set": {
+            "wood_cladding": {
+              "color": "#cdc4ae"
+            },
+            "screen_slats": {
+              "color": "#cdc4ae"
+            }
+          }
+        },
+        {
+          "id": "weathered-silver",
+          "name": {
+            "cs": "Stříbřité stárnuté",
+            "en": "Weathered silver"
+          },
+          "set": {
+            "wood_cladding": {
+              "color": "#8d908b"
+            },
+            "screen_slats": {
+              "color": "#8d908b"
+            }
+          }
+        },
+        {
+          "id": "charred-black",
+          "name": {
+            "cs": "Opalované černé",
+            "en": "Charred black"
+          },
+          "set": {
+            "wood_cladding": {
+              "color": "#2b2a28",
+              "roughness": 0.85
+            },
+            "screen_slats": {
+              "color": "#2b2a28",
+              "roughness": 0.85
+            }
+          }
+        },
+        {
+          "id": "none",
+          "name": {
+            "cs": "Bez dřeva",
+            "en": "No timber"
+          },
+          "substitute": {
+            "wood_cladding": "plaster",
+            "screen_slats": "frame"
+          }
+        }
+      ]
+    },
+    "roof": {
+      "label": {
+        "cs": "Střecha",
+        "en": "Roof"
+      },
+      "options": [
+        {
+          "id": "anthracite",
+          "name": {
+            "cs": "Antracit",
+            "en": "Anthracite"
+          },
+          "default": true,
+          "set": {
+            "roof_tile": {
+              "color": "#34383c"
+            },
+            "ridge_cap": {
+              "color": "#2c3034"
+            }
+          }
+        },
+        {
+          "id": "dark-grey",
+          "name": {
+            "cs": "Tmavě šedá",
+            "en": "Dark grey"
+          },
+          "set": {
+            "roof_tile": {
+              "color": "#5b6064"
+            },
+            "ridge_cap": {
+              "color": "#51565a"
+            }
+          }
+        },
+        {
+          "id": "brown-grey",
+          "name": {
+            "cs": "Tmavá hnědošedá",
+            "en": "Dark brown-grey"
+          },
+          "set": {
+            "roof_tile": {
+              "color": "#4b4540"
+            },
+            "ridge_cap": {
+              "color": "#413c38"
+            }
+          }
+        }
+      ]
+    }
+  }
+}

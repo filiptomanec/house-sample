@@ -1,0 +1,78 @@
+{
+  "id": "C",
+  "name": "Štíhlý kompakt s páteřní chodbou",
+  "netArea": 166.27,
+  "garageArea": 36.88,
+  "areaByType": {
+    "garage": 36.88,
+    "utility": 9.08,
+    "pantry": 3.51,
+    "living": 46.85,
+    "office": 11.86,
+    "hall": 18.66,
+    "corridor": 8.18,
+    "wc": 1.73,
+    "kids": 26.76,
+    "bath": 15.88,
+    "bedroom": 16.08,
+    "wardrobe": 7.68
+  },
+  "roomCount": 14,
+  "footprintArea": 253.14,
+  "footprintBBox": {
+    "w": 23.5,
+    "d": 12.3
+  },
+  "footprintPerimeter": 71.6,
+  "volume": 1040.8,
+  "volumeWalls": 772.1,
+  "volumeRoof": 268.7,
+  "roofArea": 389.8,
+  "roofAreaOverFootprint": 273,
+  "ridges": [
+    {
+      "id": "T1",
+      "height": 5.53,
+      "length": 11.2
+    },
+    {
+      "id": "T2",
+      "height": 3.78,
+      "length": 2.4
+    }
+  ],
+  "ridgeMax": 5.53,
+  "terraceCovered": 35.91,
+  "terraceUncovered": 0,
+  "outdoorByType": {
+    "terrace": 35.91,
+    "paving": 60.58,
+    "drive": 52.39,
+    "path": 8.47
+  },
+  "glazing": {
+    "total": 36.41,
+    "N": 5.7,
+    "E": 4.56,
+    "S": 18.39,
+    "W": 7.76
+  },
+  "glazingRatio": 0.22,
+  "envelopeArea": 744.5,
+  "envelopeToVolume": 0.72,
+  "roofSouthArea": 135.9,
+  "roofAreaByAzimuth": {
+    "N": 136,
+    "E": 58.9,
+    "S": 135.9,
+    "W": 59
+  },
+  "pvKwp": 14.7,
+  "validation": {
+    "valid": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "errors": [],
+    "warnings": []
+  }
+}

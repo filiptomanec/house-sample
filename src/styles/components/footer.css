@@ -1,0 +1,19 @@
+/* Footer: about, pages, project and licences. */
+
+.footer { border-top: 1px solid var(--rule); padding-block: var(--sp-7) calc(40px + env(safe-area-inset-bottom)); font-size: var(--fs-sm); color: var(--ink-2); }
+.footer b, .footer h2 { display: block; color: var(--ink); font-size: inherit; font-weight: var(--weight-strong); letter-spacing: normal; line-height: var(--lh-body); margin-bottom: 6px; }
+.footer-grid { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr); gap: var(--sp-6) var(--sp-7); align-items: start; }
+.footer p + p { margin-top: var(--sp-2); }
+.foot-links { list-style: none; margin: 0; padding: 0; }
+.foot-links a { display: inline-block; padding-block: 4px; text-decoration: none; transition: color var(--dur-1); }
+.foot-links a:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+.foot-links a[aria-current="page"] { color: var(--ink); }
+.foot-note { margin-top: var(--sp-6); padding-top: var(--sp-5); border-top: 1px solid var(--rule); display: flex; flex-wrap: wrap; gap: var(--sp-2) var(--sp-5); justify-content: space-between; }
+
+@media (max-width: 900px) { .footer-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .foot-about { grid-column: 1 / -1; } }
+@media (max-width: 640px) { .footer-grid { grid-template-columns: minmax(0, 1fr); gap: 28px; } }
+@media (max-width: 900px), (pointer: coarse) {
+  /* 44 px touch targets */
+  .foot-links { margin-block: -7px; }
+  .foot-links a { padding-block: 11px; }
+}

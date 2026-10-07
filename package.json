@@ -15,7 +15,15 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "check:bundles": "node scripts/check-bundles.mjs"
+    "check:bundles": "node scripts/check-bundles.mjs",
+    "model:validate": "tsx scripts/model-validate.ts",
+    "model:build": "tsx scripts/build-derived.ts",
+    "check:model": "tsx scripts/build-derived.ts --check",
+    "pvgis:fetch": "tsx scripts/fetch-pvgis.ts",
+    "pvgis:build": "tsx scripts/build-pvgis.ts",
+    "privacy": "node scripts/privacy/scan.mjs --all",
+    "privacy:staged": "node scripts/privacy/scan.mjs --staged --identity",
+    "verify": "npm run typecheck && npm run lint && npm test && npm run build && npm run check:bundles"
   },
   "dependencies": {
     "geist": "^1.7.2",
@@ -41,5 +49,10 @@
     "tsx": "^4.23.15",
     "typescript": "^5",
     "vitest": "^3.2.7"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/filiptomanec/house-sample.git"
+  },
+  "homepage": "https://house-sample.filiptomanec.cz"
 }

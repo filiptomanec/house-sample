@@ -1,0 +1,48 @@
+/* Layout primitives: page shell, sections, grids, panels, the heading block of the tool pages. */
+
+.shell { width: 100%; max-width: var(--shell); margin-inline: auto; padding-inline: var(--gutter-l) var(--gutter-r); }
+.section { padding-block: var(--section-y); }
+.section-sm { padding-block: var(--section-y-sm); }
+.rule { border: 0; border-top: 1px solid var(--rule); margin: 0; }
+.grid-12 { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: clamp(16px, 2vw, 28px); }
+.stack { display: grid; gap: 18px; }
+.cols-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-4); }
+.panel { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r-md); }
+.panel-pad { padding: clamp(16px, 2vw, 24px); }
+.split-head { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 20px 48px; align-items: end; margin-bottom: clamp(28px, 4vw, 48px); }
+
+/* kicker: small number + label above a heading */
+.kicker { display: flex; align-items: baseline; gap: 14px; margin: 0 0 clamp(20px, 3vw, 36px); }
+.kicker .n { font: var(--weight-medium) var(--fs-xs) / 1 var(--font-mono); color: var(--accent-ink); letter-spacing: 0.06em; }
+
+/* the heading block of a tool page (ToolHead) */
+.tool-head {
+  padding-top: calc(var(--nav-h) + env(safe-area-inset-top) + clamp(28px, 5vw, 64px));
+  padding-bottom: clamp(20px, 3vw, 36px);
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px 40px; align-items: end;
+}
+.tool-head .kicker { grid-column: 1; margin: 0; }
+.tool-head .h1, .tool-head .lede { grid-column: 1; }
+.tool-head .aside { grid-column: 2; grid-row: 1 / span 3; align-self: end; text-align: right; }
+
+/* index: a numbered list of pages with a one-line description (home page, section overviews) */
+.index { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--rule-2); }
+.index a { display: grid; grid-template-columns: 3em minmax(0, 1fr) minmax(0, 1fr) 2em; align-items: baseline; gap: var(--sp-4); padding: clamp(16px, 2vw, 26px) 0; border-bottom: 1px solid var(--rule); text-decoration: none; transition: padding var(--dur-3) var(--ease); }
+.index a:hover { padding-left: var(--sp-3); }
+.index a:hover .a { transform: translateX(6px); color: var(--accent-ink); }
+.index .n { font: var(--weight-medium) var(--fs-xs) / 1 var(--font-mono); color: var(--accent-ink); }
+.index b { font-size: clamp(1.625rem, 3.4vw, 3rem); font-weight: var(--weight-strong); letter-spacing: -0.045em; line-height: 1.05; }
+.index .d { color: var(--ink-2); font-size: 1rem; }
+.index .a { font-size: 1.375rem; justify-self: end; transition: transform var(--dur-2) var(--ease), color var(--dur-1); }
+
+@media (max-width: 900px) {
+  .split-head { grid-template-columns: 1fr; }
+  .tool-head { grid-template-columns: 1fr; }
+  .tool-head .aside { grid-column: 1; grid-row: auto; text-align: left; }
+}
+@media (max-width: 640px) {
+  .cols-2 { grid-template-columns: 1fr; }
+  .index a { grid-template-columns: 2.4em minmax(0, 1fr) 1.5em; }
+  .index .d { grid-column: 2; grid-row: 2; font-size: var(--fs-sm); }
+  .index .a { grid-column: 3; grid-row: 1; }
+}

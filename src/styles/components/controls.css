@@ -1,0 +1,72 @@
+/* Form controls of the tools: field, slider, segmented control, switch, number input, details groups.
+   Touch screens get 44 px targets and 16 px text (iOS zooms into smaller fields). */
+
+.field { display: grid; gap: var(--sp-2); min-width: 0; }
+.field-top { display: flex; justify-content: space-between; align-items: baseline; gap: var(--sp-3); font-size: 0.90625rem; }
+.field-top output, .field-top .val { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: var(--fs-sm); white-space: nowrap; }
+.field .hint { font-size: 0.8125rem; color: var(--ink-3); line-height: 1.4; }
+.field .hint.err { color: var(--bad); }
+
+/* ---------------------------------------------------------------- slider */
+input[type="range"] { -webkit-appearance: none; appearance: none; width: 100%; height: 28px; background: transparent; touch-action: pan-y; margin: 0; }
+input[type="range"]::-webkit-slider-runnable-track { height: 3px; border-radius: 3px; background: linear-gradient(to right, var(--accent) var(--p, 50%), var(--rule-2) var(--p, 50%)); }
+input[type="range"]::-moz-range-track { height: 3px; border-radius: 3px; background: var(--rule-2); }
+input[type="range"]::-moz-range-progress { height: 3px; border-radius: 3px; background: var(--accent); }
+input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; margin-top: -9.5px; border-radius: 50%; background: var(--surface-2); border: 1.5px solid var(--accent); box-shadow: var(--shadow-1); transition: transform var(--dur-1) var(--ease); }
+input[type="range"]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 50%; background: var(--surface-2); border: 1.5px solid var(--accent); }
+input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.12); }
+
+/* ---------------------------------------------------------------- segmented control (class "seg fit")
+   Equal segments in one row while the labels fit. The component measures them and otherwise switches to a balanced
+   grid (data-fit="grid", four as 2 x 2) or a stack with wrapping labels (data-fit="stack"). A label is never cut off. */
+.seg { --seg-h: 36px; display: inline-flex; padding: 3px; border-radius: calc(var(--seg-h) / 2 + 4px); background: var(--bg-2); border: 1px solid var(--rule); max-width: 100%; min-width: 0; }
+.seg button { min-height: var(--seg-h); padding: 0 12px; border: 0; border-radius: var(--r-pill); background: transparent; font-size: var(--fs-sm); color: var(--ink-2); white-space: nowrap; transition: background var(--dur-1) var(--ease), color var(--dur-1), box-shadow var(--dur-1); }
+.seg button[aria-pressed="true"] { background: var(--surface-2); color: var(--ink); box-shadow: var(--shadow-1), inset 0 0 0 1px var(--rule); }
+.seg.fit { display: grid; grid-auto-flow: row; grid-template-columns: repeat(var(--seg-cols), minmax(max-content, 1fr)); gap: 2px; }
+.seg.fit > button > span { display: inline-block; }
+.seg.fit[data-fit="stack"] { grid-template-columns: minmax(0, 1fr); }
+.seg.fit[data-fit="stack"] > button { white-space: normal; text-wrap: balance; line-height: 1.25; padding-block: 6px; }
+.seg.fit[data-measure] > button > span { white-space: nowrap; }
+/* in a toolbar (flex row) a wrapped or stacked control takes a line of its own */
+.field:has(> .seg.fit:is([data-fit="grid"], [data-fit="stack"])) { flex: 1 1 100%; }
+/* server HTML before the first measurement: scroll inside the track rather than spill out of the panel */
+.seg.fit:not([data-fit]) { overflow-x: auto; scrollbar-width: none; }
+.seg.fit:not([data-fit])::-webkit-scrollbar { display: none; }
+
+/* ---------------------------------------------------------------- switch */
+.switch { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-4); min-height: var(--touch); font-size: 0.90625rem; cursor: pointer; }
+.switch input { -webkit-appearance: none; appearance: none; flex: none; width: 44px; height: 26px; border-radius: var(--r-pill); background: var(--rule-2); position: relative; transition: background var(--dur-1); margin: 0; cursor: pointer; }
+.switch input::after { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: var(--surface-2); box-shadow: var(--shadow-1); transition: transform var(--dur-2) var(--ease); }
+.switch input:checked { background: var(--accent); }
+.switch input:checked::after { transform: translateX(18px); }
+
+/* ---------------------------------------------------------------- number input and select */
+.numin { width: 100%; min-height: 40px; padding: 0 10px; border-radius: var(--r-sm); border: 1px solid var(--rule-2); background: var(--surface); font-family: var(--font-mono); font-size: 1rem; text-align: right; }
+.numin[aria-invalid="true"] { border-color: var(--bad); box-shadow: inset 0 0 0 1px var(--bad); }
+select.numin { text-align: left; font-family: var(--font-sans); }
+input[type="number"].numin { -moz-appearance: textfield; appearance: textfield; }
+input[type="number"].numin::-webkit-outer-spin-button, input[type="number"].numin::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+/* ---------------------------------------------------------------- collapsible group (details) */
+.grp { border-bottom: 1px solid var(--rule); padding-block: var(--sp-3); }
+.grp:first-child { padding-top: 0; }
+.grp > summary { list-style: none; cursor: pointer; display: flex; justify-content: space-between; align-items: center; min-height: 32px; }
+.grp > summary::-webkit-details-marker { display: none; }
+.grp > summary::after { content: ""; width: 7px; height: 7px; margin: 0 4px 4px 0; border-right: 1.5px solid var(--ink-3); border-bottom: 1.5px solid var(--ink-3); transform: rotate(45deg); transition: transform var(--dur-2) var(--ease); }
+.grp[open] > summary::after { transform: translateY(3px) rotate(-135deg); }
+.grp > .stack { padding-top: var(--sp-3); }
+
+/* ---------------------------------------------------------------- touch screens */
+@media (pointer: coarse) {
+  .seg { --seg-h: var(--touch); }
+  :is(.seg button) { min-height: var(--touch); }
+  .numin { min-height: var(--touch); }
+  /* iOS moves a slider only by its thumb: taller hit area and a larger thumb (the component also jumps on a tap on the track) */
+  input[type="range"] { height: var(--touch); }
+  input[type="range"]::-webkit-slider-thumb { width: 28px; height: 28px; margin-top: -12.5px; }
+  input[type="range"]::-moz-range-thumb { width: 26px; height: 26px; }
+  .grp > summary { min-height: var(--touch); }
+}
+/* iOS Safari zooms into a focused field whose text is under 16 px and stays zoomed. !important also beats inline sizes. */
+@media (pointer: coarse) { .numin, select, textarea { font-size: 16px !important; } }
+@supports (-webkit-touch-callout: none) { .numin, select, textarea { font-size: 16px !important; } }

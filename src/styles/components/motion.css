@@ -1,0 +1,16 @@
+/* Reveal on scroll and the entrance of the heading blocks. Content is visible without JS and with reduced motion. */
+
+.rv { transition: opacity 1s var(--ease), transform 1s var(--ease); }
+.js-reveal .rv:not(.in) { opacity: 0; transform: translateY(28px); }
+@media (prefers-reduced-motion: reduce) {
+  .js-reveal .rv:not(.in) { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* `backwards` only: once done, no animation stays in effect (no lingering stacking context) */
+  .tool-head > *, .state > * { animation: rise 0.9s var(--ease) backwards; }
+  .tool-head > :nth-child(2), .state > :nth-child(2) { animation-delay: 0.07s; }
+  .tool-head > :nth-child(3), .state > :nth-child(3) { animation-delay: 0.14s; }
+  .tool-head > :nth-child(n + 4), .state > :nth-child(n + 4) { animation-delay: 0.21s; }
+}
+@keyframes rise { from { opacity: 0; transform: translateY(16px); } }

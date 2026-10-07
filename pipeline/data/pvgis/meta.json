@@ -1,0 +1,285 @@
+{
+ "schema": "pvgis-raw/1",
+ "apiBase": "https://re.jrc.ec.europa.eu/api/v5_3",
+ "radiationDb": "PVGIS-SARAH3",
+ "params": {
+  "lat": 49.2,
+  "lon": 16.6,
+  "pitch": 22,
+  "bearing": 12,
+  "loss": 14
+ },
+ "paramSources": {
+  "lat": "default",
+  "lon": "default",
+  "pitch": "default",
+  "bearing": "default",
+  "loss": "default"
+ },
+ "requests": [
+  {
+   "file": "pvcalc-N.json",
+   "endpoint": "PVcalc",
+   "kind": "pvcalc",
+   "facing": "N",
+   "angle": 22,
+   "aspect": -168,
+   "query": {
+    "lat": 49.2,
+    "lon": 16.6,
+    "raddatabase": "PVGIS-SARAH3",
+    "usehorizon": 1,
+    "outputformat": "json",
+    "peakpower": 1,
+    "loss": 14,
+    "pvtechchoice": "crystSi",
+    "mountingplace": "free",
+    "angle": 22,
+    "aspect": -168
+   },
+   "fetchedAt": "2026-10-07"
+  },
+  {
+   "file": "pvcalc-E.json",
+   "endpoint": "PVcalc",
+   "kind": "pvcalc",
+   "facing": "E",
+   "angle": 22,
+   "aspect": -78,
+   "query": {
+    "lat": 49.2,
+    "lon": 16.6,
+    "raddatabase": "PVGIS-SARAH3",
+    "usehorizon": 1,
+    "outputformat": "json",
+    "peakpower": 1,
+    "loss": 14,
+    "pvtechchoice": "crystSi",
+    "mountingplace": "free",
+    "angle": 22,
+    "aspect": -78
+   },
+   "fetchedAt": "2026-10-07"
+  },
+  {
+   "file": "pvcalc-S.json",
+   "endpoint": "PVcalc",
+   "kind": "pvcalc",
+   "facing": "S",
+   "angle": 22,
+   "aspect": 12,
+   "query": {
+    "lat": 49.2,
+    "lon": 16.6,
+    "raddatabase": "PVGIS-SARAH3",
+    "usehorizon": 1,
+    "outputformat": "json",
+    "peakpower": 1,
+    "loss": 14,
+    "pvtechchoice": "crystSi",
+    "mountingplace": "free",
+    "angle": 22,
+    "aspect": 12
+   },
+   "fetchedAt": "2026-10-07"
+  },
+  {
+   "file": "pvcalc-W.json",
+   "endpoint": "PVcalc",
+   "kind": "pvcalc",
+   "facing": "W",
+   "angle": 22,
+   "aspect": 102,
+   "query": {
+    "lat": 49.2,
+    "lon": 16.6,
+    "raddatabase": "PVGIS-SARAH3",
+    "usehorizon": 1,
+    "outputformat": "json",
+    "peakpower": 1,
+    "loss": 14,
+    "pvtechchoice": "crystSi",
+    "mountingplace": "free",
+    "angle": 22,
+    "aspect": 102
+   },
+   "fetchedAt": "2026-10-07"
+  },
+  {
+   "file": "dr-N.json",
+   "endpoint": "DRcalc",
+   "kind": "dr-roof",
+   "facing": "N",
+   "angle": 22,
+   "aspect": -168,
+   "query": {
+    "lat": 49.2,
+    "lon": 16.6,
+    "raddatabase": "PVGIS-SARAH3",
+    "usehorizon": 1,
+    "outputformat": "json",
+    "angle": 22,
+    "aspect": -168,
+    "month": 0,
+    "global": 1,
+    "localtime": 0,
+    "showtemperatures": 1
+   },
+   "fetchedAt": "2026-10-07"
+  },
+  {
+   "file": "dr-E.json",
+   "endpoint": "DRcalc",
+   "kind": "dr-roof",
+   "facing": "E",
+   "angle": 22,
+   "aspect": -78,
+   "query": {
+    "lat": 49.2,
+    "lon": 16.6,
+    "raddatabase": "PVGIS-SARAH3",
+    "usehorizon": 1,
+    "outputformat": "json",
+    "angle": 22,
+    "aspect": -78,
+    "month": 0,
+    "global": 1,
+    "localtime": 0,
+    "showtemperatures": 1
+   },
+   "fetchedAt": "2026-10-07"
+  },
+  {
+   "file": "dr-S.json",
+   "endpoint": "DRcalc",
+   "kind": "dr-roof",
+   "facing": "S",
+   "angle": 22,
+   "aspect": 12,
+   "query": {
+    "lat": 49.2,
+    "lon": 16.6,
+    "raddatabase": "PVGIS-SARAH3",
+    "usehorizon": 1,
+    "outputformat": "json",
+    "angle": 22,
+    "aspect": 12,
+    "month": 0,
+    "global": 1,
+    "localtime": 0,
+    "showtemperatures": 1
+   },
+   "fetchedAt": "2026-10-07"
+  },
+  {
+   "file": "dr-W.json",
+   "endpoint": "DRcalc",
+   "kind": "dr-roof",
+   "facing": "W",
+   "angle": 22,
+   "aspect": 102,
+   "query": {
+    "lat": 49.2,
+    "lon": 16.6,
+    "raddatabase": "PVGIS-SARAH3",
+    "usehorizon": 1,
+    "outputformat": "json",
+    "angle": 22,
+    "aspect": 102,
+    "month": 0,
+    "global": 1,
+    "localtime": 0,
+    "showtemperatures": 1
+   },
+   "fetchedAt": "2026-10-07"
+  },
+  {
+   "file": "dr90-N.json",
+   "endpoint": "DRcalc",
+   "kind": "dr-vertical",
+   "facing": "N",
+   "angle": 90,
+   "aspect": -168,
+   "query": {
+    "lat": 49.2,
+    "lon": 16.6,
+    "raddatabase": "PVGIS-SARAH3",
+    "usehorizon": 1,
+    "outputformat": "json",
+    "angle": 90,
+    "aspect": -168,
+    "month": 0,
+    "global": 1,
+    "localtime": 0,
+    "showtemperatures": 1
+   },
+   "fetchedAt": "2026-10-07"
+  },
+  {
+   "file": "dr90-E.json",
+   "endpoint": "DRcalc",
+   "kind": "dr-vertical",
+   "facing": "E",
+   "angle": 90,
+   "aspect": -78,
+   "query": {
+    "lat": 49.2,
+    "lon": 16.6,
+    "raddatabase": "PVGIS-SARAH3",
+    "usehorizon": 1,
+    "outputformat": "json",
+    "angle": 90,
+    "aspect": -78,
+    "month": 0,
+    "global": 1,
+    "localtime": 0,
+    "showtemperatures": 1
+   },
+   "fetchedAt": "2026-10-07"
+  },
+  {
+   "file": "dr90-S.json",
+   "endpoint": "DRcalc",
+   "kind": "dr-vertical",
+   "facing": "S",
+   "angle": 90,
+   "aspect": 12,
+   "query": {
+    "lat": 49.2,
+    "lon": 16.6,
+    "raddatabase": "PVGIS-SARAH3",
+    "usehorizon": 1,
+    "outputformat": "json",
+    "angle": 90,
+    "aspect": 12,
+    "month": 0,
+    "global": 1,
+    "localtime": 0,
+    "showtemperatures": 1
+   },
+   "fetchedAt": "2026-10-07"
+  },
+  {
+   "file": "dr90-W.json",
+   "endpoint": "DRcalc",
+   "kind": "dr-vertical",
+   "facing": "W",
+   "angle": 90,
+   "aspect": 102,
+   "query": {
+    "lat": 49.2,
+    "lon": 16.6,
+    "raddatabase": "PVGIS-SARAH3",
+    "usehorizon": 1,
+    "outputformat": "json",
+    "angle": 90,
+    "aspect": 102,
+    "month": 0,
+    "global": 1,
+    "localtime": 0,
+    "showtemperatures": 1
+   },
+   "fetchedAt": "2026-10-07"
+  }
+ ]
+}

@@ -1,0 +1,7527 @@
+{
+  "schemaVersion": 1,
+  "inputHash": "e4a10adf28a7e942a6895845bc1aa849e065372f8582ccbc95e7f0a51b845841",
+  "houseId": "long-roof",
+  "houseAxisBearingDeg": 12,
+  "wall": {
+    "ext": 0.5,
+    "bearing": 0.3,
+    "part": 0.15
+  },
+  "defaultWallTop": 3.05,
+  "grid": {
+    "xs": [
+      0,
+      6.65,
+      9,
+      13.5,
+      15.2,
+      17,
+      18.45,
+      23
+    ],
+    "ys": [
+      0,
+      4.2,
+      4.6,
+      5.4,
+      6.2,
+      7,
+      7.2,
+      8.4,
+      8.7,
+      10.3,
+      11.8
+    ]
+  },
+  "overlaps": [],
+  "holes": [],
+  "components": [
+    {
+      "rooms": [
+        "R04",
+        "R03",
+        "R02",
+        "R01",
+        "R05",
+        "R07",
+        "R06",
+        "R09",
+        "R08",
+        "R14",
+        "R13",
+        "R12",
+        "R11",
+        "R10"
+      ],
+      "area": 235.49
+    }
+  ],
+  "walls": [
+    {
+      "id": "Z01",
+      "orient": "h",
+      "at": 0,
+      "from": 6.65,
+      "to": 13.5,
+      "len": 6.85,
+      "kind": "exterior",
+      "ext": true,
+      "t": 0.5,
+      "lo": null,
+      "hi": "R04",
+      "room": "R04",
+      "azimuth": 180,
+      "azimuthTrue": 192,
+      "facing": "S",
+      "height": 3.05
+    },
+    {
+      "id": "Z02",
+      "orient": "h",
+      "at": 0,
+      "from": 13.5,
+      "to": 17,
+      "len": 3.5,
+      "kind": "exterior",
+      "ext": true,
+      "t": 0.5,
+      "lo": null,
+      "hi": "R08",
+      "room": "R08",
+      "azimuth": 180,
+      "azimuthTrue": 192,
+      "facing": "S",
+      "height": 3.05
+    },
+    {
+      "id": "Z03",
+      "orient": "h",
+      "at": 0,
+      "from": 17,
+      "to": 18.45,
+      "len": 1.45,
+      "kind": "exterior",
+      "ext": true,
+      "t": 0.5,
+      "lo": null,
+      "hi": "R14",
+      "room": "R14",
+      "azimuth": 180,
+      "azimuthTrue": 192,
+      "facing": "S",
+      "height": 3.05
+    },
+    {
+      "id": "Z04",
+      "orient": "h",
+      "at": 0,
+      "from": 18.45,
+      "to": 23,
+      "len": 4.55,
+      "kind": "exterior",
+      "ext": true,
+      "t": 0.5,
+      "lo": null,
+      "hi": "R10",
+      "room": "R10",
+      "azimuth": 180,
+      "azimuthTrue": 192,
+      "facing": "S",
+      "height": 3.05
+    },
+    {
+      "id": "Z05",
+      "orient": "h",
+      "at": 4.2,
+      "from": 18.45,
+      "to": 23,
+      "len": 4.55,
+      "kind": "partition",
+      "ext": false,
+      "t": 0.15,
+      "lo": "R10",
+      "hi": "R11"
+    },
+    {
+      "id": "Z06",
+      "orient": "h",
+      "at": 4.6,
+      "from": 13.5,
+      "to": 17,
+      "len": 3.5,
+      "kind": "partition",
+      "ext": false,
+      "t": 0.15,
+      "lo": "R08",
+      "hi": "R09"
+    },
+    {
+      "id": "Z07",
+      "orient": "h",
+      "at": 5.4,
+      "from": 0,
+      "to": 6.65,
+      "len": 6.65,
+      "kind": "exterior",
+      "ext": true,
+      "t": 0.5,
+      "lo": null,
+      "hi": "R01",
+      "room": "R01",
+      "azimuth": 180,
+      "azimuthTrue": 192,
+      "facing": "S",
+      "height": 3.05
+    },
+    {
+      "id": "Z08",
+      "orient": "h",
+      "at": 5.4,
+      "from": 6.65,
+      "to": 9,
+      "len": 2.35,
+      "kind": "partition",
+      "ext": false,
+      "t": 0.15,
+      "lo": "R04",
+      "hi": "R03"
+    },
+    {
+      "id": "Z09",
+      "orient": "h",
+      "at": 6.2,
+      "from": 18.45,
+      "to": 23,
+      "len": 4.55,
+      "kind": "partition",
+      "ext": false,
+      "t": 0.15,
+      "lo": "R11",
+      "hi": "R12"
+    },
+    {
+      "id": "Z10",
+      "orient": "h",
+      "at": 7,
+      "from": 13.5,
+      "to": 17,
+      "len": 3.5,
+      "kind": "partition",
+      "ext": false,
+      "t": 0.15,
+      "lo": "R09",
+      "hi": "R06"
+    },
+    {
+      "id": "Z11",
+      "orient": "h",
+      "at": 7,
+      "from": 17,
+      "to": 18.45,
+      "len": 1.45,
+      "kind": "partition",
+      "ext": false,
+      "t": 0.15,
+      "lo": "R14",
+      "hi": "R06"
+    },
+    {
+      "id": "Z12",
+      "orient": "h",
+      "at": 7.2,
+      "from": 6.65,
+      "to": 9,
+      "len": 2.35,
+      "kind": "partition",
+      "ext": false,
+      "t": 0.15,
+      "lo": "R03",
+      "hi": "R02"
+    },
+    {
+      "id": "Z13",
+      "orient": "h",
+      "at": 8.4,
+      "from": 18.45,
+      "to": 23,
+      "len": 4.55,
+      "kind": "partition",
+      "ext": false,
+      "t": 0.15,
+      "lo": "R12",
+      "hi": "R13"
+    },
+    {
+      "id": "Z14",
+      "orient": "h",
+      "at": 8.7,
+      "from": 9,
+      "to": 13.5,
+      "len": 4.5,
+      "kind": "partition",
+      "ext": false,
+      "t": 0.15,
+      "lo": "R04",
+      "hi": "R05"
+    },
+    {
+      "id": "Z15",
+      "orient": "h",
+      "at": 10.3,
+      "from": 13.5,
+      "to": 15.2,
+      "len": 1.7,
+      "kind": "partition",
+      "ext": false,
+      "t": 0.15,
+      "lo": "R06",
+      "hi": "R07"
+    },
+    {
+      "id": "Z16",
+      "orient": "h",
+      "at": 11.8,
+      "from": 0,
+      "to": 6.65,
+      "len": 6.65,
+      "kind": "exterior",
+      "ext": true,
+      "t": 0.5,
+      "lo": "R01",
+      "hi": null,
+      "room": "R01",
+      "azimuth": 0,
+      "azimuthTrue": 12,
+      "facing": "N",
+      "height": 3.05
+    },
+    {
+      "id": "Z17",
+      "orient": "h",
+      "at": 11.8,
+      "from": 6.65,
+      "to": 9,
+      "len": 2.35,
+      "kind": "exterior",
+      "ext": true,
+      "t": 0.5,
+      "lo": "R02",
+      "hi": null,
+      "room": "R02",
+      "azimuth": 0,
+      "azimuthTrue": 12,
+      "facing": "N",
+      "height": 3.05
+    },
+    {
+      "id": "Z18",
+      "orient": "h",
+      "at": 11.8,
+      "from": 9,
+      "to": 13.5,
+      "len": 4.5,
+      "kind": "exterior",
+      "ext": true,
+      "t": 0.5,
+      "lo": "R05",
+      "hi": null,
+      "room": "R05",
+      "azimuth": 0,
+      "azimuthTrue": 12,
+      "facing": "N",
+      "height": 3.05
+    },
+    {
+      "id": "Z19",
+      "orient": "h",
+      "at": 11.8,
+      "from": 13.5,
+      "to": 15.2,
+      "len": 1.7,
+      "kind": "exterior",
+      "ext": true,
+      "t": 0.5,
+      "lo": "R07",
+      "hi": null,
+      "room": "R07",
+      "azimuth": 0,
+      "azimuthTrue": 12,
+      "facing": "N",
+      "height": 3.05
+    },
+    {
+      "id": "Z20",
+      "orient": "h",
+      "at": 11.8,
+      "from": 15.2,
+      "to": 18.45,
+      "len": 3.25,
+      "kind": "exterior",
+      "ext": true,
+      "t": 0.5,
+      "lo": "R06",
+      "hi": null,
+      "room": "R06",
+      "azimuth": 0,
+      "azimuthTrue": 12,
+      "facing": "N",
+      "height": 3.05
+    },
+    {
+      "id": "Z21",
+      "orient": "h",
+      "at": 11.8,
+      "from": 18.45,
+      "to": 23,
+      "len": 4.55,
+      "kind": "exterior",
+      "ext": true,
+      "t": 0.5,
+      "lo": "R13",
+      "hi": null,
+      "room": "R13",
+      "azimuth": 0,
+      "azimuthTrue": 12,
+      "facing": "N",
+      "height": 3.05
+    },
+    {
+      "id": "Z22",
+      "orient": "v",
+      "at": 0,
+      "from": 5.4,
+      "to": 11.8,
+      "len": 6.4,
+      "kind": "exterior",
+      "ext": true,
+      "t": 0.5,
+      "lo": null,
+      "hi": "R01",
+      "room": "R01",
+      "azimuth": 270,
+      "azimuthTrue": 282,
+      "facing": "W",
+      "height": 3.05
+    },
+    {
+      "id": "Z23",
+      "orient": "v",
+      "at": 6.65,
+      "from": 0,
+      "to": 5.4,
+      "len": 5.4,
+      "kind": "exterior",
+      "ext": true,
+      "t": 0.5,
+      "lo": null,
+      "hi": "R04",
+      "room": "R04",
+      "azimuth": 270,
+      "azimuthTrue": 282,
+      "facing": "W",
+      "height": 3.05
+    },
+    {
+      "id": "Z24",
+      "orient": "v",
+      "at": 6.65,
+      "from": 5.4,
+      "to": 7.2,
+      "len": 1.8,
+      "kind": "bearing",
+      "ext": false,
+      "t": 0.3,
+      "lo": "R01",
+      "hi": "R03"
+    },
+    {
+      "id": "Z25",
+      "orient": "v",
+      "at": 6.65,
+      "from": 7.2,
+      "to": 11.8,
+      "len": 4.6,
+      "kind": "bearing",
+      "ext": false,
+      "t": 0.3,
+      "lo": "R01",
+      "hi": "R02"
+    },
+    {
+      "id": "Z26",
+      "orient": "v",
+      "at": 9,
+      "from": 5.4,
+      "to": 7.2,
+      "len": 1.8,
+      "kind": "partition",
+      "ext": false,
+      "t": 0.15,
+      "lo": "R03",
+      "hi": "R04"
+    },
+    {
+      "id": "Z27",
+      "orient": "v",
+      "at": 9,
+      "from": 7.2,
+      "to": 8.7,
+      "len": 1.5,
+      "kind": "partition",
+      "ext": false,
+      "t": 0.15,
+      "lo": "R02",
+      "hi": "R04"
+    },
+    {
+      "id": "Z28",
+      "orient": "v",
+      "at": 9,
+      "from": 8.7,
+      "to": 11.8,
+      "len": 3.1,
+      "kind": "partition",
+      "ext": false,
+      "t": 0.15,
+      "lo": "R02",
+      "hi": "R05"
+    },
+    {
+      "id": "Z29",
+      "orient": "v",
+      "at": 13.5,
+      "from": 0,
+      "to": 4.6,
+      "len": 4.6,
+      "kind": "bearing",
+      "ext": false,
+      "t": 0.3,
+      "lo": "R04",
+      "hi": "R08"
+    },
+    {
+      "id": "Z30",
+      "orient": "v",
+      "at": 13.5,
+      "from": 4.6,
+      "to": 7,
+      "len": 2.4,
+      "kind": "bearing",
+      "ext": false,
+      "t": 0.3,
+      "lo": "R04",
+      "hi": "R09"
+    },
+    {
+      "id": "Z31",
+      "orient": "v",
+      "at": 13.5,
+      "from": 7,
+      "to": 8.7,
+      "len": 1.7,
+      "kind": "bearing",
+      "ext": false,
+      "t": 0.3,
+      "lo": "R04",
+      "hi": "R06"
+    },
+    {
+      "id": "Z32",
+      "orient": "v",
+      "at": 13.5,
+      "from": 8.7,
+      "to": 10.3,
+      "len": 1.6,
+      "kind": "bearing",
+      "ext": false,
+      "t": 0.3,
+      "lo": "R05",
+      "hi": "R06"
+    },
+    {
+      "id": "Z33",
+      "orient": "v",
+      "at": 13.5,
+      "from": 10.3,
+      "to": 11.8,
+      "len": 1.5,
+      "kind": "bearing",
+      "ext": false,
+      "t": 0.3,
+      "lo": "R05",
+      "hi": "R07"
+    },
+    {
+      "id": "Z34",
+      "orient": "v",
+      "at": 15.2,
+      "from": 10.3,
+      "to": 11.8,
+      "len": 1.5,
+      "kind": "partition",
+      "ext": false,
+      "t": 0.15,
+      "lo": "R07",
+      "hi": "R06"
+    },
+    {
+      "id": "Z35",
+      "orient": "v",
+      "at": 17,
+      "from": 0,
+      "to": 4.6,
+      "len": 4.6,
+      "kind": "partition",
+      "ext": false,
+      "t": 0.15,
+      "lo": "R08",
+      "hi": "R14"
+    },
+    {
+      "id": "Z36",
+      "orient": "v",
+      "at": 17,
+      "from": 4.6,
+      "to": 7,
+      "len": 2.4,
+      "kind": "partition",
+      "ext": false,
+      "t": 0.15,
+      "lo": "R09",
+      "hi": "R14"
+    },
+    {
+      "id": "Z37",
+      "orient": "v",
+      "at": 18.45,
+      "from": 0,
+      "to": 4.2,
+      "len": 4.2,
+      "kind": "bearing",
+      "ext": false,
+      "t": 0.3,
+      "lo": "R14",
+      "hi": "R10"
+    },
+    {
+      "id": "Z38",
+      "orient": "v",
+      "at": 18.45,
+      "from": 4.2,
+      "to": 6.2,
+      "len": 2,
+      "kind": "bearing",
+      "ext": false,
+      "t": 0.3,
+      "lo": "R14",
+      "hi": "R11"
+    },
+    {
+      "id": "Z39",
+      "orient": "v",
+      "at": 18.45,
+      "from": 6.2,
+      "to": 7,
+      "len": 0.8,
+      "kind": "bearing",
+      "ext": false,
+      "t": 0.3,
+      "lo": "R14",
+      "hi": "R12"
+    },
+    {
+      "id": "Z40",
+      "orient": "v",
+      "at": 18.45,
+      "from": 7,
+      "to": 8.4,
+      "len": 1.4,
+      "kind": "bearing",
+      "ext": false,
+      "t": 0.3,
+      "lo": "R06",
+      "hi": "R12"
+    },
+    {
+      "id": "Z41",
+      "orient": "v",
+      "at": 18.45,
+      "from": 8.4,
+      "to": 11.8,
+      "len": 3.4,
+      "kind": "bearing",
+      "ext": false,
+      "t": 0.3,
+      "lo": "R06",
+      "hi": "R13"
+    },
+    {
+      "id": "Z42",
+      "orient": "v",
+      "at": 23,
+      "from": 0,
+      "to": 4.2,
+      "len": 4.2,
+      "kind": "exterior",
+      "ext": true,
+      "t": 0.5,
+      "lo": "R10",
+      "hi": null,
+      "room": "R10",
+      "azimuth": 90,
+      "azimuthTrue": 102,
+      "facing": "E",
+      "height": 3.05
+    },
+    {
+      "id": "Z43",
+      "orient": "v",
+      "at": 23,
+      "from": 4.2,
+      "to": 6.2,
+      "len": 2,
+      "kind": "exterior",
+      "ext": true,
+      "t": 0.5,
+      "lo": "R11",
+      "hi": null,
+      "room": "R11",
+      "azimuth": 90,
+      "azimuthTrue": 102,
+      "facing": "E",
+      "height": 3.05
+    },
+    {
+      "id": "Z44",
+      "orient": "v",
+      "at": 23,
+      "from": 6.2,
+      "to": 8.4,
+      "len": 2.2,
+      "kind": "exterior",
+      "ext": true,
+      "t": 0.5,
+      "lo": "R12",
+      "hi": null,
+      "room": "R12",
+      "azimuth": 90,
+      "azimuthTrue": 102,
+      "facing": "E",
+      "height": 3.05
+    },
+    {
+      "id": "Z45",
+      "orient": "v",
+      "at": 23,
+      "from": 8.4,
+      "to": 11.8,
+      "len": 3.4,
+      "kind": "exterior",
+      "ext": true,
+      "t": 0.5,
+      "lo": "R13",
+      "hi": null,
+      "room": "R13",
+      "azimuth": 90,
+      "azimuthTrue": 102,
+      "facing": "E",
+      "height": 3.05
+    }
+  ],
+  "rooms": [
+    {
+      "id": "R01",
+      "name": {
+        "cs": "Garáž pro dvě auta",
+        "en": "Two-car garage"
+      },
+      "type": "garage",
+      "zone": "service",
+      "heated": false,
+      "rects": [
+        [
+          0,
+          5.4,
+          6.65,
+          11.8
+        ]
+      ],
+      "cleanRects": [
+        [
+          0.25,
+          5.65,
+          6.5,
+          11.55
+        ]
+      ],
+      "area": 36.875,
+      "axisArea": 42.56,
+      "bbox": {
+        "x0": 0.25,
+        "y0": 5.65,
+        "x1": 6.5,
+        "y1": 11.55,
+        "w": 6.25,
+        "d": 5.9
+      },
+      "rectsClear": [
+        {
+          "rect": [
+            0,
+            5.4,
+            6.65,
+            11.8
+          ],
+          "w": 6.25,
+          "d": 5.9
+        }
+      ],
+      "minWidth": 5.9,
+      "mainClear": {
+        "w": 6.25,
+        "d": 5.9
+      },
+      "glazing": {
+        "total": 0.8,
+        "N": 0,
+        "E": 0,
+        "S": 0,
+        "W": 0.8
+      },
+      "openings": [
+        "W05",
+        "G01",
+        "D01"
+      ],
+      "height": 2.75,
+      "volume": 101.4063,
+      "label": {
+        "x": 3.375,
+        "y": 8.6,
+        "r": 2.95
+      },
+      "outlineDistance": 3.45,
+      "centroid": [
+        3.375,
+        8.6
+      ],
+      "exteriorWallLength": 19.7,
+      "exteriorWallArea": 60.085,
+      "role": "garage",
+      "floor": "concrete"
+    },
+    {
+      "id": "R02",
+      "name": {
+        "cs": "Technická místnost a prádelna",
+        "en": "Plant room and laundry"
+      },
+      "type": "utility",
+      "zone": "service",
+      "heated": true,
+      "rects": [
+        [
+          6.65,
+          7.2,
+          9,
+          11.8
+        ]
+      ],
+      "cleanRects": [
+        [
+          6.8,
+          7.275,
+          8.925,
+          11.55
+        ]
+      ],
+      "area": 9.08438,
+      "axisArea": 10.81,
+      "bbox": {
+        "x0": 6.8,
+        "y0": 7.275,
+        "x1": 8.925,
+        "y1": 11.55,
+        "w": 2.125,
+        "d": 4.275
+      },
+      "rectsClear": [
+        {
+          "rect": [
+            6.65,
+            7.2,
+            9,
+            11.8
+          ],
+          "w": 2.125,
+          "d": 4.275
+        }
+      ],
+      "minWidth": 2.125,
+      "mainClear": {
+        "w": 2.125,
+        "d": 4.275
+      },
+      "glazing": {
+        "total": 0,
+        "N": 0,
+        "E": 0,
+        "S": 0,
+        "W": 0
+      },
+      "openings": [
+        "D01",
+        "D13"
+      ],
+      "height": 2.75,
+      "volume": 24.982,
+      "label": {
+        "x": 7.863,
+        "y": 9.413,
+        "r": 1.063
+      },
+      "outlineDistance": 2.637,
+      "centroid": [
+        7.8625,
+        9.41249
+      ],
+      "exteriorWallLength": 2.35,
+      "exteriorWallArea": 7.1675,
+      "role": "plant",
+      "floor": "tile"
+    },
+    {
+      "id": "R03",
+      "name": {
+        "cs": "Spíž",
+        "en": "Pantry"
+      },
+      "type": "pantry",
+      "zone": "service",
+      "heated": true,
+      "rects": [
+        [
+          6.65,
+          5.4,
+          9,
+          7.2
+        ]
+      ],
+      "cleanRects": [
+        [
+          6.8,
+          5.475,
+          8.925,
+          7.125
+        ]
+      ],
+      "area": 3.50625,
+      "axisArea": 4.23,
+      "bbox": {
+        "x0": 6.8,
+        "y0": 5.475,
+        "x1": 8.925,
+        "y1": 7.125,
+        "w": 2.125,
+        "d": 1.65
+      },
+      "rectsClear": [
+        {
+          "rect": [
+            6.65,
+            5.4,
+            9,
+            7.2
+          ],
+          "w": 2.125,
+          "d": 1.65
+        }
+      ],
+      "minWidth": 1.65,
+      "mainClear": {
+        "w": 2.125,
+        "d": 1.65
+      },
+      "glazing": {
+        "total": 0,
+        "N": 0,
+        "E": 0,
+        "S": 0,
+        "W": 0
+      },
+      "openings": [
+        "D13",
+        "D03"
+      ],
+      "height": 2.75,
+      "volume": 9.6422,
+      "label": {
+        "x": 7.863,
+        "y": 6.3,
+        "r": 0.825
+      },
+      "outlineDistance": 1.86,
+      "centroid": [
+        7.8625,
+        6.3
+      ],
+      "exteriorWallLength": 0,
+      "exteriorWallArea": 0,
+      "role": "pantry",
+      "floor": "tile"
+    },
+    {
+      "id": "R04",
+      "name": {
+        "cs": "Obývací pokoj s kuchyní a jídelnou",
+        "en": "Living room with kitchen and dining"
+      },
+      "type": "living",
+      "zone": "day",
+      "heated": true,
+      "rects": [
+        [
+          6.65,
+          0,
+          13.5,
+          5.4
+        ],
+        [
+          9,
+          5.4,
+          13.5,
+          8.7
+        ]
+      ],
+      "cleanRects": [
+        [
+          6.9,
+          0.25,
+          13.35,
+          4.6
+        ],
+        [
+          6.9,
+          4.6,
+          9,
+          5.325
+        ],
+        [
+          9,
+          4.6,
+          13.35,
+          5.4
+        ],
+        [
+          9.075,
+          5.4,
+          13.35,
+          8.625
+        ]
+      ],
+      "area": 46.84688,
+      "axisArea": 51.84,
+      "bbox": {
+        "x0": 6.9,
+        "y0": 0.25,
+        "x1": 13.35,
+        "y1": 8.625,
+        "w": 6.45,
+        "d": 8.375
+      },
+      "rectsClear": [
+        {
+          "rect": [
+            6.65,
+            0,
+            13.5,
+            5.4
+          ],
+          "w": 6.45,
+          "d": 5.075
+        },
+        {
+          "rect": [
+            9,
+            5.4,
+            13.5,
+            8.7
+          ],
+          "w": 4.275,
+          "d": 3.225
+        }
+      ],
+      "minWidth": 3.225,
+      "mainClear": {
+        "w": 6.45,
+        "d": 5.075
+      },
+      "glazing": {
+        "total": 17.52,
+        "N": 0,
+        "E": 0,
+        "S": 10.56,
+        "W": 6.96
+      },
+      "openings": [
+        "S01",
+        "S02",
+        "D03",
+        "D04"
+      ],
+      "height": 2.75,
+      "volume": 128.8289,
+      "label": {
+        "x": 10.569,
+        "y": 3.031,
+        "r": 2.779
+      },
+      "outlineDistance": 3.281,
+      "centroid": [
+        10.45236,
+        4.04884
+      ],
+      "exteriorWallLength": 12.25,
+      "exteriorWallArea": 37.3625,
+      "role": "main-living",
+      "floor": "oak"
+    },
+    {
+      "id": "R05",
+      "name": {
+        "cs": "Pracovna / pokoj pro hosty",
+        "en": "Study / guest room"
+      },
+      "type": "office",
+      "zone": "day",
+      "heated": true,
+      "rects": [
+        [
+          9,
+          8.7,
+          13.5,
+          11.8
+        ]
+      ],
+      "cleanRects": [
+        [
+          9.075,
+          8.775,
+          13.35,
+          11.55
+        ]
+      ],
+      "area": 11.86313,
+      "axisArea": 13.95,
+      "bbox": {
+        "x0": 9.075,
+        "y0": 8.775,
+        "x1": 13.35,
+        "y1": 11.55,
+        "w": 4.275,
+        "d": 2.775
+      },
+      "rectsClear": [
+        {
+          "rect": [
+            9,
+            8.7,
+            13.5,
+            11.8
+          ],
+          "w": 4.275,
+          "d": 2.775
+        }
+      ],
+      "minWidth": 2.775,
+      "mainClear": {
+        "w": 4.275,
+        "d": 2.775
+      },
+      "glazing": {
+        "total": 3.36,
+        "N": 3.36,
+        "E": 0,
+        "S": 0,
+        "W": 0
+      },
+      "openings": [
+        "W06",
+        "D05"
+      ],
+      "height": 2.75,
+      "volume": 32.6236,
+      "label": {
+        "x": 11.213,
+        "y": 10.163,
+        "r": 1.387
+      },
+      "outlineDistance": 1.887,
+      "centroid": [
+        11.2125,
+        10.1625
+      ],
+      "exteriorWallLength": 4.5,
+      "exteriorWallArea": 13.725,
+      "role": "home-office",
+      "floor": "oak"
+    },
+    {
+      "id": "R06",
+      "name": {
+        "cs": "Hala se zádveřím a šatnou",
+        "en": "Entrance hall with porch and cloakroom"
+      },
+      "type": "hall",
+      "zone": "day",
+      "heated": true,
+      "rects": [
+        [
+          15.2,
+          7,
+          18.45,
+          11.8
+        ],
+        [
+          13.5,
+          7,
+          15.2,
+          10.3
+        ]
+      ],
+      "cleanRects": [
+        [
+          13.65,
+          7.075,
+          18.3,
+          8.7
+        ],
+        [
+          13.65,
+          8.7,
+          15.2,
+          10.225
+        ],
+        [
+          15.2,
+          8.7,
+          18.3,
+          10.3
+        ],
+        [
+          15.275,
+          10.3,
+          18.3,
+          11.55
+        ]
+      ],
+      "area": 18.66125,
+      "axisArea": 21.21,
+      "bbox": {
+        "x0": 13.65,
+        "y0": 7.075,
+        "x1": 18.3,
+        "y1": 11.55,
+        "w": 4.65,
+        "d": 4.475
+      },
+      "rectsClear": [
+        {
+          "rect": [
+            15.2,
+            7,
+            18.45,
+            11.8
+          ],
+          "w": 3.025,
+          "d": 4.475
+        },
+        {
+          "rect": [
+            13.5,
+            7,
+            15.2,
+            10.3
+          ],
+          "w": 1.55,
+          "d": 3.15
+        }
+      ],
+      "minWidth": 1.55,
+      "mainClear": {
+        "w": 3.025,
+        "d": 4.475
+      },
+      "glazing": {
+        "total": 0,
+        "N": 0,
+        "E": 0,
+        "S": 0,
+        "W": 0
+      },
+      "openings": [
+        "E01",
+        "D04",
+        "D05",
+        "D06",
+        "D12",
+        "D14"
+      ],
+      "height": 2.75,
+      "volume": 51.3184,
+      "label": {
+        "x": 16.469,
+        "y": 8.906,
+        "r": 1.83
+      },
+      "outlineDistance": 3.144,
+      "centroid": [
+        16.14929,
+        9.13106
+      ],
+      "exteriorWallLength": 3.25,
+      "exteriorWallArea": 9.9125,
+      "role": "entry",
+      "floor": "tile"
+    },
+    {
+      "id": "R14",
+      "name": {
+        "cs": "Chodba noční zóny",
+        "en": "Night-zone corridor"
+      },
+      "type": "corridor",
+      "zone": "night",
+      "heated": true,
+      "rects": [
+        [
+          17,
+          0,
+          18.45,
+          7
+        ]
+      ],
+      "cleanRects": [
+        [
+          17.075,
+          0.25,
+          18.3,
+          6.925
+        ]
+      ],
+      "area": 8.17688,
+      "axisArea": 10.15,
+      "bbox": {
+        "x0": 17.075,
+        "y0": 0.25,
+        "x1": 18.3,
+        "y1": 6.925,
+        "w": 1.225,
+        "d": 6.675
+      },
+      "rectsClear": [
+        {
+          "rect": [
+            17,
+            0,
+            18.45,
+            7
+          ],
+          "w": 1.225,
+          "d": 6.675
+        }
+      ],
+      "minWidth": 1.225,
+      "mainClear": {
+        "w": 1.225,
+        "d": 6.675
+      },
+      "glazing": {
+        "total": 1.08,
+        "N": 0,
+        "E": 0,
+        "S": 1.08,
+        "W": 0
+      },
+      "openings": [
+        "W03",
+        "D07",
+        "D08",
+        "D09",
+        "D14"
+      ],
+      "height": 2.75,
+      "volume": 22.4864,
+      "label": {
+        "x": 17.688,
+        "y": 3.588,
+        "r": 0.613
+      },
+      "outlineDistance": 3.838,
+      "centroid": [
+        17.68749,
+        3.5875
+      ],
+      "exteriorWallLength": 1.45,
+      "exteriorWallArea": 4.4225,
+      "role": "night-corridor",
+      "floor": "tile"
+    },
+    {
+      "id": "R07",
+      "name": {
+        "cs": "WC pro hosty",
+        "en": "Guest toilet"
+      },
+      "type": "wc",
+      "zone": "service",
+      "heated": true,
+      "rects": [
+        [
+          13.5,
+          10.3,
+          15.2,
+          11.8
+        ]
+      ],
+      "cleanRects": [
+        [
+          13.65,
+          10.375,
+          15.125,
+          11.55
+        ]
+      ],
+      "area": 1.73313,
+      "axisArea": 2.55,
+      "bbox": {
+        "x0": 13.65,
+        "y0": 10.375,
+        "x1": 15.125,
+        "y1": 11.55,
+        "w": 1.475,
+        "d": 1.175
+      },
+      "rectsClear": [
+        {
+          "rect": [
+            13.5,
+            10.3,
+            15.2,
+            11.8
+          ],
+          "w": 1.475,
+          "d": 1.175
+        }
+      ],
+      "minWidth": 1.175,
+      "mainClear": {
+        "w": 1.475,
+        "d": 1.175
+      },
+      "glazing": {
+        "total": 0.66,
+        "N": 0.66,
+        "E": 0,
+        "S": 0,
+        "W": 0
+      },
+      "openings": [
+        "W07",
+        "D06"
+      ],
+      "height": 2.75,
+      "volume": 4.7661,
+      "label": {
+        "x": 14.388,
+        "y": 10.963,
+        "r": 0.588
+      },
+      "outlineDistance": 1.088,
+      "centroid": [
+        14.38746,
+        10.96247
+      ],
+      "exteriorWallLength": 1.7,
+      "exteriorWallArea": 5.185,
+      "role": "guest-wc",
+      "floor": "tile"
+    },
+    {
+      "id": "R08",
+      "name": {
+        "cs": "Dětský pokoj 1",
+        "en": "Children's room 1"
+      },
+      "type": "kids",
+      "zone": "night",
+      "heated": true,
+      "rects": [
+        [
+          13.5,
+          0,
+          17,
+          4.6
+        ]
+      ],
+      "cleanRects": [
+        [
+          13.65,
+          0.25,
+          16.925,
+          4.525
+        ]
+      ],
+      "area": 14.00063,
+      "axisArea": 16.1,
+      "bbox": {
+        "x0": 13.65,
+        "y0": 0.25,
+        "x1": 16.925,
+        "y1": 4.525,
+        "w": 3.275,
+        "d": 4.275
+      },
+      "rectsClear": [
+        {
+          "rect": [
+            13.5,
+            0,
+            17,
+            4.6
+          ],
+          "w": 3.275,
+          "d": 4.275
+        }
+      ],
+      "minWidth": 3.275,
+      "mainClear": {
+        "w": 3.275,
+        "d": 4.275
+      },
+      "glazing": {
+        "total": 3.15,
+        "N": 0,
+        "E": 0,
+        "S": 3.15,
+        "W": 0
+      },
+      "openings": [
+        "W02",
+        "D07"
+      ],
+      "height": 2.75,
+      "volume": 38.5017,
+      "label": {
+        "x": 15.288,
+        "y": 2.388,
+        "r": 1.637
+      },
+      "outlineDistance": 2.638,
+      "centroid": [
+        15.28749,
+        2.3875
+      ],
+      "exteriorWallLength": 3.5,
+      "exteriorWallArea": 10.675,
+      "role": "children",
+      "floor": "oak"
+    },
+    {
+      "id": "R09",
+      "name": {
+        "cs": "Hlavní koupelna",
+        "en": "Family bathroom"
+      },
+      "type": "bath",
+      "zone": "night",
+      "heated": true,
+      "rects": [
+        [
+          13.5,
+          4.6,
+          17,
+          7
+        ]
+      ],
+      "cleanRects": [
+        [
+          13.65,
+          4.675,
+          16.925,
+          6.925
+        ]
+      ],
+      "area": 7.36875,
+      "axisArea": 8.4,
+      "bbox": {
+        "x0": 13.65,
+        "y0": 4.675,
+        "x1": 16.925,
+        "y1": 6.925,
+        "w": 3.275,
+        "d": 2.25
+      },
+      "rectsClear": [
+        {
+          "rect": [
+            13.5,
+            4.6,
+            17,
+            7
+          ],
+          "w": 3.275,
+          "d": 2.25
+        }
+      ],
+      "minWidth": 2.25,
+      "mainClear": {
+        "w": 3.275,
+        "d": 2.25
+      },
+      "glazing": {
+        "total": 0,
+        "N": 0,
+        "E": 0,
+        "S": 0,
+        "W": 0
+      },
+      "openings": [
+        "D08"
+      ],
+      "height": 2.75,
+      "volume": 20.2641,
+      "label": {
+        "x": 15.288,
+        "y": 5.8,
+        "r": 1.125
+      },
+      "outlineDistance": 6.05,
+      "centroid": [
+        15.2875,
+        5.8
+      ],
+      "exteriorWallLength": 0,
+      "exteriorWallArea": 0,
+      "role": "family-bath",
+      "floor": "tile"
+    },
+    {
+      "id": "R10",
+      "name": {
+        "cs": "Ložnice rodičů",
+        "en": "Primary bedroom"
+      },
+      "type": "bedroom",
+      "zone": "night",
+      "heated": true,
+      "rects": [
+        [
+          18.45,
+          0,
+          23,
+          4.2
+        ]
+      ],
+      "cleanRects": [
+        [
+          18.6,
+          0.25,
+          22.75,
+          4.125
+        ]
+      ],
+      "area": 16.08125,
+      "axisArea": 19.11,
+      "bbox": {
+        "x0": 18.6,
+        "y0": 0.25,
+        "x1": 22.75,
+        "y1": 4.125,
+        "w": 4.15,
+        "d": 3.875
+      },
+      "rectsClear": [
+        {
+          "rect": [
+            18.45,
+            0,
+            23,
+            4.2
+          ],
+          "w": 4.15,
+          "d": 3.875
+        }
+      ],
+      "minWidth": 3.875,
+      "mainClear": {
+        "w": 4.15,
+        "d": 3.875
+      },
+      "glazing": {
+        "total": 5.4,
+        "N": 0,
+        "E": 1.8,
+        "S": 3.6,
+        "W": 0
+      },
+      "openings": [
+        "W04",
+        "W09",
+        "D09",
+        "D10"
+      ],
+      "height": 2.75,
+      "volume": 44.2234,
+      "label": {
+        "x": 20.675,
+        "y": 2.188,
+        "r": 1.938
+      },
+      "outlineDistance": 2.438,
+      "centroid": [
+        20.675,
+        2.1875
+      ],
+      "exteriorWallLength": 8.75,
+      "exteriorWallArea": 26.6875,
+      "role": "primary-bedroom",
+      "floor": "oak"
+    },
+    {
+      "id": "R11",
+      "name": {
+        "cs": "Šatna rodičů",
+        "en": "Primary walk-in wardrobe"
+      },
+      "type": "wardrobe",
+      "zone": "night",
+      "heated": true,
+      "rects": [
+        [
+          18.45,
+          4.2,
+          23,
+          6.2
+        ]
+      ],
+      "cleanRects": [
+        [
+          18.6,
+          4.275,
+          22.75,
+          6.125
+        ]
+      ],
+      "area": 7.6775,
+      "axisArea": 9.1,
+      "bbox": {
+        "x0": 18.6,
+        "y0": 4.275,
+        "x1": 22.75,
+        "y1": 6.125,
+        "w": 4.15,
+        "d": 1.85
+      },
+      "rectsClear": [
+        {
+          "rect": [
+            18.45,
+            4.2,
+            23,
+            6.2
+          ],
+          "w": 4.15,
+          "d": 1.85
+        }
+      ],
+      "minWidth": 1.85,
+      "mainClear": {
+        "w": 4.15,
+        "d": 1.85
+      },
+      "glazing": {
+        "total": 0,
+        "N": 0,
+        "E": 0,
+        "S": 0,
+        "W": 0
+      },
+      "openings": [
+        "D10",
+        "D11"
+      ],
+      "height": 2.75,
+      "volume": 21.1131,
+      "label": {
+        "x": 20.675,
+        "y": 5.2,
+        "r": 0.925
+      },
+      "outlineDistance": 2.575,
+      "centroid": [
+        20.675,
+        5.2
+      ],
+      "exteriorWallLength": 2,
+      "exteriorWallArea": 6.1,
+      "role": "primary-wardrobe",
+      "floor": "oak"
+    },
+    {
+      "id": "R12",
+      "name": {
+        "cs": "Koupelna rodičů",
+        "en": "Primary bathroom"
+      },
+      "type": "bath",
+      "zone": "night",
+      "heated": true,
+      "rects": [
+        [
+          18.45,
+          6.2,
+          23,
+          8.4
+        ]
+      ],
+      "cleanRects": [
+        [
+          18.6,
+          6.275,
+          22.75,
+          8.325
+        ]
+      ],
+      "area": 8.5075,
+      "axisArea": 10.01,
+      "bbox": {
+        "x0": 18.6,
+        "y0": 6.275,
+        "x1": 22.75,
+        "y1": 8.325,
+        "w": 4.15,
+        "d": 2.05
+      },
+      "rectsClear": [
+        {
+          "rect": [
+            18.45,
+            6.2,
+            23,
+            8.4
+          ],
+          "w": 4.15,
+          "d": 2.05
+        }
+      ],
+      "minWidth": 2.05,
+      "mainClear": {
+        "w": 4.15,
+        "d": 2.05
+      },
+      "glazing": {
+        "total": 0.96,
+        "N": 0,
+        "E": 0.96,
+        "S": 0,
+        "W": 0
+      },
+      "openings": [
+        "W10",
+        "D11"
+      ],
+      "height": 2.75,
+      "volume": 23.3956,
+      "label": {
+        "x": 20.675,
+        "y": 7.3,
+        "r": 1.025
+      },
+      "outlineDistance": 2.575,
+      "centroid": [
+        20.675,
+        7.3
+      ],
+      "exteriorWallLength": 2.2,
+      "exteriorWallArea": 6.71,
+      "role": "primary-bath",
+      "floor": "tile"
+    },
+    {
+      "id": "R13",
+      "name": {
+        "cs": "Dětský pokoj 2",
+        "en": "Children's room 2"
+      },
+      "type": "kids",
+      "zone": "night",
+      "heated": true,
+      "rects": [
+        [
+          18.45,
+          8.4,
+          23,
+          11.8
+        ]
+      ],
+      "cleanRects": [
+        [
+          18.6,
+          8.475,
+          22.75,
+          11.55
+        ]
+      ],
+      "area": 12.76125,
+      "axisArea": 15.47,
+      "bbox": {
+        "x0": 18.6,
+        "y0": 8.475,
+        "x1": 22.75,
+        "y1": 11.55,
+        "w": 4.15,
+        "d": 3.075
+      },
+      "rectsClear": [
+        {
+          "rect": [
+            18.45,
+            8.4,
+            23,
+            11.8
+          ],
+          "w": 4.15,
+          "d": 3.075
+        }
+      ],
+      "minWidth": 3.075,
+      "mainClear": {
+        "w": 4.15,
+        "d": 3.075
+      },
+      "glazing": {
+        "total": 3.48,
+        "N": 1.68,
+        "E": 1.8,
+        "S": 0,
+        "W": 0
+      },
+      "openings": [
+        "W08",
+        "W11",
+        "D12"
+      ],
+      "height": 2.75,
+      "volume": 35.0934,
+      "label": {
+        "x": 20.675,
+        "y": 10.013,
+        "r": 1.537
+      },
+      "outlineDistance": 2.038,
+      "centroid": [
+        20.675,
+        10.0125
+      ],
+      "exteriorWallLength": 7.95,
+      "exteriorWallArea": 24.2475,
+      "role": "children",
+      "floor": "oak"
+    }
+  ],
+  "netRooms": [
+    {
+      "id": "R01",
+      "type": "garage",
+      "floor": "concrete",
+      "heated": false,
+      "rects": [
+        [
+          0.25,
+          5.65,
+          6.5,
+          11.55
+        ]
+      ],
+      "area": 36.875
+    },
+    {
+      "id": "R02",
+      "type": "utility",
+      "floor": "tile",
+      "heated": true,
+      "rects": [
+        [
+          6.8,
+          7.275,
+          8.925,
+          11.55
+        ]
+      ],
+      "area": 9.08438
+    },
+    {
+      "id": "R03",
+      "type": "pantry",
+      "floor": "tile",
+      "heated": true,
+      "rects": [
+        [
+          6.8,
+          5.475,
+          8.925,
+          7.125
+        ]
+      ],
+      "area": 3.50625
+    },
+    {
+      "id": "R04",
+      "type": "living",
+      "floor": "oak",
+      "heated": true,
+      "rects": [
+        [
+          6.9,
+          0.25,
+          13.35,
+          4.6
+        ],
+        [
+          6.9,
+          4.6,
+          9,
+          5.325
+        ],
+        [
+          9,
+          4.6,
+          13.35,
+          5.4
+        ],
+        [
+          9.075,
+          5.4,
+          13.35,
+          8.625
+        ]
+      ],
+      "area": 46.84688
+    },
+    {
+      "id": "R05",
+      "type": "office",
+      "floor": "oak",
+      "heated": true,
+      "rects": [
+        [
+          9.075,
+          8.775,
+          13.35,
+          11.55
+        ]
+      ],
+      "area": 11.86313
+    },
+    {
+      "id": "R06",
+      "type": "hall",
+      "floor": "tile",
+      "heated": true,
+      "rects": [
+        [
+          13.65,
+          7.075,
+          18.3,
+          8.7
+        ],
+        [
+          13.65,
+          8.7,
+          15.2,
+          10.225
+        ],
+        [
+          15.2,
+          8.7,
+          18.3,
+          10.3
+        ],
+        [
+          15.275,
+          10.3,
+          18.3,
+          11.55
+        ]
+      ],
+      "area": 18.66125
+    },
+    {
+      "id": "R14",
+      "type": "corridor",
+      "floor": "tile",
+      "heated": true,
+      "rects": [
+        [
+          17.075,
+          0.25,
+          18.3,
+          6.925
+        ]
+      ],
+      "area": 8.17688
+    },
+    {
+      "id": "R07",
+      "type": "wc",
+      "floor": "tile",
+      "heated": true,
+      "rects": [
+        [
+          13.65,
+          10.375,
+          15.125,
+          11.55
+        ]
+      ],
+      "area": 1.73313
+    },
+    {
+      "id": "R08",
+      "type": "kids",
+      "floor": "oak",
+      "heated": true,
+      "rects": [
+        [
+          13.65,
+          0.25,
+          16.925,
+          4.525
+        ]
+      ],
+      "area": 14.00063
+    },
+    {
+      "id": "R09",
+      "type": "bath",
+      "floor": "tile",
+      "heated": true,
+      "rects": [
+        [
+          13.65,
+          4.675,
+          16.925,
+          6.925
+        ]
+      ],
+      "area": 7.36875
+    },
+    {
+      "id": "R10",
+      "type": "bedroom",
+      "floor": "oak",
+      "heated": true,
+      "rects": [
+        [
+          18.6,
+          0.25,
+          22.75,
+          4.125
+        ]
+      ],
+      "area": 16.08125
+    },
+    {
+      "id": "R11",
+      "type": "wardrobe",
+      "floor": "oak",
+      "heated": true,
+      "rects": [
+        [
+          18.6,
+          4.275,
+          22.75,
+          6.125
+        ]
+      ],
+      "area": 7.6775
+    },
+    {
+      "id": "R12",
+      "type": "bath",
+      "floor": "tile",
+      "heated": true,
+      "rects": [
+        [
+          18.6,
+          6.275,
+          22.75,
+          8.325
+        ]
+      ],
+      "area": 8.5075
+    },
+    {
+      "id": "R13",
+      "type": "kids",
+      "floor": "oak",
+      "heated": true,
+      "rects": [
+        [
+          18.6,
+          8.475,
+          22.75,
+          11.55
+        ]
+      ],
+      "area": 12.76125
+    }
+  ],
+  "outer": {
+    "pts": [
+      [
+        6.4,
+        -0.25
+      ],
+      [
+        23.25,
+        -0.25
+      ],
+      [
+        23.25,
+        12.05
+      ],
+      [
+        -0.25,
+        12.05
+      ],
+      [
+        -0.25,
+        5.15
+      ],
+      [
+        6.4,
+        5.15
+      ]
+    ],
+    "area": 253.14
+  },
+  "outline": {
+    "rects": [
+      [
+        6.4,
+        -0.25,
+        23.25,
+        5.15
+      ],
+      [
+        -0.25,
+        5.15,
+        23.25,
+        12.05
+      ]
+    ],
+    "polygons": [
+      {
+        "pts": [
+          [
+            6.4,
+            -0.25
+          ],
+          [
+            23.25,
+            -0.25
+          ],
+          [
+            23.25,
+            12.05
+          ],
+          [
+            -0.25,
+            12.05
+          ],
+          [
+            -0.25,
+            5.15
+          ],
+          [
+            6.4,
+            5.15
+          ]
+        ],
+        "area": 253.14
+      }
+    ],
+    "bbox": {
+      "x0": -0.25,
+      "y0": -0.25,
+      "x1": 23.25,
+      "y1": 12.05,
+      "w": 23.5,
+      "d": 12.3
+    },
+    "area": 253.14,
+    "perimeter": 71.6
+  },
+  "bbox": {
+    "x0": -1.05,
+    "y0": -1.05,
+    "x1": 24.05,
+    "y1": 15.25,
+    "w": 25.1,
+    "d": 16.3,
+    "z0": 0,
+    "z1": 5.5348,
+    "h": 5.5348
+  },
+  "openings": [
+    {
+      "id": "S01",
+      "kind": "slider",
+      "orient": "h",
+      "cx": 10.2,
+      "cy": 0,
+      "w": 4.4,
+      "sill": 0,
+      "head": 2.4,
+      "swing": null,
+      "hinge": null,
+      "c": 10.2,
+      "axis": 0,
+      "from": 8,
+      "to": 12.4,
+      "wallId": "Z01",
+      "problem": null,
+      "exterior": true,
+      "wallKind": "exterior",
+      "azimuth": 180,
+      "room": "R04",
+      "connects": null,
+      "swingRoom": null,
+      "glazingArea": 10.56,
+      "clearStart": 1.1,
+      "clearEnd": 0.95,
+      "azimuthTrue": 192,
+      "facing": "S",
+      "dir": "S",
+      "area": 10.56,
+      "center": [
+        10.2,
+        0,
+        1.2
+      ],
+      "blind": true,
+      "overhang": {
+        "depth": 0.8,
+        "eaveHeight": 2.72678,
+        "wallTop": 3.05
+      }
+    },
+    {
+      "id": "W02",
+      "kind": "window",
+      "orient": "h",
+      "cx": 15.3,
+      "cy": 0,
+      "w": 2.1,
+      "sill": 0.9,
+      "head": 2.4,
+      "swing": null,
+      "hinge": null,
+      "c": 15.3,
+      "axis": 0,
+      "from": 14.25,
+      "to": 16.35,
+      "wallId": "Z02",
+      "problem": null,
+      "exterior": true,
+      "wallKind": "exterior",
+      "azimuth": 180,
+      "room": "R08",
+      "connects": null,
+      "swingRoom": null,
+      "glazingArea": 3.15,
+      "clearStart": 0.6,
+      "clearEnd": 0.575,
+      "azimuthTrue": 192,
+      "facing": "S",
+      "dir": "S",
+      "area": 3.15,
+      "center": [
+        15.3,
+        0,
+        1.65
+      ],
+      "blind": true,
+      "overhang": {
+        "depth": 0.8,
+        "eaveHeight": 2.72678,
+        "wallTop": 3.05
+      }
+    },
+    {
+      "id": "W03",
+      "kind": "window",
+      "orient": "h",
+      "cx": 17.725,
+      "cy": 0,
+      "w": 0.6,
+      "sill": 0.6,
+      "head": 2.4,
+      "swing": null,
+      "hinge": null,
+      "c": 17.725,
+      "axis": 0,
+      "from": 17.425,
+      "to": 18.025,
+      "wallId": "Z03",
+      "problem": null,
+      "exterior": true,
+      "wallKind": "exterior",
+      "azimuth": 180,
+      "room": "R14",
+      "connects": null,
+      "swingRoom": null,
+      "glazingArea": 1.08,
+      "clearStart": 0.35,
+      "clearEnd": 0.275,
+      "azimuthTrue": 192,
+      "facing": "S",
+      "dir": "S",
+      "area": 1.08,
+      "center": [
+        17.725,
+        0,
+        1.5
+      ],
+      "blind": true,
+      "overhang": {
+        "depth": 0.8,
+        "eaveHeight": 2.72678,
+        "wallTop": 3.05
+      }
+    },
+    {
+      "id": "W04",
+      "kind": "window",
+      "orient": "h",
+      "cx": 20.9,
+      "cy": 0,
+      "w": 2.4,
+      "sill": 0.9,
+      "head": 2.4,
+      "swing": null,
+      "hinge": null,
+      "c": 20.9,
+      "axis": 0,
+      "from": 19.7,
+      "to": 22.1,
+      "wallId": "Z04",
+      "problem": null,
+      "exterior": true,
+      "wallKind": "exterior",
+      "azimuth": 180,
+      "room": "R10",
+      "connects": null,
+      "swingRoom": null,
+      "glazingArea": 3.6,
+      "clearStart": 1.1,
+      "clearEnd": 0.65,
+      "azimuthTrue": 192,
+      "facing": "S",
+      "dir": "S",
+      "area": 3.6,
+      "center": [
+        20.9,
+        0,
+        1.65
+      ],
+      "blind": true,
+      "overhang": {
+        "depth": 0.8,
+        "eaveHeight": 2.72678,
+        "wallTop": 3.05
+      }
+    },
+    {
+      "id": "S02",
+      "kind": "slider",
+      "orient": "v",
+      "cx": 6.65,
+      "cy": 3.5,
+      "w": 2.9,
+      "sill": 0,
+      "head": 2.4,
+      "swing": null,
+      "hinge": null,
+      "c": 3.5,
+      "axis": 6.65,
+      "from": 2.05,
+      "to": 4.95,
+      "wallId": "Z23",
+      "problem": null,
+      "exterior": true,
+      "wallKind": "exterior",
+      "azimuth": 270,
+      "room": "R04",
+      "connects": null,
+      "swingRoom": null,
+      "glazingArea": 6.96,
+      "clearStart": 1.8,
+      "clearEnd": 0.2,
+      "azimuthTrue": 282,
+      "facing": "W",
+      "dir": "W",
+      "area": 6.96,
+      "center": [
+        6.65,
+        3.5,
+        1.2
+      ],
+      "blind": true,
+      "overhang": {
+        "depth": 0.8,
+        "eaveHeight": 2.72678,
+        "wallTop": 3.05
+      }
+    },
+    {
+      "id": "W05",
+      "kind": "window",
+      "orient": "v",
+      "cx": 0,
+      "cy": 8.6,
+      "w": 1,
+      "sill": 1.2,
+      "head": 2,
+      "swing": null,
+      "hinge": null,
+      "c": 8.6,
+      "axis": 0,
+      "from": 8.1,
+      "to": 9.1,
+      "wallId": "Z22",
+      "problem": null,
+      "exterior": true,
+      "wallKind": "exterior",
+      "azimuth": 270,
+      "room": "R01",
+      "connects": null,
+      "swingRoom": null,
+      "glazingArea": 0.8,
+      "clearStart": 2.45,
+      "clearEnd": 2.45,
+      "azimuthTrue": 282,
+      "facing": "W",
+      "dir": "W",
+      "area": 0.8,
+      "center": [
+        0,
+        8.6,
+        1.6
+      ],
+      "blind": false,
+      "overhang": {
+        "depth": 0.8,
+        "eaveHeight": 2.72678,
+        "wallTop": 3.05
+      }
+    },
+    {
+      "id": "G01",
+      "kind": "garage",
+      "orient": "h",
+      "cx": 3.4,
+      "cy": 11.8,
+      "w": 5,
+      "sill": 0,
+      "head": 2.3,
+      "swing": null,
+      "hinge": null,
+      "c": 3.4,
+      "axis": 11.8,
+      "from": 0.9,
+      "to": 5.9,
+      "wallId": "Z16",
+      "problem": null,
+      "exterior": true,
+      "wallKind": "exterior",
+      "azimuth": 0,
+      "room": "R01",
+      "connects": null,
+      "swingRoom": null,
+      "glazingArea": 0,
+      "clearStart": 0.65,
+      "clearEnd": 0.6,
+      "azimuthTrue": 12,
+      "facing": "N",
+      "dir": "N",
+      "area": 11.5,
+      "center": [
+        3.4,
+        11.8,
+        1.15
+      ],
+      "blind": false,
+      "overhang": {
+        "depth": 0.8,
+        "eaveHeight": 2.72678,
+        "wallTop": 3.05
+      }
+    },
+    {
+      "id": "W06",
+      "kind": "window",
+      "orient": "h",
+      "cx": 11.25,
+      "cy": 11.8,
+      "w": 2.4,
+      "sill": 0.9,
+      "head": 2.3,
+      "swing": null,
+      "hinge": null,
+      "c": 11.25,
+      "axis": 11.8,
+      "from": 10.05,
+      "to": 12.45,
+      "wallId": "Z18",
+      "problem": null,
+      "exterior": true,
+      "wallKind": "exterior",
+      "azimuth": 0,
+      "room": "R05",
+      "connects": null,
+      "swingRoom": null,
+      "glazingArea": 3.36,
+      "clearStart": 0.975,
+      "clearEnd": 0.9,
+      "azimuthTrue": 12,
+      "facing": "N",
+      "dir": "N",
+      "area": 3.36,
+      "center": [
+        11.25,
+        11.8,
+        1.6
+      ],
+      "blind": false,
+      "overhang": {
+        "depth": 0.8,
+        "eaveHeight": 2.72678,
+        "wallTop": 3.05
+      }
+    },
+    {
+      "id": "W07",
+      "kind": "window",
+      "orient": "h",
+      "cx": 14.35,
+      "cy": 11.8,
+      "w": 0.6,
+      "sill": 1.2,
+      "head": 2.3,
+      "swing": null,
+      "hinge": null,
+      "c": 14.35,
+      "axis": 11.8,
+      "from": 14.05,
+      "to": 14.65,
+      "wallId": "Z19",
+      "problem": null,
+      "exterior": true,
+      "wallKind": "exterior",
+      "azimuth": 0,
+      "room": "R07",
+      "connects": null,
+      "swingRoom": null,
+      "glazingArea": 0.66,
+      "clearStart": 0.4,
+      "clearEnd": 0.475,
+      "azimuthTrue": 12,
+      "facing": "N",
+      "dir": "N",
+      "area": 0.66,
+      "center": [
+        14.35,
+        11.8,
+        1.75
+      ],
+      "blind": false,
+      "overhang": {
+        "depth": 0.8,
+        "eaveHeight": 2.72678,
+        "wallTop": 3.05
+      }
+    },
+    {
+      "id": "E01",
+      "kind": "entry",
+      "orient": "h",
+      "cx": 17.5,
+      "cy": 11.8,
+      "w": 1.2,
+      "sill": 0,
+      "head": 2.3,
+      "swing": "-",
+      "hinge": "-",
+      "c": 17.5,
+      "axis": 11.8,
+      "from": 16.9,
+      "to": 18.1,
+      "wallId": "Z20",
+      "problem": null,
+      "exterior": true,
+      "wallKind": "exterior",
+      "azimuth": 0,
+      "room": "R06",
+      "connects": null,
+      "swingRoom": "R06",
+      "glazingArea": 0,
+      "clearStart": 1.625,
+      "clearEnd": 0.2,
+      "azimuthTrue": 12,
+      "facing": "N",
+      "dir": "N",
+      "area": 2.76,
+      "center": [
+        17.5,
+        11.8,
+        1.15
+      ],
+      "blind": false,
+      "overhang": {
+        "depth": 0.8,
+        "eaveHeight": 2.72678,
+        "wallTop": 3.05
+      }
+    },
+    {
+      "id": "W08",
+      "kind": "window",
+      "orient": "h",
+      "cx": 21.9,
+      "cy": 11.8,
+      "w": 1.2,
+      "sill": 0.9,
+      "head": 2.3,
+      "swing": null,
+      "hinge": null,
+      "c": 21.9,
+      "axis": 11.8,
+      "from": 21.3,
+      "to": 22.5,
+      "wallId": "Z21",
+      "problem": null,
+      "exterior": true,
+      "wallKind": "exterior",
+      "azimuth": 0,
+      "room": "R13",
+      "connects": null,
+      "swingRoom": null,
+      "glazingArea": 1.68,
+      "clearStart": 2.7,
+      "clearEnd": 0.25,
+      "azimuthTrue": 12,
+      "facing": "N",
+      "dir": "N",
+      "area": 1.68,
+      "center": [
+        21.9,
+        11.8,
+        1.6
+      ],
+      "blind": false,
+      "overhang": {
+        "depth": 0.8,
+        "eaveHeight": 2.72678,
+        "wallTop": 3.05
+      }
+    },
+    {
+      "id": "W09",
+      "kind": "window",
+      "orient": "v",
+      "cx": 23,
+      "cy": 1.9,
+      "w": 1.2,
+      "sill": 0.9,
+      "head": 2.4,
+      "swing": null,
+      "hinge": null,
+      "c": 1.9,
+      "axis": 23,
+      "from": 1.3,
+      "to": 2.5,
+      "wallId": "Z42",
+      "problem": null,
+      "exterior": true,
+      "wallKind": "exterior",
+      "azimuth": 90,
+      "room": "R10",
+      "connects": null,
+      "swingRoom": null,
+      "glazingArea": 1.8,
+      "clearStart": 1.05,
+      "clearEnd": 1.625,
+      "azimuthTrue": 102,
+      "facing": "E",
+      "dir": "E",
+      "area": 1.8,
+      "center": [
+        23,
+        1.9,
+        1.65
+      ],
+      "blind": false,
+      "overhang": {
+        "depth": 0.8,
+        "eaveHeight": 2.72678,
+        "wallTop": 3.05
+      }
+    },
+    {
+      "id": "W10",
+      "kind": "window",
+      "orient": "v",
+      "cx": 23,
+      "cy": 7.25,
+      "w": 0.8,
+      "sill": 1.2,
+      "head": 2.4,
+      "swing": null,
+      "hinge": null,
+      "c": 7.25,
+      "axis": 23,
+      "from": 6.85,
+      "to": 7.65,
+      "wallId": "Z44",
+      "problem": null,
+      "exterior": true,
+      "wallKind": "exterior",
+      "azimuth": 90,
+      "room": "R12",
+      "connects": null,
+      "swingRoom": null,
+      "glazingArea": 0.96,
+      "clearStart": 0.575,
+      "clearEnd": 0.675,
+      "azimuthTrue": 102,
+      "facing": "E",
+      "dir": "E",
+      "area": 0.96,
+      "center": [
+        23,
+        7.25,
+        1.8
+      ],
+      "blind": false,
+      "overhang": {
+        "depth": 0.8,
+        "eaveHeight": 2.72678,
+        "wallTop": 3.05
+      }
+    },
+    {
+      "id": "W11",
+      "kind": "window",
+      "orient": "v",
+      "cx": 23,
+      "cy": 10.1,
+      "w": 1.2,
+      "sill": 0.9,
+      "head": 2.4,
+      "swing": null,
+      "hinge": null,
+      "c": 10.1,
+      "axis": 23,
+      "from": 9.5,
+      "to": 10.7,
+      "wallId": "Z45",
+      "problem": null,
+      "exterior": true,
+      "wallKind": "exterior",
+      "azimuth": 90,
+      "room": "R13",
+      "connects": null,
+      "swingRoom": null,
+      "glazingArea": 1.8,
+      "clearStart": 1.025,
+      "clearEnd": 0.85,
+      "azimuthTrue": 102,
+      "facing": "E",
+      "dir": "E",
+      "area": 1.8,
+      "center": [
+        23,
+        10.1,
+        1.65
+      ],
+      "blind": false,
+      "overhang": {
+        "depth": 0.8,
+        "eaveHeight": 2.72678,
+        "wallTop": 3.05
+      }
+    },
+    {
+      "id": "D01",
+      "kind": "door",
+      "orient": "v",
+      "cx": 6.65,
+      "cy": 8.4,
+      "w": 0.9,
+      "sill": 0,
+      "head": 2.1,
+      "swing": "+",
+      "hinge": "+",
+      "c": 8.4,
+      "axis": 6.65,
+      "from": 7.95,
+      "to": 8.85,
+      "wallId": "Z25",
+      "problem": null,
+      "exterior": false,
+      "wallKind": "bearing",
+      "azimuth": null,
+      "room": null,
+      "connects": [
+        "R01",
+        "R02"
+      ],
+      "swingRoom": "R02",
+      "glazingArea": 0,
+      "clearStart": 0.675,
+      "clearEnd": 2.7,
+      "azimuthTrue": null,
+      "facing": null,
+      "dir": null,
+      "area": 1.89,
+      "center": [
+        6.65,
+        8.4,
+        1.05
+      ],
+      "blind": false,
+      "overhang": null
+    },
+    {
+      "id": "D13",
+      "kind": "door",
+      "orient": "h",
+      "cx": 7.7,
+      "cy": 7.2,
+      "w": 0.8,
+      "sill": 0,
+      "head": 2.1,
+      "swing": "-",
+      "hinge": "-",
+      "c": 7.7,
+      "axis": 7.2,
+      "from": 7.3,
+      "to": 8.1,
+      "wallId": "Z12",
+      "problem": null,
+      "exterior": false,
+      "wallKind": "partition",
+      "azimuth": null,
+      "room": null,
+      "connects": [
+        "R03",
+        "R02"
+      ],
+      "swingRoom": "R03",
+      "glazingArea": 0,
+      "clearStart": 0.5,
+      "clearEnd": 0.825,
+      "azimuthTrue": null,
+      "facing": null,
+      "dir": null,
+      "area": 1.68,
+      "center": [
+        7.7,
+        7.2,
+        1.05
+      ],
+      "blind": false,
+      "overhang": null
+    },
+    {
+      "id": "D03",
+      "kind": "door",
+      "orient": "v",
+      "cx": 9,
+      "cy": 6.3,
+      "w": 0.8,
+      "sill": 0,
+      "head": 2.1,
+      "swing": "-",
+      "hinge": "+",
+      "c": 6.3,
+      "axis": 9,
+      "from": 5.9,
+      "to": 6.7,
+      "wallId": "Z26",
+      "problem": null,
+      "exterior": false,
+      "wallKind": "partition",
+      "azimuth": null,
+      "room": null,
+      "connects": [
+        "R03",
+        "R04"
+      ],
+      "swingRoom": "R03",
+      "glazingArea": 0,
+      "clearStart": 0.425,
+      "clearEnd": 0.425,
+      "azimuthTrue": null,
+      "facing": null,
+      "dir": null,
+      "area": 1.68,
+      "center": [
+        9,
+        6.3,
+        1.05
+      ],
+      "blind": false,
+      "overhang": null
+    },
+    {
+      "id": "D04",
+      "kind": "door",
+      "orient": "v",
+      "cx": 13.5,
+      "cy": 7.8,
+      "w": 1,
+      "sill": 0,
+      "head": 2.1,
+      "swing": "+",
+      "hinge": "-",
+      "c": 7.8,
+      "axis": 13.5,
+      "from": 7.3,
+      "to": 8.3,
+      "wallId": "Z31",
+      "problem": null,
+      "exterior": false,
+      "wallKind": "bearing",
+      "azimuth": null,
+      "room": null,
+      "connects": [
+        "R04",
+        "R06"
+      ],
+      "swingRoom": "R06",
+      "glazingArea": 0,
+      "clearStart": 0.225,
+      "clearEnd": 0.325,
+      "azimuthTrue": null,
+      "facing": null,
+      "dir": null,
+      "area": 2.1,
+      "center": [
+        13.5,
+        7.8,
+        1.05
+      ],
+      "blind": false,
+      "overhang": null
+    },
+    {
+      "id": "D05",
+      "kind": "door",
+      "orient": "v",
+      "cx": 13.5,
+      "cy": 9.5,
+      "w": 0.9,
+      "sill": 0,
+      "head": 2.1,
+      "swing": "-",
+      "hinge": "+",
+      "c": 9.5,
+      "axis": 13.5,
+      "from": 9.05,
+      "to": 9.95,
+      "wallId": "Z32",
+      "problem": null,
+      "exterior": false,
+      "wallKind": "bearing",
+      "azimuth": null,
+      "room": null,
+      "connects": [
+        "R05",
+        "R06"
+      ],
+      "swingRoom": "R05",
+      "glazingArea": 0,
+      "clearStart": 0.275,
+      "clearEnd": 0.275,
+      "azimuthTrue": null,
+      "facing": null,
+      "dir": null,
+      "area": 1.89,
+      "center": [
+        13.5,
+        9.5,
+        1.05
+      ],
+      "blind": false,
+      "overhang": null
+    },
+    {
+      "id": "D06",
+      "kind": "door",
+      "orient": "h",
+      "cx": 14.4,
+      "cy": 10.3,
+      "w": 0.8,
+      "sill": 0,
+      "head": 2.1,
+      "swing": "-",
+      "hinge": "+",
+      "c": 14.4,
+      "axis": 10.3,
+      "from": 14,
+      "to": 14.8,
+      "wallId": "Z15",
+      "problem": null,
+      "exterior": false,
+      "wallKind": "partition",
+      "azimuth": null,
+      "room": null,
+      "connects": [
+        "R06",
+        "R07"
+      ],
+      "swingRoom": "R06",
+      "glazingArea": 0,
+      "clearStart": 0.35,
+      "clearEnd": 0.325,
+      "azimuthTrue": null,
+      "facing": null,
+      "dir": null,
+      "area": 1.68,
+      "center": [
+        14.4,
+        10.3,
+        1.05
+      ],
+      "blind": false,
+      "overhang": null
+    },
+    {
+      "id": "D07",
+      "kind": "door",
+      "orient": "v",
+      "cx": 17,
+      "cy": 3.3,
+      "w": 0.9,
+      "sill": 0,
+      "head": 2.1,
+      "swing": "-",
+      "hinge": "+",
+      "c": 3.3,
+      "axis": 17,
+      "from": 2.85,
+      "to": 3.75,
+      "wallId": "Z35",
+      "problem": null,
+      "exterior": false,
+      "wallKind": "partition",
+      "azimuth": null,
+      "room": null,
+      "connects": [
+        "R08",
+        "R14"
+      ],
+      "swingRoom": "R08",
+      "glazingArea": 0,
+      "clearStart": 2.6,
+      "clearEnd": 0.775,
+      "azimuthTrue": null,
+      "facing": null,
+      "dir": null,
+      "area": 1.89,
+      "center": [
+        17,
+        3.3,
+        1.05
+      ],
+      "blind": false,
+      "overhang": null
+    },
+    {
+      "id": "D08",
+      "kind": "door",
+      "orient": "v",
+      "cx": 17,
+      "cy": 5.3,
+      "w": 0.8,
+      "sill": 0,
+      "head": 2.1,
+      "swing": "-",
+      "hinge": "-",
+      "c": 5.3,
+      "axis": 17,
+      "from": 4.9,
+      "to": 5.7,
+      "wallId": "Z36",
+      "problem": null,
+      "exterior": false,
+      "wallKind": "partition",
+      "azimuth": null,
+      "room": null,
+      "connects": [
+        "R09",
+        "R14"
+      ],
+      "swingRoom": "R09",
+      "glazingArea": 0,
+      "clearStart": 0.225,
+      "clearEnd": 1.225,
+      "azimuthTrue": null,
+      "facing": null,
+      "dir": null,
+      "area": 1.68,
+      "center": [
+        17,
+        5.3,
+        1.05
+      ],
+      "blind": false,
+      "overhang": null
+    },
+    {
+      "id": "D09",
+      "kind": "door",
+      "orient": "v",
+      "cx": 18.45,
+      "cy": 1.5,
+      "w": 0.9,
+      "sill": 0,
+      "head": 2.1,
+      "swing": "+",
+      "hinge": "-",
+      "c": 1.5,
+      "axis": 18.45,
+      "from": 1.05,
+      "to": 1.95,
+      "wallId": "Z37",
+      "problem": null,
+      "exterior": false,
+      "wallKind": "bearing",
+      "azimuth": null,
+      "room": null,
+      "connects": [
+        "R14",
+        "R10"
+      ],
+      "swingRoom": "R10",
+      "glazingArea": 0,
+      "clearStart": 0.8,
+      "clearEnd": 2.175,
+      "azimuthTrue": null,
+      "facing": null,
+      "dir": null,
+      "area": 1.89,
+      "center": [
+        18.45,
+        1.5,
+        1.05
+      ],
+      "blind": false,
+      "overhang": null
+    },
+    {
+      "id": "D10",
+      "kind": "door",
+      "orient": "h",
+      "cx": 22.1,
+      "cy": 4.2,
+      "w": 0.8,
+      "sill": 0,
+      "head": 2.1,
+      "swing": "+",
+      "hinge": "+",
+      "c": 22.1,
+      "axis": 4.2,
+      "from": 21.7,
+      "to": 22.5,
+      "wallId": "Z05",
+      "problem": null,
+      "exterior": false,
+      "wallKind": "partition",
+      "azimuth": null,
+      "room": null,
+      "connects": [
+        "R10",
+        "R11"
+      ],
+      "swingRoom": "R11",
+      "glazingArea": 0,
+      "clearStart": 3.1,
+      "clearEnd": 0.25,
+      "azimuthTrue": null,
+      "facing": null,
+      "dir": null,
+      "area": 1.68,
+      "center": [
+        22.1,
+        4.2,
+        1.05
+      ],
+      "blind": false,
+      "overhang": null
+    },
+    {
+      "id": "D11",
+      "kind": "door",
+      "orient": "h",
+      "cx": 19.5,
+      "cy": 6.2,
+      "w": 0.8,
+      "sill": 0,
+      "head": 2.1,
+      "swing": "+",
+      "hinge": "-",
+      "c": 19.5,
+      "axis": 6.2,
+      "from": 19.1,
+      "to": 19.9,
+      "wallId": "Z09",
+      "problem": null,
+      "exterior": false,
+      "wallKind": "partition",
+      "azimuth": null,
+      "room": null,
+      "connects": [
+        "R11",
+        "R12"
+      ],
+      "swingRoom": "R12",
+      "glazingArea": 0,
+      "clearStart": 0.5,
+      "clearEnd": 2.85,
+      "azimuthTrue": null,
+      "facing": null,
+      "dir": null,
+      "area": 1.68,
+      "center": [
+        19.5,
+        6.2,
+        1.05
+      ],
+      "blind": false,
+      "overhang": null
+    },
+    {
+      "id": "D12",
+      "kind": "door",
+      "orient": "v",
+      "cx": 18.45,
+      "cy": 10.4,
+      "w": 0.9,
+      "sill": 0,
+      "head": 2.1,
+      "swing": "+",
+      "hinge": "+",
+      "c": 10.4,
+      "axis": 18.45,
+      "from": 9.95,
+      "to": 10.85,
+      "wallId": "Z41",
+      "problem": null,
+      "exterior": false,
+      "wallKind": "bearing",
+      "azimuth": null,
+      "room": null,
+      "connects": [
+        "R06",
+        "R13"
+      ],
+      "swingRoom": "R13",
+      "glazingArea": 0,
+      "clearStart": 1.475,
+      "clearEnd": 0.7,
+      "azimuthTrue": null,
+      "facing": null,
+      "dir": null,
+      "area": 1.89,
+      "center": [
+        18.45,
+        10.4,
+        1.05
+      ],
+      "blind": false,
+      "overhang": null
+    },
+    {
+      "id": "D14",
+      "kind": "door",
+      "orient": "h",
+      "cx": 17.69,
+      "cy": 7,
+      "w": 0.8,
+      "sill": 0,
+      "head": 2.1,
+      "swing": "+",
+      "hinge": "+",
+      "c": 17.69,
+      "axis": 7,
+      "from": 17.29,
+      "to": 18.09,
+      "wallId": "Z11",
+      "problem": null,
+      "exterior": false,
+      "wallKind": "partition",
+      "azimuth": null,
+      "room": null,
+      "connects": [
+        "R14",
+        "R06"
+      ],
+      "swingRoom": "R06",
+      "glazingArea": 0,
+      "clearStart": 0.215,
+      "clearEnd": 0.21,
+      "azimuthTrue": null,
+      "facing": null,
+      "dir": null,
+      "area": 1.68,
+      "center": [
+        17.69,
+        7,
+        1.05
+      ],
+      "blind": false,
+      "overhang": null
+    }
+  ],
+  "accents": [
+    {
+      "id": "A1",
+      "type": "wood",
+      "orient": "h",
+      "cx": 3.2,
+      "cy": 5.4,
+      "w": 5,
+      "wallId": "Z07",
+      "exterior": true,
+      "problem": null,
+      "azimuth": 180,
+      "azimuthTrue": 192,
+      "facing": "S"
+    },
+    {
+      "id": "A2",
+      "type": "wood",
+      "orient": "h",
+      "cx": 17.175,
+      "cy": 11.8,
+      "w": 2.55,
+      "wallId": "Z20",
+      "exterior": true,
+      "problem": null,
+      "azimuth": 0,
+      "azimuthTrue": 12,
+      "facing": "N"
+    },
+    {
+      "id": "A2b",
+      "type": "wood",
+      "orient": "h",
+      "cx": 18.775,
+      "cy": 11.8,
+      "w": 0.65,
+      "wallId": "Z21",
+      "exterior": true,
+      "problem": null,
+      "azimuth": 0,
+      "azimuthTrue": 12,
+      "facing": "N"
+    },
+    {
+      "id": "A3",
+      "type": "wood",
+      "orient": "h",
+      "cx": 7.825,
+      "cy": 11.8,
+      "w": 2.3,
+      "wallId": "Z17",
+      "exterior": true,
+      "problem": null,
+      "azimuth": 0,
+      "azimuthTrue": 12,
+      "facing": "N"
+    },
+    {
+      "id": "A4",
+      "type": "wood",
+      "orient": "h",
+      "cx": 13,
+      "cy": 0,
+      "w": 1,
+      "wallId": "Z01",
+      "exterior": true,
+      "problem": null,
+      "azimuth": 180,
+      "azimuthTrue": 192,
+      "facing": "S"
+    },
+    {
+      "id": "A5",
+      "type": "wood",
+      "orient": "h",
+      "cx": 13.825,
+      "cy": 0,
+      "w": 0.65,
+      "wallId": "Z02",
+      "exterior": true,
+      "problem": null,
+      "azimuth": 180,
+      "azimuthTrue": 192,
+      "facing": "S"
+    }
+  ],
+  "roofs": [
+    {
+      "id": "T1",
+      "rect": [
+        -0.25,
+        -0.25,
+        23.25,
+        12.05
+      ],
+      "pitch": 22,
+      "overhang": 0.8,
+      "wallTop": 3.05,
+      "w": 23.5,
+      "d": 12.3,
+      "ridgeAlong": "x",
+      "ridgeLength": 11.2,
+      "ridgeHeight": 5.53476,
+      "ridgeRise": 2.48476,
+      "ridge": [
+        [
+          5.9,
+          5.9
+        ],
+        [
+          17.1,
+          5.9
+        ]
+      ],
+      "eaveRect": [
+        -1.05,
+        -1.05,
+        24.05,
+        12.85
+      ],
+      "eaveHeight": 2.72678,
+      "planAreaWithOverhang": 348.89,
+      "slopedArea": 376.28999,
+      "faces": [
+        "T1.S",
+        "T1.E",
+        "T1.N#1",
+        "T1.N#2",
+        "T1.W"
+      ]
+    },
+    {
+      "id": "T2",
+      "rect": [
+        15.7,
+        8.45,
+        19.3,
+        14.45
+      ],
+      "pitch": 22,
+      "overhang": 0.8,
+      "wallTop": 3.05,
+      "w": 3.6,
+      "d": 6,
+      "ridgeAlong": "y",
+      "ridgeLength": 2.4,
+      "ridgeHeight": 3.77725,
+      "ridgeRise": 0.72725,
+      "ridge": [
+        [
+          17.5,
+          10.25
+        ],
+        [
+          17.5,
+          12.65
+        ]
+      ],
+      "eaveRect": [
+        14.9,
+        7.65,
+        20.1,
+        15.25
+      ],
+      "eaveHeight": 2.72678,
+      "planAreaWithOverhang": 39.52,
+      "slopedArea": 42.62369,
+      "faces": [
+        "T2.E",
+        "T2.N",
+        "T2.W"
+      ]
+    }
+  ],
+  "roofPlanes": [
+    {
+      "id": "T1.S",
+      "plane": "T1.S",
+      "roofId": "T1",
+      "side": "S",
+      "pitch": 22,
+      "azimuth": 180,
+      "azimuthTrue": 192,
+      "aspect": 12,
+      "facing": "S",
+      "pts": [
+        [
+          -1.05,
+          -1.05
+        ],
+        [
+          24.05,
+          -1.05
+        ],
+        [
+          17.1,
+          5.9
+        ],
+        [
+          5.9,
+          5.9
+        ]
+      ],
+      "pts3": [
+        [
+          -1.05,
+          -1.05,
+          2.726779019
+        ],
+        [
+          24.05,
+          -1.05,
+          2.726779019
+        ],
+        [
+          17.1,
+          5.9,
+          5.534761289
+        ],
+        [
+          5.9,
+          5.9,
+          5.534761289
+        ]
+      ],
+      "uv": [
+        [
+          -1.05,
+          0
+        ],
+        [
+          24.05,
+          0
+        ],
+        [
+          17.1,
+          7.495816462
+        ],
+        [
+          5.9,
+          7.495816462
+        ]
+      ],
+      "edges": [
+        {
+          "kind": "eave",
+          "length": 25.1
+        },
+        {
+          "kind": "hip",
+          "length": 10.2220235
+        },
+        {
+          "kind": "ridge",
+          "length": 11.2
+        },
+        {
+          "kind": "hip",
+          "length": 10.2220235
+        }
+      ],
+      "area": 136.049068778,
+      "planArea": 126.1425,
+      "centroid": [
+        11.5,
+        1.981450872,
+        3.951564674
+      ],
+      "zMin": 2.726779019,
+      "zMax": 5.534761289,
+      "frame": {
+        "origin": [
+          0,
+          -1.05,
+          2.726779019
+        ],
+        "u": [
+          1,
+          0,
+          0
+        ],
+        "v": [
+          0,
+          0.927183855,
+          0.374606593
+        ],
+        "n": [
+          0,
+          -0.374606593,
+          0.927183855
+        ]
+      }
+    },
+    {
+      "id": "T1.E",
+      "plane": "T1.E",
+      "roofId": "T1",
+      "side": "E",
+      "pitch": 22,
+      "azimuth": 90,
+      "azimuthTrue": 102,
+      "aspect": -78,
+      "facing": "E",
+      "pts": [
+        [
+          24.05,
+          -1.05
+        ],
+        [
+          24.05,
+          12.85
+        ],
+        [
+          17.1,
+          5.9
+        ]
+      ],
+      "pts3": [
+        [
+          24.05,
+          -1.05,
+          2.726779019
+        ],
+        [
+          24.05,
+          12.85,
+          2.726779019
+        ],
+        [
+          17.1,
+          5.9,
+          5.534761289
+        ]
+      ],
+      "uv": [
+        [
+          -1.05,
+          0
+        ],
+        [
+          12.85,
+          0
+        ],
+        [
+          5.9,
+          7.495816462
+        ]
+      ],
+      "edges": [
+        {
+          "kind": "eave",
+          "length": 13.9
+        },
+        {
+          "kind": "hip",
+          "length": 10.2220235
+        },
+        {
+          "kind": "hip",
+          "length": 10.2220235
+        }
+      ],
+      "area": 52.095924408,
+      "planArea": 48.3025,
+      "centroid": [
+        21.733333333,
+        5.9,
+        3.662773109
+      ],
+      "zMin": 2.726779019,
+      "zMax": 5.534761289,
+      "frame": {
+        "origin": [
+          24.05,
+          0,
+          2.726779019
+        ],
+        "u": [
+          0,
+          1,
+          0
+        ],
+        "v": [
+          -0.927183855,
+          0,
+          0.374606593
+        ],
+        "n": [
+          0.374606593,
+          0,
+          0.927183855
+        ]
+      }
+    },
+    {
+      "id": "T1.N#1",
+      "plane": "T1.N",
+      "roofId": "T1",
+      "side": "N",
+      "pitch": 22,
+      "azimuth": 0,
+      "azimuthTrue": 12,
+      "aspect": -168,
+      "facing": "N",
+      "pts": [
+        [
+          14.9,
+          12.85
+        ],
+        [
+          -1.05,
+          12.85
+        ],
+        [
+          5.9,
+          5.9
+        ],
+        [
+          17.1,
+          5.9
+        ],
+        [
+          19.475,
+          8.275
+        ],
+        [
+          17.500000071,
+          10.249999929
+        ]
+      ],
+      "pts3": [
+        [
+          14.9,
+          12.85,
+          2.726779019
+        ],
+        [
+          -1.05,
+          12.85,
+          2.726779019
+        ],
+        [
+          5.9,
+          5.9,
+          5.534761289
+        ],
+        [
+          17.1,
+          5.9,
+          5.534761289
+        ],
+        [
+          19.475,
+          8.275,
+          4.575199003
+        ],
+        [
+          17.500000071,
+          10.249999929,
+          3.777247235
+        ]
+      ],
+      "uv": [
+        [
+          -14.9,
+          0
+        ],
+        [
+          1.05,
+          0
+        ],
+        [
+          -5.9,
+          7.495816462
+        ],
+        [
+          -17.1,
+          7.495816462
+        ],
+        [
+          -19.475,
+          4.934296448
+        ],
+        [
+          -17.500000071,
+          2.804190407
+        ]
+      ],
+      "edges": [
+        {
+          "kind": "eave",
+          "length": 15.95
+        },
+        {
+          "kind": "hip",
+          "length": 10.2220235
+        },
+        {
+          "kind": "ridge",
+          "length": 11.2
+        },
+        {
+          "kind": "hip",
+          "length": 3.493137527
+        },
+        {
+          "kind": "seam",
+          "length": 2.904819524
+        },
+        {
+          "kind": "valley",
+          "length": 3.824066449
+        }
+      ],
+      "area": 113.47466253,
+      "planArea": 105.211875,
+      "centroid": [
+        9.913470586,
+        9.518859019,
+        4.072647338
+      ],
+      "zMin": 2.726779019,
+      "zMax": 5.534761289,
+      "frame": {
+        "origin": [
+          0,
+          12.85,
+          2.726779019
+        ],
+        "u": [
+          -1,
+          0,
+          0
+        ],
+        "v": [
+          0,
+          -0.927183855,
+          0.374606593
+        ],
+        "n": [
+          0,
+          0.374606593,
+          0.927183855
+        ]
+      }
+    },
+    {
+      "id": "T1.N#2",
+      "plane": "T1.N",
+      "roofId": "T1",
+      "side": "N",
+      "pitch": 22,
+      "azimuth": 0,
+      "azimuthTrue": 12,
+      "aspect": -168,
+      "facing": "N",
+      "pts": [
+        [
+          24.05,
+          12.85
+        ],
+        [
+          20.1,
+          12.85
+        ],
+        [
+          17.5,
+          10.25
+        ],
+        [
+          19.475,
+          8.275
+        ]
+      ],
+      "pts3": [
+        [
+          24.05,
+          12.85,
+          2.726779019
+        ],
+        [
+          20.1,
+          12.85,
+          2.726779019
+        ],
+        [
+          17.5,
+          10.25,
+          3.777247207
+        ],
+        [
+          19.475,
+          8.275,
+          4.575199003
+        ]
+      ],
+      "uv": [
+        [
+          -24.05,
+          0
+        ],
+        [
+          -20.1,
+          0
+        ],
+        [
+          -17.5,
+          2.804190331
+        ],
+        [
+          -19.475,
+          4.934296448
+        ]
+      ],
+      "edges": [
+        {
+          "kind": "eave",
+          "length": 3.95
+        },
+        {
+          "kind": "valley",
+          "length": 3.824066345
+        },
+        {
+          "kind": "seam",
+          "length": 2.904819628
+        },
+        {
+          "kind": "hip",
+          "length": 6.728885973
+        }
+      ],
+      "area": 15.283511388,
+      "planArea": 14.170625,
+      "centroid": [
+        20.417160279,
+        11.010946574,
+        3.469804834
+      ],
+      "zMin": 2.726779019,
+      "zMax": 4.575199003,
+      "frame": {
+        "origin": [
+          0,
+          12.85,
+          2.726779019
+        ],
+        "u": [
+          -1,
+          0,
+          0
+        ],
+        "v": [
+          0,
+          -0.927183855,
+          0.374606593
+        ],
+        "n": [
+          0,
+          0.374606593,
+          0.927183855
+        ]
+      }
+    },
+    {
+      "id": "T1.W",
+      "plane": "T1.W",
+      "roofId": "T1",
+      "side": "W",
+      "pitch": 22,
+      "azimuth": 270,
+      "azimuthTrue": 282,
+      "aspect": 102,
+      "facing": "W",
+      "pts": [
+        [
+          -1.05,
+          -1.05
+        ],
+        [
+          5.9,
+          5.9
+        ],
+        [
+          -1.05,
+          12.85
+        ]
+      ],
+      "pts3": [
+        [
+          -1.05,
+          -1.05,
+          2.726779019
+        ],
+        [
+          5.9,
+          5.9,
+          5.534761289
+        ],
+        [
+          -1.05,
+          12.85,
+          2.726779019
+        ]
+      ],
+      "uv": [
+        [
+          1.05,
+          0
+        ],
+        [
+          -5.9,
+          7.495816462
+        ],
+        [
+          -12.85,
+          0
+        ]
+      ],
+      "edges": [
+        {
+          "kind": "hip",
+          "length": 10.2220235
+        },
+        {
+          "kind": "hip",
+          "length": 10.2220235
+        },
+        {
+          "kind": "eave",
+          "length": 13.9
+        }
+      ],
+      "area": 52.095924408,
+      "planArea": 48.3025,
+      "centroid": [
+        1.266666667,
+        5.9,
+        3.662773109
+      ],
+      "zMin": 2.726779019,
+      "zMax": 5.534761289,
+      "frame": {
+        "origin": [
+          -1.05,
+          0,
+          2.726779019
+        ],
+        "u": [
+          0,
+          -1,
+          0
+        ],
+        "v": [
+          0.927183855,
+          0,
+          0.374606593
+        ],
+        "n": [
+          -0.374606593,
+          0,
+          0.927183855
+        ]
+      }
+    },
+    {
+      "id": "T2.E",
+      "plane": "T2.E",
+      "roofId": "T2",
+      "side": "E",
+      "pitch": 22,
+      "azimuth": 90,
+      "azimuthTrue": 102,
+      "aspect": -78,
+      "facing": "E",
+      "pts": [
+        [
+          20.1,
+          12.85
+        ],
+        [
+          20.1,
+          15.25
+        ],
+        [
+          17.5,
+          12.65
+        ],
+        [
+          17.5,
+          10.25
+        ]
+      ],
+      "pts3": [
+        [
+          20.1,
+          12.85,
+          2.726779019
+        ],
+        [
+          20.1,
+          15.25,
+          2.726779019
+        ],
+        [
+          17.5,
+          12.65,
+          3.777247207
+        ],
+        [
+          17.5,
+          10.25,
+          3.777247207
+        ]
+      ],
+      "uv": [
+        [
+          12.85,
+          0
+        ],
+        [
+          15.25,
+          0
+        ],
+        [
+          12.65,
+          2.804190331
+        ],
+        [
+          10.25,
+          2.804190331
+        ]
+      ],
+      "edges": [
+        {
+          "kind": "eave",
+          "length": 2.4
+        },
+        {
+          "kind": "hip",
+          "length": 3.824066345
+        },
+        {
+          "kind": "ridge",
+          "length": 2.4
+        },
+        {
+          "kind": "valley",
+          "length": 3.824066345
+        }
+      ],
+      "area": 6.730056794,
+      "planArea": 6.24,
+      "centroid": [
+        18.8,
+        12.75,
+        3.252013113
+      ],
+      "zMin": 2.726779019,
+      "zMax": 3.777247207,
+      "frame": {
+        "origin": [
+          20.1,
+          0,
+          2.726779019
+        ],
+        "u": [
+          0,
+          1,
+          0
+        ],
+        "v": [
+          -0.927183855,
+          0,
+          0.374606593
+        ],
+        "n": [
+          0.374606593,
+          0,
+          0.927183855
+        ]
+      }
+    },
+    {
+      "id": "T2.N",
+      "plane": "T2.N",
+      "roofId": "T2",
+      "side": "N",
+      "pitch": 22,
+      "azimuth": 0,
+      "azimuthTrue": 12,
+      "aspect": -168,
+      "facing": "N",
+      "pts": [
+        [
+          20.1,
+          15.25
+        ],
+        [
+          14.9,
+          15.25
+        ],
+        [
+          17.5,
+          12.65
+        ]
+      ],
+      "pts3": [
+        [
+          20.1,
+          15.25,
+          2.726779019
+        ],
+        [
+          14.9,
+          15.25,
+          2.726779019
+        ],
+        [
+          17.5,
+          12.65,
+          3.777247207
+        ]
+      ],
+      "uv": [
+        [
+          -20.1,
+          0
+        ],
+        [
+          -14.9,
+          0
+        ],
+        [
+          -17.5,
+          2.804190331
+        ]
+      ],
+      "edges": [
+        {
+          "kind": "eave",
+          "length": 5.2
+        },
+        {
+          "kind": "hip",
+          "length": 3.824066345
+        },
+        {
+          "kind": "hip",
+          "length": 3.824066345
+        }
+      ],
+      "area": 7.290894861,
+      "planArea": 6.76,
+      "centroid": [
+        17.5,
+        14.383333333,
+        3.076935082
+      ],
+      "zMin": 2.726779019,
+      "zMax": 3.777247207,
+      "frame": {
+        "origin": [
+          0,
+          15.25,
+          2.726779019
+        ],
+        "u": [
+          -1,
+          0,
+          0
+        ],
+        "v": [
+          0,
+          -0.927183855,
+          0.374606593
+        ],
+        "n": [
+          0,
+          0.374606593,
+          0.927183855
+        ]
+      }
+    },
+    {
+      "id": "T2.W",
+      "plane": "T2.W",
+      "roofId": "T2",
+      "side": "W",
+      "pitch": 22,
+      "azimuth": 270,
+      "azimuthTrue": 282,
+      "aspect": 102,
+      "facing": "W",
+      "pts": [
+        [
+          17.5,
+          10.25
+        ],
+        [
+          17.5,
+          12.65
+        ],
+        [
+          14.9,
+          15.25
+        ],
+        [
+          14.9,
+          12.85
+        ]
+      ],
+      "pts3": [
+        [
+          17.5,
+          10.25,
+          3.777247207
+        ],
+        [
+          17.5,
+          12.65,
+          3.777247207
+        ],
+        [
+          14.9,
+          15.25,
+          2.726779019
+        ],
+        [
+          14.9,
+          12.85,
+          2.726779019
+        ]
+      ],
+      "uv": [
+        [
+          -10.25,
+          2.804190331
+        ],
+        [
+          -12.65,
+          2.804190331
+        ],
+        [
+          -15.25,
+          0
+        ],
+        [
+          -12.85,
+          0
+        ]
+      ],
+      "edges": [
+        {
+          "kind": "ridge",
+          "length": 2.4
+        },
+        {
+          "kind": "hip",
+          "length": 3.824066345
+        },
+        {
+          "kind": "eave",
+          "length": 2.4
+        },
+        {
+          "kind": "valley",
+          "length": 3.824066345
+        }
+      ],
+      "area": 6.730056794,
+      "planArea": 6.24,
+      "centroid": [
+        16.2,
+        12.75,
+        3.252013113
+      ],
+      "zMin": 2.726779019,
+      "zMax": 3.777247207,
+      "frame": {
+        "origin": [
+          14.9,
+          0,
+          2.726779019
+        ],
+        "u": [
+          0,
+          -1,
+          0
+        ],
+        "v": [
+          0.927183855,
+          0,
+          0.374606593
+        ],
+        "n": [
+          -0.374606593,
+          0,
+          0.927183855
+        ]
+      }
+    }
+  ],
+  "outdoor": [
+    {
+      "id": "O1",
+      "type": "terrace",
+      "covered": true,
+      "rect": [
+        -0.25,
+        -0.25,
+        6.4,
+        5.15
+      ],
+      "area": 35.91,
+      "posts": [
+        [
+          -0.1,
+          -0.1
+        ],
+        [
+          3.05,
+          -0.1
+        ],
+        [
+          6.25,
+          -0.1
+        ],
+        [
+          -0.1,
+          2.55
+        ]
+      ],
+      "zone": "outdoor"
+    },
+    {
+      "id": "O2",
+      "type": "paving",
+      "covered": false,
+      "rect": [
+        -0.25,
+        -4,
+        13.6,
+        -0.25
+      ],
+      "area": 51.9375,
+      "posts": [],
+      "zone": "outdoor"
+    },
+    {
+      "id": "O3",
+      "type": "paving",
+      "covered": true,
+      "rect": [
+        15.7,
+        12.05,
+        19.3,
+        14.45
+      ],
+      "area": 8.64,
+      "posts": [
+        [
+          15.85,
+          14.3
+        ],
+        [
+          19.15,
+          14.3
+        ]
+      ],
+      "zone": "outdoor"
+    },
+    {
+      "id": "O4",
+      "type": "drive",
+      "covered": false,
+      "rect": [
+        0.2,
+        12.05,
+        6.4,
+        20.5
+      ],
+      "area": 52.39,
+      "posts": [],
+      "zone": "outdoor"
+    },
+    {
+      "id": "O5",
+      "type": "path",
+      "covered": false,
+      "rect": [
+        16.8,
+        14.45,
+        18.2,
+        20.5
+      ],
+      "area": 8.47,
+      "posts": [],
+      "zone": "outdoor"
+    }
+  ],
+  "screens": [
+    {
+      "id": "L1",
+      "type": "slats",
+      "orient": "v",
+      "at": -0.1,
+      "from": 2.7,
+      "to": 5.15,
+      "length": 2.45,
+      "azimuth": 270,
+      "azimuthTrue": 282,
+      "facing": "W"
+    }
+  ],
+  "lightpipes": [
+    {
+      "x": 11.3,
+      "y": 8.3,
+      "diameter": 0.35,
+      "room": "R04",
+      "face": "T1.N#1",
+      "z": 4.5651
+    },
+    {
+      "x": 16,
+      "y": 9,
+      "diameter": 0.35,
+      "room": "R06",
+      "face": "T1.N#1",
+      "z": 4.2823
+    },
+    {
+      "x": 17.7,
+      "y": 3.5,
+      "diameter": 0.35,
+      "room": "R14",
+      "face": "T1.S",
+      "z": 4.5651
+    },
+    {
+      "x": 15.4,
+      "y": 5.8,
+      "diameter": 0.35,
+      "room": "R09",
+      "face": "T1.S",
+      "z": 5.4944
+    }
+  ],
+  "furniture": [
+    {
+      "index": 0,
+      "type": "car",
+      "x": 1.9,
+      "y": 8.85,
+      "rot": 90,
+      "w": 4.7,
+      "d": 1.9,
+      "rect": [
+        0.95,
+        6.5,
+        2.85,
+        11.2
+      ],
+      "room": "R01",
+      "outdoor": null
+    },
+    {
+      "index": 1,
+      "type": "car",
+      "x": 4.65,
+      "y": 8.85,
+      "rot": 90,
+      "w": 4.7,
+      "d": 1.9,
+      "rect": [
+        3.7,
+        6.5,
+        5.6,
+        11.2
+      ],
+      "room": "R01",
+      "outdoor": null
+    },
+    {
+      "index": 2,
+      "type": "shelf",
+      "x": 1.5,
+      "y": 5.825,
+      "rot": 180,
+      "w": 2,
+      "d": 0.35,
+      "rect": [
+        0.5,
+        5.65,
+        2.5,
+        6
+      ],
+      "room": "R01",
+      "outdoor": null
+    },
+    {
+      "index": 3,
+      "type": "shelf",
+      "x": 3.7,
+      "y": 5.825,
+      "rot": 180,
+      "w": 2,
+      "d": 0.35,
+      "rect": [
+        2.7,
+        5.65,
+        4.7,
+        6
+      ],
+      "room": "R01",
+      "outdoor": null
+    },
+    {
+      "index": 4,
+      "type": "washer",
+      "x": 7.25,
+      "y": 11.2,
+      "rot": 0,
+      "w": 0.6,
+      "d": 0.6,
+      "rect": [
+        6.95,
+        10.9,
+        7.55,
+        11.5
+      ],
+      "room": "R02",
+      "outdoor": null
+    },
+    {
+      "index": 5,
+      "type": "washer",
+      "x": 7.9,
+      "y": 11.2,
+      "rot": 0,
+      "w": 0.6,
+      "d": 0.6,
+      "rect": [
+        7.6,
+        10.9,
+        8.2,
+        11.5
+      ],
+      "room": "R02",
+      "outdoor": null
+    },
+    {
+      "index": 6,
+      "type": "wardrobe",
+      "x": 8.55,
+      "y": 11.2,
+      "rot": 0,
+      "w": 0.7,
+      "d": 0.6,
+      "rect": [
+        8.2,
+        10.9,
+        8.9,
+        11.5
+      ],
+      "room": "R02",
+      "outdoor": null
+    },
+    {
+      "index": 7,
+      "type": "shelf",
+      "x": 8.75,
+      "y": 9.9,
+      "rot": 270,
+      "w": 1.5,
+      "d": 0.35,
+      "rect": [
+        8.575,
+        9.15,
+        8.925,
+        10.65
+      ],
+      "room": "R02",
+      "outdoor": null
+    },
+    {
+      "index": 8,
+      "type": "shelf",
+      "x": 6.975,
+      "y": 6.3,
+      "rot": 90,
+      "w": 1.4,
+      "d": 0.35,
+      "rect": [
+        6.8,
+        5.6,
+        7.15,
+        7
+      ],
+      "room": "R03",
+      "outdoor": null
+    },
+    {
+      "index": 9,
+      "type": "shelf",
+      "x": 7.9,
+      "y": 5.65,
+      "rot": 0,
+      "w": 1.4,
+      "d": 0.35,
+      "rect": [
+        7.2,
+        5.475,
+        8.6,
+        5.825
+      ],
+      "room": "R03",
+      "outdoor": null
+    },
+    {
+      "index": 10,
+      "type": "sofaL",
+      "x": 8.4,
+      "y": 1.3,
+      "rot": 180,
+      "w": 2.9,
+      "d": 1.9,
+      "rect": [
+        6.95,
+        0.35,
+        9.85,
+        2.25
+      ],
+      "room": "R04",
+      "outdoor": null
+    },
+    {
+      "index": 11,
+      "type": "armchair",
+      "x": 9.35,
+      "y": 3.35,
+      "rot": 270,
+      "w": 0.85,
+      "d": 0.85,
+      "rect": [
+        8.925,
+        2.925,
+        9.775,
+        3.775
+      ],
+      "room": "R04",
+      "outdoor": null
+    },
+    {
+      "index": 12,
+      "type": "table6",
+      "x": 8,
+      "y": 3.05,
+      "rot": 0,
+      "w": 0.9,
+      "d": 0.6,
+      "rect": [
+        7.55,
+        2.75,
+        8.45,
+        3.35
+      ],
+      "room": "R04",
+      "outdoor": null
+    },
+    {
+      "index": 13,
+      "type": "tv",
+      "x": 8,
+      "y": 5.125,
+      "rot": 0,
+      "w": 1.6,
+      "d": 0.4,
+      "rect": [
+        7.2,
+        4.925,
+        8.8,
+        5.325
+      ],
+      "room": "R04",
+      "outdoor": null
+    },
+    {
+      "index": 14,
+      "type": "table8",
+      "x": 11.5,
+      "y": 3.2,
+      "rot": 0,
+      "w": 2.4,
+      "d": 1,
+      "rect": [
+        10.3,
+        2.7,
+        12.7,
+        3.7
+      ],
+      "room": "R04",
+      "outdoor": null
+    },
+    {
+      "index": 15,
+      "type": "chair",
+      "x": 10.6,
+      "y": 2.475,
+      "rot": 180,
+      "w": 0.45,
+      "d": 0.45,
+      "rect": [
+        10.375,
+        2.25,
+        10.825,
+        2.7
+      ],
+      "room": "R04",
+      "outdoor": null
+    },
+    {
+      "index": 16,
+      "type": "chair",
+      "x": 11.2,
+      "y": 2.475,
+      "rot": 180,
+      "w": 0.45,
+      "d": 0.45,
+      "rect": [
+        10.975,
+        2.25,
+        11.425,
+        2.7
+      ],
+      "room": "R04",
+      "outdoor": null
+    },
+    {
+      "index": 17,
+      "type": "chair",
+      "x": 11.8,
+      "y": 2.475,
+      "rot": 180,
+      "w": 0.45,
+      "d": 0.45,
+      "rect": [
+        11.575,
+        2.25,
+        12.025,
+        2.7
+      ],
+      "room": "R04",
+      "outdoor": null
+    },
+    {
+      "index": 18,
+      "type": "chair",
+      "x": 12.4,
+      "y": 2.475,
+      "rot": 180,
+      "w": 0.45,
+      "d": 0.45,
+      "rect": [
+        12.175,
+        2.25,
+        12.625,
+        2.7
+      ],
+      "room": "R04",
+      "outdoor": null
+    },
+    {
+      "index": 19,
+      "type": "chair",
+      "x": 10.6,
+      "y": 3.925,
+      "rot": 0,
+      "w": 0.45,
+      "d": 0.45,
+      "rect": [
+        10.375,
+        3.7,
+        10.825,
+        4.15
+      ],
+      "room": "R04",
+      "outdoor": null
+    },
+    {
+      "index": 20,
+      "type": "chair",
+      "x": 11.2,
+      "y": 3.925,
+      "rot": 0,
+      "w": 0.45,
+      "d": 0.45,
+      "rect": [
+        10.975,
+        3.7,
+        11.425,
+        4.15
+      ],
+      "room": "R04",
+      "outdoor": null
+    },
+    {
+      "index": 21,
+      "type": "chair",
+      "x": 11.8,
+      "y": 3.925,
+      "rot": 0,
+      "w": 0.45,
+      "d": 0.45,
+      "rect": [
+        11.575,
+        3.7,
+        12.025,
+        4.15
+      ],
+      "room": "R04",
+      "outdoor": null
+    },
+    {
+      "index": 22,
+      "type": "chair",
+      "x": 12.4,
+      "y": 3.925,
+      "rot": 0,
+      "w": 0.45,
+      "d": 0.45,
+      "rect": [
+        12.175,
+        3.7,
+        12.625,
+        4.15
+      ],
+      "room": "R04",
+      "outdoor": null
+    },
+    {
+      "index": 23,
+      "type": "fridge",
+      "x": 9.55,
+      "y": 8.275,
+      "rot": 0,
+      "w": 0.7,
+      "d": 0.7,
+      "rect": [
+        9.2,
+        7.925,
+        9.9,
+        8.625
+      ],
+      "room": "R04",
+      "outdoor": null
+    },
+    {
+      "index": 24,
+      "type": "kitchenLine",
+      "x": 11.15,
+      "y": 8.315,
+      "rot": 0,
+      "w": 2.5,
+      "d": 0.62,
+      "rect": [
+        9.9,
+        8.005,
+        12.4,
+        8.625
+      ],
+      "room": "R04",
+      "outdoor": null
+    },
+    {
+      "index": 25,
+      "type": "island",
+      "x": 11.2,
+      "y": 6.5,
+      "rot": 0,
+      "w": 2.4,
+      "d": 1,
+      "rect": [
+        10,
+        6,
+        12.4,
+        7
+      ],
+      "room": "R04",
+      "outdoor": null
+    },
+    {
+      "index": 26,
+      "type": "chair",
+      "x": 10.5,
+      "y": 5.7,
+      "rot": 180,
+      "w": 0.45,
+      "d": 0.45,
+      "rect": [
+        10.275,
+        5.475,
+        10.725,
+        5.925
+      ],
+      "room": "R04",
+      "outdoor": null
+    },
+    {
+      "index": 27,
+      "type": "chair",
+      "x": 11.2,
+      "y": 5.7,
+      "rot": 180,
+      "w": 0.45,
+      "d": 0.45,
+      "rect": [
+        10.975,
+        5.475,
+        11.425,
+        5.925
+      ],
+      "room": "R04",
+      "outdoor": null
+    },
+    {
+      "index": 28,
+      "type": "chair",
+      "x": 11.9,
+      "y": 5.7,
+      "rot": 180,
+      "w": 0.45,
+      "d": 0.45,
+      "rect": [
+        11.675,
+        5.475,
+        12.125,
+        5.925
+      ],
+      "room": "R04",
+      "outdoor": null
+    },
+    {
+      "index": 29,
+      "type": "desk",
+      "x": 11.25,
+      "y": 11.2,
+      "rot": 0,
+      "w": 1.4,
+      "d": 0.7,
+      "rect": [
+        10.55,
+        10.85,
+        11.95,
+        11.55
+      ],
+      "room": "R05",
+      "outdoor": null
+    },
+    {
+      "index": 30,
+      "type": "chair",
+      "x": 11.25,
+      "y": 10.5,
+      "rot": 180,
+      "w": 0.45,
+      "d": 0.45,
+      "rect": [
+        11.025,
+        10.275,
+        11.475,
+        10.725
+      ],
+      "room": "R05",
+      "outdoor": null
+    },
+    {
+      "index": 31,
+      "type": "sofa3",
+      "x": 10.5,
+      "y": 9.25,
+      "rot": 180,
+      "w": 2.2,
+      "d": 0.95,
+      "rect": [
+        9.4,
+        8.775,
+        11.6,
+        9.725
+      ],
+      "room": "R05",
+      "outdoor": null
+    },
+    {
+      "index": 32,
+      "type": "shelf",
+      "x": 13.175,
+      "y": 10.8,
+      "rot": 270,
+      "w": 1.4,
+      "d": 0.35,
+      "rect": [
+        13,
+        10.1,
+        13.35,
+        11.5
+      ],
+      "room": "R05",
+      "outdoor": null
+    },
+    {
+      "index": 33,
+      "type": "wardrobe",
+      "x": 15.8,
+      "y": 7.375,
+      "rot": 180,
+      "w": 2,
+      "d": 0.6,
+      "rect": [
+        14.8,
+        7.075,
+        16.8,
+        7.675
+      ],
+      "room": "R06",
+      "outdoor": null
+    },
+    {
+      "index": 34,
+      "type": "bench",
+      "x": 16.05,
+      "y": 11.35,
+      "rot": 0,
+      "w": 1.5,
+      "d": 0.4,
+      "rect": [
+        15.3,
+        11.15,
+        16.8,
+        11.55
+      ],
+      "room": "R06",
+      "outdoor": null
+    },
+    {
+      "index": 35,
+      "type": "wc",
+      "x": 14.4,
+      "y": 11.2,
+      "rot": 0,
+      "w": 0.4,
+      "d": 0.7,
+      "rect": [
+        14.2,
+        10.85,
+        14.6,
+        11.55
+      ],
+      "room": "R07",
+      "outdoor": null
+    },
+    {
+      "index": 36,
+      "type": "sink",
+      "x": 13.9,
+      "y": 10.8,
+      "rot": 90,
+      "w": 0.6,
+      "d": 0.5,
+      "rect": [
+        13.65,
+        10.5,
+        14.15,
+        11.1
+      ],
+      "room": "R07",
+      "outdoor": null
+    },
+    {
+      "index": 37,
+      "type": "bed90",
+      "x": 14.65,
+      "y": 3,
+      "rot": 90,
+      "w": 0.9,
+      "d": 2,
+      "rect": [
+        13.65,
+        2.55,
+        15.65,
+        3.45
+      ],
+      "room": "R08",
+      "outdoor": null
+    },
+    {
+      "index": 38,
+      "type": "desk",
+      "x": 15.35,
+      "y": 0.65,
+      "rot": 180,
+      "w": 1.4,
+      "d": 0.7,
+      "rect": [
+        14.65,
+        0.3,
+        16.05,
+        1
+      ],
+      "room": "R08",
+      "outdoor": null
+    },
+    {
+      "index": 39,
+      "type": "wardrobe",
+      "x": 16.15,
+      "y": 4.225,
+      "rot": 0,
+      "w": 1.5,
+      "d": 0.6,
+      "rect": [
+        15.4,
+        3.925,
+        16.9,
+        4.525
+      ],
+      "room": "R08",
+      "outdoor": null
+    },
+    {
+      "index": 40,
+      "type": "bath",
+      "x": 14.55,
+      "y": 6.55,
+      "rot": 0,
+      "w": 1.7,
+      "d": 0.75,
+      "rect": [
+        13.7,
+        6.175,
+        15.4,
+        6.925
+      ],
+      "room": "R09",
+      "outdoor": null
+    },
+    {
+      "index": 41,
+      "type": "shower",
+      "x": 16.45,
+      "y": 6.475,
+      "rot": 0,
+      "w": 0.9,
+      "d": 0.9,
+      "rect": [
+        16,
+        6.025,
+        16.9,
+        6.925
+      ],
+      "room": "R09",
+      "outdoor": null
+    },
+    {
+      "index": 42,
+      "type": "wc",
+      "x": 15.6,
+      "y": 5.025,
+      "rot": 180,
+      "w": 0.4,
+      "d": 0.7,
+      "rect": [
+        15.4,
+        4.675,
+        15.8,
+        5.375
+      ],
+      "room": "R09",
+      "outdoor": null
+    },
+    {
+      "index": 43,
+      "type": "sink2",
+      "x": 13.925,
+      "y": 5.3,
+      "rot": 90,
+      "w": 1.2,
+      "d": 0.5,
+      "rect": [
+        13.675,
+        4.7,
+        14.175,
+        5.9
+      ],
+      "room": "R09",
+      "outdoor": null
+    },
+    {
+      "index": 44,
+      "type": "bed180",
+      "x": 20.55,
+      "y": 3.1,
+      "rot": 0,
+      "w": 1.8,
+      "d": 2,
+      "rect": [
+        19.65,
+        2.1,
+        21.45,
+        4.1
+      ],
+      "room": "R10",
+      "outdoor": null
+    },
+    {
+      "index": 45,
+      "type": "shelf",
+      "x": 19.3,
+      "y": 3.9,
+      "rot": 0,
+      "w": 0.45,
+      "d": 0.35,
+      "rect": [
+        19.075,
+        3.725,
+        19.525,
+        4.075
+      ],
+      "room": "R10",
+      "outdoor": null
+    },
+    {
+      "index": 46,
+      "type": "armchair",
+      "x": 22.3,
+      "y": 0.7,
+      "rot": 0,
+      "w": 0.85,
+      "d": 0.85,
+      "rect": [
+        21.875,
+        0.275,
+        22.725,
+        1.125
+      ],
+      "room": "R10",
+      "outdoor": null
+    },
+    {
+      "index": 47,
+      "type": "wardrobe",
+      "x": 21.375,
+      "y": 5.825,
+      "rot": 180,
+      "w": 2.7,
+      "d": 0.6,
+      "rect": [
+        20.025,
+        5.525,
+        22.725,
+        6.125
+      ],
+      "room": "R11",
+      "outdoor": null
+    },
+    {
+      "index": 48,
+      "type": "shelf",
+      "x": 20.05,
+      "y": 4.45,
+      "rot": 180,
+      "w": 2.9,
+      "d": 0.35,
+      "rect": [
+        18.6,
+        4.275,
+        21.5,
+        4.625
+      ],
+      "room": "R11",
+      "outdoor": null
+    },
+    {
+      "index": 49,
+      "type": "wc",
+      "x": 19.3,
+      "y": 7.975,
+      "rot": 0,
+      "w": 0.4,
+      "d": 0.7,
+      "rect": [
+        19.1,
+        7.625,
+        19.5,
+        8.325
+      ],
+      "room": "R12",
+      "outdoor": null
+    },
+    {
+      "index": 50,
+      "type": "sink2",
+      "x": 20.7,
+      "y": 8.075,
+      "rot": 0,
+      "w": 1.2,
+      "d": 0.5,
+      "rect": [
+        20.1,
+        7.825,
+        21.3,
+        8.325
+      ],
+      "room": "R12",
+      "outdoor": null
+    },
+    {
+      "index": 51,
+      "type": "shower",
+      "x": 21.2,
+      "y": 6.725,
+      "rot": 0,
+      "w": 0.9,
+      "d": 0.9,
+      "rect": [
+        20.75,
+        6.275,
+        21.65,
+        7.175
+      ],
+      "room": "R12",
+      "outdoor": null
+    },
+    {
+      "index": 52,
+      "type": "bath",
+      "x": 22.375,
+      "y": 7.25,
+      "rot": 270,
+      "w": 1.7,
+      "d": 0.75,
+      "rect": [
+        22,
+        6.4,
+        22.75,
+        8.1
+      ],
+      "room": "R12",
+      "outdoor": null
+    },
+    {
+      "index": 53,
+      "type": "bed90",
+      "x": 20.3,
+      "y": 10.55,
+      "rot": 0,
+      "w": 0.9,
+      "d": 2,
+      "rect": [
+        19.85,
+        9.55,
+        20.75,
+        11.55
+      ],
+      "room": "R13",
+      "outdoor": null
+    },
+    {
+      "index": 54,
+      "type": "desk",
+      "x": 22.4,
+      "y": 9.9,
+      "rot": 270,
+      "w": 1.4,
+      "d": 0.7,
+      "rect": [
+        22.05,
+        9.2,
+        22.75,
+        10.6
+      ],
+      "room": "R13",
+      "outdoor": null
+    },
+    {
+      "index": 55,
+      "type": "wardrobe",
+      "x": 20.5,
+      "y": 8.775,
+      "rot": 180,
+      "w": 1.8,
+      "d": 0.6,
+      "rect": [
+        19.6,
+        8.475,
+        21.4,
+        9.075
+      ],
+      "room": "R13",
+      "outdoor": null
+    },
+    {
+      "index": 56,
+      "type": "table8",
+      "x": 3.3,
+      "y": 1.2,
+      "rot": 0,
+      "w": 2.4,
+      "d": 1,
+      "rect": [
+        2.1,
+        0.7,
+        4.5,
+        1.7
+      ],
+      "room": null,
+      "outdoor": "O1"
+    },
+    {
+      "index": 57,
+      "type": "chair",
+      "x": 2.4,
+      "y": 0.35,
+      "rot": 180,
+      "w": 0.45,
+      "d": 0.45,
+      "rect": [
+        2.175,
+        0.125,
+        2.625,
+        0.575
+      ],
+      "room": null,
+      "outdoor": "O1"
+    },
+    {
+      "index": 58,
+      "type": "chair",
+      "x": 3,
+      "y": 0.35,
+      "rot": 180,
+      "w": 0.45,
+      "d": 0.45,
+      "rect": [
+        2.775,
+        0.125,
+        3.225,
+        0.575
+      ],
+      "room": null,
+      "outdoor": "O1"
+    },
+    {
+      "index": 59,
+      "type": "chair",
+      "x": 3.6,
+      "y": 0.35,
+      "rot": 180,
+      "w": 0.45,
+      "d": 0.45,
+      "rect": [
+        3.375,
+        0.125,
+        3.825,
+        0.575
+      ],
+      "room": null,
+      "outdoor": "O1"
+    },
+    {
+      "index": 60,
+      "type": "chair",
+      "x": 4.2,
+      "y": 0.35,
+      "rot": 180,
+      "w": 0.45,
+      "d": 0.45,
+      "rect": [
+        3.975,
+        0.125,
+        4.425,
+        0.575
+      ],
+      "room": null,
+      "outdoor": "O1"
+    },
+    {
+      "index": 61,
+      "type": "chair",
+      "x": 2.4,
+      "y": 2.05,
+      "rot": 0,
+      "w": 0.45,
+      "d": 0.45,
+      "rect": [
+        2.175,
+        1.825,
+        2.625,
+        2.275
+      ],
+      "room": null,
+      "outdoor": "O1"
+    },
+    {
+      "index": 62,
+      "type": "chair",
+      "x": 3,
+      "y": 2.05,
+      "rot": 0,
+      "w": 0.45,
+      "d": 0.45,
+      "rect": [
+        2.775,
+        1.825,
+        3.225,
+        2.275
+      ],
+      "room": null,
+      "outdoor": "O1"
+    },
+    {
+      "index": 63,
+      "type": "chair",
+      "x": 3.6,
+      "y": 2.05,
+      "rot": 0,
+      "w": 0.45,
+      "d": 0.45,
+      "rect": [
+        3.375,
+        1.825,
+        3.825,
+        2.275
+      ],
+      "room": null,
+      "outdoor": "O1"
+    },
+    {
+      "index": 64,
+      "type": "chair",
+      "x": 4.2,
+      "y": 2.05,
+      "rot": 0,
+      "w": 0.45,
+      "d": 0.45,
+      "rect": [
+        3.975,
+        1.825,
+        4.425,
+        2.275
+      ],
+      "room": null,
+      "outdoor": "O1"
+    },
+    {
+      "index": 65,
+      "type": "swingbed",
+      "x": 1.2,
+      "y": 4.35,
+      "rot": 0,
+      "w": 2,
+      "d": 1.4,
+      "rect": [
+        0.2,
+        3.65,
+        2.2,
+        5.05
+      ],
+      "room": null,
+      "outdoor": "O1"
+    },
+    {
+      "index": 66,
+      "type": "sofa3",
+      "x": 4.2,
+      "y": 4.65,
+      "rot": 0,
+      "w": 2.2,
+      "d": 0.95,
+      "rect": [
+        3.1,
+        4.175,
+        5.3,
+        5.125
+      ],
+      "room": null,
+      "outdoor": "O1"
+    },
+    {
+      "index": 67,
+      "type": "armchair",
+      "x": 3,
+      "y": 3.4,
+      "rot": 90,
+      "w": 0.85,
+      "d": 0.85,
+      "rect": [
+        2.575,
+        2.975,
+        3.425,
+        3.825
+      ],
+      "room": null,
+      "outdoor": "O1"
+    },
+    {
+      "index": 68,
+      "type": "table6",
+      "x": 4.2,
+      "y": 3.55,
+      "rot": 0,
+      "w": 0.9,
+      "d": 0.5,
+      "rect": [
+        3.75,
+        3.3,
+        4.65,
+        3.8
+      ],
+      "room": null,
+      "outdoor": "O1"
+    },
+    {
+      "index": 69,
+      "type": "lounger",
+      "x": 0.9,
+      "y": 1.7,
+      "rot": 0,
+      "w": 0.7,
+      "d": 2,
+      "rect": [
+        0.55,
+        0.7,
+        1.25,
+        2.7
+      ],
+      "room": null,
+      "outdoor": "O1"
+    },
+    {
+      "index": 70,
+      "type": "grill",
+      "x": 5.3,
+      "y": 0.45,
+      "rot": 180,
+      "w": 1,
+      "d": 0.6,
+      "rect": [
+        4.8,
+        0.15,
+        5.8,
+        0.75
+      ],
+      "room": null,
+      "outdoor": "O1"
+    }
+  ],
+  "access": {
+    "entryOpening": "E01",
+    "entryRoom": "R06",
+    "edges": [
+      {
+        "a": "R01",
+        "b": "R02",
+        "opening": "D01"
+      },
+      {
+        "a": "R03",
+        "b": "R02",
+        "opening": "D13"
+      },
+      {
+        "a": "R03",
+        "b": "R04",
+        "opening": "D03"
+      },
+      {
+        "a": "R04",
+        "b": "R06",
+        "opening": "D04"
+      },
+      {
+        "a": "R05",
+        "b": "R06",
+        "opening": "D05"
+      },
+      {
+        "a": "R06",
+        "b": "R07",
+        "opening": "D06"
+      },
+      {
+        "a": "R08",
+        "b": "R14",
+        "opening": "D07"
+      },
+      {
+        "a": "R09",
+        "b": "R14",
+        "opening": "D08"
+      },
+      {
+        "a": "R14",
+        "b": "R10",
+        "opening": "D09"
+      },
+      {
+        "a": "R10",
+        "b": "R11",
+        "opening": "D10"
+      },
+      {
+        "a": "R11",
+        "b": "R12",
+        "opening": "D11"
+      },
+      {
+        "a": "R06",
+        "b": "R13",
+        "opening": "D12"
+      },
+      {
+        "a": "R14",
+        "b": "R06",
+        "opening": "D14"
+      }
+    ],
+    "depth": {
+      "R06": 0,
+      "R04": 1,
+      "R05": 1,
+      "R07": 1,
+      "R13": 1,
+      "R14": 1,
+      "R03": 2,
+      "R08": 2,
+      "R09": 2,
+      "R10": 2,
+      "R02": 3,
+      "R11": 3,
+      "R01": 4,
+      "R12": 4
+    },
+    "unreachable": []
+  },
+  "facings": {
+    "N": {
+      "dir": "N",
+      "houseAzimuthDeg": 0,
+      "azimuthDeg": 12,
+      "facing": "N",
+      "wallLength": 23,
+      "wallArea": 70.15,
+      "glazingArea": 5.7,
+      "doorArea": 14.26,
+      "blindedGlazingArea": 0,
+      "roofArea": 136.0491
+    },
+    "E": {
+      "dir": "E",
+      "houseAzimuthDeg": 90,
+      "azimuthDeg": 102,
+      "facing": "E",
+      "wallLength": 11.8,
+      "wallArea": 35.99,
+      "glazingArea": 4.56,
+      "doorArea": 0,
+      "blindedGlazingArea": 0,
+      "roofArea": 58.826
+    },
+    "S": {
+      "dir": "S",
+      "houseAzimuthDeg": 180,
+      "azimuthDeg": 192,
+      "facing": "S",
+      "wallLength": 23,
+      "wallArea": 70.15,
+      "glazingArea": 18.39,
+      "doorArea": 0,
+      "blindedGlazingArea": 18.39,
+      "roofArea": 136.0491
+    },
+    "W": {
+      "dir": "W",
+      "houseAzimuthDeg": 270,
+      "azimuthDeg": 282,
+      "facing": "W",
+      "wallLength": 11.8,
+      "wallArea": 35.99,
+      "glazingArea": 7.76,
+      "doorArea": 0,
+      "blindedGlazingArea": 6.96,
+      "roofArea": 58.826
+    }
+  },
+  "assemblies": {
+    "exteriorWall": {
+      "thickness": 0.5,
+      "R": 6.2839,
+      "U": 0.1549
+    },
+    "bearingWall": {
+      "thickness": 0.3,
+      "R": 0.7179,
+      "U": 1.0226
+    },
+    "partitionWall": {
+      "thickness": 0.15,
+      "R": 0.3375,
+      "U": 1.6736
+    },
+    "ceiling": {
+      "thickness": 0.332,
+      "R": 0.4562,
+      "U": 1.5238
+    },
+    "roof": {
+      "thickness": 0.3665,
+      "R": 8.0038,
+      "U": 0.1219
+    },
+    "groundFloor": {
+      "thickness": 0.485,
+      "R": 4.7507,
+      "U": 0.2032
+    }
+  },
+  "pv": {
+    "moduleWp": 430,
+    "panels": [
+      {
+        "id": "PV01",
+        "plane": "T1.S",
+        "face": "T1.S",
+        "row": 0,
+        "col": 0,
+        "wp": 430,
+        "uv": [
+          2.855,
+          0.8,
+          3.989,
+          2.522
+        ],
+        "center": [
+          3.422,
+          0.490052382,
+          3.349000571
+        ],
+        "corners": [
+          [
+            2.855,
+            -0.308252916,
+            3.026464294
+          ],
+          [
+            3.989,
+            -0.308252916,
+            3.026464294
+          ],
+          [
+            3.989,
+            1.288357681,
+            3.671536848
+          ],
+          [
+            2.855,
+            1.288357681,
+            3.671536848
+          ]
+        ]
+      },
+      {
+        "id": "PV02",
+        "plane": "T1.S",
+        "face": "T1.S",
+        "row": 0,
+        "col": 1,
+        "wp": 430,
+        "uv": [
+          4.009,
+          0.8,
+          5.143,
+          2.522
+        ],
+        "center": [
+          4.576,
+          0.490052382,
+          3.349000571
+        ],
+        "corners": [
+          [
+            4.009,
+            -0.308252916,
+            3.026464294
+          ],
+          [
+            5.143,
+            -0.308252916,
+            3.026464294
+          ],
+          [
+            5.143,
+            1.288357681,
+            3.671536848
+          ],
+          [
+            4.009,
+            1.288357681,
+            3.671536848
+          ]
+        ]
+      },
+      {
+        "id": "PV03",
+        "plane": "T1.S",
+        "face": "T1.S",
+        "row": 0,
+        "col": 2,
+        "wp": 430,
+        "uv": [
+          5.163,
+          0.8,
+          6.297,
+          2.522
+        ],
+        "center": [
+          5.73,
+          0.490052382,
+          3.349000571
+        ],
+        "corners": [
+          [
+            5.163,
+            -0.308252916,
+            3.026464294
+          ],
+          [
+            6.297,
+            -0.308252916,
+            3.026464294
+          ],
+          [
+            6.297,
+            1.288357681,
+            3.671536848
+          ],
+          [
+            5.163,
+            1.288357681,
+            3.671536848
+          ]
+        ]
+      },
+      {
+        "id": "PV04",
+        "plane": "T1.S",
+        "face": "T1.S",
+        "row": 0,
+        "col": 3,
+        "wp": 430,
+        "uv": [
+          6.317,
+          0.8,
+          7.451,
+          2.522
+        ],
+        "center": [
+          6.884,
+          0.490052382,
+          3.349000571
+        ],
+        "corners": [
+          [
+            6.317,
+            -0.308252916,
+            3.026464294
+          ],
+          [
+            7.451,
+            -0.308252916,
+            3.026464294
+          ],
+          [
+            7.451,
+            1.288357681,
+            3.671536848
+          ],
+          [
+            6.317,
+            1.288357681,
+            3.671536848
+          ]
+        ]
+      },
+      {
+        "id": "PV05",
+        "plane": "T1.S",
+        "face": "T1.S",
+        "row": 0,
+        "col": 4,
+        "wp": 430,
+        "uv": [
+          7.471,
+          0.8,
+          8.605,
+          2.522
+        ],
+        "center": [
+          8.038,
+          0.490052382,
+          3.349000571
+        ],
+        "corners": [
+          [
+            7.471,
+            -0.308252916,
+            3.026464294
+          ],
+          [
+            8.605,
+            -0.308252916,
+            3.026464294
+          ],
+          [
+            8.605,
+            1.288357681,
+            3.671536848
+          ],
+          [
+            7.471,
+            1.288357681,
+            3.671536848
+          ]
+        ]
+      },
+      {
+        "id": "PV06",
+        "plane": "T1.S",
+        "face": "T1.S",
+        "row": 0,
+        "col": 5,
+        "wp": 430,
+        "uv": [
+          8.625,
+          0.8,
+          9.759,
+          2.522
+        ],
+        "center": [
+          9.192,
+          0.490052382,
+          3.349000571
+        ],
+        "corners": [
+          [
+            8.625,
+            -0.308252916,
+            3.026464294
+          ],
+          [
+            9.759,
+            -0.308252916,
+            3.026464294
+          ],
+          [
+            9.759,
+            1.288357681,
+            3.671536848
+          ],
+          [
+            8.625,
+            1.288357681,
+            3.671536848
+          ]
+        ]
+      },
+      {
+        "id": "PV07",
+        "plane": "T1.S",
+        "face": "T1.S",
+        "row": 0,
+        "col": 6,
+        "wp": 430,
+        "uv": [
+          9.779,
+          0.8,
+          10.913,
+          2.522
+        ],
+        "center": [
+          10.346,
+          0.490052382,
+          3.349000571
+        ],
+        "corners": [
+          [
+            9.779,
+            -0.308252916,
+            3.026464294
+          ],
+          [
+            10.913,
+            -0.308252916,
+            3.026464294
+          ],
+          [
+            10.913,
+            1.288357681,
+            3.671536848
+          ],
+          [
+            9.779,
+            1.288357681,
+            3.671536848
+          ]
+        ]
+      },
+      {
+        "id": "PV08",
+        "plane": "T1.S",
+        "face": "T1.S",
+        "row": 0,
+        "col": 7,
+        "wp": 430,
+        "uv": [
+          10.933,
+          0.8,
+          12.067,
+          2.522
+        ],
+        "center": [
+          11.5,
+          0.490052382,
+          3.349000571
+        ],
+        "corners": [
+          [
+            10.933,
+            -0.308252916,
+            3.026464294
+          ],
+          [
+            12.067,
+            -0.308252916,
+            3.026464294
+          ],
+          [
+            12.067,
+            1.288357681,
+            3.671536848
+          ],
+          [
+            10.933,
+            1.288357681,
+            3.671536848
+          ]
+        ]
+      },
+      {
+        "id": "PV09",
+        "plane": "T1.S",
+        "face": "T1.S",
+        "row": 0,
+        "col": 8,
+        "wp": 430,
+        "uv": [
+          12.087,
+          0.8,
+          13.221,
+          2.522
+        ],
+        "center": [
+          12.654,
+          0.490052382,
+          3.349000571
+        ],
+        "corners": [
+          [
+            12.087,
+            -0.308252916,
+            3.026464294
+          ],
+          [
+            13.221,
+            -0.308252916,
+            3.026464294
+          ],
+          [
+            13.221,
+            1.288357681,
+            3.671536848
+          ],
+          [
+            12.087,
+            1.288357681,
+            3.671536848
+          ]
+        ]
+      },
+      {
+        "id": "PV10",
+        "plane": "T1.S",
+        "face": "T1.S",
+        "row": 0,
+        "col": 9,
+        "wp": 430,
+        "uv": [
+          13.241,
+          0.8,
+          14.375,
+          2.522
+        ],
+        "center": [
+          13.808,
+          0.490052382,
+          3.349000571
+        ],
+        "corners": [
+          [
+            13.241,
+            -0.308252916,
+            3.026464294
+          ],
+          [
+            14.375,
+            -0.308252916,
+            3.026464294
+          ],
+          [
+            14.375,
+            1.288357681,
+            3.671536848
+          ],
+          [
+            13.241,
+            1.288357681,
+            3.671536848
+          ]
+        ]
+      },
+      {
+        "id": "PV11",
+        "plane": "T1.S",
+        "face": "T1.S",
+        "row": 0,
+        "col": 10,
+        "wp": 430,
+        "uv": [
+          14.395,
+          0.8,
+          15.529,
+          2.522
+        ],
+        "center": [
+          14.962,
+          0.490052382,
+          3.349000571
+        ],
+        "corners": [
+          [
+            14.395,
+            -0.308252916,
+            3.026464294
+          ],
+          [
+            15.529,
+            -0.308252916,
+            3.026464294
+          ],
+          [
+            15.529,
+            1.288357681,
+            3.671536848
+          ],
+          [
+            14.395,
+            1.288357681,
+            3.671536848
+          ]
+        ]
+      },
+      {
+        "id": "PV12",
+        "plane": "T1.S",
+        "face": "T1.S",
+        "row": 0,
+        "col": 11,
+        "wp": 430,
+        "uv": [
+          15.549,
+          0.8,
+          16.683,
+          2.522
+        ],
+        "center": [
+          16.116,
+          0.490052382,
+          3.349000571
+        ],
+        "corners": [
+          [
+            15.549,
+            -0.308252916,
+            3.026464294
+          ],
+          [
+            16.683,
+            -0.308252916,
+            3.026464294
+          ],
+          [
+            16.683,
+            1.288357681,
+            3.671536848
+          ],
+          [
+            15.549,
+            1.288357681,
+            3.671536848
+          ]
+        ]
+      },
+      {
+        "id": "PV13",
+        "plane": "T1.S",
+        "face": "T1.S",
+        "row": 0,
+        "col": 12,
+        "wp": 430,
+        "uv": [
+          16.703,
+          0.8,
+          17.837,
+          2.522
+        ],
+        "center": [
+          17.27,
+          0.490052382,
+          3.349000571
+        ],
+        "corners": [
+          [
+            16.703,
+            -0.308252916,
+            3.026464294
+          ],
+          [
+            17.837,
+            -0.308252916,
+            3.026464294
+          ],
+          [
+            17.837,
+            1.288357681,
+            3.671536848
+          ],
+          [
+            16.703,
+            1.288357681,
+            3.671536848
+          ]
+        ]
+      },
+      {
+        "id": "PV14",
+        "plane": "T1.S",
+        "face": "T1.S",
+        "row": 0,
+        "col": 13,
+        "wp": 430,
+        "uv": [
+          17.857,
+          0.8,
+          18.991,
+          2.522
+        ],
+        "center": [
+          18.424,
+          0.490052382,
+          3.349000571
+        ],
+        "corners": [
+          [
+            17.857,
+            -0.308252916,
+            3.026464294
+          ],
+          [
+            18.991,
+            -0.308252916,
+            3.026464294
+          ],
+          [
+            18.991,
+            1.288357681,
+            3.671536848
+          ],
+          [
+            17.857,
+            1.288357681,
+            3.671536848
+          ]
+        ]
+      },
+      {
+        "id": "PV15",
+        "plane": "T1.S",
+        "face": "T1.S",
+        "row": 0,
+        "col": 14,
+        "wp": 430,
+        "uv": [
+          19.011,
+          0.8,
+          20.145,
+          2.522
+        ],
+        "center": [
+          19.578,
+          0.490052382,
+          3.349000571
+        ],
+        "corners": [
+          [
+            19.011,
+            -0.308252916,
+            3.026464294
+          ],
+          [
+            20.145,
+            -0.308252916,
+            3.026464294
+          ],
+          [
+            20.145,
+            1.288357681,
+            3.671536848
+          ],
+          [
+            19.011,
+            1.288357681,
+            3.671536848
+          ]
+        ]
+      },
+      {
+        "id": "PV16",
+        "plane": "T1.S",
+        "face": "T1.S",
+        "row": 1,
+        "col": 0,
+        "wp": 430,
+        "uv": [
+          4.586,
+          2.542,
+          5.72,
+          4.264
+        ],
+        "center": [
+          5.153,
+          2.105206657,
+          4.001565257
+        ],
+        "corners": [
+          [
+            4.586,
+            1.306901358,
+            3.67902898
+          ],
+          [
+            5.72,
+            1.306901358,
+            3.67902898
+          ],
+          [
+            5.72,
+            2.903511956,
+            4.324101534
+          ],
+          [
+            4.586,
+            2.903511956,
+            4.324101534
+          ]
+        ]
+      },
+      {
+        "id": "PV17",
+        "plane": "T1.S",
+        "face": "T1.S",
+        "row": 1,
+        "col": 1,
+        "wp": 430,
+        "uv": [
+          5.74,
+          2.542,
+          6.874,
+          4.264
+        ],
+        "center": [
+          6.307,
+          2.105206657,
+          4.001565257
+        ],
+        "corners": [
+          [
+            5.74,
+            1.306901358,
+            3.67902898
+          ],
+          [
+            6.874,
+            1.306901358,
+            3.67902898
+          ],
+          [
+            6.874,
+            2.903511956,
+            4.324101534
+          ],
+          [
+            5.74,
+            2.903511956,
+            4.324101534
+          ]
+        ]
+      },
+      {
+        "id": "PV18",
+        "plane": "T1.S",
+        "face": "T1.S",
+        "row": 1,
+        "col": 2,
+        "wp": 430,
+        "uv": [
+          6.894,
+          2.542,
+          8.028,
+          4.264
+        ],
+        "center": [
+          7.461,
+          2.105206657,
+          4.001565257
+        ],
+        "corners": [
+          [
+            6.894,
+            1.306901358,
+            3.67902898
+          ],
+          [
+            8.028,
+            1.306901358,
+            3.67902898
+          ],
+          [
+            8.028,
+            2.903511956,
+            4.324101534
+          ],
+          [
+            6.894,
+            2.903511956,
+            4.324101534
+          ]
+        ]
+      },
+      {
+        "id": "PV19",
+        "plane": "T1.S",
+        "face": "T1.S",
+        "row": 1,
+        "col": 3,
+        "wp": 430,
+        "uv": [
+          8.048,
+          2.542,
+          9.182,
+          4.264
+        ],
+        "center": [
+          8.615,
+          2.105206657,
+          4.001565257
+        ],
+        "corners": [
+          [
+            8.048,
+            1.306901358,
+            3.67902898
+          ],
+          [
+            9.182,
+            1.306901358,
+            3.67902898
+          ],
+          [
+            9.182,
+            2.903511956,
+            4.324101534
+          ],
+          [
+            8.048,
+            2.903511956,
+            4.324101534
+          ]
+        ]
+      },
+      {
+        "id": "PV20",
+        "plane": "T1.S",
+        "face": "T1.S",
+        "row": 1,
+        "col": 4,
+        "wp": 430,
+        "uv": [
+          9.202,
+          2.542,
+          10.336,
+          4.264
+        ],
+        "center": [
+          9.769,
+          2.105206657,
+          4.001565257
+        ],
+        "corners": [
+          [
+            9.202,
+            1.306901358,
+            3.67902898
+          ],
+          [
+            10.336,
+            1.306901358,
+            3.67902898
+          ],
+          [
+            10.336,
+            2.903511956,
+            4.324101534
+          ],
+          [
+            9.202,
+            2.903511956,
+            4.324101534
+          ]
+        ]
+      },
+      {
+        "id": "PV21",
+        "plane": "T1.S",
+        "face": "T1.S",
+        "row": 1,
+        "col": 5,
+        "wp": 430,
+        "uv": [
+          10.356,
+          2.542,
+          11.49,
+          4.264
+        ],
+        "center": [
+          10.923,
+          2.105206657,
+          4.001565257
+        ],
+        "corners": [
+          [
+            10.356,
+            1.306901358,
+            3.67902898
+          ],
+          [
+            11.49,
+            1.306901358,
+            3.67902898
+          ],
+          [
+            11.49,
+            2.903511956,
+            4.324101534
+          ],
+          [
+            10.356,
+            2.903511956,
+            4.324101534
+          ]
+        ]
+      },
+      {
+        "id": "PV22",
+        "plane": "T1.S",
+        "face": "T1.S",
+        "row": 1,
+        "col": 6,
+        "wp": 430,
+        "uv": [
+          11.51,
+          2.542,
+          12.644,
+          4.264
+        ],
+        "center": [
+          12.077,
+          2.105206657,
+          4.001565257
+        ],
+        "corners": [
+          [
+            11.51,
+            1.306901358,
+            3.67902898
+          ],
+          [
+            12.644,
+            1.306901358,
+            3.67902898
+          ],
+          [
+            12.644,
+            2.903511956,
+            4.324101534
+          ],
+          [
+            11.51,
+            2.903511956,
+            4.324101534
+          ]
+        ]
+      },
+      {
+        "id": "PV23",
+        "plane": "T1.S",
+        "face": "T1.S",
+        "row": 1,
+        "col": 7,
+        "wp": 430,
+        "uv": [
+          12.664,
+          2.542,
+          13.798,
+          4.264
+        ],
+        "center": [
+          13.231,
+          2.105206657,
+          4.001565257
+        ],
+        "corners": [
+          [
+            12.664,
+            1.306901358,
+            3.67902898
+          ],
+          [
+            13.798,
+            1.306901358,
+            3.67902898
+          ],
+          [
+            13.798,
+            2.903511956,
+            4.324101534
+          ],
+          [
+            12.664,
+            2.903511956,
+            4.324101534
+          ]
+        ]
+      },
+      {
+        "id": "PV24",
+        "plane": "T1.S",
+        "face": "T1.S",
+        "row": 1,
+        "col": 8,
+        "wp": 430,
+        "uv": [
+          13.818,
+          2.542,
+          14.952,
+          4.264
+        ],
+        "center": [
+          14.385,
+          2.105206657,
+          4.001565257
+        ],
+        "corners": [
+          [
+            13.818,
+            1.306901358,
+            3.67902898
+          ],
+          [
+            14.952,
+            1.306901358,
+            3.67902898
+          ],
+          [
+            14.952,
+            2.903511956,
+            4.324101534
+          ],
+          [
+            13.818,
+            2.903511956,
+            4.324101534
+          ]
+        ]
+      },
+      {
+        "id": "PV25",
+        "plane": "T1.S",
+        "face": "T1.S",
+        "row": 1,
+        "col": 9,
+        "wp": 430,
+        "uv": [
+          14.972,
+          2.542,
+          16.106,
+          4.264
+        ],
+        "center": [
+          15.539,
+          2.105206657,
+          4.001565257
+        ],
+        "corners": [
+          [
+            14.972,
+            1.306901358,
+            3.67902898
+          ],
+          [
+            16.106,
+            1.306901358,
+            3.67902898
+          ],
+          [
+            16.106,
+            2.903511956,
+            4.324101534
+          ],
+          [
+            14.972,
+            2.903511956,
+            4.324101534
+          ]
+        ]
+      },
+      {
+        "id": "PV26",
+        "plane": "T1.S",
+        "face": "T1.S",
+        "row": 1,
+        "col": 10,
+        "wp": 430,
+        "uv": [
+          16.126,
+          2.542,
+          17.26,
+          4.264
+        ],
+        "center": [
+          16.693,
+          2.105206657,
+          4.001565257
+        ],
+        "corners": [
+          [
+            16.126,
+            1.306901358,
+            3.67902898
+          ],
+          [
+            17.26,
+            1.306901358,
+            3.67902898
+          ],
+          [
+            17.26,
+            2.903511956,
+            4.324101534
+          ],
+          [
+            16.126,
+            2.903511956,
+            4.324101534
+          ]
+        ]
+      },
+      {
+        "id": "PV27",
+        "plane": "T1.S",
+        "face": "T1.S",
+        "row": 1,
+        "col": 11,
+        "wp": 430,
+        "uv": [
+          17.28,
+          2.542,
+          18.414,
+          4.264
+        ],
+        "center": [
+          17.847,
+          2.105206657,
+          4.001565257
+        ],
+        "corners": [
+          [
+            17.28,
+            1.306901358,
+            3.67902898
+          ],
+          [
+            18.414,
+            1.306901358,
+            3.67902898
+          ],
+          [
+            18.414,
+            2.903511956,
+            4.324101534
+          ],
+          [
+            17.28,
+            2.903511956,
+            4.324101534
+          ]
+        ]
+      },
+      {
+        "id": "PV28",
+        "plane": "T1.S",
+        "face": "T1.S",
+        "row": 2,
+        "col": 0,
+        "wp": 430,
+        "uv": [
+          6.317,
+          4.284,
+          7.451,
+          6.006
+        ],
+        "center": [
+          6.884,
+          3.720360932,
+          4.654129942
+        ],
+        "corners": [
+          [
+            6.317,
+            2.922055633,
+            4.331593666
+          ],
+          [
+            7.451,
+            2.922055633,
+            4.331593666
+          ],
+          [
+            7.451,
+            4.518666231,
+            4.976666219
+          ],
+          [
+            6.317,
+            4.518666231,
+            4.976666219
+          ]
+        ]
+      },
+      {
+        "id": "PV29",
+        "plane": "T1.S",
+        "face": "T1.S",
+        "row": 2,
+        "col": 1,
+        "wp": 430,
+        "uv": [
+          7.471,
+          4.284,
+          8.605,
+          6.006
+        ],
+        "center": [
+          8.038,
+          3.720360932,
+          4.654129942
+        ],
+        "corners": [
+          [
+            7.471,
+            2.922055633,
+            4.331593666
+          ],
+          [
+            8.605,
+            2.922055633,
+            4.331593666
+          ],
+          [
+            8.605,
+            4.518666231,
+            4.976666219
+          ],
+          [
+            7.471,
+            4.518666231,
+            4.976666219
+          ]
+        ]
+      },
+      {
+        "id": "PV30",
+        "plane": "T1.S",
+        "face": "T1.S",
+        "row": 2,
+        "col": 2,
+        "wp": 430,
+        "uv": [
+          8.625,
+          4.284,
+          9.759,
+          6.006
+        ],
+        "center": [
+          9.192,
+          3.720360932,
+          4.654129942
+        ],
+        "corners": [
+          [
+            8.625,
+            2.922055633,
+            4.331593666
+          ],
+          [
+            9.759,
+            2.922055633,
+            4.331593666
+          ],
+          [
+            9.759,
+            4.518666231,
+            4.976666219
+          ],
+          [
+            8.625,
+            4.518666231,
+            4.976666219
+          ]
+        ]
+      },
+      {
+        "id": "PV31",
+        "plane": "T1.S",
+        "face": "T1.S",
+        "row": 2,
+        "col": 3,
+        "wp": 430,
+        "uv": [
+          9.779,
+          4.284,
+          10.913,
+          6.006
+        ],
+        "center": [
+          10.346,
+          3.720360932,
+          4.654129942
+        ],
+        "corners": [
+          [
+            9.779,
+            2.922055633,
+            4.331593666
+          ],
+          [
+            10.913,
+            2.922055633,
+            4.331593666
+          ],
+          [
+            10.913,
+            4.518666231,
+            4.976666219
+          ],
+          [
+            9.779,
+            4.518666231,
+            4.976666219
+          ]
+        ]
+      },
+      {
+        "id": "PV32",
+        "plane": "T1.S",
+        "face": "T1.S",
+        "row": 2,
+        "col": 4,
+        "wp": 430,
+        "uv": [
+          10.933,
+          4.284,
+          12.067,
+          6.006
+        ],
+        "center": [
+          11.5,
+          3.720360932,
+          4.654129942
+        ],
+        "corners": [
+          [
+            10.933,
+            2.922055633,
+            4.331593666
+          ],
+          [
+            12.067,
+            2.922055633,
+            4.331593666
+          ],
+          [
+            12.067,
+            4.518666231,
+            4.976666219
+          ],
+          [
+            10.933,
+            4.518666231,
+            4.976666219
+          ]
+        ]
+      },
+      {
+        "id": "PV33",
+        "plane": "T1.S",
+        "face": "T1.S",
+        "row": 2,
+        "col": 5,
+        "wp": 430,
+        "uv": [
+          12.087,
+          4.284,
+          13.221,
+          6.006
+        ],
+        "center": [
+          12.654,
+          3.720360932,
+          4.654129942
+        ],
+        "corners": [
+          [
+            12.087,
+            2.922055633,
+            4.331593666
+          ],
+          [
+            13.221,
+            2.922055633,
+            4.331593666
+          ],
+          [
+            13.221,
+            4.518666231,
+            4.976666219
+          ],
+          [
+            12.087,
+            4.518666231,
+            4.976666219
+          ]
+        ]
+      },
+      {
+        "id": "PV34",
+        "plane": "T1.S",
+        "face": "T1.S",
+        "row": 2,
+        "col": 6,
+        "wp": 430,
+        "uv": [
+          13.241,
+          4.284,
+          14.375,
+          6.006
+        ],
+        "center": [
+          13.808,
+          3.720360932,
+          4.654129942
+        ],
+        "corners": [
+          [
+            13.241,
+            2.922055633,
+            4.331593666
+          ],
+          [
+            14.375,
+            2.922055633,
+            4.331593666
+          ],
+          [
+            14.375,
+            4.518666231,
+            4.976666219
+          ],
+          [
+            13.241,
+            4.518666231,
+            4.976666219
+          ]
+        ]
+      },
+      {
+        "id": "PV35",
+        "plane": "T1.S",
+        "face": "T1.S",
+        "row": 2,
+        "col": 7,
+        "wp": 430,
+        "uv": [
+          14.395,
+          4.284,
+          15.529,
+          6.006
+        ],
+        "center": [
+          14.962,
+          3.720360932,
+          4.654129942
+        ],
+        "corners": [
+          [
+            14.395,
+            2.922055633,
+            4.331593666
+          ],
+          [
+            15.529,
+            2.922055633,
+            4.331593666
+          ],
+          [
+            15.529,
+            4.518666231,
+            4.976666219
+          ],
+          [
+            14.395,
+            4.518666231,
+            4.976666219
+          ]
+        ]
+      },
+      {
+        "id": "PV36",
+        "plane": "T1.S",
+        "face": "T1.S",
+        "row": 2,
+        "col": 8,
+        "wp": 430,
+        "uv": [
+          15.549,
+          4.284,
+          16.683,
+          6.006
+        ],
+        "center": [
+          16.116,
+          3.720360932,
+          4.654129942
+        ],
+        "corners": [
+          [
+            15.549,
+            2.922055633,
+            4.331593666
+          ],
+          [
+            16.683,
+            2.922055633,
+            4.331593666
+          ],
+          [
+            16.683,
+            4.518666231,
+            4.976666219
+          ],
+          [
+            15.549,
+            4.518666231,
+            4.976666219
+          ]
+        ]
+      }
+    ],
+    "count": 36,
+    "kwp": 15.48,
+    "area": 70.298928,
+    "byFace": [
+      {
+        "face": "T1.S",
+        "plane": "T1.S",
+        "orientation": "portrait",
+        "count": 36,
+        "rows": [
+          15,
+          12,
+          9
+        ]
+      }
+    ]
+  }
+}

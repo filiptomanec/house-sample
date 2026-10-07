@@ -1,0 +1,12 @@
+#!/bin/sh
+# Privacy gate for pushes: scans the whole history (every object, also deleted ones), the working tree and the push target.
+# $1 = remote name, $2 = remote URL. A push to a network remote other than the project repository is refused.
+# Bypass for emergencies only: git push --no-verify.
+HOOK_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+ROOT=$(git rev-parse --show-toplevel) || exit 1
+SCAN="$HOOK_DIR/../scripts/privacy/scan.mjs"
+command -v node >/dev/null 2>&1 || { echo "privacy: node is required to run the scanner" >&2; exit 1; }
+STRICT="--strict"
+[ -n "$PRIVACY_ALLOW_NO_DENYLIST" ] && STRICT=""
+# shellcheck disable=SC2086
+exec node "$SCAN" --history --tree --remote-url "${2:-none}" $STRICT --root "$ROOT" --quiet

@@ -1,0 +1,2304 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "schema": {
+      "type": "string",
+      "const": "house/1"
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "name": {
+      "type": "object",
+      "properties": {
+        "cs": {
+          "type": "string",
+          "minLength": 1
+        },
+        "en": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "cs",
+        "en"
+      ],
+      "additionalProperties": false
+    },
+    "idea": {
+      "type": "object",
+      "properties": {
+        "cs": {
+          "type": "string",
+          "minLength": 1
+        },
+        "en": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "cs",
+        "en"
+      ],
+      "additionalProperties": false
+    },
+    "fictional": {
+      "type": "boolean",
+      "const": true
+    },
+    "location": {
+      "type": "object",
+      "properties": {
+        "region": {
+          "type": "object",
+          "properties": {
+            "cs": {
+              "type": "string",
+              "minLength": 1
+            },
+            "en": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "cs",
+            "en"
+          ],
+          "additionalProperties": false
+        },
+        "lat": {
+          "type": "number",
+          "minimum": -90,
+          "maximum": 90
+        },
+        "lon": {
+          "type": "number",
+          "minimum": -180,
+          "maximum": 180
+        },
+        "elevation": {
+          "type": "number"
+        },
+        "tz": {
+          "type": "string",
+          "minLength": 1
+        },
+        "houseAxisBearingDeg": {
+          "type": "number",
+          "minimum": 0,
+          "exclusiveMaximum": 360
+        }
+      },
+      "required": [
+        "region",
+        "lat",
+        "lon",
+        "elevation",
+        "tz",
+        "houseAxisBearingDeg"
+      ],
+      "additionalProperties": false
+    },
+    "wall": {
+      "type": "object",
+      "properties": {
+        "ext": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 1.5
+        },
+        "bearing": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 1.5
+        },
+        "part": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 1.5
+        }
+      },
+      "required": [
+        "ext",
+        "bearing",
+        "part"
+      ],
+      "additionalProperties": false
+    },
+    "clearHeight": {
+      "type": "number",
+      "minimum": 2,
+      "maximum": 5
+    },
+    "slab": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1.5
+    },
+    "bearingAxes": {
+      "type": "object",
+      "properties": {
+        "x": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "y": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        }
+      },
+      "required": [
+        "x",
+        "y"
+      ],
+      "additionalProperties": false
+    },
+    "rooms": {
+      "minItems": 1,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "name": {
+            "type": "object",
+            "properties": {
+              "cs": {
+                "type": "string",
+                "minLength": 1
+              },
+              "en": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "cs",
+              "en"
+            ],
+            "additionalProperties": false
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "hall",
+              "living",
+              "kitchen",
+              "dining",
+              "bedroom",
+              "kids",
+              "office",
+              "guest",
+              "bath",
+              "wc",
+              "wardrobe",
+              "utility",
+              "pantry",
+              "garage",
+              "storage",
+              "corridor",
+              "technical"
+            ]
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "main-living",
+              "entry",
+              "primary-bedroom",
+              "primary-bath",
+              "primary-wardrobe",
+              "children",
+              "family-bath",
+              "guest-wc",
+              "home-office",
+              "plant",
+              "pantry",
+              "garage",
+              "night-corridor"
+            ]
+          },
+          "floor": {
+            "type": "string",
+            "enum": [
+              "oak",
+              "tile",
+              "concrete",
+              "stone"
+            ]
+          },
+          "rects": {
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ],
+              "items": false,
+              "minItems": 4,
+              "maxItems": 4
+            }
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "type",
+          "rects"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "zones": {
+      "type": "object",
+      "properties": {
+        "day": {
+          "type": "object",
+          "properties": {
+            "label": {
+              "type": "object",
+              "properties": {
+                "cs": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "en": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "cs",
+                "en"
+              ],
+              "additionalProperties": false
+            },
+            "types": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "hall",
+                  "living",
+                  "kitchen",
+                  "dining",
+                  "bedroom",
+                  "kids",
+                  "office",
+                  "guest",
+                  "bath",
+                  "wc",
+                  "wardrobe",
+                  "utility",
+                  "pantry",
+                  "garage",
+                  "storage",
+                  "corridor",
+                  "technical"
+                ]
+              }
+            }
+          },
+          "required": [
+            "label",
+            "types"
+          ],
+          "additionalProperties": false
+        },
+        "night": {
+          "type": "object",
+          "properties": {
+            "label": {
+              "type": "object",
+              "properties": {
+                "cs": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "en": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "cs",
+                "en"
+              ],
+              "additionalProperties": false
+            },
+            "types": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "hall",
+                  "living",
+                  "kitchen",
+                  "dining",
+                  "bedroom",
+                  "kids",
+                  "office",
+                  "guest",
+                  "bath",
+                  "wc",
+                  "wardrobe",
+                  "utility",
+                  "pantry",
+                  "garage",
+                  "storage",
+                  "corridor",
+                  "technical"
+                ]
+              }
+            }
+          },
+          "required": [
+            "label",
+            "types"
+          ],
+          "additionalProperties": false
+        },
+        "service": {
+          "type": "object",
+          "properties": {
+            "label": {
+              "type": "object",
+              "properties": {
+                "cs": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "en": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "cs",
+                "en"
+              ],
+              "additionalProperties": false
+            },
+            "types": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "hall",
+                  "living",
+                  "kitchen",
+                  "dining",
+                  "bedroom",
+                  "kids",
+                  "office",
+                  "guest",
+                  "bath",
+                  "wc",
+                  "wardrobe",
+                  "utility",
+                  "pantry",
+                  "garage",
+                  "storage",
+                  "corridor",
+                  "technical"
+                ]
+              }
+            }
+          },
+          "required": [
+            "label",
+            "types"
+          ],
+          "additionalProperties": false
+        },
+        "outdoor": {
+          "type": "object",
+          "properties": {
+            "label": {
+              "type": "object",
+              "properties": {
+                "cs": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "en": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "cs",
+                "en"
+              ],
+              "additionalProperties": false
+            },
+            "types": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "terrace",
+                  "paving",
+                  "drive",
+                  "path"
+                ]
+              }
+            }
+          },
+          "required": [
+            "label",
+            "types"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "day",
+        "night",
+        "service",
+        "outdoor"
+      ],
+      "additionalProperties": false
+    },
+    "openings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "window",
+              "door",
+              "entry",
+              "garage",
+              "slider"
+            ]
+          },
+          "orient": {
+            "type": "string",
+            "enum": [
+              "h",
+              "v"
+            ]
+          },
+          "cx": {
+            "type": "number"
+          },
+          "cy": {
+            "type": "number"
+          },
+          "w": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "sill": {
+            "type": "number"
+          },
+          "head": {
+            "type": "number"
+          },
+          "swing": {
+            "type": "string",
+            "enum": [
+              "+",
+              "-"
+            ]
+          },
+          "hinge": {
+            "type": "string",
+            "enum": [
+              "+",
+              "-"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "orient",
+          "cx",
+          "cy",
+          "w",
+          "sill",
+          "head"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "roofs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "rect": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "items": false,
+            "minItems": 4,
+            "maxItems": 4
+          },
+          "pitch": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "maximum": 70
+          },
+          "overhang": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 3
+          },
+          "wallTop": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          }
+        },
+        "required": [
+          "id",
+          "rect",
+          "pitch"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "outdoor": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "terrace",
+              "paving",
+              "drive",
+              "path"
+            ]
+          },
+          "covered": {
+            "type": "boolean"
+          },
+          "rect": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "items": false,
+            "minItems": 4,
+            "maxItems": 4
+          },
+          "posts": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ],
+              "items": false,
+              "minItems": 2,
+              "maxItems": 2
+            }
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "rect"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "accents": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "type": {
+            "type": "string",
+            "const": "wood"
+          },
+          "orient": {
+            "type": "string",
+            "enum": [
+              "h",
+              "v"
+            ]
+          },
+          "cx": {
+            "type": "number"
+          },
+          "cy": {
+            "type": "number"
+          },
+          "w": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "orient",
+          "cx",
+          "cy",
+          "w"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "furniture": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "bed160",
+              "bed180",
+              "bed90",
+              "sofaL",
+              "sofa3",
+              "armchair",
+              "tv",
+              "table6",
+              "table8",
+              "chair",
+              "island",
+              "kitchenLine",
+              "fridge",
+              "wardrobe",
+              "desk",
+              "shelf",
+              "wc",
+              "sink",
+              "sink2",
+              "shower",
+              "bath",
+              "washer",
+              "car",
+              "lounger",
+              "swingbed",
+              "grill",
+              "bench"
+            ]
+          },
+          "x": {
+            "type": "number"
+          },
+          "y": {
+            "type": "number"
+          },
+          "rot": {
+            "anyOf": [
+              {
+                "type": "number",
+                "const": 0
+              },
+              {
+                "type": "number",
+                "const": 90
+              },
+              {
+                "type": "number",
+                "const": 180
+              },
+              {
+                "type": "number",
+                "const": 270
+              }
+            ]
+          },
+          "w": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "d": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          }
+        },
+        "required": [
+          "type",
+          "x",
+          "y",
+          "rot"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "lightpipes": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "prefixItems": [
+          {
+            "type": "number"
+          },
+          {
+            "type": "number"
+          }
+        ],
+        "items": false,
+        "minItems": 2,
+        "maxItems": 2
+      }
+    },
+    "screens": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "type": {
+                "type": "string",
+                "const": "slats"
+              },
+              "orient": {
+                "type": "string",
+                "const": "v"
+              },
+              "cx": {
+                "type": "number"
+              },
+              "y0": {
+                "type": "number"
+              },
+              "y1": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "id",
+              "type",
+              "orient",
+              "cx",
+              "y0",
+              "y1"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "type": {
+                "type": "string",
+                "const": "slats"
+              },
+              "orient": {
+                "type": "string",
+                "const": "h"
+              },
+              "cy": {
+                "type": "number"
+              },
+              "x0": {
+                "type": "number"
+              },
+              "x1": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "id",
+              "type",
+              "orient",
+              "cy",
+              "x0",
+              "x1"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      }
+    },
+    "assemblies": {
+      "type": "object",
+      "properties": {
+        "exteriorWall": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "object",
+              "properties": {
+                "cs": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "en": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "cs",
+                "en"
+              ],
+              "additionalProperties": false
+            },
+            "rsi": {
+              "type": "number",
+              "minimum": 0
+            },
+            "rse": {
+              "type": "number",
+              "minimum": 0
+            },
+            "layers": {
+              "minItems": 1,
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "name": {
+                    "type": "object",
+                    "properties": {
+                      "cs": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "en": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    },
+                    "required": [
+                      "cs",
+                      "en"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "t": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "lambda": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "r": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "role": {
+                    "type": "string",
+                    "enum": [
+                      "finish",
+                      "insulation",
+                      "structure",
+                      "cladding",
+                      "air",
+                      "membrane",
+                      "screed"
+                    ]
+                  },
+                  "ventilated": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "id",
+                  "name",
+                  "t"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": [
+            "name",
+            "rsi",
+            "rse",
+            "layers"
+          ],
+          "additionalProperties": false
+        },
+        "bearingWall": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "object",
+              "properties": {
+                "cs": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "en": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "cs",
+                "en"
+              ],
+              "additionalProperties": false
+            },
+            "rsi": {
+              "type": "number",
+              "minimum": 0
+            },
+            "rse": {
+              "type": "number",
+              "minimum": 0
+            },
+            "layers": {
+              "minItems": 1,
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "name": {
+                    "type": "object",
+                    "properties": {
+                      "cs": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "en": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    },
+                    "required": [
+                      "cs",
+                      "en"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "t": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "lambda": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "r": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "role": {
+                    "type": "string",
+                    "enum": [
+                      "finish",
+                      "insulation",
+                      "structure",
+                      "cladding",
+                      "air",
+                      "membrane",
+                      "screed"
+                    ]
+                  },
+                  "ventilated": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "id",
+                  "name",
+                  "t"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": [
+            "name",
+            "rsi",
+            "rse",
+            "layers"
+          ],
+          "additionalProperties": false
+        },
+        "partitionWall": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "object",
+              "properties": {
+                "cs": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "en": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "cs",
+                "en"
+              ],
+              "additionalProperties": false
+            },
+            "rsi": {
+              "type": "number",
+              "minimum": 0
+            },
+            "rse": {
+              "type": "number",
+              "minimum": 0
+            },
+            "layers": {
+              "minItems": 1,
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "name": {
+                    "type": "object",
+                    "properties": {
+                      "cs": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "en": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    },
+                    "required": [
+                      "cs",
+                      "en"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "t": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "lambda": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "r": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "role": {
+                    "type": "string",
+                    "enum": [
+                      "finish",
+                      "insulation",
+                      "structure",
+                      "cladding",
+                      "air",
+                      "membrane",
+                      "screed"
+                    ]
+                  },
+                  "ventilated": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "id",
+                  "name",
+                  "t"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": [
+            "name",
+            "rsi",
+            "rse",
+            "layers"
+          ],
+          "additionalProperties": false
+        },
+        "ceiling": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "object",
+              "properties": {
+                "cs": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "en": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "cs",
+                "en"
+              ],
+              "additionalProperties": false
+            },
+            "rsi": {
+              "type": "number",
+              "minimum": 0
+            },
+            "rse": {
+              "type": "number",
+              "minimum": 0
+            },
+            "layers": {
+              "minItems": 1,
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "name": {
+                    "type": "object",
+                    "properties": {
+                      "cs": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "en": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    },
+                    "required": [
+                      "cs",
+                      "en"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "t": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "lambda": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "r": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "role": {
+                    "type": "string",
+                    "enum": [
+                      "finish",
+                      "insulation",
+                      "structure",
+                      "cladding",
+                      "air",
+                      "membrane",
+                      "screed"
+                    ]
+                  },
+                  "ventilated": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "id",
+                  "name",
+                  "t"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": [
+            "name",
+            "rsi",
+            "rse",
+            "layers"
+          ],
+          "additionalProperties": false
+        },
+        "roof": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "object",
+              "properties": {
+                "cs": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "en": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "cs",
+                "en"
+              ],
+              "additionalProperties": false
+            },
+            "rsi": {
+              "type": "number",
+              "minimum": 0
+            },
+            "rse": {
+              "type": "number",
+              "minimum": 0
+            },
+            "layers": {
+              "minItems": 1,
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "name": {
+                    "type": "object",
+                    "properties": {
+                      "cs": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "en": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    },
+                    "required": [
+                      "cs",
+                      "en"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "t": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "lambda": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "r": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "role": {
+                    "type": "string",
+                    "enum": [
+                      "finish",
+                      "insulation",
+                      "structure",
+                      "cladding",
+                      "air",
+                      "membrane",
+                      "screed"
+                    ]
+                  },
+                  "ventilated": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "id",
+                  "name",
+                  "t"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": [
+            "name",
+            "rsi",
+            "rse",
+            "layers"
+          ],
+          "additionalProperties": false
+        },
+        "groundFloor": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "object",
+              "properties": {
+                "cs": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "en": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "cs",
+                "en"
+              ],
+              "additionalProperties": false
+            },
+            "rsi": {
+              "type": "number",
+              "minimum": 0
+            },
+            "rse": {
+              "type": "number",
+              "minimum": 0
+            },
+            "layers": {
+              "minItems": 1,
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "name": {
+                    "type": "object",
+                    "properties": {
+                      "cs": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "en": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    },
+                    "required": [
+                      "cs",
+                      "en"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "t": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "lambda": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "r": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "role": {
+                    "type": "string",
+                    "enum": [
+                      "finish",
+                      "insulation",
+                      "structure",
+                      "cladding",
+                      "air",
+                      "membrane",
+                      "screed"
+                    ]
+                  },
+                  "ventilated": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "id",
+                  "name",
+                  "t"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": [
+            "name",
+            "rsi",
+            "rse",
+            "layers"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "exteriorWall",
+        "bearingWall",
+        "partitionWall",
+        "ceiling",
+        "roof",
+        "groundFloor"
+      ],
+      "additionalProperties": false
+    },
+    "windows": {
+      "type": "object",
+      "properties": {
+        "Uw": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "Ug": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "g": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "frameShare": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "Ud": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "slider": {
+          "type": "object",
+          "properties": {
+            "Uw": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "g": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "frameShare": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            }
+          },
+          "required": [
+            "Uw",
+            "g",
+            "frameShare"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "Uw",
+        "Ug",
+        "g",
+        "frameShare",
+        "Ud"
+      ],
+      "additionalProperties": false
+    },
+    "equipment": {
+      "type": "object",
+      "properties": {
+        "pv": {
+          "type": "object",
+          "properties": {
+            "module": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "object",
+                  "properties": {
+                    "cs": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "en": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "required": [
+                    "cs",
+                    "en"
+                  ],
+                  "additionalProperties": false
+                },
+                "wp": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                "width": {
+                  "type": "number",
+                  "minimum": 0.1
+                },
+                "height": {
+                  "type": "number",
+                  "minimum": 0.1
+                }
+              },
+              "required": [
+                "name",
+                "wp",
+                "width",
+                "height"
+              ],
+              "additionalProperties": false
+            },
+            "layout": {
+              "type": "object",
+              "properties": {
+                "facings": {
+                  "minItems": 1,
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "N",
+                      "E",
+                      "S",
+                      "W"
+                    ]
+                  }
+                },
+                "orientation": {
+                  "type": "string",
+                  "enum": [
+                    "portrait",
+                    "landscape",
+                    "auto"
+                  ]
+                },
+                "gap": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "setback": {
+                  "type": "object",
+                  "properties": {
+                    "eave": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "ridge": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "hip": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "valley": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "step": {
+                      "type": "number",
+                      "minimum": 0
+                    }
+                  },
+                  "required": [
+                    "eave",
+                    "ridge",
+                    "hip",
+                    "valley",
+                    "step"
+                  ],
+                  "additionalProperties": false
+                },
+                "obstacleClearance": {
+                  "type": "number",
+                  "minimum": 0
+                }
+              },
+              "required": [
+                "facings",
+                "orientation",
+                "gap",
+                "setback",
+                "obstacleClearance"
+              ],
+              "additionalProperties": false
+            },
+            "inverter": {
+              "type": "object",
+              "properties": {
+                "ratedKw": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                }
+              },
+              "required": [
+                "ratedKw"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "module",
+            "layout",
+            "inverter"
+          ],
+          "additionalProperties": false
+        },
+        "battery": {
+          "type": "object",
+          "properties": {
+            "options": {
+              "minItems": 1,
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "name": {
+                    "type": "object",
+                    "properties": {
+                      "cs": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "en": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    },
+                    "required": [
+                      "cs",
+                      "en"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "capacityKwh": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "powerKw": {
+                    "type": "number",
+                    "minimum": 0
+                  }
+                },
+                "required": [
+                  "id",
+                  "name",
+                  "capacityKwh",
+                  "powerKw"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "default": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "options",
+            "default"
+          ],
+          "additionalProperties": false
+        },
+        "heating": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "air-water-heat-pump",
+                "ground-water-heat-pump",
+                "electric-panels"
+              ]
+            },
+            "name": {
+              "type": "object",
+              "properties": {
+                "cs": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "en": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "cs",
+                "en"
+              ],
+              "additionalProperties": false
+            },
+            "ratedPowerKw": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "scop": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "scopDhw": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "emission": {
+              "type": "string",
+              "enum": [
+                "underfloor",
+                "radiators"
+              ]
+            },
+            "flowTemperatureC": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "dhw": {
+              "type": "object",
+              "properties": {
+                "tankLiters": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                "setpointC": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                }
+              },
+              "required": [
+                "tankLiters",
+                "setpointC"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "type",
+            "name",
+            "ratedPowerKw",
+            "scop",
+            "scopDhw",
+            "emission",
+            "flowTemperatureC",
+            "dhw"
+          ],
+          "additionalProperties": false
+        },
+        "ventilation": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "mvhr",
+                "extract-only",
+                "natural"
+              ]
+            },
+            "name": {
+              "type": "object",
+              "properties": {
+                "cs": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "en": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "cs",
+                "en"
+              ],
+              "additionalProperties": false
+            },
+            "heatRecoveryEfficiency": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "nominalAirflowM3h": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "specificFanPower": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          },
+          "required": [
+            "type",
+            "name",
+            "heatRecoveryEfficiency",
+            "nominalAirflowM3h",
+            "specificFanPower"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "pv",
+        "battery",
+        "heating",
+        "ventilation"
+      ],
+      "additionalProperties": false
+    },
+    "shading": {
+      "type": "object",
+      "properties": {
+        "blinds": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "external-venetian",
+                "external-screen"
+              ]
+            },
+            "name": {
+              "type": "object",
+              "properties": {
+                "cs": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "en": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "cs",
+                "en"
+              ],
+              "additionalProperties": false
+            },
+            "kinds": {
+              "minItems": 1,
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "window",
+                  "slider"
+                ]
+              }
+            },
+            "azimuthFrom": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 360
+            },
+            "azimuthTo": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 360
+            },
+            "boxHeight": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "closedFactor": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "closeAboveIrradiance": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          },
+          "required": [
+            "type",
+            "name",
+            "kinds",
+            "azimuthFrom",
+            "azimuthTo",
+            "boxHeight",
+            "closedFactor",
+            "closeAboveIrradiance"
+          ],
+          "additionalProperties": false
+        },
+        "slats": {
+          "type": "object",
+          "properties": {
+            "pitch": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "width": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "depth": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          },
+          "required": [
+            "pitch",
+            "width",
+            "depth"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "blinds",
+        "slats"
+      ],
+      "additionalProperties": false
+    },
+    "roof": {
+      "type": "object",
+      "properties": {
+        "covering": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "standing-seam-steel",
+                "clay-tile",
+                "concrete-tile"
+              ]
+            },
+            "name": {
+              "type": "object",
+              "properties": {
+                "cs": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "en": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "cs",
+                "en"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "type",
+            "name"
+          ],
+          "additionalProperties": false
+        },
+        "lightpipes": {
+          "type": "object",
+          "properties": {
+            "diameter": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "domeHeight": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          },
+          "required": [
+            "diameter",
+            "domeHeight"
+          ],
+          "additionalProperties": false
+        },
+        "downpipes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "x": {
+                "type": "number"
+              },
+              "y": {
+                "type": "number"
+              },
+              "diameter": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              }
+            },
+            "required": [
+              "x",
+              "y",
+              "diameter"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "snowGuards": {
+          "type": "object",
+          "properties": {
+            "aboveOpeningKinds": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "window",
+                  "door",
+                  "entry",
+                  "garage",
+                  "slider"
+                ]
+              }
+            }
+          },
+          "required": [
+            "aboveOpeningKinds"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "covering",
+        "lightpipes",
+        "downpipes",
+        "snowGuards"
+      ],
+      "additionalProperties": false
+    },
+    "cameras": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "name": {
+            "type": "object",
+            "properties": {
+              "cs": {
+                "type": "string",
+                "minLength": 1
+              },
+              "en": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "cs",
+              "en"
+            ],
+            "additionalProperties": false
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "perspective",
+              "orthographic"
+            ]
+          },
+          "position": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "items": false,
+            "minItems": 3,
+            "maxItems": 3
+          },
+          "target": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "items": false,
+            "minItems": 3,
+            "maxItems": 3
+          },
+          "fov": {
+            "type": "number",
+            "minimum": 5,
+            "maximum": 120
+          },
+          "orthoHeight": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "use": {
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "web",
+                "render",
+                "og"
+              ]
+            }
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "kind",
+          "position",
+          "target",
+          "use"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "notes": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "minLength": 1
+      },
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "cs": {
+            "type": "string",
+            "minLength": 1
+          },
+          "en": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "cs",
+          "en"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "schema",
+    "id",
+    "name",
+    "fictional",
+    "location",
+    "wall",
+    "clearHeight",
+    "slab",
+    "bearingAxes",
+    "rooms",
+    "zones",
+    "openings",
+    "roofs",
+    "outdoor",
+    "accents",
+    "furniture",
+    "lightpipes",
+    "screens",
+    "assemblies",
+    "windows",
+    "equipment",
+    "shading",
+    "roof",
+    "cameras",
+    "notes"
+  ],
+  "additionalProperties": false,
+  "title": "house/1",
+  "description": "Data model of the House Sample project (superset of concept/1). Exported from src/lib/model/schema.ts; do not edit by hand."
+}

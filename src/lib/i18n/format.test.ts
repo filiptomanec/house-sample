@@ -1,0 +1,141 @@
+import { describe, expect, it } from "vitest";
+import { Formatter, MINUS, NBSP, getFormatter, nb, parseNum } from "./format";
+
+const cs = getFormatter("cs");
+const en = getFormatter("en");
+
+describe("nb (Czech typography)", () => {
+  it("glues single-letter prepositions and conjunctions to the next word", () => {
+    expect(nb("dům v zahradě a s terasou")).toBe(`dům v${NBSP}zahradě a${NBSP}s${NBSP}terasou`);
+    expect(nb("V domě je k dispozici")).toBe(`V${NBSP}domě je k${NBSP}dispozici`);
+  });
+  it("does not touch letters inside words", () => {
+    expect(nb("pokoj ve zdi")).toBe("pokoj ve zdi");
+  });
+  it("glues units to the number in both languages", () => {
+    expect(nb("plocha 120 m² a 12 kWh")).toBe(`plocha 120${NBSP}m² a${NBSP}12${NBSP}kWh`);
+    expect(nb("120 m² of floor", "en")).toBe(`120${NBSP}m² of floor`);
+    expect(nb("sklon 12 ° a 30 %")).toBe(`sklon 12${NBSP}° a${NBSP}30${NBSP}%`);
+  });
+  it("does not glue a number to a word that merely starts like a unit", () => {
+    expect(nb("5 měsíců a 3 hodiny")).toBe(`5 měsíců a${NBSP}3 hodiny`);
+  });
+  it("keeps digit groups together", () => {
+    expect(nb("celkem 1 234 567 Kč")).toBe(`celkem 1${NBSP}234${NBSP}567${NBSP}Kč`);
+    expect(nb("rok 2026 a 12 místností")).toBe(`rok 2026 a${NBSP}12 místností`);
+  });
+  it("keeps day and month of a date together", () => {
+    expect(nb("od 15. března do 1. září")).toBe(`od 15.${NBSP}března do 1.${NBSP}září`);
+  });
+  it("is idempotent and leaves English prepositions alone", () => {
+    const once = nb("v domě 120 m² a 1 234 Kč");
+    expect(nb(once)).toBe(once);
+    expect(nb("a house in a plot", "en")).toBe("a house in a plot");
+  });
+});
+
+describe("parseNum", () => {
+  it("reads comma or point decimals and spaced thousands", () => {
+    expect(parseNum("12,5")).toBe(12.5);
+    expect(parseNum("12.5")).toBe(12.5);
+    expect(parseNum(`26${NBSP}000`)).toBe(26000);
+    expect(parseNum(" 1 000 000 ")).toBe(1e6);
+    expect(parseNum("12,")).toBe(12);
+    expect(parseNum(",5")).toBe(0.5);
+  });
+  it("reads a hyphen or a real minus", () => {
+    expect(parseNum("-5")).toBe(-5);
+    expect(parseNum(`${MINUS}5`)).toBe(-5);
+  });
+  it("returns null for empty or unreadable text instead of 0", () => {
+    for (const t of ["", " ", "-", ",", ".", "1,2,3", "abc", "12 Kč", "1e5"]) expect(parseNum(t), t).toBeNull();
+  });
+  it("reads both separators: the last one is the decimal one", () => {
+    expect(parseNum("1.234,5")).toBe(1234.5);
+    expect(parseNum("1,234.5", "en")).toBe(1234.5);
+  });
+  it("treats a comma as thousands in English only when it looks like thousands", () => {
+    expect(parseNum("1,234", "en")).toBe(1234);
+    expect(parseNum("1,234,567", "en")).toBe(1234567);
+    expect(parseNum("1,5", "en")).toBe(1.5);
+    expect(parseNum("1,234", "cs")).toBe(1.234);
+  });
+});
+
+describe("number formatting", () => {
+  it("uses the separators of each language", () => {
+    expect(cs.num(26000)).toBe(`26${NBSP}000`);
+    expect(cs.num(1234567.891, 2)).toBe(`1${NBSP}234${NBSP}567,89`);
+    expect(cs.num(12.5, 0, 2)).toBe("12,5");
+    expect(en.num(1234567.891, 2)).toBe("1,234,567.89");
+    expect(en.num(12.5, 0, 2)).toBe("12.5");
+  });
+  it("writes a real minus and drops the sign of a rounded zero", () => {
+    expect(cs.num(-0.9, 2)).toBe(`${MINUS}0,90`);
+    expect(en.num(-5)).toBe(`${MINUS}5`);
+    expect(cs.num(-0.2)).toBe("0");
+    expect(cs.num(-0.001, 2)).toBe("0,00");
+  });
+  it("shows a dash for missing values", () => {
+    expect(cs.num(NaN)).toBe("–");
+    expect(cs.num(Infinity)).toBe("–");
+    expect(cs.clock(NaN)).toBe("–");
+  });
+  it("reuses one Intl instance per locale and digit setting", () => {
+    expect(getFormatter("cs")).toBe(getFormatter("cs"));
+    expect(getFormatter("cs")).not.toBe(getFormatter("en"));
+    expect(getFormatter("cs")).toBeInstanceOf(Formatter);
+  });
+  it("formats and parses back what it writes", () => {
+    for (const v of [0, 12.5, -3.25, 1234.5, 1e6 + 0.5]) {
+      expect(parseNum(cs.num(v, 0, 2), "cs")).toBe(v);
+      expect(parseNum(en.num(v, 0, 2), "en")).toBe(v);
+    }
+  });
+});
+
+describe("units, angles, clock, money, ranges", () => {
+  it("area, volume, length keep the unit with the number", () => {
+    expect(cs.area(123.456)).toBe(`123,5${NBSP}m²`);
+    expect(en.area(123.456, 2)).toBe(`123.46${NBSP}m²`);
+    expect(cs.volume(7)).toBe(`7,0${NBSP}m³`);
+    expect(cs.length(3.4)).toBe(`3,40${NBSP}m`);
+  });
+  it("degrees have no space, percent follows the language", () => {
+    expect(cs.degrees(192)).toBe("192°");
+    expect(en.degrees(-12.34, 1)).toBe(`${MINUS}12.3°`);
+    expect(cs.percent(12.5, 1)).toBe(`12,5${NBSP}%`);
+    expect(en.percent(12.5, 1)).toBe("12.5%");
+  });
+  it("clock is 24-hour, from minutes or decimal hours", () => {
+    expect(cs.clock(7 * 60 + 5)).toBe("7:05");
+    expect(cs.clock(13 * 60 + 30)).toBe("13:30");
+    expect(cs.clock(24 * 60)).toBe("24:00");
+    expect(en.clockHours(6.5)).toBe("6:30");
+    expect(cs.clock(59.6)).toBe("1:00");
+  });
+  it("duration", () => {
+    expect(cs.duration(2.25)).toBe(`2${NBSP}h${NBSP}15${NBSP}min`);
+    expect(cs.duration(0.75)).toBe(`45${NBSP}min`);
+    expect(cs.duration(3)).toBe(`3${NBSP}h`);
+  });
+  it("money in crowns", () => {
+    expect(cs.money(1234567)).toBe(`1${NBSP}234${NBSP}567${NBSP}Kč`);
+    expect(en.money(1234567)).toBe(`CZK${NBSP}1,234,567`);
+    expect(cs.money(-1500)).toBe(`${MINUS}1${NBSP}500${NBSP}Kč`);
+    expect(cs.money(1234567.5, { digits: 2 })).toBe(`1${NBSP}234${NBSP}567,50${NBSP}Kč`);
+  });
+  it("compact money", () => {
+    expect(cs.money(1_200_000, { compact: true })).toMatch(/^1,2.mil\..Kč$/);
+    expect(en.money(1_200_000, { compact: true })).toMatch(/^CZK.1\.2M$/);
+  });
+  it("range uses an en dash and writes the unit once", () => {
+    expect(cs.range(12, 15, { unit: "m²" })).toBe(`12–15${NBSP}m²`);
+    expect(en.range(1.5, 2.5, { digits: 1 })).toBe("1.5–2.5");
+    expect(cs.range(8 * 60, 18 * 60, { fmt: (v) => cs.clock(v) })).toBe("8:00–18:00");
+  });
+  it("list joins with the language's conjunction", () => {
+    expect(cs.list(["a", "b", "c"])).toMatch(/^a, b a.c$/);
+    expect(en.list(["a", "b", "c"])).toBe("a, b and c");
+  });
+});

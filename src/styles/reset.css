@@ -1,0 +1,4 @@
+/* Tailwind is used for its preflight (a sane reset) only. It sits in the `base` layer, so every unlayered rule of
+   the design system wins over it without any specificity tricks. No Tailwind utilities are generated or used. */
+@layer theme, base, components, utilities;
+@import "tailwindcss/preflight.css" layer(base);

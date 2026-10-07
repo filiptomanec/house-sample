@@ -1,0 +1,47 @@
+/* Buttons, links and chips. */
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-2);
+  min-height: var(--touch); padding: 0 20px;
+  border-radius: var(--r-pill); border: 1px solid var(--ink); background: var(--ink); color: var(--bg);
+  font-size: 0.9375rem; font-weight: var(--weight-medium); text-decoration: none;
+  transition: transform var(--dur-2) var(--ease), opacity var(--dur-1), background var(--dur-1), border-color var(--dur-1);
+}
+.btn:hover { opacity: 0.88; }
+.btn:active { transform: scale(0.98); }
+.btn.ghost { background: transparent; color: var(--ink); border-color: var(--rule-2); }
+.btn.ghost:hover { border-color: var(--ink); opacity: 1; }
+.btn.mint { background: var(--mint); border-color: var(--mint); color: var(--on-mint); }
+.btn.sm { min-height: 36px; padding: 0 14px; font-size: var(--fs-sm); }
+
+/* a round button with an icon only (theme switch, close) */
+.icon-btn {
+  display: inline-grid; place-items: center; width: var(--touch); height: var(--touch);
+  border: 0; border-radius: var(--r-pill); background: transparent; color: inherit;
+  transition: background var(--dur-1);
+}
+.icon-btn:hover { background: color-mix(in srgb, currentColor 10%, transparent); }
+.icon-btn svg { width: 20px; height: 20px; }
+
+.link-arrow { display: inline-flex; align-items: center; gap: var(--sp-2); text-decoration: none; font-weight: var(--weight-medium); border-bottom: 1px solid currentColor; padding-bottom: 2px; }
+.link-arrow::after { content: "\2192"; transition: transform var(--dur-2) var(--ease); }
+.link-arrow:hover::after { transform: translateX(4px); }
+
+/* text link inside running text */
+.link { color: var(--accent-ink); text-underline-offset: 3px; text-decoration-thickness: 1px; }
+.link:hover { text-decoration-thickness: 2px; }
+
+/* chips: toggle buttons in a row (layers, filters, views) */
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 0 12px;
+  border-radius: var(--r-pill); border: 1px solid var(--rule-2); background: transparent;
+  font-size: 0.84375rem; white-space: nowrap;
+}
+.chip[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; flex: none; background: var(--dot, currentColor); }
+
+@media (pointer: coarse) {
+  /* 44 px touch targets; :is() carries the specificity of .btn.sm so layout rules cannot shrink them */
+  :is(.chip, .btn.sm) { min-height: var(--touch); }
+}

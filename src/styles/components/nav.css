@@ -1,0 +1,79 @@
+/* Navigation bar and the full-screen menu. Over a dark full-bleed block (data-tone="light") the bar also carries the
+   class "scheme-dark" (set by Nav.tsx), so every token inside it resolves to its light-on-dark value. */
+
+.nav {
+  position: fixed; inset: 0 0 auto 0; z-index: var(--z-nav);
+  height: calc(var(--nav-h) + env(safe-area-inset-top)); padding-top: env(safe-area-inset-top);
+  color: var(--ink); border-bottom: 1px solid transparent;
+  transition: background var(--dur-2) var(--ease), color var(--dur-2) var(--ease), border-color var(--dur-2);
+}
+.nav[data-solid="true"] { background: var(--scrim); backdrop-filter: saturate(160%) blur(18px); -webkit-backdrop-filter: saturate(160%) blur(18px); border-bottom-color: var(--rule); }
+.nav[data-open="true"] { background: var(--bg); border-bottom-color: transparent; backdrop-filter: none; -webkit-backdrop-filter: none; }
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .nav[data-solid="true"] { background: color-mix(in srgb, var(--bg) 96%, transparent); }
+}
+.nav-in { height: var(--nav-h); display: flex; align-items: center; gap: var(--sp-5); }
+
+.brand { display: inline-flex; align-items: baseline; gap: 10px; text-decoration: none; white-space: nowrap; }
+.brand b { font-weight: 650; font-size: 1.0625rem; letter-spacing: -0.03em; }
+.brand span { font: var(--weight-medium) 0.65625rem / 1 var(--font-mono); letter-spacing: var(--tracking-label); text-transform: uppercase; opacity: 0.62; }
+
+.nav-links { display: flex; gap: 2px; margin-left: auto; }
+.nav-links a { font-size: 0.84375rem; text-decoration: none; padding: 8px 11px; border-radius: var(--r-pill); opacity: 0.78; white-space: nowrap; transition: opacity var(--dur-1), background var(--dur-1); }
+.nav-links a:hover { opacity: 1; }
+.nav-links a[aria-current="page"] { opacity: 1; background: color-mix(in srgb, currentColor 10%, transparent); }
+.nav-tools { display: flex; align-items: center; gap: var(--sp-1); }
+
+/* language switch: two links in a pill */
+.lang { display: inline-flex; padding: 2px; border-radius: var(--r-pill); border: 1px solid var(--rule-2); }
+.lang a { display: inline-grid; place-items: center; min-width: 36px; min-height: 30px; padding: 0 8px; border-radius: var(--r-pill); font: var(--weight-medium) var(--fs-xs) / 1 var(--font-mono); letter-spacing: 0.06em; text-decoration: none; opacity: 0.7; }
+.lang a:hover { opacity: 1; }
+.lang a[aria-current="true"] { opacity: 1; background: var(--ink); color: var(--bg); }
+
+.nav-toggle { display: none; margin-left: auto; align-items: center; gap: 10px; min-height: var(--touch); padding: 0 var(--sp-1); background: none; border: 0; font: var(--weight-medium) var(--fs-xs) / 1 var(--font-mono); letter-spacing: var(--tracking-label); text-transform: uppercase; }
+.nav-toggle .bars { width: 22px; height: 12px; position: relative; }
+.nav-toggle .bars i { position: absolute; left: 0; right: 0; height: 1.5px; background: currentColor; transition: transform var(--dur-2) var(--ease), top var(--dur-2) var(--ease); }
+.nav-toggle .bars i:first-child { top: 2px; }
+.nav-toggle .bars i:last-child { top: 9px; }
+.nav-toggle[aria-expanded="true"] .bars i:first-child { top: 5.5px; transform: rotate(45deg); }
+.nav-toggle[aria-expanded="true"] .bars i:last-child { top: 5.5px; transform: rotate(-45deg); }
+
+/* the full-screen menu (class "night": always dark) */
+.menu {
+  position: fixed; inset: 0; z-index: var(--z-menu);
+  padding: calc(var(--nav-h) + env(safe-area-inset-top) + var(--sp-3)) var(--gutter-r) calc(28px + env(safe-area-inset-bottom)) var(--gutter-l);
+  overflow-y: auto; overscroll-behavior: contain; display: flex; flex-direction: column; gap: 28px;
+  animation: menu-in 0.45s var(--ease) both;
+}
+@keyframes menu-in { from { clip-path: inset(0 0 100% 0); } to { clip-path: inset(0 0 0 0); } }
+.menu ol { list-style: none; margin: 0; padding: 0; display: grid; }
+.menu li a { display: grid; grid-template-columns: 2.2em 1fr; align-items: baseline; gap: var(--sp-2); padding: var(--sp-3) 0; border-bottom: 1px solid var(--rule); text-decoration: none; }
+.menu li a .n { font: var(--weight-medium) var(--fs-xs) / 1 var(--font-mono); color: var(--accent-ink); }
+.menu li a b { font-size: clamp(1.875rem, 8vw, 3rem); font-weight: var(--weight-strong); letter-spacing: -0.045em; line-height: 1.05; }
+.menu li a small { grid-column: 2; font-size: var(--fs-sm); color: var(--ink-2); }
+.menu li a[aria-current="page"] b { color: var(--accent-ink); }
+.menu-foot { margin-top: auto; display: flex; justify-content: space-between; align-items: center; gap: var(--sp-4); color: var(--ink-2); flex-wrap: wrap; }
+
+@media (max-width: 1180px) {
+  .nav-links, .nav-in > .nav-tools { display: none; }
+  .nav-toggle { display: inline-flex; }
+}
+@media (pointer: coarse) {
+  /* 44 px touch targets (an iPad in landscape still shows the bar's links) */
+  .nav-links a { padding-block: 12px; }
+  .lang a { min-height: var(--touch); min-width: var(--touch); }
+}
+/* on phones the brand is the name only: the sub-line and the Menu button would not fit side by side */
+@media (max-width: 640px) { .brand span { display: none; } }
+/* all eight menu items fit on one phone screen (iPhone 15: 659 px high, SE: 548 px) */
+@media (max-height: 860px) {
+  .menu { gap: 18px; }
+  .menu li a { padding: var(--sp-2) 0; row-gap: 2px; }
+  .menu li a b { font-size: clamp(1.5rem, 6.4vw, 2.25rem); }
+  .menu li a small { font-size: 0.8125rem; line-height: 1.35; }
+}
+@media (max-height: 600px) { .menu li a small { display: none; } }
+@media (max-height: 500px) and (orientation: landscape) {
+  .menu ol { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(4, auto); grid-auto-flow: column; column-gap: clamp(24px, 5vw, 64px); }
+  .menu li a b { font-size: 1.5rem; }
+}

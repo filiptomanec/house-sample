@@ -1,0 +1,10 @@
+#!/bin/sh
+# Privacy gate for commit messages (the message file is passed as $1).
+HOOK_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+ROOT=$(git rev-parse --show-toplevel) || exit 1
+SCAN="$HOOK_DIR/../scripts/privacy/scan.mjs"
+command -v node >/dev/null 2>&1 || { echo "privacy: node is required to run the scanner" >&2; exit 1; }
+STRICT="--strict"
+[ -n "$PRIVACY_ALLOW_NO_DENYLIST" ] && STRICT=""
+# shellcheck disable=SC2086
+exec node "$SCAN" --message "$1" $STRICT --root "$ROOT" --quiet

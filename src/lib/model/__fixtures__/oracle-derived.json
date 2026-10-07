@@ -1,0 +1,2576 @@
+{
+  "wall": {
+    "ext": 0.5,
+    "bearing": 0.3,
+    "part": 0.15
+  },
+  "defaultWallTop": 3.05,
+  "grid": {
+    "xs": [
+      0,
+      6.65,
+      9,
+      13.5,
+      15.2,
+      17,
+      18.45,
+      23
+    ],
+    "ys": [
+      0,
+      4.2,
+      4.6,
+      5.4,
+      6.2,
+      7,
+      7.2,
+      8.4,
+      8.7,
+      10.3,
+      11.8
+    ]
+  },
+  "overlaps": [],
+  "holes": [],
+  "components": [
+    {
+      "rooms": [
+        "R04",
+        "R03",
+        "R02",
+        "R01",
+        "R05",
+        "R07",
+        "R06",
+        "R09",
+        "R08",
+        "R14",
+        "R13",
+        "R12",
+        "R11",
+        "R10"
+      ],
+      "area": 235.49
+    }
+  ],
+  "walls": [
+    {
+      "id": "Z01",
+      "orient": "h",
+      "at": 0,
+      "from": 6.65,
+      "to": 13.5,
+      "len": 6.85,
+      "kind": "exterior",
+      "ext": true,
+      "t": 0.5,
+      "lo": null,
+      "hi": "R04",
+      "room": "R04",
+      "azimuth": 180
+    },
+    {
+      "id": "Z02",
+      "orient": "h",
+      "at": 0,
+      "from": 13.5,
+      "to": 17,
+      "len": 3.5,
+      "kind": "exterior",
+      "ext": true,
+      "t": 0.5,
+      "lo": null,
+      "hi": "R08",
+      "room": "R08",
+      "azimuth": 180
+    },
+    {
+      "id": "Z03",
+      "orient": "h",
+      "at": 0,
+      "from": 17,
+      "to": 18.45,
+      "len": 1.45,
+      "kind": "exterior",
+      "ext": true,
+      "t": 0.5,
+      "lo": null,
+      "hi": "R14",
+      "room": "R14",
+      "azimuth": 180
+    },
+    {
+      "id": "Z04",
+      "orient": "h",
+      "at": 0,
+      "from": 18.45,
+      "to": 23,
+      "len": 4.55,
+      "kind": "exterior",
+      "ext": true,
+      "t": 0.5,
+      "lo": null,
+      "hi": "R10",
+      "room": "R10",
+      "azimuth": 180
+    },
+    {
+      "id": "Z05",
+      "orient": "h",
+      "at": 4.2,
+      "from": 18.45,
+      "to": 23,
+      "len": 4.55,
+      "kind": "partition",
+      "ext": false,
+      "t": 0.15,
+      "lo": "R10",
+      "hi": "R11"
+    },
+    {
+      "id": "Z06",
+      "orient": "h",
+      "at": 4.6,
+      "from": 13.5,
+      "to": 17,
+      "len": 3.5,
+      "kind": "partition",
+      "ext": false,
+      "t": 0.15,
+      "lo": "R08",
+      "hi": "R09"
+    },
+    {
+      "id": "Z07",
+      "orient": "h",
+      "at": 5.4,
+      "from": 0,
+      "to": 6.65,
+      "len": 6.65,
+      "kind": "exterior",
+      "ext": true,
+      "t": 0.5,
+      "lo": null,
+      "hi": "R01",
+      "room": "R01",
+      "azimuth": 180
+    },
+    {
+      "id": "Z08",
+      "orient": "h",
+      "at": 5.4,
+      "from": 6.65,
+      "to": 9,
+      "len": 2.35,
+      "kind": "partition",
+      "ext": false,
+      "t": 0.15,
+      "lo": "R04",
+      "hi": "R03"
+    },
+    {
+      "id": "Z09",
+      "orient": "h",
+      "at": 6.2,
+      "from": 18.45,
+      "to": 23,
+      "len": 4.55,
+      "kind": "partition",
+      "ext": false,
+      "t": 0.15,
+      "lo": "R11",
+      "hi": "R12"
+    },
+    {
+      "id": "Z10",
+      "orient": "h",
+      "at": 7,
+      "from": 13.5,
+      "to": 17,
+      "len": 3.5,
+      "kind": "partition",
+      "ext": false,
+      "t": 0.15,
+      "lo": "R09",
+      "hi": "R06"
+    },
+    {
+      "id": "Z11",
+      "orient": "h",
+      "at": 7,
+      "from": 17,
+      "to": 18.45,
+      "len": 1.45,
+      "kind": "partition",
+      "ext": false,
+      "t": 0.15,
+      "lo": "R14",
+      "hi": "R06"
+    },
+    {
+      "id": "Z12",
+      "orient": "h",
+      "at": 7.2,
+      "from": 6.65,
+      "to": 9,
+      "len": 2.35,
+      "kind": "partition",
+      "ext": false,
+      "t": 0.15,
+      "lo": "R03",
+      "hi": "R02"
+    },
+    {
+      "id": "Z13",
+      "orient": "h",
+      "at": 8.4,
+      "from": 18.45,
+      "to": 23,
+      "len": 4.55,
+      "kind": "partition",
+      "ext": false,
+      "t": 0.15,
+      "lo": "R12",
+      "hi": "R13"
+    },
+    {
+      "id": "Z14",
+      "orient": "h",
+      "at": 8.7,
+      "from": 9,
+      "to": 13.5,
+      "len": 4.5,
+      "kind": "partition",
+      "ext": false,
+      "t": 0.15,
+      "lo": "R04",
+      "hi": "R05"
+    },
+    {
+      "id": "Z15",
+      "orient": "h",
+      "at": 10.3,
+      "from": 13.5,
+      "to": 15.2,
+      "len": 1.7,
+      "kind": "partition",
+      "ext": false,
+      "t": 0.15,
+      "lo": "R06",
+      "hi": "R07"
+    },
+    {
+      "id": "Z16",
+      "orient": "h",
+      "at": 11.8,
+      "from": 0,
+      "to": 6.65,
+      "len": 6.65,
+      "kind": "exterior",
+      "ext": true,
+      "t": 0.5,
+      "lo": "R01",
+      "hi": null,
+      "room": "R01",
+      "azimuth": 0
+    },
+    {
+      "id": "Z17",
+      "orient": "h",
+      "at": 11.8,
+      "from": 6.65,
+      "to": 9,
+      "len": 2.35,
+      "kind": "exterior",
+      "ext": true,
+      "t": 0.5,
+      "lo": "R02",
+      "hi": null,
+      "room": "R02",
+      "azimuth": 0
+    },
+    {
+      "id": "Z18",
+      "orient": "h",
+      "at": 11.8,
+      "from": 9,
+      "to": 13.5,
+      "len": 4.5,
+      "kind": "exterior",
+      "ext": true,
+      "t": 0.5,
+      "lo": "R05",
+      "hi": null,
+      "room": "R05",
+      "azimuth": 0
+    },
+    {
+      "id": "Z19",
+      "orient": "h",
+      "at": 11.8,
+      "from": 13.5,
+      "to": 15.2,
+      "len": 1.7,
+      "kind": "exterior",
+      "ext": true,
+      "t": 0.5,
+      "lo": "R07",
+      "hi": null,
+      "room": "R07",
+      "azimuth": 0
+    },
+    {
+      "id": "Z20",
+      "orient": "h",
+      "at": 11.8,
+      "from": 15.2,
+      "to": 18.45,
+      "len": 3.25,
+      "kind": "exterior",
+      "ext": true,
+      "t": 0.5,
+      "lo": "R06",
+      "hi": null,
+      "room": "R06",
+      "azimuth": 0
+    },
+    {
+      "id": "Z21",
+      "orient": "h",
+      "at": 11.8,
+      "from": 18.45,
+      "to": 23,
+      "len": 4.55,
+      "kind": "exterior",
+      "ext": true,
+      "t": 0.5,
+      "lo": "R13",
+      "hi": null,
+      "room": "R13",
+      "azimuth": 0
+    },
+    {
+      "id": "Z22",
+      "orient": "v",
+      "at": 0,
+      "from": 5.4,
+      "to": 11.8,
+      "len": 6.4,
+      "kind": "exterior",
+      "ext": true,
+      "t": 0.5,
+      "lo": null,
+      "hi": "R01",
+      "room": "R01",
+      "azimuth": 270
+    },
+    {
+      "id": "Z23",
+      "orient": "v",
+      "at": 6.65,
+      "from": 0,
+      "to": 5.4,
+      "len": 5.4,
+      "kind": "exterior",
+      "ext": true,
+      "t": 0.5,
+      "lo": null,
+      "hi": "R04",
+      "room": "R04",
+      "azimuth": 270
+    },
+    {
+      "id": "Z24",
+      "orient": "v",
+      "at": 6.65,
+      "from": 5.4,
+      "to": 7.2,
+      "len": 1.8,
+      "kind": "bearing",
+      "ext": false,
+      "t": 0.3,
+      "lo": "R01",
+      "hi": "R03"
+    },
+    {
+      "id": "Z25",
+      "orient": "v",
+      "at": 6.65,
+      "from": 7.2,
+      "to": 11.8,
+      "len": 4.6,
+      "kind": "bearing",
+      "ext": false,
+      "t": 0.3,
+      "lo": "R01",
+      "hi": "R02"
+    },
+    {
+      "id": "Z26",
+      "orient": "v",
+      "at": 9,
+      "from": 5.4,
+      "to": 7.2,
+      "len": 1.8,
+      "kind": "partition",
+      "ext": false,
+      "t": 0.15,
+      "lo": "R03",
+      "hi": "R04"
+    },
+    {
+      "id": "Z27",
+      "orient": "v",
+      "at": 9,
+      "from": 7.2,
+      "to": 8.7,
+      "len": 1.5,
+      "kind": "partition",
+      "ext": false,
+      "t": 0.15,
+      "lo": "R02",
+      "hi": "R04"
+    },
+    {
+      "id": "Z28",
+      "orient": "v",
+      "at": 9,
+      "from": 8.7,
+      "to": 11.8,
+      "len": 3.1,
+      "kind": "partition",
+      "ext": false,
+      "t": 0.15,
+      "lo": "R02",
+      "hi": "R05"
+    },
+    {
+      "id": "Z29",
+      "orient": "v",
+      "at": 13.5,
+      "from": 0,
+      "to": 4.6,
+      "len": 4.6,
+      "kind": "bearing",
+      "ext": false,
+      "t": 0.3,
+      "lo": "R04",
+      "hi": "R08"
+    },
+    {
+      "id": "Z30",
+      "orient": "v",
+      "at": 13.5,
+      "from": 4.6,
+      "to": 7,
+      "len": 2.4,
+      "kind": "bearing",
+      "ext": false,
+      "t": 0.3,
+      "lo": "R04",
+      "hi": "R09"
+    },
+    {
+      "id": "Z31",
+      "orient": "v",
+      "at": 13.5,
+      "from": 7,
+      "to": 8.7,
+      "len": 1.7,
+      "kind": "bearing",
+      "ext": false,
+      "t": 0.3,
+      "lo": "R04",
+      "hi": "R06"
+    },
+    {
+      "id": "Z32",
+      "orient": "v",
+      "at": 13.5,
+      "from": 8.7,
+      "to": 10.3,
+      "len": 1.6,
+      "kind": "bearing",
+      "ext": false,
+      "t": 0.3,
+      "lo": "R05",
+      "hi": "R06"
+    },
+    {
+      "id": "Z33",
+      "orient": "v",
+      "at": 13.5,
+      "from": 10.3,
+      "to": 11.8,
+      "len": 1.5,
+      "kind": "bearing",
+      "ext": false,
+      "t": 0.3,
+      "lo": "R05",
+      "hi": "R07"
+    },
+    {
+      "id": "Z34",
+      "orient": "v",
+      "at": 15.2,
+      "from": 10.3,
+      "to": 11.8,
+      "len": 1.5,
+      "kind": "partition",
+      "ext": false,
+      "t": 0.15,
+      "lo": "R07",
+      "hi": "R06"
+    },
+    {
+      "id": "Z35",
+      "orient": "v",
+      "at": 17,
+      "from": 0,
+      "to": 4.6,
+      "len": 4.6,
+      "kind": "partition",
+      "ext": false,
+      "t": 0.15,
+      "lo": "R08",
+      "hi": "R14"
+    },
+    {
+      "id": "Z36",
+      "orient": "v",
+      "at": 17,
+      "from": 4.6,
+      "to": 7,
+      "len": 2.4,
+      "kind": "partition",
+      "ext": false,
+      "t": 0.15,
+      "lo": "R09",
+      "hi": "R14"
+    },
+    {
+      "id": "Z37",
+      "orient": "v",
+      "at": 18.45,
+      "from": 0,
+      "to": 4.2,
+      "len": 4.2,
+      "kind": "bearing",
+      "ext": false,
+      "t": 0.3,
+      "lo": "R14",
+      "hi": "R10"
+    },
+    {
+      "id": "Z38",
+      "orient": "v",
+      "at": 18.45,
+      "from": 4.2,
+      "to": 6.2,
+      "len": 2,
+      "kind": "bearing",
+      "ext": false,
+      "t": 0.3,
+      "lo": "R14",
+      "hi": "R11"
+    },
+    {
+      "id": "Z39",
+      "orient": "v",
+      "at": 18.45,
+      "from": 6.2,
+      "to": 7,
+      "len": 0.8,
+      "kind": "bearing",
+      "ext": false,
+      "t": 0.3,
+      "lo": "R14",
+      "hi": "R12"
+    },
+    {
+      "id": "Z40",
+      "orient": "v",
+      "at": 18.45,
+      "from": 7,
+      "to": 8.4,
+      "len": 1.4,
+      "kind": "bearing",
+      "ext": false,
+      "t": 0.3,
+      "lo": "R06",
+      "hi": "R12"
+    },
+    {
+      "id": "Z41",
+      "orient": "v",
+      "at": 18.45,
+      "from": 8.4,
+      "to": 11.8,
+      "len": 3.4,
+      "kind": "bearing",
+      "ext": false,
+      "t": 0.3,
+      "lo": "R06",
+      "hi": "R13"
+    },
+    {
+      "id": "Z42",
+      "orient": "v",
+      "at": 23,
+      "from": 0,
+      "to": 4.2,
+      "len": 4.2,
+      "kind": "exterior",
+      "ext": true,
+      "t": 0.5,
+      "lo": "R10",
+      "hi": null,
+      "room": "R10",
+      "azimuth": 90
+    },
+    {
+      "id": "Z43",
+      "orient": "v",
+      "at": 23,
+      "from": 4.2,
+      "to": 6.2,
+      "len": 2,
+      "kind": "exterior",
+      "ext": true,
+      "t": 0.5,
+      "lo": "R11",
+      "hi": null,
+      "room": "R11",
+      "azimuth": 90
+    },
+    {
+      "id": "Z44",
+      "orient": "v",
+      "at": 23,
+      "from": 6.2,
+      "to": 8.4,
+      "len": 2.2,
+      "kind": "exterior",
+      "ext": true,
+      "t": 0.5,
+      "lo": "R12",
+      "hi": null,
+      "room": "R12",
+      "azimuth": 90
+    },
+    {
+      "id": "Z45",
+      "orient": "v",
+      "at": 23,
+      "from": 8.4,
+      "to": 11.8,
+      "len": 3.4,
+      "kind": "exterior",
+      "ext": true,
+      "t": 0.5,
+      "lo": "R13",
+      "hi": null,
+      "room": "R13",
+      "azimuth": 90
+    }
+  ],
+  "rooms": [
+    {
+      "id": "R01",
+      "name": "Garáž 2 auta",
+      "type": "garage",
+      "floor": "concrete",
+      "rects": [
+        [
+          0,
+          5.4,
+          6.65,
+          11.8
+        ]
+      ],
+      "cleanRects": [
+        [
+          0.25,
+          5.65,
+          6.5,
+          11.55
+        ]
+      ],
+      "area": 36.875,
+      "axisArea": 42.56,
+      "bbox": {
+        "x0": 0.25,
+        "y0": 5.65,
+        "x1": 6.5,
+        "y1": 11.55,
+        "w": 6.25,
+        "d": 5.9
+      },
+      "rectsClear": [
+        {
+          "rect": [
+            0,
+            5.4,
+            6.65,
+            11.8
+          ],
+          "w": 6.25,
+          "d": 5.9
+        }
+      ],
+      "minWidth": 5.9,
+      "mainClear": {
+        "w": 6.25,
+        "d": 5.9
+      },
+      "glazing": {
+        "total": 0.8,
+        "N": 0,
+        "E": 0,
+        "S": 0,
+        "W": 0.8
+      },
+      "openings": [
+        "W05",
+        "G01",
+        "D01"
+      ]
+    },
+    {
+      "id": "R02",
+      "name": "Technická místnost / prádelna",
+      "type": "utility",
+      "floor": "tile",
+      "rects": [
+        [
+          6.65,
+          7.2,
+          9,
+          11.8
+        ]
+      ],
+      "cleanRects": [
+        [
+          6.800000000000001,
+          7.275,
+          8.925,
+          11.55
+        ]
+      ],
+      "area": 9.08438,
+      "axisArea": 10.81,
+      "bbox": {
+        "x0": 6.800000000000001,
+        "y0": 7.275,
+        "x1": 8.925,
+        "y1": 11.55,
+        "w": 2.125,
+        "d": 4.275
+      },
+      "rectsClear": [
+        {
+          "rect": [
+            6.65,
+            7.2,
+            9,
+            11.8
+          ],
+          "w": 2.125,
+          "d": 4.275
+        }
+      ],
+      "minWidth": 2.125,
+      "mainClear": {
+        "w": 2.125,
+        "d": 4.275
+      },
+      "glazing": {
+        "total": 0,
+        "N": 0,
+        "E": 0,
+        "S": 0,
+        "W": 0
+      },
+      "openings": [
+        "D01",
+        "D13"
+      ]
+    },
+    {
+      "id": "R03",
+      "name": "Spíž",
+      "type": "pantry",
+      "floor": "tile",
+      "rects": [
+        [
+          6.65,
+          5.4,
+          9,
+          7.2
+        ]
+      ],
+      "cleanRects": [
+        [
+          6.800000000000001,
+          5.4750000000000005,
+          8.925,
+          7.125
+        ]
+      ],
+      "area": 3.50625,
+      "axisArea": 4.23,
+      "bbox": {
+        "x0": 6.800000000000001,
+        "y0": 5.4750000000000005,
+        "x1": 8.925,
+        "y1": 7.125,
+        "w": 2.125,
+        "d": 1.6499999999999995
+      },
+      "rectsClear": [
+        {
+          "rect": [
+            6.65,
+            5.4,
+            9,
+            7.2
+          ],
+          "w": 2.125,
+          "d": 1.65
+        }
+      ],
+      "minWidth": 1.65,
+      "mainClear": {
+        "w": 2.125,
+        "d": 1.65
+      },
+      "glazing": {
+        "total": 0,
+        "N": 0,
+        "E": 0,
+        "S": 0,
+        "W": 0
+      },
+      "openings": [
+        "D13",
+        "D03"
+      ]
+    },
+    {
+      "id": "R04",
+      "name": "Obývací pokoj s kuchyní a jídelnou",
+      "type": "living",
+      "floor": "oak",
+      "rects": [
+        [
+          6.65,
+          0,
+          13.5,
+          5.4
+        ],
+        [
+          9,
+          5.4,
+          13.5,
+          8.7
+        ]
+      ],
+      "cleanRects": [
+        [
+          6.9,
+          0.25,
+          13.35,
+          4.6
+        ],
+        [
+          6.9,
+          4.6,
+          9,
+          5.325
+        ],
+        [
+          9,
+          4.6,
+          13.35,
+          5.4
+        ],
+        [
+          9.075,
+          5.4,
+          13.35,
+          8.625
+        ]
+      ],
+      "area": 46.84688,
+      "axisArea": 51.84,
+      "bbox": {
+        "x0": 6.9,
+        "y0": 0.25,
+        "x1": 13.35,
+        "y1": 8.625,
+        "w": 6.449999999999999,
+        "d": 8.375
+      },
+      "rectsClear": [
+        {
+          "rect": [
+            6.65,
+            0,
+            13.5,
+            5.4
+          ],
+          "w": 6.45,
+          "d": 5.075
+        },
+        {
+          "rect": [
+            9,
+            5.4,
+            13.5,
+            8.7
+          ],
+          "w": 4.275,
+          "d": 3.225
+        }
+      ],
+      "minWidth": 3.225,
+      "mainClear": {
+        "w": 6.45,
+        "d": 5.075
+      },
+      "glazing": {
+        "total": 17.52,
+        "N": 0,
+        "E": 0,
+        "S": 10.56,
+        "W": 6.96
+      },
+      "openings": [
+        "S01",
+        "S02",
+        "D03",
+        "D04"
+      ]
+    },
+    {
+      "id": "R05",
+      "name": "Pracovna / host",
+      "type": "office",
+      "floor": "oak",
+      "rects": [
+        [
+          9,
+          8.7,
+          13.5,
+          11.8
+        ]
+      ],
+      "cleanRects": [
+        [
+          9.075,
+          8.774999999999999,
+          13.35,
+          11.55
+        ]
+      ],
+      "area": 11.86313,
+      "axisArea": 13.95,
+      "bbox": {
+        "x0": 9.075,
+        "y0": 8.774999999999999,
+        "x1": 13.35,
+        "y1": 11.55,
+        "w": 4.275,
+        "d": 2.775000000000002
+      },
+      "rectsClear": [
+        {
+          "rect": [
+            9,
+            8.7,
+            13.5,
+            11.8
+          ],
+          "w": 4.275,
+          "d": 2.775
+        }
+      ],
+      "minWidth": 2.775,
+      "mainClear": {
+        "w": 4.275,
+        "d": 2.775
+      },
+      "glazing": {
+        "total": 3.36,
+        "N": 3.36,
+        "E": 0,
+        "S": 0,
+        "W": 0
+      },
+      "openings": [
+        "W06",
+        "D05"
+      ]
+    },
+    {
+      "id": "R06",
+      "name": "Hala se zádveřím a šatnou",
+      "type": "hall",
+      "floor": "tile",
+      "rects": [
+        [
+          15.2,
+          7,
+          18.45,
+          11.8
+        ],
+        [
+          13.5,
+          7,
+          15.2,
+          10.3
+        ]
+      ],
+      "cleanRects": [
+        [
+          13.65,
+          7.075,
+          18.3,
+          8.7
+        ],
+        [
+          13.65,
+          8.7,
+          15.2,
+          10.225000000000001
+        ],
+        [
+          15.2,
+          8.7,
+          18.3,
+          10.3
+        ],
+        [
+          15.274999999999999,
+          10.3,
+          18.3,
+          11.55
+        ]
+      ],
+      "area": 18.66125,
+      "axisArea": 21.21,
+      "bbox": {
+        "x0": 13.65,
+        "y0": 7.075,
+        "x1": 18.3,
+        "y1": 11.55,
+        "w": 4.65,
+        "d": 4.4750000000000005
+      },
+      "rectsClear": [
+        {
+          "rect": [
+            15.2,
+            7,
+            18.45,
+            11.8
+          ],
+          "w": 3.025,
+          "d": 4.475
+        },
+        {
+          "rect": [
+            13.5,
+            7,
+            15.2,
+            10.3
+          ],
+          "w": 1.55,
+          "d": 3.15
+        }
+      ],
+      "minWidth": 1.55,
+      "mainClear": {
+        "w": 3.025,
+        "d": 4.475
+      },
+      "glazing": {
+        "total": 0,
+        "N": 0,
+        "E": 0,
+        "S": 0,
+        "W": 0
+      },
+      "openings": [
+        "E01",
+        "D04",
+        "D05",
+        "D06",
+        "D12",
+        "D14"
+      ]
+    },
+    {
+      "id": "R14",
+      "name": "Chodba noční zóny",
+      "type": "corridor",
+      "floor": "tile",
+      "rects": [
+        [
+          17,
+          0,
+          18.45,
+          7
+        ]
+      ],
+      "cleanRects": [
+        [
+          17.075,
+          0.25,
+          18.3,
+          6.925
+        ]
+      ],
+      "area": 8.17688,
+      "axisArea": 10.15,
+      "bbox": {
+        "x0": 17.075,
+        "y0": 0.25,
+        "x1": 18.3,
+        "y1": 6.925,
+        "w": 1.2250000000000014,
+        "d": 6.675
+      },
+      "rectsClear": [
+        {
+          "rect": [
+            17,
+            0,
+            18.45,
+            7
+          ],
+          "w": 1.225,
+          "d": 6.675
+        }
+      ],
+      "minWidth": 1.225,
+      "mainClear": {
+        "w": 1.225,
+        "d": 6.675
+      },
+      "glazing": {
+        "total": 1.08,
+        "N": 0,
+        "E": 0,
+        "S": 1.08,
+        "W": 0
+      },
+      "openings": [
+        "W03",
+        "D07",
+        "D08",
+        "D09",
+        "D14"
+      ]
+    },
+    {
+      "id": "R07",
+      "name": "WC hosté",
+      "type": "wc",
+      "floor": "tile",
+      "rects": [
+        [
+          13.5,
+          10.3,
+          15.2,
+          11.8
+        ]
+      ],
+      "cleanRects": [
+        [
+          13.65,
+          10.375,
+          15.125,
+          11.55
+        ]
+      ],
+      "area": 1.73313,
+      "axisArea": 2.55,
+      "bbox": {
+        "x0": 13.65,
+        "y0": 10.375,
+        "x1": 15.125,
+        "y1": 11.55,
+        "w": 1.4749999999999996,
+        "d": 1.1750000000000007
+      },
+      "rectsClear": [
+        {
+          "rect": [
+            13.5,
+            10.3,
+            15.2,
+            11.8
+          ],
+          "w": 1.475,
+          "d": 1.175
+        }
+      ],
+      "minWidth": 1.175,
+      "mainClear": {
+        "w": 1.475,
+        "d": 1.175
+      },
+      "glazing": {
+        "total": 0.66,
+        "N": 0.66,
+        "E": 0,
+        "S": 0,
+        "W": 0
+      },
+      "openings": [
+        "W07",
+        "D06"
+      ]
+    },
+    {
+      "id": "R08",
+      "name": "Dětský pokoj 1",
+      "type": "kids",
+      "floor": "oak",
+      "rects": [
+        [
+          13.5,
+          0,
+          17,
+          4.6
+        ]
+      ],
+      "cleanRects": [
+        [
+          13.65,
+          0.25,
+          16.925,
+          4.5249999999999995
+        ]
+      ],
+      "area": 14.00063,
+      "axisArea": 16.1,
+      "bbox": {
+        "x0": 13.65,
+        "y0": 0.25,
+        "x1": 16.925,
+        "y1": 4.5249999999999995,
+        "w": 3.2750000000000004,
+        "d": 4.2749999999999995
+      },
+      "rectsClear": [
+        {
+          "rect": [
+            13.5,
+            0,
+            17,
+            4.6
+          ],
+          "w": 3.275,
+          "d": 4.275
+        }
+      ],
+      "minWidth": 3.275,
+      "mainClear": {
+        "w": 3.275,
+        "d": 4.275
+      },
+      "glazing": {
+        "total": 3.15,
+        "N": 0,
+        "E": 0,
+        "S": 3.15,
+        "W": 0
+      },
+      "openings": [
+        "W02",
+        "D07"
+      ]
+    },
+    {
+      "id": "R09",
+      "name": "Hlavní koupelna",
+      "type": "bath",
+      "floor": "tile",
+      "rects": [
+        [
+          13.5,
+          4.6,
+          17,
+          7
+        ]
+      ],
+      "cleanRects": [
+        [
+          13.65,
+          4.675,
+          16.925,
+          6.925
+        ]
+      ],
+      "area": 7.36875,
+      "axisArea": 8.4,
+      "bbox": {
+        "x0": 13.65,
+        "y0": 4.675,
+        "x1": 16.925,
+        "y1": 6.925,
+        "w": 3.2750000000000004,
+        "d": 2.25
+      },
+      "rectsClear": [
+        {
+          "rect": [
+            13.5,
+            4.6,
+            17,
+            7
+          ],
+          "w": 3.275,
+          "d": 2.25
+        }
+      ],
+      "minWidth": 2.25,
+      "mainClear": {
+        "w": 3.275,
+        "d": 2.25
+      },
+      "glazing": {
+        "total": 0,
+        "N": 0,
+        "E": 0,
+        "S": 0,
+        "W": 0
+      },
+      "openings": [
+        "D08"
+      ]
+    },
+    {
+      "id": "R10",
+      "name": "Ložnice rodičů",
+      "type": "bedroom",
+      "floor": "oak",
+      "rects": [
+        [
+          18.45,
+          0,
+          23,
+          4.2
+        ]
+      ],
+      "cleanRects": [
+        [
+          18.599999999999998,
+          0.25,
+          22.75,
+          4.125
+        ]
+      ],
+      "area": 16.08125,
+      "axisArea": 19.11,
+      "bbox": {
+        "x0": 18.599999999999998,
+        "y0": 0.25,
+        "x1": 22.75,
+        "y1": 4.125,
+        "w": 4.150000000000002,
+        "d": 3.875
+      },
+      "rectsClear": [
+        {
+          "rect": [
+            18.45,
+            0,
+            23,
+            4.2
+          ],
+          "w": 4.15,
+          "d": 3.875
+        }
+      ],
+      "minWidth": 3.875,
+      "mainClear": {
+        "w": 4.15,
+        "d": 3.875
+      },
+      "glazing": {
+        "total": 5.4,
+        "N": 0,
+        "E": 1.8,
+        "S": 3.6,
+        "W": 0
+      },
+      "openings": [
+        "W04",
+        "W09",
+        "D09",
+        "D10"
+      ]
+    },
+    {
+      "id": "R11",
+      "name": "Šatna rodičů",
+      "type": "wardrobe",
+      "floor": "oak",
+      "rects": [
+        [
+          18.45,
+          4.2,
+          23,
+          6.2
+        ]
+      ],
+      "cleanRects": [
+        [
+          18.599999999999998,
+          4.275,
+          22.75,
+          6.125
+        ]
+      ],
+      "area": 7.6775,
+      "axisArea": 9.1,
+      "bbox": {
+        "x0": 18.599999999999998,
+        "y0": 4.275,
+        "x1": 22.75,
+        "y1": 6.125,
+        "w": 4.150000000000002,
+        "d": 1.8499999999999996
+      },
+      "rectsClear": [
+        {
+          "rect": [
+            18.45,
+            4.2,
+            23,
+            6.2
+          ],
+          "w": 4.15,
+          "d": 1.85
+        }
+      ],
+      "minWidth": 1.85,
+      "mainClear": {
+        "w": 4.15,
+        "d": 1.85
+      },
+      "glazing": {
+        "total": 0,
+        "N": 0,
+        "E": 0,
+        "S": 0,
+        "W": 0
+      },
+      "openings": [
+        "D10",
+        "D11"
+      ]
+    },
+    {
+      "id": "R12",
+      "name": "Koupelna rodičů",
+      "type": "bath",
+      "floor": "tile",
+      "rects": [
+        [
+          18.45,
+          6.2,
+          23,
+          8.4
+        ]
+      ],
+      "cleanRects": [
+        [
+          18.599999999999998,
+          6.275,
+          22.75,
+          8.325000000000001
+        ]
+      ],
+      "area": 8.5075,
+      "axisArea": 10.01,
+      "bbox": {
+        "x0": 18.599999999999998,
+        "y0": 6.275,
+        "x1": 22.75,
+        "y1": 8.325000000000001,
+        "w": 4.150000000000002,
+        "d": 2.0500000000000007
+      },
+      "rectsClear": [
+        {
+          "rect": [
+            18.45,
+            6.2,
+            23,
+            8.4
+          ],
+          "w": 4.15,
+          "d": 2.05
+        }
+      ],
+      "minWidth": 2.05,
+      "mainClear": {
+        "w": 4.15,
+        "d": 2.05
+      },
+      "glazing": {
+        "total": 0.96,
+        "N": 0,
+        "E": 0.96,
+        "S": 0,
+        "W": 0
+      },
+      "openings": [
+        "W10",
+        "D11"
+      ]
+    },
+    {
+      "id": "R13",
+      "name": "Dětský pokoj 2",
+      "type": "kids",
+      "floor": "oak",
+      "rects": [
+        [
+          18.45,
+          8.4,
+          23,
+          11.8
+        ]
+      ],
+      "cleanRects": [
+        [
+          18.599999999999998,
+          8.475,
+          22.75,
+          11.55
+        ]
+      ],
+      "area": 12.76125,
+      "axisArea": 15.47,
+      "bbox": {
+        "x0": 18.599999999999998,
+        "y0": 8.475,
+        "x1": 22.75,
+        "y1": 11.55,
+        "w": 4.150000000000002,
+        "d": 3.075000000000001
+      },
+      "rectsClear": [
+        {
+          "rect": [
+            18.45,
+            8.4,
+            23,
+            11.8
+          ],
+          "w": 4.15,
+          "d": 3.075
+        }
+      ],
+      "minWidth": 3.075,
+      "mainClear": {
+        "w": 4.15,
+        "d": 3.075
+      },
+      "glazing": {
+        "total": 3.48,
+        "N": 1.68,
+        "E": 1.8,
+        "S": 0,
+        "W": 0
+      },
+      "openings": [
+        "W08",
+        "W11",
+        "D12"
+      ]
+    }
+  ],
+  "outline": {
+    "rects": [
+      [
+        6.4,
+        -0.25,
+        23.25,
+        5.15
+      ],
+      [
+        -0.25,
+        5.15,
+        23.25,
+        12.05
+      ]
+    ],
+    "polygons": [
+      {
+        "pts": [
+          [
+            6.4,
+            -0.25
+          ],
+          [
+            23.25,
+            -0.25
+          ],
+          [
+            23.25,
+            12.05
+          ],
+          [
+            -0.25,
+            12.05
+          ],
+          [
+            -0.25,
+            5.15
+          ],
+          [
+            6.4,
+            5.15
+          ]
+        ],
+        "area": 253.14
+      }
+    ],
+    "bbox": {
+      "x0": -0.25,
+      "y0": -0.25,
+      "x1": 23.25,
+      "y1": 12.05,
+      "w": 23.5,
+      "d": 12.3
+    },
+    "area": 253.14,
+    "perimeter": 71.6
+  },
+  "openings": [
+    {
+      "id": "S01",
+      "kind": "slider",
+      "orient": "h",
+      "cx": 10.2,
+      "cy": 0,
+      "w": 4.4,
+      "sill": 0,
+      "head": 2.4,
+      "swing": null,
+      "hinge": null,
+      "c": 10.2,
+      "axis": 0,
+      "from": 8,
+      "to": 12.4,
+      "wallId": "Z01",
+      "problem": null,
+      "exterior": true,
+      "wallKind": "exterior",
+      "azimuth": 180,
+      "room": "R04",
+      "connects": null,
+      "swingRoom": null,
+      "glazingArea": 10.56,
+      "clearStart": 1.1,
+      "clearEnd": 0.95
+    },
+    {
+      "id": "W02",
+      "kind": "window",
+      "orient": "h",
+      "cx": 15.3,
+      "cy": 0,
+      "w": 2.1,
+      "sill": 0.9,
+      "head": 2.4,
+      "swing": null,
+      "hinge": null,
+      "c": 15.3,
+      "axis": 0,
+      "from": 14.25,
+      "to": 16.35,
+      "wallId": "Z02",
+      "problem": null,
+      "exterior": true,
+      "wallKind": "exterior",
+      "azimuth": 180,
+      "room": "R08",
+      "connects": null,
+      "swingRoom": null,
+      "glazingArea": 3.15,
+      "clearStart": 0.6,
+      "clearEnd": 0.575
+    },
+    {
+      "id": "W03",
+      "kind": "window",
+      "orient": "h",
+      "cx": 17.725,
+      "cy": 0,
+      "w": 0.6,
+      "sill": 0.6,
+      "head": 2.4,
+      "swing": null,
+      "hinge": null,
+      "c": 17.725,
+      "axis": 0,
+      "from": 17.425,
+      "to": 18.025,
+      "wallId": "Z03",
+      "problem": null,
+      "exterior": true,
+      "wallKind": "exterior",
+      "azimuth": 180,
+      "room": "R14",
+      "connects": null,
+      "swingRoom": null,
+      "glazingArea": 1.08,
+      "clearStart": 0.35,
+      "clearEnd": 0.275
+    },
+    {
+      "id": "W04",
+      "kind": "window",
+      "orient": "h",
+      "cx": 20.9,
+      "cy": 0,
+      "w": 2.4,
+      "sill": 0.9,
+      "head": 2.4,
+      "swing": null,
+      "hinge": null,
+      "c": 20.9,
+      "axis": 0,
+      "from": 19.7,
+      "to": 22.1,
+      "wallId": "Z04",
+      "problem": null,
+      "exterior": true,
+      "wallKind": "exterior",
+      "azimuth": 180,
+      "room": "R10",
+      "connects": null,
+      "swingRoom": null,
+      "glazingArea": 3.6,
+      "clearStart": 1.1,
+      "clearEnd": 0.65
+    },
+    {
+      "id": "S02",
+      "kind": "slider",
+      "orient": "v",
+      "cx": 6.65,
+      "cy": 3.5,
+      "w": 2.9,
+      "sill": 0,
+      "head": 2.4,
+      "swing": null,
+      "hinge": null,
+      "c": 3.5,
+      "axis": 6.65,
+      "from": 2.05,
+      "to": 4.95,
+      "wallId": "Z23",
+      "problem": null,
+      "exterior": true,
+      "wallKind": "exterior",
+      "azimuth": 270,
+      "room": "R04",
+      "connects": null,
+      "swingRoom": null,
+      "glazingArea": 6.96,
+      "clearStart": 1.8,
+      "clearEnd": 0.2
+    },
+    {
+      "id": "W05",
+      "kind": "window",
+      "orient": "v",
+      "cx": 0,
+      "cy": 8.6,
+      "w": 1,
+      "sill": 1.2,
+      "head": 2,
+      "swing": null,
+      "hinge": null,
+      "c": 8.6,
+      "axis": 0,
+      "from": 8.1,
+      "to": 9.1,
+      "wallId": "Z22",
+      "problem": null,
+      "exterior": true,
+      "wallKind": "exterior",
+      "azimuth": 270,
+      "room": "R01",
+      "connects": null,
+      "swingRoom": null,
+      "glazingArea": 0.8,
+      "clearStart": 2.45,
+      "clearEnd": 2.45
+    },
+    {
+      "id": "G01",
+      "kind": "garage",
+      "orient": "h",
+      "cx": 3.4,
+      "cy": 11.8,
+      "w": 5,
+      "sill": 0,
+      "head": 2.3,
+      "swing": null,
+      "hinge": null,
+      "c": 3.4,
+      "axis": 11.8,
+      "from": 0.9,
+      "to": 5.9,
+      "wallId": "Z16",
+      "problem": null,
+      "exterior": true,
+      "wallKind": "exterior",
+      "azimuth": 0,
+      "room": "R01",
+      "connects": null,
+      "swingRoom": null,
+      "glazingArea": 0,
+      "clearStart": 0.65,
+      "clearEnd": 0.6
+    },
+    {
+      "id": "W06",
+      "kind": "window",
+      "orient": "h",
+      "cx": 11.25,
+      "cy": 11.8,
+      "w": 2.4,
+      "sill": 0.9,
+      "head": 2.3,
+      "swing": null,
+      "hinge": null,
+      "c": 11.25,
+      "axis": 11.8,
+      "from": 10.05,
+      "to": 12.45,
+      "wallId": "Z18",
+      "problem": null,
+      "exterior": true,
+      "wallKind": "exterior",
+      "azimuth": 0,
+      "room": "R05",
+      "connects": null,
+      "swingRoom": null,
+      "glazingArea": 3.36,
+      "clearStart": 0.975,
+      "clearEnd": 0.9
+    },
+    {
+      "id": "W07",
+      "kind": "window",
+      "orient": "h",
+      "cx": 14.35,
+      "cy": 11.8,
+      "w": 0.6,
+      "sill": 1.2,
+      "head": 2.3,
+      "swing": null,
+      "hinge": null,
+      "c": 14.35,
+      "axis": 11.8,
+      "from": 14.05,
+      "to": 14.65,
+      "wallId": "Z19",
+      "problem": null,
+      "exterior": true,
+      "wallKind": "exterior",
+      "azimuth": 0,
+      "room": "R07",
+      "connects": null,
+      "swingRoom": null,
+      "glazingArea": 0.66,
+      "clearStart": 0.4,
+      "clearEnd": 0.475
+    },
+    {
+      "id": "E01",
+      "kind": "entry",
+      "orient": "h",
+      "cx": 17.5,
+      "cy": 11.8,
+      "w": 1.2,
+      "sill": 0,
+      "head": 2.3,
+      "swing": "-",
+      "hinge": "-",
+      "c": 17.5,
+      "axis": 11.8,
+      "from": 16.9,
+      "to": 18.1,
+      "wallId": "Z20",
+      "problem": null,
+      "exterior": true,
+      "wallKind": "exterior",
+      "azimuth": 0,
+      "room": "R06",
+      "connects": null,
+      "swingRoom": "R06",
+      "glazingArea": 0,
+      "clearStart": 1.625,
+      "clearEnd": 0.2
+    },
+    {
+      "id": "W08",
+      "kind": "window",
+      "orient": "h",
+      "cx": 21.9,
+      "cy": 11.8,
+      "w": 1.2,
+      "sill": 0.9,
+      "head": 2.3,
+      "swing": null,
+      "hinge": null,
+      "c": 21.9,
+      "axis": 11.8,
+      "from": 21.3,
+      "to": 22.5,
+      "wallId": "Z21",
+      "problem": null,
+      "exterior": true,
+      "wallKind": "exterior",
+      "azimuth": 0,
+      "room": "R13",
+      "connects": null,
+      "swingRoom": null,
+      "glazingArea": 1.68,
+      "clearStart": 2.7,
+      "clearEnd": 0.25
+    },
+    {
+      "id": "W09",
+      "kind": "window",
+      "orient": "v",
+      "cx": 23,
+      "cy": 1.9,
+      "w": 1.2,
+      "sill": 0.9,
+      "head": 2.4,
+      "swing": null,
+      "hinge": null,
+      "c": 1.9,
+      "axis": 23,
+      "from": 1.3,
+      "to": 2.5,
+      "wallId": "Z42",
+      "problem": null,
+      "exterior": true,
+      "wallKind": "exterior",
+      "azimuth": 90,
+      "room": "R10",
+      "connects": null,
+      "swingRoom": null,
+      "glazingArea": 1.8,
+      "clearStart": 1.05,
+      "clearEnd": 1.625
+    },
+    {
+      "id": "W10",
+      "kind": "window",
+      "orient": "v",
+      "cx": 23,
+      "cy": 7.25,
+      "w": 0.8,
+      "sill": 1.2,
+      "head": 2.4,
+      "swing": null,
+      "hinge": null,
+      "c": 7.25,
+      "axis": 23,
+      "from": 6.85,
+      "to": 7.65,
+      "wallId": "Z44",
+      "problem": null,
+      "exterior": true,
+      "wallKind": "exterior",
+      "azimuth": 90,
+      "room": "R12",
+      "connects": null,
+      "swingRoom": null,
+      "glazingArea": 0.96,
+      "clearStart": 0.575,
+      "clearEnd": 0.675
+    },
+    {
+      "id": "W11",
+      "kind": "window",
+      "orient": "v",
+      "cx": 23,
+      "cy": 10.1,
+      "w": 1.2,
+      "sill": 0.9,
+      "head": 2.4,
+      "swing": null,
+      "hinge": null,
+      "c": 10.1,
+      "axis": 23,
+      "from": 9.5,
+      "to": 10.7,
+      "wallId": "Z45",
+      "problem": null,
+      "exterior": true,
+      "wallKind": "exterior",
+      "azimuth": 90,
+      "room": "R13",
+      "connects": null,
+      "swingRoom": null,
+      "glazingArea": 1.8,
+      "clearStart": 1.025,
+      "clearEnd": 0.85
+    },
+    {
+      "id": "D01",
+      "kind": "door",
+      "orient": "v",
+      "cx": 6.65,
+      "cy": 8.4,
+      "w": 0.9,
+      "sill": 0,
+      "head": 2.1,
+      "swing": "+",
+      "hinge": "+",
+      "c": 8.4,
+      "axis": 6.65,
+      "from": 7.95,
+      "to": 8.85,
+      "wallId": "Z25",
+      "problem": null,
+      "exterior": false,
+      "wallKind": "bearing",
+      "azimuth": null,
+      "room": null,
+      "connects": [
+        "R01",
+        "R02"
+      ],
+      "swingRoom": "R02",
+      "glazingArea": 0,
+      "clearStart": 0.675,
+      "clearEnd": 2.7
+    },
+    {
+      "id": "D13",
+      "kind": "door",
+      "orient": "h",
+      "cx": 7.7,
+      "cy": 7.2,
+      "w": 0.8,
+      "sill": 0,
+      "head": 2.1,
+      "swing": "-",
+      "hinge": "-",
+      "c": 7.7,
+      "axis": 7.2,
+      "from": 7.3,
+      "to": 8.1,
+      "wallId": "Z12",
+      "problem": null,
+      "exterior": false,
+      "wallKind": "partition",
+      "azimuth": null,
+      "room": null,
+      "connects": [
+        "R03",
+        "R02"
+      ],
+      "swingRoom": "R03",
+      "glazingArea": 0,
+      "clearStart": 0.5,
+      "clearEnd": 0.825
+    },
+    {
+      "id": "D03",
+      "kind": "door",
+      "orient": "v",
+      "cx": 9,
+      "cy": 6.3,
+      "w": 0.8,
+      "sill": 0,
+      "head": 2.1,
+      "swing": "-",
+      "hinge": "+",
+      "c": 6.3,
+      "axis": 9,
+      "from": 5.9,
+      "to": 6.7,
+      "wallId": "Z26",
+      "problem": null,
+      "exterior": false,
+      "wallKind": "partition",
+      "azimuth": null,
+      "room": null,
+      "connects": [
+        "R03",
+        "R04"
+      ],
+      "swingRoom": "R03",
+      "glazingArea": 0,
+      "clearStart": 0.425,
+      "clearEnd": 0.425
+    },
+    {
+      "id": "D04",
+      "kind": "door",
+      "orient": "v",
+      "cx": 13.5,
+      "cy": 7.8,
+      "w": 1,
+      "sill": 0,
+      "head": 2.1,
+      "swing": "+",
+      "hinge": "-",
+      "c": 7.8,
+      "axis": 13.5,
+      "from": 7.3,
+      "to": 8.3,
+      "wallId": "Z31",
+      "problem": null,
+      "exterior": false,
+      "wallKind": "bearing",
+      "azimuth": null,
+      "room": null,
+      "connects": [
+        "R04",
+        "R06"
+      ],
+      "swingRoom": "R06",
+      "glazingArea": 0,
+      "clearStart": 0.225,
+      "clearEnd": 0.325
+    },
+    {
+      "id": "D05",
+      "kind": "door",
+      "orient": "v",
+      "cx": 13.5,
+      "cy": 9.5,
+      "w": 0.9,
+      "sill": 0,
+      "head": 2.1,
+      "swing": "-",
+      "hinge": "+",
+      "c": 9.5,
+      "axis": 13.5,
+      "from": 9.05,
+      "to": 9.95,
+      "wallId": "Z32",
+      "problem": null,
+      "exterior": false,
+      "wallKind": "bearing",
+      "azimuth": null,
+      "room": null,
+      "connects": [
+        "R05",
+        "R06"
+      ],
+      "swingRoom": "R05",
+      "glazingArea": 0,
+      "clearStart": 0.275,
+      "clearEnd": 0.275
+    },
+    {
+      "id": "D06",
+      "kind": "door",
+      "orient": "h",
+      "cx": 14.4,
+      "cy": 10.3,
+      "w": 0.8,
+      "sill": 0,
+      "head": 2.1,
+      "swing": "-",
+      "hinge": "+",
+      "c": 14.4,
+      "axis": 10.3,
+      "from": 14,
+      "to": 14.8,
+      "wallId": "Z15",
+      "problem": null,
+      "exterior": false,
+      "wallKind": "partition",
+      "azimuth": null,
+      "room": null,
+      "connects": [
+        "R06",
+        "R07"
+      ],
+      "swingRoom": "R06",
+      "glazingArea": 0,
+      "clearStart": 0.35,
+      "clearEnd": 0.325
+    },
+    {
+      "id": "D07",
+      "kind": "door",
+      "orient": "v",
+      "cx": 17,
+      "cy": 3.3,
+      "w": 0.9,
+      "sill": 0,
+      "head": 2.1,
+      "swing": "-",
+      "hinge": "+",
+      "c": 3.3,
+      "axis": 17,
+      "from": 2.85,
+      "to": 3.75,
+      "wallId": "Z35",
+      "problem": null,
+      "exterior": false,
+      "wallKind": "partition",
+      "azimuth": null,
+      "room": null,
+      "connects": [
+        "R08",
+        "R14"
+      ],
+      "swingRoom": "R08",
+      "glazingArea": 0,
+      "clearStart": 2.6,
+      "clearEnd": 0.775
+    },
+    {
+      "id": "D08",
+      "kind": "door",
+      "orient": "v",
+      "cx": 17,
+      "cy": 5.3,
+      "w": 0.8,
+      "sill": 0,
+      "head": 2.1,
+      "swing": "-",
+      "hinge": "-",
+      "c": 5.3,
+      "axis": 17,
+      "from": 4.9,
+      "to": 5.7,
+      "wallId": "Z36",
+      "problem": null,
+      "exterior": false,
+      "wallKind": "partition",
+      "azimuth": null,
+      "room": null,
+      "connects": [
+        "R09",
+        "R14"
+      ],
+      "swingRoom": "R09",
+      "glazingArea": 0,
+      "clearStart": 0.225,
+      "clearEnd": 1.225
+    },
+    {
+      "id": "D09",
+      "kind": "door",
+      "orient": "v",
+      "cx": 18.45,
+      "cy": 1.5,
+      "w": 0.9,
+      "sill": 0,
+      "head": 2.1,
+      "swing": "+",
+      "hinge": "-",
+      "c": 1.5,
+      "axis": 18.45,
+      "from": 1.05,
+      "to": 1.95,
+      "wallId": "Z37",
+      "problem": null,
+      "exterior": false,
+      "wallKind": "bearing",
+      "azimuth": null,
+      "room": null,
+      "connects": [
+        "R14",
+        "R10"
+      ],
+      "swingRoom": "R10",
+      "glazingArea": 0,
+      "clearStart": 0.8,
+      "clearEnd": 2.175
+    },
+    {
+      "id": "D10",
+      "kind": "door",
+      "orient": "h",
+      "cx": 22.1,
+      "cy": 4.2,
+      "w": 0.8,
+      "sill": 0,
+      "head": 2.1,
+      "swing": "+",
+      "hinge": "+",
+      "c": 22.1,
+      "axis": 4.2,
+      "from": 21.7,
+      "to": 22.5,
+      "wallId": "Z05",
+      "problem": null,
+      "exterior": false,
+      "wallKind": "partition",
+      "azimuth": null,
+      "room": null,
+      "connects": [
+        "R10",
+        "R11"
+      ],
+      "swingRoom": "R11",
+      "glazingArea": 0,
+      "clearStart": 3.1,
+      "clearEnd": 0.25
+    },
+    {
+      "id": "D11",
+      "kind": "door",
+      "orient": "h",
+      "cx": 19.5,
+      "cy": 6.2,
+      "w": 0.8,
+      "sill": 0,
+      "head": 2.1,
+      "swing": "+",
+      "hinge": "-",
+      "c": 19.5,
+      "axis": 6.2,
+      "from": 19.1,
+      "to": 19.9,
+      "wallId": "Z09",
+      "problem": null,
+      "exterior": false,
+      "wallKind": "partition",
+      "azimuth": null,
+      "room": null,
+      "connects": [
+        "R11",
+        "R12"
+      ],
+      "swingRoom": "R12",
+      "glazingArea": 0,
+      "clearStart": 0.5,
+      "clearEnd": 2.85
+    },
+    {
+      "id": "D12",
+      "kind": "door",
+      "orient": "v",
+      "cx": 18.45,
+      "cy": 10.4,
+      "w": 0.9,
+      "sill": 0,
+      "head": 2.1,
+      "swing": "+",
+      "hinge": "+",
+      "c": 10.4,
+      "axis": 18.45,
+      "from": 9.95,
+      "to": 10.85,
+      "wallId": "Z41",
+      "problem": null,
+      "exterior": false,
+      "wallKind": "bearing",
+      "azimuth": null,
+      "room": null,
+      "connects": [
+        "R06",
+        "R13"
+      ],
+      "swingRoom": "R13",
+      "glazingArea": 0,
+      "clearStart": 1.475,
+      "clearEnd": 0.7
+    },
+    {
+      "id": "D14",
+      "kind": "door",
+      "orient": "h",
+      "cx": 17.69,
+      "cy": 7,
+      "w": 0.8,
+      "sill": 0,
+      "head": 2.1,
+      "swing": "+",
+      "hinge": "+",
+      "c": 17.69,
+      "axis": 7,
+      "from": 17.29,
+      "to": 18.09,
+      "wallId": "Z11",
+      "problem": null,
+      "exterior": false,
+      "wallKind": "partition",
+      "azimuth": null,
+      "room": null,
+      "connects": [
+        "R14",
+        "R06"
+      ],
+      "swingRoom": "R06",
+      "glazingArea": 0,
+      "clearStart": 0.215,
+      "clearEnd": 0.21
+    }
+  ],
+  "accents": [
+    {
+      "id": "A1",
+      "type": "wood",
+      "orient": "h",
+      "cx": 3.2,
+      "cy": 5.4,
+      "w": 5,
+      "wallId": "Z07",
+      "exterior": true,
+      "problem": null,
+      "azimuth": 180
+    },
+    {
+      "id": "A2",
+      "type": "wood",
+      "orient": "h",
+      "cx": 17.175,
+      "cy": 11.8,
+      "w": 2.55,
+      "wallId": "Z20",
+      "exterior": true,
+      "problem": null,
+      "azimuth": 0
+    },
+    {
+      "id": "A2b",
+      "type": "wood",
+      "orient": "h",
+      "cx": 18.775,
+      "cy": 11.8,
+      "w": 0.65,
+      "wallId": "Z21",
+      "exterior": true,
+      "problem": null,
+      "azimuth": 0
+    },
+    {
+      "id": "A3",
+      "type": "wood",
+      "orient": "h",
+      "cx": 7.825,
+      "cy": 11.8,
+      "w": 2.3,
+      "wallId": "Z17",
+      "exterior": true,
+      "problem": null,
+      "azimuth": 0
+    },
+    {
+      "id": "A4",
+      "type": "wood",
+      "orient": "h",
+      "cx": 13,
+      "cy": 0,
+      "w": 1,
+      "wallId": "Z01",
+      "exterior": true,
+      "problem": null,
+      "azimuth": 180
+    },
+    {
+      "id": "A5",
+      "type": "wood",
+      "orient": "h",
+      "cx": 13.825,
+      "cy": 0,
+      "w": 0.65,
+      "wallId": "Z02",
+      "exterior": true,
+      "problem": null,
+      "azimuth": 180
+    }
+  ],
+  "roofs": [
+    {
+      "id": "T1",
+      "rect": [
+        -0.25,
+        -0.25,
+        23.25,
+        12.05
+      ],
+      "pitch": 22,
+      "overhang": 0.8,
+      "wallTop": 3.05,
+      "w": 23.5,
+      "d": 12.3,
+      "ridgeAlong": "x",
+      "ridgeLength": 11.2,
+      "ridgeHeight": 5.53476,
+      "ridgeRise": 2.48476,
+      "ridge": [
+        [
+          5.9,
+          5.9
+        ],
+        [
+          17.1,
+          5.9
+        ]
+      ],
+      "eaveRect": [
+        -1.05,
+        -1.05,
+        24.05,
+        12.85
+      ],
+      "eaveHeight": 2.72678,
+      "planAreaWithOverhang": 348.89,
+      "slopedArea": 376.28999
+    },
+    {
+      "id": "T2",
+      "rect": [
+        15.7,
+        8.45,
+        19.3,
+        14.45
+      ],
+      "pitch": 22,
+      "overhang": 0.8,
+      "wallTop": 3.05,
+      "w": 3.6,
+      "d": 6,
+      "ridgeAlong": "y",
+      "ridgeLength": 2.4,
+      "ridgeHeight": 3.77725,
+      "ridgeRise": 0.72725,
+      "ridge": [
+        [
+          17.5,
+          10.25
+        ],
+        [
+          17.5,
+          12.65
+        ]
+      ],
+      "eaveRect": [
+        14.9,
+        7.65,
+        20.1,
+        15.25
+      ],
+      "eaveHeight": 2.72678,
+      "planAreaWithOverhang": 39.52,
+      "slopedArea": 42.62369
+    }
+  ]
+}

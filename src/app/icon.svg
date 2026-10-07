@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <style>
+    .bg { fill: #f4f1e8 } .ink { fill: #1b1e21 } .cut { fill: #f4f1e8 } .mint { fill: #5fd6ae } .ridge { stroke: #5fd6ae }
+    @media (prefers-color-scheme: dark) { .bg { fill: #14171a } .ink { fill: #eeeadf } .cut { fill: #14171a } }
+  </style>
+  <rect class="bg" width="512" height="512" rx="112"/>
+  <rect class="ink" x="64" y="354" width="384" height="14" rx="7"/>
+  <rect class="mint" x="116" y="262" width="280" height="92"/>
+  <rect class="cut" x="148" y="288" width="116" height="46" rx="4"/>
+  <rect class="ink" x="296" y="292" width="44" height="62"/>
+  <rect class="cut" x="358" y="296" width="24" height="38" rx="3"/>
+  <path class="ink" d="M44 266 L146 164 H366 L468 266 Z"/>
+  <path class="ridge" d="M164 182 H348" fill="none" stroke-width="10" stroke-linecap="round"/>
+</svg>
