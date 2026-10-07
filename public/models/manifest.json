@@ -1,0 +1,88 @@
+{
+  "schema": "models/1",
+  "frame": "house (x east, y north, z up, metres)",
+  "inputHash": "e4a10adf28a7e942a6895845bc1aa849e065372f8582ccbc95e7f0a51b845841",
+  "hash": "695a54a704dbde601c706c1d0cb406b1dcb10020678887d3b85c61b2bc6078b2",
+  "files": {
+    "furniture-footprints.json": {
+      "sha256": "839ddb6dc85eb7aad14759b210dd1b3913708aeff8dfc963e823a5445a3a97d1",
+      "bytes": 12032
+    },
+    "furniture-lite.glb": {
+      "sha256": "7a333ca45da0e747c7e97b9b7b570d43c9f67e645edcfb52eb8ef323a9b861ef",
+      "bytes": 474840,
+      "triangles": 62348,
+      "nodes": 194,
+      "bbox": {
+        "min": [
+          -0.1698,
+          0,
+          -0.0071
+        ],
+        "max": [
+          23.164,
+          11.6846,
+          2.75
+        ]
+      }
+    },
+    "furniture.glb": {
+      "sha256": "0253e1ddef60d59ca72579e40d56422efeaa01a7ddeca358f219cd638750d1f4",
+      "bytes": 741192,
+      "triangles": 155112,
+      "nodes": 194,
+      "bbox": {
+        "min": [
+          -0.1703,
+          0,
+          -0.0071
+        ],
+        "max": [
+          23.164,
+          11.6817,
+          2.75
+        ]
+      }
+    },
+    "house-lite.glb": {
+      "sha256": "df915edc475b1d85987cff4e161568bd6a3cab5c9c301e229d6071eb7690de21",
+      "bytes": 306676,
+      "triangles": 5261,
+      "nodes": 54,
+      "bbox": {
+        "min": [
+          -1.19,
+          -4,
+          -0.45
+        ],
+        "max": [
+          24.19,
+          20.5,
+          5.7712
+        ]
+      }
+    },
+    "house.glb": {
+      "sha256": "1304eb2faa80191bdfc25c374a314731f3fe4bc9ce06172891c72ab0b17a9a07",
+      "bytes": 2153844,
+      "triangles": 7033,
+      "nodes": 54,
+      "bbox": {
+        "min": [
+          -1.19,
+          -4,
+          -0.45
+        ],
+        "max": [
+          24.19,
+          20.5,
+          5.7712
+        ]
+      }
+    },
+    "house.usdz": {
+      "sha256": "daf3c6e3a1f04a758d6e52cabd9c7d5cd485442cbe5ba98ddbc98126d9c2083e",
+      "bytes": 858992
+    }
+  }
+}

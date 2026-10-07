@@ -1,0 +1,1178 @@
+{
+  "schema": "decor-rules/1",
+  "_": "Decor by room type. Rule kinds: surface (items on an anchor of a piece: top, free, free_l, free_r, seat, under), cushions (leaning cushions on a seat), floor (free floor: where corner|wall|beside|area, near opening:<kinds>, far door), wall (frame above a piece, or any item on a free wall spot), rug (under a piece cluster, or piece-local pads), curtains (at openings), pendant (lamps over tables). 'on'/'above'/'under'/'over'/'beside' take piece types with optional :variant and * wildcards. No coordinates and no room ids: positions follow from furniture, room outline, openings and free floor. Seeds: piece id (piece rules) or room id + rule (room rules).",
+  "rooms": {
+    "living": [
+      {
+        "do": "rug",
+        "under": [
+          "sofaL",
+          "sofa3",
+          "armchair",
+          "table6:coffee"
+        ],
+        "pad": 0.4,
+        "style": "border",
+        "key": "living-rug"
+      },
+      {
+        "do": "cushions",
+        "on": [
+          "sofaL",
+          "sofa3"
+        ],
+        "count": [
+          2,
+          3
+        ],
+        "throw": 0.8
+      },
+      {
+        "do": "surface",
+        "on": "armchair",
+        "anchor": "seat",
+        "items": [
+          {
+            "item": "sheepskin",
+            "chance": 0.6
+          }
+        ],
+        "mode": "center"
+      },
+      {
+        "do": "surface",
+        "on": "table6:coffee",
+        "anchor": "top",
+        "items": [
+          {
+            "item": "books",
+            "chance": 0.9
+          },
+          {
+            "item": "vase",
+            "chance": 0.7,
+            "params": {
+              "h": [
+                0.18,
+                0.28
+              ]
+            }
+          },
+          {
+            "item": "candles",
+            "chance": 0.4
+          }
+        ],
+        "max": 2,
+        "mode": "line"
+      },
+      {
+        "do": "surface",
+        "on": [
+          "table6:dining",
+          "table8:dining"
+        ],
+        "anchor": "top",
+        "items": [
+          {
+            "item": "eucalyptus",
+            "chance": 0.8
+          },
+          {
+            "item": "bowl",
+            "chance": 0.6
+          },
+          {
+            "item": "candles",
+            "chance": 0.5
+          }
+        ],
+        "max": 2,
+        "mode": "line"
+      },
+      {
+        "do": "surface",
+        "on": "island",
+        "anchor": "free",
+        "items": [
+          {
+            "item": "fruit_bowl",
+            "chance": 0.9
+          },
+          {
+            "item": "tray",
+            "chance": 0.5
+          },
+          {
+            "item": "vase",
+            "chance": 0.5,
+            "params": {
+              "h": [
+                0.2,
+                0.3
+              ]
+            }
+          }
+        ],
+        "max": 2,
+        "mode": "line"
+      },
+      {
+        "do": "surface",
+        "on": "kitchenLine",
+        "anchor": "free",
+        "items": [
+          {
+            "item": "cutting_board",
+            "chance": 0.8
+          },
+          {
+            "item": "jug",
+            "chance": 0.6
+          },
+          {
+            "item": "pothos",
+            "chance": 0.4
+          }
+        ],
+        "max": 2,
+        "mode": "line"
+      },
+      {
+        "do": "surface",
+        "on": "tv",
+        "anchor": "free_l",
+        "items": [
+          {
+            "item": "vase",
+            "chance": 0.7
+          },
+          {
+            "item": "books",
+            "chance": 0.5
+          }
+        ],
+        "max": 1
+      },
+      {
+        "do": "surface",
+        "on": "tv",
+        "anchor": "free_r",
+        "items": [
+          {
+            "item": "pothos",
+            "chance": 0.7
+          },
+          {
+            "item": "succulent",
+            "chance": 0.5
+          }
+        ],
+        "max": 1
+      },
+      {
+        "do": "surface",
+        "on": [
+          "shelf:bookcase",
+          "shelf:low"
+        ],
+        "anchor": "top",
+        "items": [
+          {
+            "item": "vase",
+            "chance": 0.6
+          },
+          {
+            "item": "succulent",
+            "chance": 0.5
+          }
+        ],
+        "max": 2
+      },
+      {
+        "do": "wall",
+        "item": "frame",
+        "above": [
+          "sofaL",
+          "sofa3"
+        ],
+        "count": [
+          1,
+          2
+        ],
+        "z": 1.25,
+        "params": {
+          "w": [
+            0.5,
+            0.8
+          ],
+          "h": [
+            0.6,
+            1.0
+          ]
+        }
+      },
+      {
+        "do": "pendant",
+        "over": [
+          "table8:dining",
+          "table6:dining"
+        ],
+        "kind": "dome",
+        "drop": 0.85,
+        "r": 0.28,
+        "spacing": 1.0,
+        "max": 3
+      },
+      {
+        "do": "pendant",
+        "over": "island",
+        "kind": "globe",
+        "drop": 0.95,
+        "r": 0.2,
+        "spacing": 0.9,
+        "max": 3
+      },
+      {
+        "do": "curtains",
+        "openings": [
+          "slider",
+          "window"
+        ],
+        "minWidth": 1.4
+      },
+      {
+        "do": "floor",
+        "item": "olive",
+        "where": "corner",
+        "near": "opening:slider,window",
+        "key": "olive"
+      },
+      {
+        "do": "floor",
+        "item": "fig",
+        "where": "corner",
+        "near": "opening:slider,window",
+        "chance": 0.8,
+        "key": "fig"
+      },
+      {
+        "do": "floor",
+        "item": "floor_lamp",
+        "where": "beside",
+        "beside": [
+          "sofaL",
+          "sofa3"
+        ],
+        "key": "lamp"
+      },
+      {
+        "do": "floor",
+        "item": "monstera",
+        "where": "wall",
+        "far": "door",
+        "chance": 0.8,
+        "key": "monstera"
+      },
+      {
+        "do": "floor",
+        "item": "pampas",
+        "where": "wall",
+        "chance": 0.5,
+        "key": "pampas"
+      }
+    ],
+    "kitchen": [
+      {
+        "do": "surface",
+        "on": "island",
+        "anchor": "free",
+        "items": [
+          {
+            "item": "fruit_bowl",
+            "chance": 0.9
+          },
+          {
+            "item": "tray",
+            "chance": 0.5
+          },
+          {
+            "item": "vase",
+            "chance": 0.5
+          }
+        ],
+        "max": 2
+      },
+      {
+        "do": "surface",
+        "on": "kitchenLine",
+        "anchor": "free",
+        "items": [
+          {
+            "item": "cutting_board",
+            "chance": 0.8
+          },
+          {
+            "item": "jug",
+            "chance": 0.6
+          }
+        ],
+        "max": 2
+      },
+      {
+        "do": "pendant",
+        "over": "island",
+        "kind": "globe",
+        "drop": 0.95,
+        "r": 0.2,
+        "spacing": 0.9,
+        "max": 3
+      },
+      {
+        "do": "floor",
+        "item": "fig",
+        "where": "corner",
+        "near": "opening:window,slider",
+        "key": "fig"
+      }
+    ],
+    "dining": [
+      {
+        "do": "rug",
+        "under": [
+          "table6:dining",
+          "table8:dining"
+        ],
+        "pad": 0.5,
+        "style": "stripes"
+      },
+      {
+        "do": "surface",
+        "on": [
+          "table6:dining",
+          "table8:dining"
+        ],
+        "anchor": "top",
+        "items": [
+          {
+            "item": "eucalyptus",
+            "chance": 0.8
+          },
+          {
+            "item": "bowl",
+            "chance": 0.6
+          }
+        ],
+        "max": 2
+      },
+      {
+        "do": "pendant",
+        "over": [
+          "table8:dining",
+          "table6:dining"
+        ],
+        "kind": "dome",
+        "drop": 0.85,
+        "r": 0.28,
+        "max": 3
+      },
+      {
+        "do": "curtains",
+        "openings": [
+          "slider",
+          "window"
+        ],
+        "minWidth": 1.2
+      },
+      {
+        "do": "floor",
+        "item": "olive",
+        "where": "corner",
+        "near": "opening:slider,window",
+        "key": "olive"
+      }
+    ],
+    "bedroom": [
+      {
+        "do": "rug",
+        "under": "bed*",
+        "mode": "piece",
+        "pad": {
+          "l": 0.6,
+          "r": 0.6,
+          "f": 0.9,
+          "b": 0.0
+        },
+        "style": "border"
+      },
+      {
+        "do": "surface",
+        "on": "shelf:bedside",
+        "anchor": "top",
+        "items": [
+          {
+            "item": "table_lamp",
+            "chance": 0.95
+          },
+          {
+            "item": "books",
+            "chance": 0.6
+          }
+        ],
+        "max": 2,
+        "mode": "line"
+      },
+      {
+        "do": "surface",
+        "on": "armchair",
+        "anchor": "seat",
+        "items": [
+          {
+            "item": "sheepskin",
+            "chance": 0.7
+          }
+        ],
+        "mode": "center"
+      },
+      {
+        "do": "wall",
+        "item": "frame",
+        "above": "bed*",
+        "count": [
+          1,
+          2
+        ],
+        "z": 1.3,
+        "params": {
+          "w": [
+            0.5,
+            0.8
+          ],
+          "h": [
+            0.6,
+            0.9
+          ]
+        }
+      },
+      {
+        "do": "curtains",
+        "openings": [
+          "window",
+          "slider"
+        ],
+        "minWidth": 0.9
+      },
+      {
+        "do": "floor",
+        "item": "monstera",
+        "where": "corner",
+        "near": "opening:window,slider",
+        "chance": 0.8,
+        "key": "monstera"
+      },
+      {
+        "do": "floor",
+        "item": "floor_lamp",
+        "where": "beside",
+        "beside": "armchair",
+        "chance": 0.7,
+        "key": "lamp"
+      },
+      {
+        "do": "floor",
+        "item": "baskets",
+        "where": "wall",
+        "chance": 0.6,
+        "key": "basket"
+      }
+    ],
+    "guest": [
+      {
+        "do": "rug",
+        "under": "bed*",
+        "mode": "piece",
+        "pad": {
+          "l": 0.5,
+          "r": 0.5,
+          "f": 0.8,
+          "b": 0.0
+        },
+        "style": "stripes"
+      },
+      {
+        "do": "surface",
+        "on": "shelf:bedside",
+        "anchor": "top",
+        "items": [
+          {
+            "item": "table_lamp",
+            "chance": 0.95
+          },
+          {
+            "item": "books",
+            "chance": 0.6
+          }
+        ],
+        "max": 2
+      },
+      {
+        "do": "wall",
+        "item": "frame",
+        "above": "bed*",
+        "count": 1,
+        "z": 1.3
+      },
+      {
+        "do": "curtains",
+        "openings": [
+          "window",
+          "slider"
+        ],
+        "minWidth": 0.9
+      },
+      {
+        "do": "floor",
+        "item": "snake_plant",
+        "where": "corner",
+        "near": "opening:window",
+        "key": "snake"
+      }
+    ],
+    "kids": [
+      {
+        "do": "rug",
+        "under": "bed*",
+        "mode": "piece",
+        "pad": {
+          "l": 0.2,
+          "r": 0.8,
+          "f": 0.7,
+          "b": 0.0
+        },
+        "style": "stripes"
+      },
+      {
+        "do": "surface",
+        "on": "bed*",
+        "anchor": "bed",
+        "items": [
+          {
+            "item": "teddy",
+            "chance": 0.9
+          }
+        ],
+        "mode": "ends"
+      },
+      {
+        "do": "surface",
+        "on": "desk",
+        "anchor": "top",
+        "items": [
+          {
+            "item": "desk_lamp",
+            "chance": 0.9
+          },
+          {
+            "item": "books",
+            "chance": 0.8
+          },
+          {
+            "item": "blocks",
+            "chance": 0.5
+          }
+        ],
+        "max": 3,
+        "mode": "line"
+      },
+      {
+        "do": "wall",
+        "item": "wall_shelf",
+        "above": "desk",
+        "z": 1.3,
+        "params": {
+          "w": [
+            0.8,
+            1.1
+          ]
+        }
+      },
+      {
+        "do": "wall",
+        "item": "frame",
+        "above": "bed*",
+        "count": 1,
+        "z": 1.25,
+        "params": {
+          "w": [
+            0.4,
+            0.6
+          ],
+          "h": [
+            0.5,
+            0.7
+          ]
+        }
+      },
+      {
+        "do": "curtains",
+        "openings": [
+          "window",
+          "slider"
+        ],
+        "minWidth": 0.9
+      },
+      {
+        "do": "floor",
+        "item": "baskets",
+        "where": "wall",
+        "key": "toybasket"
+      },
+      {
+        "do": "floor",
+        "item": "blocks",
+        "where": "wall",
+        "chance": 0.7,
+        "key": "blocks"
+      },
+      {
+        "do": "floor",
+        "item": "toy_car",
+        "where": "wall",
+        "chance": 0.6,
+        "key": "car"
+      }
+    ],
+    "office": [
+      {
+        "do": "rug",
+        "under": [
+          "sofa3",
+          "armchair"
+        ],
+        "pad": 0.35,
+        "style": "plain",
+        "key": "office-rug"
+      },
+      {
+        "do": "cushions",
+        "on": "sofa3",
+        "count": [
+          2,
+          2
+        ],
+        "throw": 0.5
+      },
+      {
+        "do": "surface",
+        "on": "desk",
+        "anchor": "top",
+        "items": [
+          {
+            "item": "laptop",
+            "chance": 0.95,
+            "spin": false
+          },
+          {
+            "item": "desk_lamp",
+            "chance": 0.85
+          },
+          {
+            "item": "books",
+            "chance": 0.7
+          },
+          {
+            "item": "succulent",
+            "chance": 0.4
+          }
+        ],
+        "max": 3,
+        "mode": "line"
+      },
+      {
+        "do": "wall",
+        "item": "frame",
+        "above": [
+          "sofa3",
+          "desk"
+        ],
+        "count": 1,
+        "z": 1.3
+      },
+      {
+        "do": "curtains",
+        "openings": [
+          "window",
+          "slider"
+        ],
+        "minWidth": 1.0
+      },
+      {
+        "do": "floor",
+        "item": "fig",
+        "where": "corner",
+        "near": "opening:window",
+        "key": "fig"
+      },
+      {
+        "do": "floor",
+        "item": "floor_lamp",
+        "where": "beside",
+        "beside": "sofa3",
+        "chance": 0.8,
+        "key": "lamp"
+      }
+    ],
+    "bath": [
+      {
+        "do": "rug",
+        "under": [
+          "sink2",
+          "sink"
+        ],
+        "mode": "piece",
+        "pad": {
+          "l": 0.1,
+          "r": 0.1,
+          "f": 0.65,
+          "b": 0.0
+        },
+        "style": "plain",
+        "mat": "f_white",
+        "key": "bathmat"
+      },
+      {
+        "do": "surface",
+        "on": "sink2",
+        "anchor": "free",
+        "items": [
+          {
+            "item": "soap_set",
+            "chance": 0.9
+          },
+          {
+            "item": "cosmetics",
+            "chance": 0.5
+          }
+        ],
+        "max": 1,
+        "mode": "line",
+        "margin": 0.0
+      },
+      {
+        "do": "wall",
+        "item": "towel_hung",
+        "key": "towel",
+        "z": 1.3,
+        "params": {
+          "h": [
+            0.8,
+            1.0
+          ]
+        },
+        "clear": 0.05
+      },
+      {
+        "do": "floor",
+        "item": "laundry_basket",
+        "where": "wall",
+        "chance": 0.7,
+        "key": "basket"
+      },
+      {
+        "do": "floor",
+        "item": "snake_plant",
+        "where": "corner",
+        "chance": 0.6,
+        "key": "snake"
+      }
+    ],
+    "wc": [
+      {
+        "do": "surface",
+        "on": "wc",
+        "anchor": "top",
+        "items": [
+          {
+            "item": "succulent",
+            "chance": 0.8
+          },
+          {
+            "item": "vase",
+            "chance": 0.7,
+            "params": {
+              "h": [
+                0.16,
+                0.24
+              ]
+            }
+          },
+          {
+            "item": "candles",
+            "chance": 0.5
+          }
+        ],
+        "max": 2,
+        "mode": "line"
+      },
+      {
+        "do": "wall",
+        "item": "frame",
+        "above": "wc",
+        "z": 1.35,
+        "chance": 0.8,
+        "params": {
+          "w": [
+            0.3,
+            0.45
+          ],
+          "h": [
+            0.4,
+            0.55
+          ]
+        }
+      }
+    ],
+    "wardrobe": [
+      {
+        "do": "rug",
+        "under": [
+          "wardrobe:walkin"
+        ],
+        "mode": "piece",
+        "pad": {
+          "l": 0.0,
+          "r": 0.0,
+          "f": 0.7,
+          "b": 0.0
+        },
+        "style": "plain",
+        "key": "runner"
+      },
+      {
+        "do": "floor",
+        "item": "baskets",
+        "where": "wall",
+        "chance": 0.6,
+        "key": "basket"
+      }
+    ],
+    "utility": [
+      {
+        "do": "surface",
+        "on": "washer",
+        "anchor": "top",
+        "items": [
+          {
+            "item": "towel_stack",
+            "chance": 0.7
+          },
+          {
+            "item": "baskets",
+            "chance": 0.0
+          }
+        ],
+        "max": 1
+      },
+      {
+        "do": "floor",
+        "item": "laundry_basket",
+        "where": "wall",
+        "key": "basket"
+      },
+      {
+        "do": "floor",
+        "item": "snake_plant",
+        "where": "corner",
+        "chance": 0.5,
+        "key": "snake"
+      }
+    ],
+    "pantry": [
+      {
+        "do": "floor",
+        "item": "baskets",
+        "where": "wall",
+        "chance": 0.7,
+        "key": "basket"
+      }
+    ],
+    "garage": [
+      {
+        "do": "floor",
+        "item": "wheelbarrow",
+        "where": "wall",
+        "facing": "wall",
+        "key": "wheelbarrow"
+      },
+      {
+        "do": "floor",
+        "item": "stepladder",
+        "where": "wall",
+        "key": "ladder"
+      },
+      {
+        "do": "floor",
+        "item": "crates",
+        "where": "wall",
+        "count": [
+          1,
+          2
+        ],
+        "key": "crates"
+      },
+      {
+        "do": "floor",
+        "item": "bucket",
+        "where": "wall",
+        "key": "bucket"
+      },
+      {
+        "do": "wall",
+        "item": "tool_rack",
+        "key": "tools",
+        "params": {
+          "w": [
+            0.9,
+            1.1
+          ]
+        }
+      }
+    ],
+    "hall": [
+      {
+        "do": "rug",
+        "pad": {
+          "l": 0.3,
+          "r": 0.3,
+          "f": 0.7,
+          "b": 0.0
+        },
+        "style": "stripes",
+        "key": "hall-rug",
+        "mode": "piece",
+        "under": "bench"
+      },
+      {
+        "do": "surface",
+        "on": "bench:hall",
+        "anchor": "top",
+        "items": [
+          {
+            "item": "sheepskin",
+            "chance": 0.7
+          }
+        ],
+        "mode": "center"
+      },
+      {
+        "do": "surface",
+        "on": "bench:hall",
+        "anchor": "under",
+        "items": [
+          {
+            "item": "shoes",
+            "chance": 1.0
+          },
+          {
+            "item": "shoes",
+            "chance": 0.7
+          }
+        ],
+        "max": 2,
+        "mode": "line"
+      },
+      {
+        "do": "wall",
+        "item": "frame",
+        "above": "bench",
+        "count": 1,
+        "z": 1.1,
+        "params": {
+          "w": [
+            0.5,
+            0.8
+          ],
+          "h": [
+            0.6,
+            0.9
+          ]
+        }
+      },
+      {
+        "do": "floor",
+        "item": "fig",
+        "where": "corner",
+        "far": "door",
+        "chance": 0.8,
+        "key": "fig"
+      },
+      {
+        "do": "floor",
+        "item": "olive",
+        "where": "corner",
+        "far": "door",
+        "chance": 0.5,
+        "key": "olive"
+      }
+    ],
+    "corridor": [
+      {
+        "do": "wall",
+        "item": "frame",
+        "key": "art1",
+        "z": 1.3,
+        "params": {
+          "w": [
+            0.4,
+            0.6
+          ],
+          "h": [
+            0.5,
+            0.8
+          ]
+        }
+      },
+      {
+        "do": "wall",
+        "item": "frame",
+        "key": "art2",
+        "z": 1.3,
+        "chance": 0.7,
+        "params": {
+          "w": [
+            0.4,
+            0.6
+          ],
+          "h": [
+            0.5,
+            0.8
+          ]
+        }
+      }
+    ],
+    "terrace": [
+      {
+        "do": "rug",
+        "under": [
+          "table6:outdoor_dining",
+          "table8:outdoor_dining"
+        ],
+        "mode": "piece",
+        "pad": {
+          "l": 0.55,
+          "r": 0.55,
+          "f": 0.7,
+          "b": 0.7
+        },
+        "style": "stripes",
+        "mat": "t_fabric",
+        "key": "t-rug"
+      },
+      {
+        "do": "surface",
+        "on": [
+          "table6:outdoor_dining",
+          "table8:outdoor_dining"
+        ],
+        "anchor": "top",
+        "items": [
+          {
+            "item": "lantern",
+            "chance": 1.0
+          },
+          {
+            "item": "jug",
+            "chance": 0.7
+          },
+          {
+            "item": "bowl",
+            "chance": 0.4
+          }
+        ],
+        "max": 2,
+        "mode": "line"
+      },
+      {
+        "do": "surface",
+        "on": "table6:outdoor_low",
+        "anchor": "top",
+        "items": [
+          {
+            "item": "lantern",
+            "chance": 0.8,
+            "params": {
+              "h": 0.26
+            }
+          },
+          {
+            "item": "candles",
+            "chance": 0.5
+          }
+        ],
+        "max": 1
+      },
+      {
+        "do": "surface",
+        "on": "grill",
+        "anchor": "top",
+        "items": [
+          {
+            "item": "cutting_board",
+            "chance": 1.0
+          }
+        ],
+        "max": 1
+      },
+      {
+        "do": "floor",
+        "item": "planter_box",
+        "where": "area",
+        "count": [
+          2,
+          3
+        ],
+        "params": {
+          "w": [
+            0.7,
+            1.0
+          ]
+        },
+        "key": "planter"
+      },
+      {
+        "do": "floor",
+        "item": "olive",
+        "where": "area",
+        "chance": 0.8,
+        "key": "t-olive"
+      },
+      {
+        "do": "floor",
+        "item": "buxus",
+        "where": "area",
+        "count": [
+          1,
+          2
+        ],
+        "key": "t-buxus"
+      },
+      {
+        "do": "floor",
+        "item": "pampas",
+        "where": "area",
+        "chance": 0.6,
+        "key": "t-pampas"
+      },
+      {
+        "do": "floor",
+        "item": "lantern",
+        "where": "area",
+        "count": [
+          1,
+          2
+        ],
+        "key": "t-lantern"
+      }
+    ]
+  }
+}

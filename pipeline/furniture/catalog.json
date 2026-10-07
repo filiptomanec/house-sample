@@ -1,0 +1,493 @@
+{
+  "schema": "furniture-catalog/1",
+  "_": "Default sizes (m, at rot 0: w along x, d along y, back side towards +y) and the builder variants per context. A variant is chosen by the first matching rule: roomType (room type list), outdoor (bool), maxSide / minSide (shorter side of the piece), nearType + within (another piece type within that distance of the centre). wallBacked: the back side is meant to stand against a wall; when only the front touches a wall the piece is turned by 180 degrees (reported as rot-corrected).",
+  "types": {
+    "bed160": {
+      "w": 1.6,
+      "d": 2.0,
+      "category": "sleep",
+      "builder": "bed",
+      "label": {
+        "cs": "Postel 160",
+        "en": "Bed 160"
+      },
+      "wallBacked": true
+    },
+    "bed180": {
+      "w": 1.8,
+      "d": 2.0,
+      "category": "sleep",
+      "builder": "bed",
+      "label": {
+        "cs": "Postel 180",
+        "en": "Bed 180"
+      },
+      "wallBacked": true
+    },
+    "bed90": {
+      "w": 0.9,
+      "d": 2.0,
+      "category": "sleep",
+      "builder": "bed",
+      "label": {
+        "cs": "Postel 90",
+        "en": "Bed 90"
+      },
+      "wallBacked": true
+    },
+    "sofaL": {
+      "w": 2.9,
+      "d": 1.9,
+      "category": "seat",
+      "builder": "sofa_l",
+      "label": {
+        "cs": "Sedačka L",
+        "en": "Corner sofa"
+      },
+      "wallBacked": true
+    },
+    "sofa3": {
+      "w": 2.2,
+      "d": 0.95,
+      "category": "seat",
+      "builder": "sofa",
+      "label": {
+        "cs": "Pohovka",
+        "en": "Sofa"
+      },
+      "wallBacked": true
+    },
+    "armchair": {
+      "w": 0.85,
+      "d": 0.85,
+      "category": "seat",
+      "builder": "armchair",
+      "label": {
+        "cs": "Křeslo",
+        "en": "Armchair"
+      }
+    },
+    "tv": {
+      "w": 1.6,
+      "d": 0.4,
+      "category": "media",
+      "builder": "tv",
+      "label": {
+        "cs": "TV",
+        "en": "TV unit"
+      },
+      "wallBacked": true
+    },
+    "table6": {
+      "w": 1.8,
+      "d": 0.9,
+      "category": "table",
+      "builder": "table",
+      "label": {
+        "cs": "Stůl (6)",
+        "en": "Table (6)"
+      },
+      "variants": [
+        {
+          "when": {
+            "outdoor": true,
+            "maxSide": 0.75
+          },
+          "variant": "outdoor_low"
+        },
+        {
+          "when": {
+            "outdoor": true
+          },
+          "variant": "outdoor_dining"
+        },
+        {
+          "when": {
+            "maxSide": 0.75
+          },
+          "variant": "coffee"
+        },
+        {
+          "default": true,
+          "variant": "dining"
+        }
+      ]
+    },
+    "table8": {
+      "w": 2.4,
+      "d": 1.0,
+      "category": "table",
+      "builder": "table",
+      "label": {
+        "cs": "Stůl (8)",
+        "en": "Table (8)"
+      },
+      "variants": [
+        {
+          "when": {
+            "outdoor": true
+          },
+          "variant": "outdoor_dining"
+        },
+        {
+          "default": true,
+          "variant": "dining"
+        }
+      ]
+    },
+    "chair": {
+      "w": 0.45,
+      "d": 0.45,
+      "category": "seat",
+      "builder": "chair",
+      "label": {
+        "cs": "Židle",
+        "en": "Chair"
+      },
+      "variants": [
+        {
+          "when": {
+            "outdoor": true
+          },
+          "variant": "outdoor"
+        },
+        {
+          "when": {
+            "nearType": [
+              "island"
+            ],
+            "within": 0.95
+          },
+          "variant": "stool"
+        },
+        {
+          "when": {
+            "nearType": [
+              "desk"
+            ],
+            "within": 0.8
+          },
+          "variant": "task"
+        },
+        {
+          "default": true,
+          "variant": "dining"
+        }
+      ]
+    },
+    "island": {
+      "w": 2.8,
+      "d": 1.0,
+      "category": "kitchen",
+      "builder": "island",
+      "label": {
+        "cs": "Ostrůvek",
+        "en": "Kitchen island"
+      }
+    },
+    "kitchenLine": {
+      "w": 3.0,
+      "d": 0.62,
+      "category": "kitchen",
+      "builder": "kitchen_line",
+      "label": {
+        "cs": "Kuchyňská linka",
+        "en": "Kitchen run"
+      },
+      "wallBacked": true
+    },
+    "fridge": {
+      "w": 0.7,
+      "d": 0.7,
+      "category": "kitchen",
+      "builder": "fridge",
+      "label": {
+        "cs": "Lednice",
+        "en": "Fridge"
+      },
+      "wallBacked": true
+    },
+    "wardrobe": {
+      "w": 1.0,
+      "d": 0.6,
+      "category": "storage",
+      "builder": "wardrobe",
+      "label": {
+        "cs": "Skříň",
+        "en": "Wardrobe"
+      },
+      "variants": [
+        {
+          "when": {
+            "roomType": [
+              "wardrobe"
+            ]
+          },
+          "variant": "walkin"
+        },
+        {
+          "when": {
+            "roomType": [
+              "utility",
+              "pantry",
+              "storage",
+              "technical"
+            ]
+          },
+          "variant": "utility"
+        },
+        {
+          "when": {
+            "roomType": [
+              "hall"
+            ]
+          },
+          "variant": "hall"
+        },
+        {
+          "default": true,
+          "variant": "closed"
+        }
+      ],
+      "wallBacked": true
+    },
+    "desk": {
+      "w": 1.4,
+      "d": 0.7,
+      "category": "table",
+      "builder": "desk",
+      "label": {
+        "cs": "Stůl pracovní",
+        "en": "Desk"
+      },
+      "variants": [
+        {
+          "when": {
+            "roomType": [
+              "kids"
+            ]
+          },
+          "variant": "kids"
+        },
+        {
+          "default": true,
+          "variant": "office"
+        }
+      ],
+      "wallBacked": true
+    },
+    "shelf": {
+      "w": 1.0,
+      "d": 0.35,
+      "category": "storage",
+      "builder": "shelf",
+      "label": {
+        "cs": "Regál",
+        "en": "Shelf"
+      },
+      "variants": [
+        {
+          "when": {
+            "roomType": [
+              "garage"
+            ]
+          },
+          "variant": "rack"
+        },
+        {
+          "when": {
+            "roomType": [
+              "pantry",
+              "utility",
+              "storage",
+              "technical"
+            ]
+          },
+          "variant": "storage"
+        },
+        {
+          "when": {
+            "roomType": [
+              "wardrobe"
+            ]
+          },
+          "variant": "open"
+        },
+        {
+          "when": {
+            "roomType": [
+              "bedroom",
+              "guest",
+              "kids"
+            ],
+            "maxSide": 0.5
+          },
+          "variant": "bedside"
+        },
+        {
+          "when": {
+            "roomType": [
+              "bath",
+              "wc"
+            ]
+          },
+          "variant": "bath"
+        },
+        {
+          "when": {
+            "roomType": [
+              "hall",
+              "corridor"
+            ]
+          },
+          "variant": "low"
+        },
+        {
+          "default": true,
+          "variant": "bookcase"
+        }
+      ],
+      "wallBacked": true
+    },
+    "wc": {
+      "w": 0.4,
+      "d": 0.7,
+      "category": "wet",
+      "builder": "wc",
+      "label": {
+        "cs": "WC",
+        "en": "Toilet"
+      },
+      "wallBacked": true
+    },
+    "sink": {
+      "w": 0.6,
+      "d": 0.5,
+      "category": "wet",
+      "builder": "sink",
+      "label": {
+        "cs": "Umyvadlo",
+        "en": "Basin"
+      },
+      "wallBacked": true
+    },
+    "sink2": {
+      "w": 1.2,
+      "d": 0.5,
+      "category": "wet",
+      "builder": "sink",
+      "label": {
+        "cs": "Dvojumyvadlo",
+        "en": "Double basin"
+      },
+      "wallBacked": true
+    },
+    "shower": {
+      "w": 0.9,
+      "d": 0.9,
+      "category": "wet",
+      "builder": "shower",
+      "label": {
+        "cs": "Sprcha",
+        "en": "Shower"
+      }
+    },
+    "bath": {
+      "w": 1.7,
+      "d": 0.75,
+      "category": "wet",
+      "builder": "bath",
+      "label": {
+        "cs": "Vana",
+        "en": "Bathtub"
+      },
+      "wallBacked": true
+    },
+    "washer": {
+      "w": 0.6,
+      "d": 0.6,
+      "category": "appliance",
+      "builder": "washer",
+      "label": {
+        "cs": "Pračka",
+        "en": "Washing machine"
+      },
+      "wallBacked": true
+    },
+    "car": {
+      "w": 4.7,
+      "d": 1.9,
+      "category": "vehicle",
+      "builder": "car",
+      "label": {
+        "cs": "Auto",
+        "en": "Car"
+      },
+      "variants": [
+        {
+          "when": {
+            "carIndex": "even"
+          },
+          "variant": "estate"
+        },
+        {
+          "default": true,
+          "variant": "hatch"
+        }
+      ]
+    },
+    "lounger": {
+      "w": 0.7,
+      "d": 2.0,
+      "category": "outdoor",
+      "builder": "lounger",
+      "label": {
+        "cs": "Lehátko",
+        "en": "Sun lounger"
+      }
+    },
+    "swingbed": {
+      "w": 2.0,
+      "d": 1.4,
+      "category": "outdoor",
+      "builder": "swingbed",
+      "label": {
+        "cs": "Houpací lůžko",
+        "en": "Hanging daybed"
+      }
+    },
+    "grill": {
+      "w": 1.0,
+      "d": 0.6,
+      "category": "outdoor",
+      "builder": "grill",
+      "label": {
+        "cs": "Gril",
+        "en": "Grill"
+      }
+    },
+    "bench": {
+      "w": 1.5,
+      "d": 0.4,
+      "category": "seat",
+      "builder": "bench",
+      "label": {
+        "cs": "Lavice",
+        "en": "Bench"
+      },
+      "variants": [
+        {
+          "when": {
+            "outdoor": true
+          },
+          "variant": "outdoor"
+        },
+        {
+          "default": true,
+          "variant": "hall"
+        }
+      ],
+      "wallBacked": true
+    }
+  }
+}

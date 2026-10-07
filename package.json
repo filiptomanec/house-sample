@@ -23,7 +23,11 @@
     "pvgis:build": "tsx scripts/build-pvgis.ts",
     "privacy": "node scripts/privacy/scan.mjs --all",
     "privacy:staged": "node scripts/privacy/scan.mjs --staged --identity",
-    "verify": "npm run typecheck && npm run lint && npm test && npm run build && npm run check:bundles"
+    "verify": "npm run typecheck && npm run lint && npm test && npm run build && npm run check:bundles",
+    "models": "bash pipeline/build_model.sh",
+    "models:check": "tsx scripts/build-models-manifest.ts --check",
+    "verify:glb": "tsx scripts/verify-glb.ts public/models/house.glb",
+    "verify:furniture": "tsx scripts/verify-furniture.ts"
   },
   "dependencies": {
     "geist": "^1.7.2",
