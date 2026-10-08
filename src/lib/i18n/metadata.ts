@@ -22,8 +22,11 @@ export function buildMetadata(locale: Locale, key: RouteKey): Metadata {
     openGraph: {
       type: "website", siteName: SITE.name, title: full, description, url: routePath(locale, key),
       locale: LOCALE_META[locale].og, alternateLocale: LOCALES.filter((l) => l !== locale).map((l) => LOCALE_META[l].og),
+      // the share images are files in src/app (served at /opengraph-image.jpg and /twitter-image.jpg); the file convention
+      // does not attach to pages below the [locale] root layout, so they are named here (metadataBase makes the URLs absolute)
+      images: [{ url: "/opengraph-image.jpg", width: 1200, height: 630, alt: house }],
     },
-    twitter: { card: "summary_large_image", title: full, description },
+    twitter: { card: "summary_large_image", title: full, description, images: [{ url: "/twitter-image.jpg", width: 1200, height: 600, alt: house }] },
     robots: { index: true, follow: true },
   };
 }

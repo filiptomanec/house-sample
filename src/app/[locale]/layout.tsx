@@ -21,7 +21,7 @@ type Props = { children: ReactNode; params: Promise<{ locale: string }> };
 export const generateStaticParams = () => LOCALES.map((locale) => ({ locale }));
 
 // Site-wide defaults. Pages add title, description, canonical and hreflang through buildMetadata().
-// The share image comes from the file convention (app/opengraph-image.jpg, app/twitter-image.jpg), icons from app/icon.svg and apple-icon.png.
+// The share images are named in buildMetadata() (files app/opengraph-image.jpg and twitter-image.jpg), icons come from app/icon.svg and apple-icon.png.
 export const metadata: Metadata = {
   metadataBase: new URL(SITE.url),
   title: { default: SITE.name, template: `%s · ${SITE.name}` },
