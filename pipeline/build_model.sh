@@ -44,9 +44,31 @@ build() { # build <lod> [extra args]
   grep -E "^\[house\]" "$log" || true
 }
 
+# Blender's USD exporter is not byte-reproducible (the token table of the .usdc is ordered by pointer hash), the GLBs are. So
+# house.usdz is rebuilt only when an input changed (derived data without its model hash, house, style, the builder code, the
+# list of texture files); the key of the last build is kept in pipeline/out (git-ignored). Delete the key to force a rebuild.
+USDZ_KEY_FILE="$ROOT/pipeline/out/house.usdz.key"
+usdz_key() {
+  {
+    sed '/"inputHash"/d' "$DERIVED"
+    cat "$HOUSE"
+    [ -f "$STYLE" ] && cat "$STYLE"
+    cat "$ROOT/pipeline/blender/build_house.py" "$ROOT"/pipeline/blender/hb/*.py
+    if [ -d "$ROOT/assets" ]; then (cd "$ROOT/assets" && find . -type f -exec ls -l {} + | awk '{print $5, $NF}' | sort -k2); fi
+  } | shasum -a 256 | cut -d' ' -f1
+}
+
 if [ "$LITE_ONLY" = 0 ]; then build high; fi
 build lite
-if [ "$LITE_ONLY" = 0 ] && [ "$USDZ" = 1 ]; then build lite --usdz; fi
+if [ "$LITE_ONLY" = 0 ] && [ "$USDZ" = 1 ]; then
+  key="$(usdz_key)"
+  if [ -f "$OUT/house.usdz" ] && [ -f "$USDZ_KEY_FILE" ] && [ "$(cat "$USDZ_KEY_FILE")" = "$key" ]; then
+    echo "== house.usdz: inputs unchanged, file kept"
+  else
+    build lite --usdz
+    echo "$key" > "$USDZ_KEY_FILE"
+  fi
+fi
 
 cd "$ROOT"
 status=0

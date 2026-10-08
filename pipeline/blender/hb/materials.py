@@ -29,7 +29,7 @@ DEFAULTS = {
     "roof_tile": dict(color="#3E4348", rough=0.45, metal=0.7),
     "ridge_cap": dict(color="#33373B", rough=0.4, metal=0.7),
     "ceiling": dict(color="#F7F6F2", rough=0.95),
-    "door_leaf": dict(color="#3A3D41", rough=0.7, metal=0.0),
+    "door_leaf": dict(color="#F6F4EE", rough=0.55, metal=0.0),
     "slab": dict(color="#8C8D8A", rough=0.92, tex=("ph", "concrete_floor_02"), tile=(1.5, 1.5), normal=0.8,
                  contrast=0.7, sat=0.2),
     "floor_oak": dict(color="#DCBE95", rough=0.58, tex=("proc", "oak"), normal=0.6),

@@ -71,7 +71,9 @@ export function MoneyFigures({ result }: { result: EnergyResult }) {
     paybackLabel = t("energy.money.none");
   }
 
-  const costLabel = t(e.costWithPv < 0 ? "energy.money.costNegative" : "energy.money.cost", { without: f.unit(e.costWithoutPv, currency) });
+  const costLabel = layout.kwp <= 0
+    ? t("energy.money.costNoPv")
+    : t(e.costWithPv < 0 ? "energy.money.costNegative" : "energy.money.cost", { without: f.unit(e.costWithoutPv, currency) });
 
   return (
     <section className="stats-4 energy-money" aria-label={t("energy.money.label")} aria-live="polite">
@@ -87,7 +89,6 @@ export function MoneyFigures({ result }: { result: EnergyResult }) {
 export function Warnings({ result }: { result: EnergyResult }) {
   const t = useT();
   const f = useFormat();
-  if (result.warnings.length === 0) return null;
   const text = (key: EnergyResult["warnings"][number]["key"], value?: number): string => {
     switch (key) {
       case "panelsClamped": return t("energy.warning.panelsClamped", { count: f.int(value ?? 0) });
@@ -98,9 +99,14 @@ export function Warnings({ result }: { result: EnergyResult }) {
       case "inputsClamped": return t("energy.warning.inputsClamped");
     }
   };
+  // the live region is always in the page (empty when there is nothing to say), so a note that appears later is announced
   return (
-    <ul className="energy-warnings" aria-live="polite">
-      {result.warnings.map((w) => <li key={w.key}>{text(w.key, w.value)}</li>)}
-    </ul>
+    <div className="energy-notes" aria-live="polite">
+      {result.warnings.length > 0 && (
+        <ul className="energy-warnings">
+          {result.warnings.map((w) => <li key={w.key}>{text(w.key, w.value)}</li>)}
+        </ul>
+      )}
+    </div>
   );
 }

@@ -3,9 +3,10 @@
 // formatter, every value from the model.
 
 import { computeEnergy, defaultEnergyContext, defaultInputs } from "@/lib/calc/energy";
+import { compassPoint } from "@/lib/calc/sun";
 import type { Media, Still } from "@/lib/data/media";
 import { stillDate, stillMinutes, stills, stillUrl } from "@/lib/data/media";
-import type { Formatter } from "@/lib/i18n/format";
+import { NBSP, type Formatter } from "@/lib/i18n/format";
 import type { Locale } from "@/lib/i18n/config";
 import type { T } from "@/lib/i18n/messages";
 import { dayMonth } from "./format";
@@ -20,11 +21,11 @@ const TERRACE_EPS = 0.05;
 
 /** The captions of the day hero, with the times and angles of the sun filled in. */
 export function dayMoments(t: T, f: Formatter, story: Pick<DayStory, "times" | "windows">, roofOverhang: number | null): DayMoment[] {
-  const { sunrise, solarNoon, sunset, noonAltitude } = story.times;
+  const { sunrise, sunriseAzimuth, solarNoon, sunset, noonAltitude } = story.times;
   return story.windows.map((w): DayMoment => {
     switch (w.key) {
       case "morning":
-        return { ...w, title: t("home.day.moments.morning.title"), text: sunrise === null ? t("home.day.moments.morning.textAlways") : t("home.day.moments.morning.text", { sunrise: f.clockHours(sunrise) }) };
+        return { ...w, title: t("home.day.moments.morning.title"), text: sunrise === null || sunriseAzimuth === null ? t("home.day.moments.morning.textAlways") : t("home.day.moments.morning.text", { sunrise: f.clockHours(sunrise), direction: t(`home.compass.${compassPoint(sunriseAzimuth)}`) }) };
       case "noon":
         return { ...w, title: t("home.day.moments.noon.title"), text: t("home.day.moments.noon.text", { noon: f.clockHours(solarNoon), altitude: f.degrees(noonAltitude), overhang: f.length(roofOverhang ?? 0, 1) }) };
       case "evening":
@@ -47,7 +48,7 @@ export function orbitCaptions(t: T, f: Formatter, facts: HomeFacts): OrbitCaptio
     });
   }
   if (facts.roof) {
-    out.push({ key: "roof", title: t("home.orbit.roof.title"), text: t("home.orbit.roof.text", { pitch: f.degrees(facts.roof.pitchDeg), overhang: f.length(facts.roof.overhang, 1), ridge: f.length(facts.roof.ridgeHeight) }) });
+    out.push({ key: "roof", title: t("home.orbit.roof.title"), text: t("home.orbit.roof.text", { pitch: f.degrees(facts.roof.pitchDeg), overhang: f.length(facts.roof.overhang, 1), ridge: f.length(facts.roof.ridgeHeight, 1) }) });
   }
   if (facts.garage?.side) {
     out.push({ key: "garage", title: t("home.orbit.garage.title"), text: t("home.orbit.garage.text", { area: f.area(facts.garage.area), side: t(`home.side.${facts.garage.side}`) }) });
@@ -73,7 +74,7 @@ export function energyKpis(t: T, f: Formatter): { kpis: EnergyKpi[]; lede: strin
   return {
     lede: t("home.energy.lede", { panels: r.layout.count, kwp: f.unit(r.layout.kwp, "kWp", 1) }),
     kpis: [
-      { key: "designLoad", value: r.designLoad.totalW / 1000, digits: 1, unit: t("home.energy.designLoad.unit"), label: t("home.energy.designLoad.label", { outdoor: `${f.num(r.designLoad.outdoorC)} °C` }) },
+      { key: "designLoad", value: r.designLoad.totalW / 1000, digits: 1, unit: t("home.energy.designLoad.unit"), label: t("home.energy.designLoad.label", { outdoor: `${f.num(r.designLoad.outdoorC)}${NBSP}°C` }) },
       { key: "heat", value: r.totals.specificHeatNeed, digits: 0, unit: t("home.energy.heat.unit"), label: t("home.energy.heat.label") },
       { key: "pv", value: r.totals.pvKwh / 1000, digits: 1, unit: t("home.energy.pv.unit"), label: t("home.energy.pv.label"), accent: true },
       { key: "self", value: r.totals.selfSufficiency * 100, digits: 0, ...self },

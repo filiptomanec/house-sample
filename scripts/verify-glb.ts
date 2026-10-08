@@ -261,7 +261,8 @@ export function verifyGlb(buf: Buffer, opts: VerifyOptions = {}): VerifyResult {
     const need: string[] = ["plaster", "plaster_in", "slab", "frame", "glass", "ceiling", "roof_tile", "ridge_cap", "fascia", "gutter", "soffit"];
     const floors = new Set((d.netRooms ?? d.rooms ?? []).map((r) => r.floor).filter((f): f is string => !!f));
     for (const f of floors) need.push(`floor_${f}`);
-    if ((d.openings ?? []).some((o) => o.kind === "door" || o.kind === "entry")) need.push("door_leaf");
+    // interior doors are "door_leaf" (light); the entrance leaf is built in the dark "frame" role (always required above)
+    if ((d.openings ?? []).some((o) => o.kind === "door")) need.push("door_leaf");
     if ((d.openings ?? []).some((o) => o.kind === "garage")) need.push("frame");
     if ((d.accents ?? []).length) need.push("wood_cladding");
     if ((d.screens ?? []).length) need.push("screen_slats");

@@ -2,16 +2,13 @@
 from the face attribute `grass` of the terrain mesh (0 under paving, fading with the distance from the house)."""
 from __future__ import annotations
 
-import random
-
 from . import plants
-from .util import log, rng
+from .util import rng
 
 
 def make_patches(cfg, count=4):
     """`count` patches of `grassBladesPerPatch` blades in a square of `grassPatchM`; returns a (library) collection."""
     import bpy
-    import math
     from mathutils import Matrix
     g = cfg["ground"]
     blades = [o for o in plants.load_model("grass_bermuda_01") if any(k in o.name for k in ("medium", "small", "flattened"))]

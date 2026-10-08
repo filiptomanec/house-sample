@@ -250,9 +250,9 @@ def field(cfg, inputs):
     links.new(geo.outputs["Position"], nz.inputs["Vector"])
     ramp = nodes.new("ShaderNodeValToRGB")
     ramp.color_ramp.elements[0].position = 0.3
-    ramp.color_ramp.elements[0].color = (*hex_to_linear("#7C9A3C"), 1)
+    ramp.color_ramp.elements[0].color = (*hex_to_linear("#4f7d2a"), 1)
     ramp.color_ramp.elements[1].position = 0.7
-    ramp.color_ramp.elements[1].color = (*hex_to_linear("#A5A857"), 1)
+    ramp.color_ramp.elements[1].color = (*hex_to_linear("#7f9440"), 1)
     links.new(nz.outputs["Fac"], ramp.inputs["Fac"])
     wv = nodes.new("ShaderNodeTexWave")
     wv.wave_type = "BANDS"

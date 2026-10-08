@@ -50,7 +50,7 @@ export owns the file). Both builds are deterministic: the same inputs give the s
 ## Footprints (`public/models/furniture-footprints.json`)
 
 ```json
-{ "schema": "furniture-footprints/1", "inputHash": "...", "modelHash": "<derived.inputHash>", "units": "m",
+{ "schema": "furniture-footprints/1", "inputHash": "<hash of furniture, rooms, openings>", "units": "m",
   "items": [ { "id": "sofaL-3f2a9c1b", "type": "sofaL", "kind": "furniture", "room": "R04",
                "box": [x0, y0, x1, y1], "h": 0.85 } ],
   "trimmed": [ { "id": "...", "type": "...", "doors": ["D06"] } ], "leftOut": [ ... ] }

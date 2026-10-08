@@ -73,12 +73,12 @@ export default function ModelTool() {
   // ------------------------------------------------------------------------------------------ texts for the engine
   const labels: StageLabels = useMemo(() => ({
     loading: t("model.stage.loading"),
-    progress: (percent) => t("model.stage.progress", { percent }),
+    progress: (percent) => t("model.stage.progress", { percent: f.percent(percent) }),
     error: t("model.stage.error"), retry: t("model.stage.retry"), lost: t("model.stage.lost"), restore: t("model.stage.restore"),
     unsupported: t("model.stage.unsupported"), canvas: t("model.stage.canvas"),
     compass: (heading) => t("model.stage.compass", { heading: Math.round(heading) }),
     north: t("model.stage.north"),
-  }), [t]);
+  }), [t, f]);
   const build = useMemo(() => ({
     labels: false,
     formatTag: (room: DerivedRoom) => ({ title: room.id, detail: f.area(room.area, 1) }),
@@ -159,12 +159,20 @@ export default function ModelTool() {
   }, [walking]);
 
   // room numbers make sense over the rooms: switching them on shows a floor plan in 3D (section, top view)
+  const autoCut = useRef(false); // the section at the plan height was set by the room numbers, not by the slider
   const onRoomLabels = (on: boolean) => {
     setRoomLabels(on);
-    if (!on || walking) return;
-    if (cut >= CUT_MAX) setCut(PLAN_CUT_M);
+    if (walking) return;
+    if (!on) {
+      // switching the numbers off also takes back the section they made (a section the visitor moved or set stays)
+      if (autoCut.current && cut === PLAN_CUT_M) setCut(CUT_MAX);
+      autoCut.current = false;
+      return;
+    }
+    if (cut >= CUT_MAX) { setCut(PLAN_CUT_M); autoCut.current = true; }
     if (TOP_VIEW) goTo(TOP_VIEW);
   };
+  const onCut = (v: number) => { autoCut.current = false; setCut(v); };
 
   // ------------------------------------------------------------------------------------------ texts of the panel
   const pvInfo = equip?.pv?.info ?? null;
@@ -209,7 +217,7 @@ export default function ModelTool() {
         <ControlPanel
           settings={settings} onSettings={updateSettings}
           dayDate={dayMonth(locale, sun.date.month, sun.date.day)}
-          cut={cut} cutMax={CUT_MAX} onCut={setCut}
+          cut={cut} cutMax={CUT_MAX} onCut={onCut}
           roomLabels={roomLabels} onRoomLabels={onRoomLabels}
           furnitureHint={furnitureHint} pvHint={pvHint}
           screens={HAS_SCREENS ? { a: screenAngle ?? equip?.screens?.angle ?? 0, b: screenSlide ?? Math.round((equip?.screens?.slide ?? 0) * 100), onA: setScreenAngle, onB: setScreenSlide } : null}

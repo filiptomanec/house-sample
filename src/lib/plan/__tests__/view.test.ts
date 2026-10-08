@@ -7,6 +7,9 @@ import { buildPlanView, roomNumbers, type StyleMaterials } from "../view";
 
 const mat = style as unknown as StyleMaterials;
 
+/** The page sets Czech and English texts with non-breaking spaces; the model has ordinary ones. */
+const plain = (text: string): string => text.replaceAll("\u00a0", " ");
+
 describe("roomNumbers", () => {
   it("takes the trailing digits without leading zeros", () => {
     expect(roomNumbers(["R01", "R10", "R2"])).toEqual(["1", "10", "2"]);
@@ -31,8 +34,8 @@ describe.each(["cs", "en"] as const)("buildPlanView (%s)", (locale) => {
     expect(nums).toEqual([...nums].sort((a, b) => a - b));
     for (const r of view.rooms) {
       const src = derived.rooms.find((q) => q.id === r.id)!;
-      expect(r.name).toBe(src.name[locale]);
-      expect(r.zone).toBe(house.zones[src.zone].label[locale]);
+      expect(plain(r.name)).toBe(plain(src.name[locale]));
+      expect(plain(r.zone)).toBe(plain(house.zones[src.zone].label[locale]));
       expect(r.area).toBe(src.area);
       expect(r.volume).toBeCloseTo(r.area * r.height, 3); // the kernel rounds areas and volumes
       expect(r.glazingRatio).toBeCloseTo(r.glazing / r.area, 12);
@@ -77,7 +80,7 @@ describe("construction cards", () => {
     expect(cards.map((c) => c.key)).toEqual([...ASSEMBLY_KEYS]);
     expect(new Set(Object.keys(house.assemblies))).toEqual(new Set(ASSEMBLY_KEYS));
     for (const c of cards) {
-      expect(c.name).toBe(house.assemblies[c.key].name.en);
+      expect(plain(c.name)).toBe(plain(house.assemblies[c.key].name.en));
       expect(c.u).toBeCloseTo(derived.assemblies[c.key].U, 4);
       expect(c.r).toBeCloseTo(derived.assemblies[c.key].R, 4);
       expect(c.thickness).toBeCloseTo(derived.assemblies[c.key].thickness, 9);
@@ -88,7 +91,7 @@ describe("construction cards", () => {
     for (const c of cards) {
       const src = house.assemblies[c.key];
       expect(c.layers).toHaveLength(src.layers.length);
-      expect(c.layers.map((l) => l.name)).toEqual(src.layers.map((l) => l.name.en));
+      expect(c.layers.map((l) => plain(l.name))).toEqual(src.layers.map((l) => plain(l.name.en)));
       expect(c.layers.reduce((s, l) => s + l.thickness, 0)).toBeCloseTo(c.thickness, 9);
       const share = c.layers.reduce((s, l) => s + l.share, 0);
       expect(share).toBeGreaterThan(0.5); // surface resistances take the rest

@@ -4,12 +4,12 @@ from __future__ import annotations
 
 import math
 
-from mathutils import Matrix, Vector, noise
+from mathutils import Vector, noise
 
-from .util import hex_to_linear, rng
+from .util import hex_to_linear
 
 
-def leaf_material(name, hex_color, dark=0.45, light=1.12, scale=14.0, flower=None, bump=0.6, rough=0.65):
+def leaf_material(name, hex_color, dark=0.45, light=1.12, scale=14.0, flower=None, bump=0.6, rough=0.65, ao=0.0):
     """Voronoi leaf-cluster shading in object space. `flower` = (hex, share) adds spots of a second colour."""
     import bpy
     m = bpy.data.materials.new(name)
@@ -51,6 +51,18 @@ def leaf_material(name, hex_color, dark=0.45, light=1.12, scale=14.0, flower=Non
         links.new(col, mx.inputs[6])
         mx.inputs[7].default_value = (*hex_to_linear(fx), 1)
         col = mx.outputs[2]
+    if ao > 0:
+        # ambient occlusion darkens the gaps between the leaf clusters (a hedge reads as foliage, not as felt)
+        occ = nodes.new("ShaderNodeAmbientOcclusion")
+        occ.inputs["Distance"].default_value = 0.18
+        occ.samples = 4
+        mo = nodes.new("ShaderNodeMix")
+        mo.data_type = "RGBA"
+        mo.blend_type = "MULTIPLY"
+        mo.inputs[0].default_value = ao
+        links.new(col, mo.inputs[6])
+        links.new(occ.outputs["Color"], mo.inputs[7])
+        col = mo.outputs[2]
     links.new(col, bs.inputs["Base Color"])
     bs.inputs["Roughness"].default_value = max(rough, 0.75)
     if "Specular IOR Level" in bs.inputs:
@@ -86,7 +98,7 @@ def _displace(bm, amp, freq, seed, flatten_below=None):
             v.co.z = flatten_below[0] + (v.co.z - flatten_below[0]) * flatten_below[1]
 
 
-def ball(name, radius, material, seed, squash=0.9, subdiv=5, amp=0.06, base_cut=0.55):
+def ball(name, radius, material, seed, squash=0.9, subdiv=5, amp=0.06, base_cut=0.55, freq=1.0):
     """Clipped ball standing on the ground (topiary, shrub mound): origin at the base."""
     import bmesh
     import bpy
@@ -96,7 +108,7 @@ def ball(name, radius, material, seed, squash=0.9, subdiv=5, amp=0.06, base_cut=
         v.co.x *= radius
         v.co.y *= radius * (0.94 + 0.08 * math.sin(seed))
         v.co.z *= radius * squash
-    _displace(bm, amp * radius, 1.0 / max(radius, 0.2) * 2.0, seed, flatten_below=(-radius * squash * 0.5, 0.15))
+    _displace(bm, amp * radius, 1.0 / max(radius, 0.2) * 2.0 * freq, seed, flatten_below=(-radius * squash * 0.5, 0.15))
     for v in bm.verts:
         v.co.z += radius * squash * 0.5
     bm.normal_update()
@@ -109,7 +121,7 @@ def ball(name, radius, material, seed, squash=0.9, subdiv=5, amp=0.06, base_cut=
     return bpy.data.objects.new(name, me)
 
 
-def hedge(name, path, zfunc, height, width, material, seed, step=0.1):
+def hedge(name, path, zfunc, height, width, material, seed, step=0.06):
     """A clipped hedge along a polyline: rounded-rectangle profile, noise on the surface, ends capped. `zfunc(x, y)` = ground."""
     import bmesh
     import bpy
@@ -149,7 +161,9 @@ def hedge(name, path, zfunc, height, width, material, seed, step=0.1):
     bm.normal_update()
     off = Vector((seed * 5.1, seed * 2.3, 0))
     for v in bm.verts:
-        n = noise.fractal(v.co * 3.2 + off, 0.5, 2.0, 3) * 0.07 + noise.noise(v.co * 14.0 + off) * 0.035
+        # clumps of about 40 cm, 15 cm and 5 cm: the clipped surface of a hedge is rough at every scale
+        n = (noise.fractal(v.co * 2.4 + off, 0.5, 2.0, 3) * 0.045 + noise.noise(v.co * 7.0 + off) * 0.04
+             + noise.noise(v.co * 21.0 + off) * 0.02)
         v.co += v.normal * n
     me = bpy.data.meshes.new(name)
     bm.to_mesh(me)

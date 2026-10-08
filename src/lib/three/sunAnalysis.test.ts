@@ -7,7 +7,7 @@ import { addDays, localToUtc, placeOf, sunDirection, sunHoursOnSurface, sunPosit
 import { boxOf, rayTransmittance, rayChord, type Occluder } from "@/lib/model/site";
 import { getHouseContext } from "./context";
 import { toScene } from "./frame";
-import { Caster, cullOccluders, makeSunAnalyzer, occluderBound, sampleAreas, sampleWindows, type SunDayResult, type SunPositionFn } from "./sunAnalysis";
+import { Caster, GLASS_DEPTH, WINDOW_GRID, cullOccluders, makeSunAnalyzer, occluderBound, sampleAreas, sampleWindows, type SunDayResult, type SunPositionFn } from "./sunAnalysis";
 
 const ctx = getHouseContext();
 const place = placeOf(ctx.house);
@@ -48,11 +48,11 @@ const sumFractions = (s: { fraction: number[] }, step: number) => s.fraction.red
 
 describe("sample points", () => {
   const windows = sampleWindows(ctx), areas = sampleAreas(ctx);
-  it("one set of 3 x 2 points for every glazed exterior opening with a room", () => {
+  it("one grid of 3 x 6 points for every glazed exterior opening with a room", () => {
     const expected = ctx.derived.openings.filter((o) => o.exterior === true && o.glazingArea > 0 && o.room !== null);
     expect(windows.map((w) => w.opening).sort()).toEqual(expected.map((o) => o.id).sort());
     for (const w of windows) {
-      expect(w.points).toHaveLength(6);
+      expect(w.points).toHaveLength(WINDOW_GRID.across.length * WINDOW_GRID.rows);
       expect(ctx.derived.rooms.some((r) => r.id === w.room)).toBe(true);
       expect(Math.hypot(...w.normalHouse)).toBeCloseTo(1, 12);
     }
@@ -70,6 +70,17 @@ describe("sample points", () => {
         expect(Math.abs(along)).toBeLessThan(o.w / 2);
         expect(Math.abs(across)).toBeLessThanOrEqual(wall.t / 2);
         expect(across).toBeGreaterThan(-wall.t / 2);
+      }
+    }
+  });
+  it("the samples lie in the glass plane, GLASS_DEPTH behind the outer face of the wall", () => {
+    for (const w of windows) {
+      const o = ctx.derived.openings.find((x) => x.id === w.opening)!;
+      const wall = ctx.derived.walls.find((x) => x.id === o.wallId)!;
+      const depth = Math.min(GLASS_DEPTH, 0.6 * wall.t);
+      for (const p of w.points) {
+        const across = (p.house[0] - o.cx) * w.normalHouse[0] + (p.house[1] - o.cy) * w.normalHouse[1];
+        expect(wall.t / 2 - across).toBeCloseTo(depth, 9);
       }
     }
   });
@@ -166,6 +177,33 @@ describe("open scene against the analytic oracle", () => {
     const res = analyzer([], { sunPosition: fixed }).day(EQUINOX, 60);
     expect(res.times).toHaveLength(24);
     for (const s of Object.values(res.rooms)) s.fraction.forEach((f) => expect([0, 1]).toContain(f));
+  });
+});
+
+describe("a roof overhang over a window", () => {
+  it("a low strip of lit glass counts in proportion (it is not rounded to zero by a coarse probe)", () => {
+    const one = ctx.derived.openings.find((o) => o.exterior === true && o.glazingArea > 0 && o.room !== null && o.azimuth !== null)!;
+    const [nx, ny] = [Math.sin((one.azimuth! * Math.PI) / 180), Math.cos((one.azimuth! * Math.PI) / 180)];
+    const wall = ctx.derived.walls.find((w) => w.id === one.wallId)!;
+    const along: [number, number] = one.orient === "h" ? [1, 0] : [0, 1];
+    // a slab over the window, reaching D m out from the outer face, its underside H above the sill
+    const D = 1, outer = wall.t / 2, H = one.head + 0.1, depth = Math.min(GLASS_DEPTH, 0.6 * wall.t);
+    const corner = (sign: 1 | -1, off: number, z: number): Vec3 => [
+      one.cx + along[0] * sign * (one.w / 2 + 1) + nx * off, one.cy + along[1] * sign * (one.w / 2 + 1) + ny * off, z,
+    ];
+    const a = corner(-1, outer, H), b = corner(1, outer + D, H);
+    const slab = solid([Math.min(a[0], b[0]), Math.min(a[1], b[1]), H], [Math.max(a[0], b[0]), Math.max(a[1], b[1]), H + 0.1]);
+    // the sun stands in front of the window; its profile angle puts the edge of the shadow between the second and third row of samples
+    const rows = WINDOW_GRID.rows, rowH = (one.head - one.sill) / rows;
+    const shadowEdge = one.sill + 2 * rowH;
+    const altitude = (Math.atan((H - shadowEdge) / (depth + D)) * 180) / Math.PI;
+    const fixed: SunPositionFn = () => ({ azimuth: one.azimuth! + bearing, altitude });
+    const only = { ...ctx, derived: { ...ctx.derived, openings: [one] } } as typeof ctx;
+    const res = makeSunAnalyzer(viewer, { ctx: only, occluders: [slab] }, { surroundings: false, terrain: false, sunPosition: fixed }).day(EQUINOX, 60);
+    const lit = res.rooms[one.room!];
+    expect(lit.fraction.length).toBe(24);
+    lit.fraction.forEach((f) => expect(f).toBeCloseTo(2 / rows, 9));
+    expect(lit.hours).toBeCloseTo((24 * 2) / rows, 9);
   });
 });
 

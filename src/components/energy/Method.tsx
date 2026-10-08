@@ -14,7 +14,13 @@ export function Method({ ctx }: { ctx: EnergyContext }) {
       <summary><h2 className="h3">{t("energy.method.title")}</h2></summary>
       <div className="method-body small">
         <p>{t("energy.method.heat", { temp: f.unit(a.climate.designOutdoorC, "°C") })}</p>
-        <p>{t("energy.method.electricity", { dist: f.percent(a.heating.distributionLossShare * 100), dhw: f.percent(a.dhw.lossShare * 100) })}</p>
+        <p>
+          {t("energy.method.electricity", {
+            dist: f.percent(a.heating.distributionLossShare * 100),
+            dhw: f.percent(a.dhw.lossShare * 100),
+            fixed: f.unit(a.economy.fixedChargesPerYear, t("energy.units.currency")),
+          })}
+        </p>
         <p>
           {t("energy.method.pv", {
             version: climate.meta.apiVersion.replace("v", "").replace("_", "."),

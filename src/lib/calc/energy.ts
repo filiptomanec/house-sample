@@ -12,12 +12,11 @@
 // Data sources (nothing about the house is typed in here):
 //   house, derived, metrics   the model (src/lib/model/instance): envelope, openings, assemblies, equipment, location
 //   climate                   src/lib/data/pvgis.json (docs/ENERGY-DATA.md)
-//   assumptions               model/assumptions.json (schema below): household, tariffs, profiles, day types, battery
-import { z } from "zod";
+//   assumptions               model/assumptions.json (schema in ./energySchema.ts): household, tariffs, profiles, day types, battery
 import assumptionsJson from "@model/assumptions.json";
 import climateJson from "@/lib/data/pvgis.json";
 import { DAYS_IN_MONTH } from "@/lib/calendar";
-import { DIRS, DIR_AZIMUTH, ROOM_TYPES } from "@/lib/model/catalog";
+import { DIRS, DIR_AZIMUTH } from "@/lib/model/catalog";
 import type { Dir, OpeningKind } from "@/lib/model/catalog";
 import { expandRect, unionOf, type Rect } from "@/lib/model/geom";
 import { house as projectHouse, derived as projectDerived, metrics as projectMetrics } from "@/lib/model/instance";
@@ -25,6 +24,7 @@ import { computeMetrics } from "@/lib/model/metrics";
 import type { Obstacle } from "@/lib/model/pv";
 import { clipRingToRect } from "@/lib/model/roofs";
 import type { Derived, DerivedOpening, House, Metrics } from "@/lib/model/types";
+import type { Assumptions } from "./energySchema";
 import { groupRoofPlanes, layoutPanels, lightpipeObstacles, defaultPvSelection, resolvePvSelection, type PanelLayout, type PvSelection, type RoofPlane } from "./roofLayout";
 import { parseStoredPv } from "./storageKeys";
 import { monthOffsetMix, overhangDailyShading, placeOf, sunHoursOnSurface, TYPICAL_DAY, type CalendarDate } from "./sun";
@@ -54,152 +54,11 @@ export const NUMERIC_INPUT_KEYS = [
 ] as const;
 export type NumericInputKey = (typeof NUMERIC_INPUT_KEYS)[number];
 
-const share = z.number().min(0).max(1);
-const positive = z.number().positive();
-const hour = z.int().min(0).max(23);
-const profile24 = z.array(z.number().min(0)).length(24);
-
-/** Range of one input. `default` is optional: `scop`, `scopDhw` take their default from the model's `equipment.heating`. */
-export const InputRangeSchema = z
-  .strictObject({ default: z.number().optional(), min: z.number(), max: z.number(), step: positive })
-  .refine((r) => r.min < r.max && (r.default === undefined || (r.default >= r.min && r.default <= r.max)), { message: "need min < max and min <= default <= max" });
-
-const inputsShape = Object.fromEntries(NUMERIC_INPUT_KEYS.map((k) => [k, InputRangeSchema])) as Record<NumericInputKey, typeof InputRangeSchema>;
-
 /**
- * Schema of `model/assumptions.json` (format `assumptions/1`). Every number the calculation needs that is neither in the house
- * model nor in the climate data nor a physical/normative constant (those are named constants in the code with the standard
- * quoted) lives here. The energy agent fills in and reviews the values; `meta.status` says whether anybody has.
+ * The type of `model/assumptions.json`. The zod schema (`AssumptionsSchema`, `parseAssumptions`) lives in ./energySchema.ts, which this
+ * module never imports at run time: the browser bundle then carries no validator. A test checks that parsing the file changes nothing.
  */
-export const AssumptionsSchema = z
-  .strictObject({
-    schema: z.literal("assumptions/1"),
-    meta: z.strictObject({
-      /** "starter": generic placeholder values; "reviewed": checked against the cited sources. */
-      status: z.enum(["starter", "reviewed"]),
-      region: z.string().min(1),
-      currency: z.literal("CZK"),
-      /** Year of the prices. */
-      priceYear: z.int(),
-      /** Where the numbers come from (standards, statistics); shown on the Energy page's "what is calculated" panel. */
-      sources: z.array(z.string().min(1)),
-    }),
-    climate: z.strictObject({
-      /** Calendar year used for time-zone rules (daylight saving) of the typical year. */
-      referenceYear: z.int(),
-      /** Outdoor design temperature of EN 12831 for the region, deg C. */
-      designOutdoorC: z.number(),
-    }),
-    /** Ranges and defaults of the adjustable inputs. */
-    inputs: z.strictObject({
-      ...inputsShape,
-      /** Defaults of the switches. Heat recovery defaults to the model (`ventilation.type === "mvhr"`). */
-      flags: z.strictObject({ evChargeDaytime: z.boolean(), dhwDaytime: z.boolean() }),
-    }),
-    thermal: z.strictObject({
-      /** Allowance for thermal bridges, W/(m2 K), added to the area of the envelope that borders the outside air. */
-      thermalBridgeDeltaU: z.number().min(0),
-      /** Internal heat capacity per m2 of heated floor, kJ/(m2 K) (EN ISO 13790, 12.3.1: light 80, medium 165, heavy 260...). */
-      internalHeatCapacityKjPerM2K: positive,
-      /** Reference time constant a0 of the utilisation factor, hours (15 for the monthly method). */
-      utilisationReferenceTimeH: positive,
-      /** Volumetric heat capacity of air, Wh/(m3 K). */
-      airHeatCapacityWhPerM3K: positive,
-      /** Reduction for the angle of incidence and dirt of glazing (about 0.9). */
-      solarCorrection: share,
-      /** Share of the irradiation on a vertical facade that is direct (the roof overhang and the blinds act on this part only). */
-      verticalBeamShare: share,
-      /** Temperature reduction factor b (EN ISO 13789) of a heated room's wall to an unheated room of that type. */
-      unheatedB: z.partialRecord(z.enum(ROOM_TYPES), share),
-    }),
-    ground: z.strictObject({
-      /** Thermal conductivity of the soil, W/(m K) (EN ISO 13370: 2.0 for clay or silt). */
-      soilLambda: positive,
-      /** Periodic penetration depth, m (3.2 for clay or silt). */
-      periodicDepthM: positive,
-      /** Correction for the annual outdoor temperature variation in the design load (EN 12831 f_g1, about 1.45). */
-      fg1: positive,
-    }),
-    ventilation: z.strictObject({
-      /** Shielding coefficient e for infiltration: n_inf = e * n50 (EN ISO 13789 / 13790, 0.07 for moderate shielding). */
-      shielding: positive,
-      /** Hygienic fresh air per person, m3/h, and the minimum air change rate of the building, 1/h. */
-      airflowPerPersonM3h: positive,
-      minAirChangeRate: positive,
-    }),
-    gains: z.strictObject({
-      /** Metabolic heat per person, W (averaged over presence), and the share of household electricity that becomes heat. */
-      personW: positive,
-      applianceHeatShare: share,
-    }),
-    ev: z.strictObject({
-      /** Electricity per km driven, kWh/km, and the share lost in charging. */
-      kwhPerKm: positive,
-      chargingLossShare: z.number().min(0).max(0.5),
-    }),
-    heating: z.strictObject({
-      /** Losses of distribution and storage as a share of the heat need. */
-      distributionLossShare: z.number().min(0).max(0.5),
-      /**
-       * COP by month follows the Carnot ratio between a sink at `flowTemperatureC + sinkApproachK` and a source at the monthly
-       * outdoor temperature `- sourceApproachK`; its efficiency factor is solved so that the heat-weighted seasonal COP equals
-       * the SCOP input exactly.
-       */
-      copCurve: z.strictObject({ sinkApproachK: z.number().min(0), sourceApproachK: z.number().min(0) }),
-    }),
-    dhw: z.strictObject({
-      coldWaterC: z.number(),
-      /** Losses of storage and circulation as a share of the useful energy. */
-      lossShare: z.number().min(0).max(1),
-      /** Local hours (0..23) when the heat pump heats the water: daytime (follows PV) or default (morning and evening). */
-      daytimeHours: z.array(hour).min(1),
-      defaultHours: z.array(hour).min(1),
-    }),
-    profiles: z.strictObject({
-      /** Relative shape of the household electricity over the day (24 values, normalised by the code). */
-      appliances: profile24,
-      evDaytimeHours: z.array(hour).min(1),
-      evNightHours: z.array(hour).min(1),
-      /** Share of the daily heating electricity spread evenly; the rest follows degree-hours. */
-      heatingBaseShare: share,
-    }),
-    pv: z.strictObject({
-      /**
-       * Typical days of a month: production relative to the monthly mean day (`factor`) and the share of days (`weight`).
-       * Weights sum to 1 and the weighted mean of the factors is 1 (checked), so the month total is the PVGIS value.
-       */
-      dayTypes: z
-        .array(z.strictObject({ key: z.enum(DAY_TYPE_KEYS), factor: z.number().min(0), weight: share }))
-        .length(DAY_TYPE_KEYS.length),
-      /** Clip the production at the inverter's rated power (`equipment.pv.inverter.ratedKw`). */
-      inverterClipping: z.boolean(),
-    }),
-    battery: z.strictObject({
-      /** Usable share of the nominal capacity and round-trip efficiency (the half of the losses on each way). */
-      usableShare: share,
-      roundTripEfficiency: share,
-    }),
-    economy: z.strictObject({
-      /** A payback longer than this is reported as "does not pay back" (status key), years. */
-      paybackCapYears: positive,
-    }),
-  })
-  .superRefine((a, ctx) => {
-    const dt = a.pv.dayTypes;
-    const keys = new Set(dt.map((d) => d.key));
-    const w = dt.reduce((s, d) => s + d.weight, 0);
-    const mean = dt.reduce((s, d) => s + d.weight * d.factor, 0);
-    if (keys.size !== dt.length) ctx.addIssue({ code: "custom", path: ["pv", "dayTypes"], message: "day type keys must be unique" });
-    if (Math.abs(w - 1) > 0.005) ctx.addIssue({ code: "custom", path: ["pv", "dayTypes"], message: "weights must sum to 1" });
-    if (Math.abs(mean - 1) > 0.01) ctx.addIssue({ code: "custom", path: ["pv", "dayTypes"], message: "the weighted mean of the factors must be 1" });
-  });
-
-export type Assumptions = z.infer<typeof AssumptionsSchema>;
-
-/** Parses and validates `model/assumptions.json`; throws a ZodError with a readable path on a bad file. */
-export function parseAssumptions(json: unknown): Assumptions {
-  return AssumptionsSchema.parse(json);
-}
+export type { Assumptions };
 
 // ================================================================================================ climate data
 
@@ -277,7 +136,7 @@ export function defaultEnergyContext(): EnergyContext {
     derived: projectDerived,
     metrics: projectMetrics,
     climate: climateJson as unknown as ClimateData,
-    assumptions: parseAssumptions(assumptionsJson),
+    assumptions: assumptionsJson as unknown as Assumptions, // validated by the tests (energySchema.ts), not at run time
   });
   return defaultContext;
 }
@@ -1099,7 +958,11 @@ export interface PaybackPart {
 }
 
 export interface Economics {
-  /** Annual electricity cost without PV and with PV and battery, CZK; their difference is the saving. */
+  /**
+   * Annual electricity bill without PV and with PV and battery, CZK: purchases minus the payment for the surplus, plus the fixed
+   * charges of the connection (`assumptions.economy.fixedChargesPerYear`); their difference is the saving. Below the fixed charges
+   * (even negative) when the surplus sold earns more than the purchases cost.
+   */
   costWithoutPv: number;
   costWithPv: number;
   savings: number;
@@ -1328,8 +1191,9 @@ export function computeEnergy(rawInputs: EnergyInputs, ctx: EnergyContext): Ener
   // ---- warnings
   const warnings: EnergyWarning[] = [];
   if (checkClimate(house, ctx.derived, climate).length > 0) warnings.push({ key: "climateMismatch" });
-  if (layout.clamped) warnings.push({ key: "panelsClamped", value: layout.capacity });
-  if (!layout.planes.some((p) => p.enabled)) warnings.push({ key: "noPlanesEnabled" });
+  const planesEnabled = layout.planes.some((p) => p.enabled);
+  if (layout.clamped && planesEnabled) warnings.push({ key: "panelsClamped", value: layout.capacity });
+  if (!planesEnabled) warnings.push({ key: "noPlanesEnabled" });
   if (designLoad.totalW > 0 && designLoad.coverage < 1) warnings.push({ key: "heatPumpUndersized", value: designLoad.coverage });
   if (batteryOption.capacityKwh > 0 && layout.kwp <= 0) warnings.push({ key: "batteryWithoutPv" });
   if (NUMERIC_INPUT_KEYS.some((k) => rawInputs[k] !== inputs[k])) warnings.push({ key: "inputsClamped" });
@@ -1419,10 +1283,12 @@ function computeEconomics(
 ): Economics {
   const cap = ctx.assumptions.economy.paybackCapYears;
   const buy = inputs.priceBuy, sell = inputs.priceSell;
-  const costWithoutPv = totals.elTotalKwh * buy;
-  const costWithPv = totals.importKwh * buy - totals.exportKwh * sell;
+  // the fixed charges of the connection are paid either way: they raise both costs and leave the saving as it is
+  const fixed = ctx.assumptions.economy.fixedChargesPerYear;
+  const costWithoutPv = totals.elTotalKwh * buy + fixed;
+  const costWithPv = totals.importKwh * buy - totals.exportKwh * sell + fixed;
   const savings = costWithoutPv - costWithPv;
-  const savingsPvOnly = costWithoutPv - (alone.importKwh * buy - alone.exportKwh * sell);
+  const savingsPvOnly = costWithoutPv - (alone.importKwh * buy - alone.exportKwh * sell + fixed);
 
   const grossPv = layout.kwp > 0 ? layout.kwp * Math.max(0, inputs.pvPricePerKwp) : 0;
   const grossBattery = layout.kwp > 0 ? batteryKwh * Math.max(0, inputs.batteryPricePerKwh) : 0;

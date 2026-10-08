@@ -81,21 +81,26 @@ def setup(cfg, device=None):
 
 
 def setup_glare(cfg):
-    """Soft glow around bright lamps and the sun disc. Compositor API of Blender 5 (a node group assigned to the scene);
-    returns True when it could be built."""
+    """Soft glow around bright lamps and the sun disc. Compositor API of Blender 5 (a node group assigned to the scene, the
+    Glare node takes its settings as inputs); returns True when it could be built."""
     import bpy
     g = cfg["look"]["glare"]
+    if not g.get("enabled", True):
+        return False
     sc = bpy.context.scene
     try:
         grp = bpy.data.node_groups.new("render_glare", "CompositorNodeTree")
+        grp.interface.new_socket("Image", in_out="OUTPUT", socket_type="NodeSocketColor")
         n_in = grp.nodes.new("CompositorNodeRLayers")
         n_glare = grp.nodes.new("CompositorNodeGlare")
         n_out = grp.nodes.new("NodeGroupOutput")
-        grp.interface.new_socket("Image", in_out="OUTPUT", socket_type="NodeSocketColor")
-        n_glare.glare_type = "FOG_GLOW"
-        for key, val in (("Threshold", g["threshold"]), ("Mix", g["mix"]), ("Size", g["size"]), ("Strength", 0.4)):
+        for key, val in (("Type", g["type"]), ("Quality", "High"), ("Threshold", g["threshold"]), ("Strength", g["strength"]),
+                         ("Size", g["size"])):
             if key in n_glare.inputs:
-                n_glare.inputs[key].default_value = val
+                try:
+                    n_glare.inputs[key].default_value = val
+                except Exception as e:
+                    log("glare input %s: %s" % (key, e))
         grp.links.new(n_in.outputs["Image"], n_glare.inputs["Image"])
         grp.links.new(n_glare.outputs["Image"], n_out.inputs[0])
         sc.compositing_node_group = grp

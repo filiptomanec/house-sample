@@ -35,6 +35,12 @@ describe("buildDayStory", () => {
     for (let i = peak + 1; i < story.sun.length; i++) expect(story.sun[i].alt).toBeLessThanOrEqual(story.sun[i - 1].alt + 1e-9);
   });
 
+  it("rises in the north-east at midsummer (true azimuth of the sunrise)", () => {
+    const az = story.times.sunriseAzimuth!;
+    expect(az).toBeGreaterThan(35);
+    expect(az).toBeLessThan(75);
+  });
+
   it("puts the sun in the east in the morning and the west in the evening (true azimuth)", () => {
     expect(story.sun[0].az).toBeGreaterThan(45);
     expect(story.sun[0].az).toBeLessThan(135);

@@ -29,6 +29,25 @@ export function liftToLuminance(color: THREE.Color, min: number): THREE.Color {
   return out.lerp(white, Math.min(1, k));
 }
 
+/** Colours whose brightest channel (linear) reaches this are left as they are by `inverseNeutralToneMapping`. */
+export const NEUTRAL_INVERSE_LIMIT = 0.7;
+
+/**
+ * The colour that the neutral tone mapper (Khronos PBR Neutral, `THREE.NeutralToneMapping`) turns into `color`, for dark and mid
+ * colours: below its compression range the mapper only subtracts an offset (`x - 6.25 x^2` of the darkest channel below 0.08, else
+ * 0.04), which makes a dark slate token come out darker and bluer. Used for what reaches the screen through the output pass without
+ * a material (the backdrop and the fog); colours with a channel at or above `NEUTRAL_INVERSE_LIMIT` are returned unchanged.
+ */
+export function inverseNeutralToneMapping(color: THREE.Color): THREE.Color {
+  const out = color.clone();
+  if (Math.max(out.r, out.g, out.b) >= NEUTRAL_INVERSE_LIMIT) return out;
+  const m = Math.min(out.r, out.g, out.b);
+  const x = m < 0.04 ? 0.4 * Math.sqrt(Math.max(0, m)) : m + 0.04; // the darkest channel before the mapper
+  const offset = x < 0.08 ? x - 6.25 * x * x : 0.04;
+  out.r += offset; out.g += offset; out.b += offset;
+  return out;
+}
+
 /** The light bounced up from the ground: the lawn colour warmed and brightened, so shaded walls do not pick up a cold tint. */
 export function groundBounce(lawn: THREE.Color): THREE.Color {
   return lawn.clone().lerp(WARM_BOUNCE, 0.35).multiplyScalar(0.9);

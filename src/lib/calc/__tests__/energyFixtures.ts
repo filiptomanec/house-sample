@@ -6,7 +6,8 @@ import { derive } from "@/lib/model/derive";
 import { HouseSchema } from "@/lib/model/schema";
 import type { House } from "@/lib/model/types";
 import { rawHouse } from "@/lib/model/__tests__/helpers";
-import { createEnergyContext, parseAssumptions, type Assumptions, type ClimateData, type EnergyContext } from "../energy";
+import { createEnergyContext, type Assumptions, type ClimateData, type EnergyContext } from "../energy";
+import { parseAssumptions } from "../energySchema";
 
 export const climate = climateJson as unknown as ClimateData;
 export const assumptions = (): Assumptions => parseAssumptions(JSON.parse(JSON.stringify(assumptionsJson)));

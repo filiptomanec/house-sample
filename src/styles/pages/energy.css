@@ -3,11 +3,16 @@
 .energy { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-5); padding-bottom: var(--section-y); }
 .energy-disclaimer { margin: 0; }
 
+/* an empty live region takes no room: it cancels the grid gap that it would add */
+.energy-notes:empty { margin-top: calc(-1 * var(--sp-5)); }
 .energy-warnings { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--sp-2); }
 .energy-warnings li { padding: 10px 14px; border-radius: var(--r-sm); background: var(--bg-2); border-left: 3px solid var(--info); font-size: var(--fs-sm); line-height: 1.45; }
 
 .energy-grid { display: grid; grid-template-columns: minmax(300px, 360px) minmax(0, 1fr); gap: clamp(20px, 3vw, 40px); align-items: start; }
 .energy-controls { position: sticky; top: calc(var(--nav-h) + env(safe-area-inset-top) + var(--sp-4)); max-height: calc(100dvh - var(--nav-h) - env(safe-area-inset-top) - var(--sp-8)); overflow-y: auto; overscroll-behavior: contain; }
+/* values of the key-value lists never break inside a number */
+.energy .kv { grid-template-columns: minmax(0, 1fr) auto; }
+.energy .kv > :nth-child(even) { white-space: nowrap; overflow-wrap: normal; }
 .energy-reset { margin-top: var(--sp-4); }
 .energy-heat > h2, .energy-electricity > h2 { margin-bottom: var(--sp-3); }
 .energy-results { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-5); min-width: 0; }
@@ -109,6 +114,6 @@
   table.env-table th, table.env-table td { padding-right: 4px; }
   table.env-table th { font-size: 0.5625rem; letter-spacing: 0.02em; }
   .env-table td.n { font-size: 0.8125rem; }
-  .month-pick { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .month-pick { grid-template-columns: repeat(4, minmax(0, 1fr)); } /* four a row: every button at least 44 px wide, even on a 320 px screen */
   .energy-money .stat .v { font-size: 1.75rem; }
 }

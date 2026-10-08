@@ -3,6 +3,7 @@
 // ships without the model, the schema or the deriver. Pure: tests call it with the shared instance.
 import type { Derived, House, Locale, Metrics, OpeningKind, Facing8, FloorKind, RoomType } from "@/lib/model/types";
 import { derivedFingerprint } from "@/lib/calc/storageKeys";
+import { nb } from "@/lib/i18n/format";
 import { buildPlanDrawing, type FillKey, type PlanDrawing, type PlanOptions } from "./planGeometry";
 import { planLayers, type PlanLayers } from "./svg";
 import type { Rect } from "@/lib/model/geom";
@@ -84,8 +85,8 @@ export function buildPlanView(house: House, derived: Derived, metrics: Metrics, 
     const openings = derived.openings.filter((o) => o.exterior && o.room === r.id && o.facing)
       .map((o) => ({ kind: o.kind, facing: o.facing!, sill: o.sill, w: o.w, h: o.head - o.sill }));
     return {
-      id: r.id, number: numbers[i], name: r.name[locale], type: r.type, fill: pr.fill, zone: house.zones[r.zone].label[locale],
-      floor: r.floor ?? null, floorName: r.floor ? style.materials[`floor_${r.floor}`]?.name[locale] ?? null : null,
+      id: r.id, number: numbers[i], name: nb(r.name[locale], locale), type: r.type, fill: pr.fill, zone: nb(house.zones[r.zone].label[locale], locale),
+      floor: r.floor ?? null, floorName: r.floor ? nb(style.materials[`floor_${r.floor}`]?.name[locale] ?? "", locale) || null : null,
       heated: r.heated, area: r.area, perimeter: pr.perimeter, height: r.height, volume: r.volume,
       exteriorWallLength: r.exteriorWallLength, glazing: r.glazing.total, glazingRatio: r.area > 0 ? r.glazing.total / r.area : 0,
       doorsFromEntry: derived.access.depth[r.id] ?? null, openings, at: pr.label.at,

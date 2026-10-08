@@ -5,7 +5,7 @@ import os
 import sys
 
 from . import materials as MAT
-from .util import REPO, log, repo_path
+from .util import log, repo_path
 
 
 def _abs(p):

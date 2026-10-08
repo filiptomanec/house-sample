@@ -134,8 +134,7 @@ web-flow identity is allowed for merge commits. Anything else is reported as `id
   Every key of a finding entry is optional; all given keys must match. Use it for a reviewed false positive, preferably
   with `path` and `hash8`.
 * `cache.json`: clean git objects (see above).
-* `build-denylist.local.mjs`: the author's builder that derives the denylist from the earlier private project. It is
-  local-only and not part of the repository.
+* `build-denylist.local.mjs`: the author's own builder of the denylist. It is local-only and not part of the repository.
 
 The scanner **refuses to run** (exit 2) when the denylist is tracked by git, when it is not covered by a gitignore
 rule, or when any file under `.privacy/` is tracked. `--strict` also refuses when the denylist is missing. A denylist that
@@ -180,7 +179,7 @@ ImageMagick or ffmpeg (strip it), a coincidental number that matches a fingerpri
 
 The scanner finds strings, numbers and metadata. It cannot see text rendered into pixels, geometry that was rotated,
 mirrored or rescaled, or a description that was reworded. The numeric rules are tuned for a low false-positive rate, which
-means that a single unlabelled number is not reported. Keep copying of data from the real project out of the workflow
+means that a single unlabelled number is not reported. Keep real-world data out of the workflow
 altogether; the scanner is the safety net, not the policy.
 
 ## Tests

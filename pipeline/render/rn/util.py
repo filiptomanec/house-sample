@@ -60,3 +60,30 @@ def smoothstep(e0, e1, x):
 
 def argv_after_dashes():
     return sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
+
+
+def strip_jpeg_metadata(path):
+    """Removes the comment and the application segments (Exif, XMP, Blender statistics) from a JPEG; keeps JFIF and the colour
+    profile (APP2 ICC) so that the picture looks the same. Pure Python."""
+    with open(path, "rb") as f:
+        data = f.read()
+    if data[:2] != b"\xff\xd8":
+        return False
+    out = bytearray(b"\xff\xd8")
+    i = 2
+    while i + 4 <= len(data):
+        if data[i] != 0xFF:
+            break
+        marker = data[i + 1]
+        if marker == 0xDA:                       # start of scan: the rest is image data
+            out += data[i:]
+            break
+        length = int.from_bytes(data[i + 2:i + 4], "big")
+        seg = data[i:i + 2 + length]
+        keep = not (marker == 0xFE or (0xE1 <= marker <= 0xEF and not (marker == 0xE2 and seg[4:16] == b"ICC_PROFILE\0")))
+        if keep:
+            out += seg
+        i += 2 + length
+    with open(path, "wb") as f:
+        f.write(bytes(out))
+    return True

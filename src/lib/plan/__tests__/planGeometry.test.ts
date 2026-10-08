@@ -104,11 +104,12 @@ describe("plan drawing: walls and openings", () => {
   const gaps: Rect[] = derived.openings.map((o) => gapRect(o, derived.walls.find((w) => w.id === o.wallId)!));
   const bodies = derived.walls.map((w) => wallBody(w, derived.walls));
 
-  it("draws exactly the wall bodies minus the opening gaps (point sampling oracle)", () => {
+  it("draws exactly the wall bodies minus the opening gaps and the net rooms (point sampling oracle)", () => {
     const ob = derived.outline.bbox!;
+    const netRooms = derived.rooms.flatMap((r) => r.cleanRects);
     let n = 0, wrong = 0, cut = 0;
     for (let x = ob.x0 + 0.0071; x < ob.x1; x += 0.037) for (let y = ob.y0 + 0.0113; y < ob.y1; y += 0.037) {
-      const expected = inRects(bodies, x, y) && !inRects(gaps, x, y);
+      const expected = inRects(bodies, x, y) && !inRects(gaps, x, y) && !inRects(netRooms, x, y);
       const got = drawing.walls.some((l) => evenOdd(l.rings, x, -y));
       if (inRects(bodies, x, y) && inRects(gaps, x, y)) cut++;
       if (expected !== got) wrong++;
@@ -117,7 +118,7 @@ describe("plan drawing: walls and openings", () => {
     expect(n).toBeGreaterThan(50000);
     expect(cut).toBeGreaterThan(0);
     expect(wrong).toBe(0);
-  });
+  }, 30_000);
 
   it("keeps wall kinds apart: partition points are not exterior and vice versa where only one kind exists", () => {
     for (const w of derived.walls.filter((q) => q.kind === "exterior")) {

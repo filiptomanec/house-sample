@@ -202,10 +202,16 @@ export function gapRect(o: Pick<DerivedOpening, "orient" | "c" | "w">, wall: Pic
     : [wall.at - wall.t / 2, o.c - o.w / 2, wall.at + wall.t / 2, o.c + o.w / 2];
 }
 
+/**
+ * Wall bodies are the axis segments plus the half thickness of crossing walls. Where a thick wall meets a thin one that
+ * extension can reach 5 to 17 cm into the corner of a net room (a small notch), so the net rooms are cut out as well:
+ * the drawing then never shows a wall inside a room.
+ */
 function wallLayers(d: Derived, gaps: Rect[]): PlanWallLayer[] {
+  const cut = [...gaps, ...d.rooms.flatMap((r) => r.cleanRects)];
   return WALL_ORDER.map((kind) => {
     const bodies = d.walls.filter((w) => w.kind === kind).map((w) => wallBody(w, d.walls));
-    const u = unionOf(differenceOf(bodies, gaps));
+    const u = unionOf(differenceOf(bodies, cut));
     const rings = u.polygons.map((p) => planRing(p.pts));
     return { kind, rings, area: mm(u.area) };
   });

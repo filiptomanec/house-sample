@@ -47,8 +47,9 @@ def write(path, rep):
 def footprints(scene, boxes, trimmed, dropped):
     return {
         'schema': 'furniture-footprints/1',
+        # no hash of the whole data model here: the footprints depend on the furniture, rooms and openings only (inputHash), so
+        # editing prices, tariffs or the render plan must not change this file (and with it the models manifest)
         'inputHash': scene.model.input_hash(),
-        'modelHash': scene.model.derived.get('inputHash'),
         'units': 'm',
         'frame': 'house frame: x east, y north; box = [x0, y0, x1, y1]; h = height of the highest part in the body zone',
         'note': 'Walk-mode colliders of floor-standing furniture and decor taller than 0.3 m; door clear zones are cut out.',

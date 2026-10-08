@@ -6,7 +6,7 @@ import { Chips, Segmented } from "@/components/ui/controls";
 import { useFormat, useT } from "@/lib/i18n/client";
 import { buildContours } from "./contours";
 import { absolute, signed } from "./fmt";
-import { K, cornerWidgets, frameFor, fromScreen, scaleLength, toUnits } from "./labels";
+import { K, cornerWidgets, frameFor, fromScreen, scaleLength, toScreen, toUnits } from "./labels";
 import { MapLayers, type Layers } from "./MapLayers";
 import { MapText } from "./MapText";
 import { MeasurePanel } from "./MeasurePanel";
@@ -58,6 +58,8 @@ export function PlotTool({ view, facts }: { view: PlotView; facts: ReactNode }) 
   const line = pick.length === 2 ? ([pick[0], pick[1]] as const) : pick.length === 1 && hover ? ([pick[0], hover] as const) : null;
   const mapLabel = view.setbacks.map((sb) => `${t(`plot.map.sideName.${sb.side}`)} ${f.length(sb.d, 1)}`);
   const turn = `rotate(${rot} ${c[0]} ${c[1]})`;
+  // the distance written on the map, upright at the middle of the line (the panel below the map may be off screen on a phone)
+  const tag = line ? { at: toScreen([(line[0][0] + line[1][0]) / 2, (line[0][1] + line[1][1]) / 2], rot, c), text: f.length(Math.hypot(line[1][0] - line[0][0], line[1][1] - line[0][1]), 1) } : null;
   // north arrows: the screen direction of true north and of the drawing's +y axis
   const trueAngle = rot - view.bearingDeg, drawAngle = rot;
   const bar = scaleLength(frame.w / K), px = (v: number) => v / s;
@@ -81,7 +83,8 @@ export function PlotTool({ view, facts }: { view: PlotView; facts: ReactNode }) 
           <svg ref={svg} className="pt-svg" viewBox={`${frame.x} ${frame.y} ${frame.w} ${frame.h}`} role="img"
             aria-label={t("plot.map.aria", { setbacks: f.list(mapLabel) })}
             onPointerMove={onMove} onPointerLeave={() => setHover(null)} onClick={onClick}>
-            <rect className="pt-bg" x={frame.x} y={frame.y} width={frame.w} height={frame.h} />
+            {/* wider than the frame: the SVG box can be wider than the viewBox (letterboxing), and that strip must not show the panel */}
+            <rect className="pt-bg" x={frame.x - frame.w} y={frame.y - frame.h} width={frame.w * 3} height={frame.h * 3} />
             <g transform={turn}><MapLayers view={view} layers={layers} contours={contours.paths} /></g>
             {line && (
               <g transform={turn} className="pt-measure" pointerEvents="none">
@@ -90,6 +93,12 @@ export function PlotTool({ view, facts }: { view: PlotView; facts: ReactNode }) 
               </g>
             )}
             <MapText view={view} rot={rot} c={c} frame={frame} s={s} layers={layers} terrain={terrain} contourLabels={contours.labels} />
+            {tag && (
+              <g className="pt-measure-tag" aria-hidden="true" pointerEvents="none" transform={`translate(${tag.at[0]} ${tag.at[1]}) scale(${1 / s})`}>
+                <rect x={-(tag.text.length * 7.4 + 16) / 2} y={-36} width={tag.text.length * 7.4 + 16} height={22} rx={6} />
+                <text y={-20.5} textAnchor="middle">{tag.text}</text>
+              </g>
+            )}
             {/* north arrows in the corner, upright: true north (large) and the +y axis of the drawing (small) */}
             <g className="pt-north" aria-hidden="true" transform={`translate(${corner.north[0]} ${corner.north[1]}) scale(${1 / s})`}>
               <g transform={`rotate(${trueAngle})`}>

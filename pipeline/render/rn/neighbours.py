@@ -3,9 +3,6 @@ from __future__ import annotations
 
 import math
 
-from mathutils import Matrix, Vector
-
-from . import leafy
 from .util import hex_to_linear, log, rng
 
 WALLS = ("#d9d4c6", "#cfd0c8", "#dcd2c0")

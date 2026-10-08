@@ -242,7 +242,7 @@ of the GLB files. The hash function works in the browser too (pure TypeScript).
 
 ## 9. Tests as documentation
 
-* `oracle.test.ts`: the kernel against the independent concept-stage derivation (`__fixtures__/oracle-*.json`) to 1e-6.
+* `oracle.test.ts`: the kernel against the stored output of an independent implementation of the plan derivation (`__fixtures__/oracle-*.json`) to 1e-6.
 * `invariants.test.ts`: areas add up, openings lie on walls, rooms are reachable, roof faces tile the roofs (checked with
   polygon-clipping), the roof surface equals the maximum of the hips at sampled points, PV modules fit and keep clearances.
 * `roofs.test.ts`: synthetic roofs and 300 random configurations against the definition of the roof surface.

@@ -32,7 +32,7 @@ export default defineMessages({
     },
     shading: {
       title: "Stínění",
-      slats: "Lamely terasy",
+      slats: "Lamelové stěny terasy",
       angle: "Natočení lamel",
       angleHint: "0° je zavřeno, 90° jsou lamely rovnoběžně se Sluncem.",
       slide: "Posun lamel",
@@ -76,10 +76,10 @@ export default defineMessages({
       withoutShading: "{name} bez stínění",
       withShading: "{name} se stíněním",
       shadingNow: "Stínění: {summary}.",
-      shadingSlats: "lamely terasy {value}",
+      shadingSlats: "lamelové stěny {value}",
       shadingBlinds: "venkovní žaluzie {drop}, lamely {tilt}",
       shadingBlindsRaised: "venkovní žaluzie vytažené",
-      note: "U místnosti platí její nejlépe osvětlené okno, včetně stínu od ostění. Počítají se zdi a střecha domu, lamely a žaluzie ve zvolené poloze, sousední domy, ploty, živé ploty, stromy (v létě propustí méně světla než bez listí) a terén.",
+      note: "U místnosti platí její nejlépe osvětlené okno a počítá se podíl osluněného skla (okno osvětlené z třetiny se za hodinu počítá třetinou hodiny). Sklo stíní střecha, ostění, zdi, lamely a žaluzie ve zvolené poloze, sousední domy, ploty, živé ploty, stromy (v létě propustí méně světla než bez listí) a terén. Vysoké letní Slunce pod přesahem střechy osvítí jen nízký pás skla u podlahy, proto mají jižní místnosti v létě málo přímého slunce a v zimě hodně.",
     },
     day: {
       title: "Průběh dne",
@@ -100,12 +100,12 @@ export default defineMessages({
       title: "Přes celý rok",
       intro: "Hodiny přímého slunce vždy {day}. dne v měsíci.",
       month: "Měsíc",
-      dayLength: "Délka dne",
+      dayLength: "Délka dne, h",
       pending: "…",
     },
     method: {
       title: "Jak se to počítá",
-      body: "Poloha Slunce se počítá algoritmem NOAA podle Meeuse s přesností setin stupně. Čas se řídí pásmem místa včetně letního času. Každých {step} minut se z oken a z plochy terasy vyšle paprsek ke Slunci a zjistí se, zda ho něco zastaví.",
+      body: "Poloha Slunce se počítá algoritmem NOAA podle Meeuse s přesností setin stupně. Čas se řídí pásmem místa včetně letního času. Každých {step} minut se z mřížky bodů ve skle oken a z plochy terasy a krytých ploch vyšle paprsek ke Slunci a zjistí se, zda ho něco zastaví.",
     },
   },
   en: {
@@ -137,7 +137,7 @@ export default defineMessages({
     },
     shading: {
       title: "Shading",
-      slats: "Terrace slats",
+      slats: "Terrace slat screens",
       angle: "Slat angle",
       angleHint: "0° is closed, 90° has the slats edge-on to the sun.",
       slide: "Slat slide",
@@ -181,10 +181,10 @@ export default defineMessages({
       withoutShading: "{name} without shading",
       withShading: "{name} with shading",
       shadingNow: "Shading: {summary}.",
-      shadingSlats: "terrace slats {value}",
+      shadingSlats: "slat screens {value}",
       shadingBlinds: "exterior blinds {drop}, slats {tilt}",
       shadingBlindsRaised: "exterior blinds raised",
-      note: "For a room the best-lit window counts, including the shadow of its reveal. The walls and roof of the house, slats and blinds in the chosen position, neighbouring houses, fences, hedges, trees (they let less light through in summer than bare) and the terrain are included.",
+      note: "For a room the best-lit window counts, by the sunlit share of its glass (a window lit over a third of its glass adds a third of an hour per hour). The glass is shaded by the roof, the reveal, the walls, slats and blinds in the chosen position, neighbouring houses, fences, hedges, trees (they let less light through in summer than bare) and the terrain. A high summer sun under the roof overhang lights only a low strip of glass near the floor, which is why south-facing rooms get little direct sun in summer and plenty in winter.",
     },
     day: {
       title: "Course of the day",
@@ -205,12 +205,12 @@ export default defineMessages({
       title: "Through the year",
       intro: "Hours of direct sun on day {day} of each month.",
       month: "Month",
-      dayLength: "Day length",
+      dayLength: "Day length, h",
       pending: "…",
     },
     method: {
       title: "How it is calculated",
-      body: "The sun's position comes from the NOAA algorithm after Meeus, accurate to a hundredth of a degree. Clock time follows the time zone of the place, including daylight saving. Every {step} minutes a ray is sent from the windows and from the terrace towards the sun to see whether anything stops it.",
+      body: "The sun's position comes from the NOAA algorithm after Meeus, accurate to a hundredth of a degree. Clock time follows the time zone of the place, including daylight saving. Every {step} minutes a ray is sent towards the sun from a grid of points in the glass of the windows and from the terrace and covered areas, to see whether anything stops it.",
     },
   },
 });

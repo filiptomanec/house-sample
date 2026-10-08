@@ -14,7 +14,7 @@
       "ČSN 73 0540-2 (thermal protection of buildings; thermal-bridge allowance 0.02 W/(m2 K) for well detailed constructions)",
       "ČSN EN 16798-1 (indoor environment; 25 m3/h of fresh air per person, minimum air change 0.3 per hour)",
       "PVGIS 5.3, EU Joint Research Centre (irradiance, temperature, PV yield per facing)",
-      "Prices of household electricity in Czechia 2025 to 2026 (supplier offers, regulated components, VAT 21 %), indicative; feed-in price from supplier offers, indicative",
+      "Prices of household electricity in Czechia 2025 to 2026 (supplier offers, regulated components, VAT 21 %), indicative; feed-in price from supplier offers, indicative; fixed charges of a household connection (supplier fee and circuit breaker, about 600 CZK a month), indicative",
       "Price of a residential PV system and of a battery in Czechia 2025 to 2026 (installer offers, VAT 12 %), indicative"
     ]
   },
@@ -119,6 +119,7 @@
     "roundTripEfficiency": 0.9
   },
   "economy": {
-    "paybackCapYears": 30
+    "paybackCapYears": 30,
+    "fixedChargesPerYear": 7200
   }
 }

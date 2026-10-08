@@ -4,8 +4,9 @@ import { defineMessages } from "../translate";
 // spaces), so write ordinary spaces. Titles and alt texts of the pictures come from the media manifest, not from here.
 export default defineMessages({
   cs: {
-    meta: { title: "Galerie", description: "Rendery a video fiktivního domu Dlouhá střecha: den ve všech hodinách, pohledy kolem domu a interiéry." },
+    meta: { title: "Galerie", description: "Rendery fiktivního domu Dlouhá střecha v různých hodinách dne: pohledy od ulice, ze zahrady i z výšky." },
     lede: "Rendery a video domu v průběhu dne.",
+    ledeStills: "Rendery domu v průběhu dne.",
     filter: {
       label: "Filtr snímků",
       all: "Vše",
@@ -32,8 +33,9 @@ export default defineMessages({
     },
   },
   en: {
-    meta: { title: "Gallery", description: "Renders and video of the fictional Long Roof House: a full day, views around the house and interiors." },
+    meta: { title: "Gallery", description: "Renders of the fictional Long Roof House at different hours of the day: views from the street, from the garden and from above." },
     lede: "Renders and video of the house through the day.",
+    ledeStills: "Renders of the house through the day.",
     filter: {
       label: "Picture filter",
       all: "All",

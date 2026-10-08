@@ -10,6 +10,7 @@ from .ground_materials import ASSETS
 from .util import hex_to_linear, log
 
 _cache = {}
+_KEEP = {}                      # model name -> fraction of the leaves that stays (set by vegetation.py)
 
 
 def _library():
@@ -23,13 +24,14 @@ def _library():
     return lib
 
 
-def load_model(name, origin="base"):
+def load_model(name, origin="base", keep=None):
     """Imports assets/models/<name>/*.gltf; transforms are baked, the origin is moved to the base (xy centre of the lowest
     vertices). Returns the list of mesh objects (kept in the hidden LIB collection)."""
     import bpy
     from mathutils import Matrix, Vector
     if name in _cache:
         return _cache[name]
+    keep = keep if keep is not None else _KEEP.get(name)
     files = glob.glob(os.path.join(ASSETS, "models", name, "*.gltf"))
     if not files:
         raise SystemExit("missing plant asset %s (see ASSETS.md)" % name)
@@ -40,6 +42,11 @@ def load_model(name, origin="base"):
     lib = _library()
     for o in meshes:
         me = o.data
+        if keep is not None and keep < 1.0 and len(me.polygons) > 500000:
+            from . import tree_lod
+            n_tri = tree_lod.reduce_object(o, keep, name)
+            log("%s thinned to %d triangles (keep %.2f of the leaves)" % (name, n_tri, keep))
+            me = o.data
         me.transform(o.matrix_world)
         o.matrix_world = Matrix.Identity(4)
         n = len(me.vertices)
@@ -68,7 +75,7 @@ def bounds(obj):
     return co.min(axis=0), co.max(axis=0)
 
 
-def foliage_material(m, tint=None, value=2.1, translucency=0.3, recolor=False):
+def foliage_material(m, tint=None, value=2.1, translucency=0.3, recolor=False, cutout=True, vary=0.0):
     """Leaf cards from a Poly Haven atlas: the alpha comes from the luminance of the atlas (black background), the colour is
     brightened, a share of translucency lets light through. Returns a new material (a tinted copy when `tint` is given)."""
     nt0 = m.node_tree
@@ -96,6 +103,22 @@ def foliage_material(m, tint=None, value=2.1, translucency=0.3, recolor=False):
     hsv.inputs["Saturation"].default_value = 1.1
     links.new(src, hsv.inputs["Color"])
     col = hsv.outputs[0]
+    if vary > 0:
+        # a little different tone for every instance (Object Info > Random): one material serves all trees
+        oi = nodes.new("ShaderNodeObjectInfo")
+        hv = nodes.new("ShaderNodeHueSaturation")
+        mrh = nodes.new("ShaderNodeMapRange")
+        mrh.inputs["To Min"].default_value = 0.5 - vary * 0.12
+        mrh.inputs["To Max"].default_value = 0.5 + vary * 0.12
+        links.new(oi.outputs["Random"], mrh.inputs["Value"])
+        links.new(mrh.outputs[0], hv.inputs["Hue"])
+        mrv = nodes.new("ShaderNodeMapRange")
+        mrv.inputs["To Min"].default_value = 1.0 - vary
+        mrv.inputs["To Max"].default_value = 1.0 + vary * 0.6
+        links.new(oi.outputs["Random"], mrv.inputs["Value"])
+        links.new(mrv.outputs[0], hv.inputs["Value"])
+        links.new(col, hv.inputs["Color"])
+        col = hv.outputs[0]
     if recolor and tint is not None:
         # the atlas only supplies light and dark: the colour is the species colour
         mr2 = nodes.new("ShaderNodeMapRange")
@@ -127,12 +150,16 @@ def foliage_material(m, tint=None, value=2.1, translucency=0.3, recolor=False):
     mix.inputs[0].default_value = translucency
     links.new(bs.outputs[0], mix.inputs[1])
     links.new(tr.outputs[0], mix.inputs[2])
+    out = next(n for n in nodes if n.type == "OUTPUT_MATERIAL")
+    if not cutout:
+        # the leaves of the scanned tree are modelled leaf shapes: no alpha test (much cheaper to render)
+        links.new(mix.outputs[0], out.inputs["Surface"])
+        return m
     tp = nodes.new("ShaderNodeBsdfTransparent")
     cut = nodes.new("ShaderNodeMixShader")
     links.new(mr.outputs[0], cut.inputs[0])
     links.new(tp.outputs[0], cut.inputs[1])
     links.new(mix.outputs[0], cut.inputs[2])
-    out = next(n for n in nodes if n.type == "OUTPUT_MATERIAL")
     links.new(cut.outputs[0], out.inputs["Surface"])
     return m
 
@@ -143,7 +170,7 @@ def leaf_tint(hex_color, reference="#6a8b45"):
     return tuple(min(2.0, a[i] / max(r[i], 1e-3)) for i in range(3))
 
 
-def species_collection(model, species, tint, tag, recolor=False, copies=None):
+def species_collection(model, species, tint, tag, recolor=False, copies=None, cutout=True, vary=0.0):
     """A collection with copies of the model's objects whose materials are tinted foliage (mesh data is shared).
     `copies` = [(yaw_deg, scale, dx, dy)]: several rotated copies around the same trunk make a fuller crown (default one)."""
     import bpy
@@ -157,7 +184,7 @@ def species_collection(model, species, tint, tag, recolor=False, copies=None):
     mats = {}
     for src in load_model(model):
         for i, base in enumerate(src.data.materials):
-            mats[(src.name, i)] = foliage_material(base, tint, recolor=recolor) if base else None
+            mats[(src.name, i)] = foliage_material(base, tint, recolor=recolor, cutout=cutout, vary=vary) if base else None
     for yaw, sc, dx, dy in copies:
         for src in load_model(model):
             o = src.copy()

@@ -6,6 +6,7 @@ import { useId } from "react";
 import { Switch } from "@/components/ui/controls";
 import type { BudgetGroup, BudgetLine } from "@/lib/calc/budgetCompute";
 import type { PriceGroup, UnitKey } from "@/lib/calc/budgetCore";
+import type { LocalizedText } from "@/lib/model/types";
 import { nb } from "@/lib/i18n/format";
 import { useFormat, useLocale, useT } from "@/lib/i18n/client";
 import { CellInput } from "./CellInput";
@@ -16,9 +17,11 @@ const quantityDigits = (unit: UnitKey): number => (unit === "pcs" || unit === "s
 const quantityStep = (unit: UnitKey): number => (quantityDigits(unit) === 0 ? 1 : 0.1);
 const priceStep = (v: number): number => 10 ** Math.max(0, Math.floor(Math.log10(Math.max(1, v))) - 2);
 
-export function GroupPanel({ group, def, onToggle, onEdit }: {
+export function GroupPanel({ group, def, overheadName, onToggle, onEdit }: {
   group: BudgetGroup;
   def: PriceGroup;
+  /** Name of the computed site-overhead line (it is not one of the group's own lines), when the group holds it. */
+  overheadName?: LocalizedText;
   onToggle: (on: boolean) => void;
   onEdit: (line: BudgetLine, field: "quantity" | "price", value: number | null) => void;
 }) {
@@ -63,7 +66,7 @@ export function GroupPanel({ group, def, onToggle, onEdit }: {
             <tbody role="rowgroup">
               {group.lines.map((l) => {
                 const d = names.get(l.id);
-                const item = d?.name[locale] ?? def.name[locale];
+                const item = d?.name[locale] ?? (l.overhead ? overheadName?.[locale] : undefined) ?? def.name[locale];
                 const cellName = (key: "budget.table.quantityLabel" | "budget.table.priceLabel", edited: boolean) =>
                   t(key, { item }) + (edited ? `, ${t("budget.table.edited")}` : "");
                 return (

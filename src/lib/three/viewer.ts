@@ -10,7 +10,7 @@ import type { SMAAPass } from "three/addons/postprocessing/SMAAPass.js";
 import type { N8AOPass } from "n8ao";
 import { headingTrue, sunDirectionHouse, sunDirectionScene, toScene, type Vec3 } from "./frame";
 import { createInteriorFill, type InteriorFill } from "./interior";
-import { MIN_DOME_LUMINANCE, bakeEnvironment, gradientTexture, groundBounce, liftToLuminance } from "./sky";
+import { MIN_DOME_LUMINANCE, bakeEnvironment, gradientTexture, groundBounce, inverseNeutralToneMapping, liftToLuminance } from "./sky";
 import { easeInOut, orbitOffset, zoomOffset } from "./orbit";
 import { onSchemeChange, prefersReducedMotion, readToken } from "./theme";
 import { TIER_SETTINGS, detectTier, type Tier, type TierSettings } from "./tier";
@@ -243,6 +243,8 @@ export function createViewer(container: HTMLElement, opts: ViewerOptions): Viewe
   let visible = true;
   let lost = false;
   let raf = 0;
+  /** The composer's output pass tone-maps the whole frame, backdrop and fog included (without it the backdrop is not tone-mapped). */
+  let outputPass = false;
 
   function bakeSky(afterRestore = false) {
     // after a context restore the old generator and target belong to the lost context: they are dropped, not disposed
@@ -261,12 +263,14 @@ export function createViewer(container: HTMLElement, opts: ViewerOptions): Viewe
   // the backdrop colours come from the tokens; they are read when the scheme changes, not on every sun move
   const readPalette = () => ({ top: colorOf("--sky-top", "#a9c7de"), bottom: colorOf("--sky-bottom", "#e1ecf1"), stage: colorOf("--stage-bg", "#cfdce4") });
   let palette = readPalette();
+  /** A palette colour as the scene must hold it for the screen to show that colour (dark slate would come out darker and bluer). */
+  const framed = (c: THREE.Color) => (outputPass ? inverseNeutralToneMapping(c) : c.clone());
   /** Builds the background from the palette: a flat colour (stage) or a gradient texture (sky). */
   function paintBackdrop() {
     bgTexture?.dispose();
     bgTexture = null;
     if (backdrop === "sky") {
-      bgTexture = gradientTexture(palette.top, palette.bottom);
+      bgTexture = gradientTexture(framed(palette.top), framed(palette.bottom));
       scene.background = bgTexture;
     } else {
       scene.background = palette.stage.clone();
@@ -278,8 +282,8 @@ export function createViewer(container: HTMLElement, opts: ViewerOptions): Viewe
     const shade = 0.25 + 0.75 * day;
     const horizon = backdrop === "sky" ? palette.bottom : palette.stage;
     if (backdrop === "sky") scene.backgroundIntensity = shade;
-    else (scene.background as THREE.Color).copy(palette.stage).multiplyScalar(shade);
-    if (scene.fog) scene.fog.color.copy(horizon).multiplyScalar(shade);
+    else (scene.background as THREE.Color).copy(framed(palette.stage)).multiplyScalar(shade);
+    if (scene.fog) scene.fog.color.copy(framed(horizon)).multiplyScalar(shade);
   }
   const fogDefault = { near: extent.radius * 2.5, far: extent.radius * 8 };
   scene.fog = new THREE.Fog(0xffffff, fogDefault.near, fogDefault.far);
@@ -326,6 +330,8 @@ export function createViewer(container: HTMLElement, opts: ViewerOptions): Viewe
           comp.addPass(aa);
           comp.addPass(new o.OutputPass());
           composer = comp; ao = pass; smaa = aa;
+          outputPass = true;
+          paintBackdrop(); // the backdrop and the fog now pass through the tone mapper: repaint them compensated
           resize();
         })
         .catch((e: unknown) => { console.warn("post-processing is not available", e); })
@@ -579,8 +585,9 @@ export function createViewer(container: HTMLElement, opts: ViewerOptions): Viewe
       composer?.dispose();
       renderer.renderLists.dispose();
       renderer.dispose();
-      // iOS has few contexts; repeated navigation between the two 3D pages must not leak them
-      renderer.forceContextLoss();
+      // iOS has few contexts; repeated navigation between the two 3D pages must not leak them (a context that is lost already
+      // has no extension to ask, and three.js would warn)
+      if (!lost) renderer.forceContextLoss();
       canvas.remove();
       labels?.domElement.remove();
     },

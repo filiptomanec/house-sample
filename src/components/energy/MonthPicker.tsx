@@ -4,7 +4,7 @@ import { monthNames } from "@/lib/calendar";
 import { useLocale, useT } from "@/lib/i18n/client";
 import { shortMonths } from "./months";
 
-/** Twelve month buttons (six per row on a phone, one row on a desktop); one is pressed. */
+/** Twelve month buttons (four per row on a phone, one row on a desktop); one is pressed. */
 export function MonthPicker({ month, onMonth }: { month: number; onMonth: (m: number) => void }) {
   const locale = useLocale();
   const t = useT();

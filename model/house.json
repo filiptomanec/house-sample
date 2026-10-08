@@ -744,45 +744,45 @@
       "id": "street",
       "name": { "cs": "Pohled od ulice", "en": "Street view" },
       "kind": "perspective",
-      "position": [20.5, 38.5, 1.7],
-      "target": [11.5, 6, 2.4],
-      "fov": 32,
-      "use": ["web", "render", "og"]
+      "position": [11.5, 29, 13],
+      "target": [11.5, 7, 1.2],
+      "fov": 54,
+      "use": ["web", "render"]
     },
     {
       "id": "garden",
       "name": { "cs": "Pohled ze zahrady", "en": "Garden view" },
       "kind": "perspective",
-      "position": [4, -27, 3.2],
-      "target": [11.5, 4, 1.8],
-      "fov": 32,
+      "position": [11.5, -12.2, 1.2],
+      "target": [10, 2, 1.8],
+      "fov": 50,
       "use": ["web", "render"]
     },
     {
       "id": "aerial-sw",
       "name": { "cs": "Z\u00a0ptačí perspektivy od jihozápadu", "en": "Aerial view from the south-west" },
       "kind": "perspective",
-      "position": [-17, -22.5, 27],
+      "position": [-14, -17, 32],
       "target": [11.5, 5.5, 1.5],
-      "fov": 26,
-      "use": ["web", "render"]
+      "fov": 33,
+      "use": ["web", "render", "og"]
     },
     {
       "id": "aerial-se",
       "name": { "cs": "Z\u00a0ptačí perspektivy od jihovýchodu", "en": "Aerial view from the south-east" },
       "kind": "perspective",
-      "position": [40, -22.5, 27],
+      "position": [38, -16, 32],
       "target": [11.5, 5.5, 1.5],
-      "fov": 26,
+      "fov": 33,
       "use": ["web", "render"]
     },
     {
       "id": "terrace",
       "name": { "cs": "Krytá terasa", "en": "Covered terrace" },
       "kind": "perspective",
-      "position": [-6, -6, 1.7],
-      "target": [3, 2.5, 1.4],
-      "fov": 50,
+      "position": [4.2, -5.6, 1.6],
+      "target": [3.2, 2, 1.4],
+      "fov": 52,
       "use": ["web", "render"]
     },
     {
@@ -798,9 +798,9 @@
       "id": "entry",
       "name": { "cs": "Příchod ke vchodu", "en": "Approach to the entrance" },
       "kind": "perspective",
-      "position": [17.5, 26, 1.6],
-      "target": [17.5, 12, 1.6],
-      "fov": 45,
+      "position": [17.5, 20.7, 2.1],
+      "target": [17.5, 11.8, 1.7],
+      "fov": 42,
       "use": ["web", "render"]
     },
     {

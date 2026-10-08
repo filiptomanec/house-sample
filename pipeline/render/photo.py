@@ -2,7 +2,7 @@
 
     BLENDER -b --factory-startup --python pipeline/render/photo.py -- --mode stills|day|orbit [--quality draft|final]
         [--variant landscape|portrait] [--only id,id] [--range a:b] [--skip-existing] [--out DIR] [--inputs FILE]
-        [--device auto|gpu|cpu] [--list] [--blend FILE] [--no-verify]
+        [--device auto|gpu|cpu] [--list] [--missing] [--blend FILE] [--no-verify]
 
 Output: <out>/<file>.jpg per shot (`file` from the inputs, for example stills/street-sunset, day/0800, orbit/landscape/0035).
 Default <out> is pipeline/out for final and pipeline/out/draft for draft. A log with the time per frame goes to
@@ -13,6 +13,7 @@ from __future__ import annotations
 import os
 import sys
 
+sys.dont_write_bytecode = True      # no __pycache__ in the repository (it would embed absolute paths)
 HERE = os.path.dirname(os.path.abspath(__file__))
 if HERE not in sys.path:
     sys.path.insert(0, HERE)
@@ -21,12 +22,12 @@ from rn import config as CONFIG  # noqa: E402
 from rn import inputs as INPUTS  # noqa: E402
 from rn import shots as SHOTS    # noqa: E402
 from rn import runner            # noqa: E402
-from rn.util import argv_after_dashes, log, repo_path  # noqa: E402
+from rn.util import argv_after_dashes, repo_path  # noqa: E402
 
 
 def parse(argv):
     a = {"mode": "stills", "quality": "draft", "variant": "landscape", "only": None, "range": None, "skip": False,
-         "out": None, "inputs": None, "device": None, "list": False, "blend": None, "verify": True}
+         "out": None, "inputs": None, "device": None, "list": False, "missing": False, "blend": None, "verify": True}
     it = iter(argv)
     for tok in it:
         if tok in ("--mode", "--quality", "--variant", "--out", "--inputs", "--device", "--blend"):
@@ -40,6 +41,8 @@ def parse(argv):
             a["skip"] = True
         elif tok == "--list":
             a["list"] = True
+        elif tok == "--missing":
+            a["missing"] = True
         elif tok == "--no-verify":
             a["verify"] = False
         else:
@@ -54,7 +57,7 @@ def parse(argv):
 def main():
     a = parse(argv_after_dashes())
     cfg = CONFIG.Config.load(a["quality"])
-    inp = INPUTS.load(a["inputs"], verify=a["verify"])
+    inp = INPUTS.load(a["inputs"], verify=a["verify"] and not (a["list"] or a["missing"]))
     mode = a["mode"]
     shots = {"stills": SHOTS.stills, "day": SHOTS.day}.get(mode) or (lambda i: SHOTS.orbit(i, a["variant"]))
     shots = SHOTS.select(shots(inp), a["only"], a["range"])
@@ -63,6 +66,14 @@ def main():
         for s in shots:
             print(s["file"], s["size"], s["time"]["local"] if s.get("time") else "")
         return
+    if a["missing"]:
+        # no scene is built: lists the frames that do not exist yet; exit code 1 when there are some (for run_all.sh)
+        miss = [s["file"] for s in shots if not (os.path.exists(os.path.join(out, s["file"] + ".jpg"))
+                                                 and os.path.getsize(os.path.join(out, s["file"] + ".jpg")) > 1000)]
+        print("MISSING %d of %d" % (len(miss), len(shots)))
+        for f in miss[:20]:
+            print("  ", f)
+        sys.exit(1 if miss else 0)
     runner.run(inp, cfg, mode, shots, out, a)
 
 

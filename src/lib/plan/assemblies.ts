@@ -1,6 +1,7 @@
 // Cards of the constructions of the model (layers, resistance, U-value) and the legend of materials for the floor plan page.
 // Layer by layer figures come from calc/uvalue.ts (EN ISO 6946); names and colours come from the model. Pure, server-side data.
 import { assemblyBreakdown } from "@/lib/calc/uvalue";
+import { nb } from "@/lib/i18n/format";
 import type { Assembly, House, Locale } from "@/lib/model/types";
 import type { StyleMaterials } from "./view";
 
@@ -35,8 +36,8 @@ export function buildAssemblyCards(house: House, locale: Locale): AssemblyCard[]
     const a: Assembly = house.assemblies[key];
     const b = assemblyBreakdown(a);
     return {
-      key, name: a.name[locale], thickness: b.thickness, r: b.rLayers, u: b.u, ventilated: b.ventilated,
-      layers: a.layers.map((l, i) => ({ name: l.name[locale], thickness: b.layers[i].thickness, ignored: b.layers[i].ignored, share: b.layers[i].share, role: l.role ?? null })),
+      key, name: nb(a.name[locale], locale), thickness: b.thickness, r: b.rLayers, u: b.u, ventilated: b.ventilated,
+      layers: a.layers.map((l, i) => ({ name: nb(l.name[locale], locale), thickness: b.layers[i].thickness, ignored: b.layers[i].ignored, share: b.layers[i].share, role: l.role ?? null })),
     };
   });
 }
@@ -52,6 +53,6 @@ export function buildMaterialLegend(house: House, floors: readonly string[], sty
   roles.push("plaster", ...(house.accents.length ? ["wood_cladding"] : []), "roof_tile", "frame", "glass");
   return roles.flatMap((role) => {
     const m = style.materials[role];
-    return m ? [{ role, name: m.name[locale], color: m.color }] : [];
+    return m ? [{ role, name: nb(m.name[locale], locale), color: m.color }] : [];
   });
 }

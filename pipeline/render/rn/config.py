@@ -12,6 +12,10 @@ class Config:
         self.d = data
         if os.environ.get("RENDER_SKY"):                      # experiments: RENDER_SKY=0.3 overrides look.skyStrength
             data["look"]["skyStrength"] = float(os.environ["RENDER_SKY"])
+        if os.environ.get("RENDER_TREE_COPIES"):
+            n = int(os.environ["RENDER_TREE_COPIES"])
+            for k in data["trees"]["copies"]:
+                data["trees"]["copies"][k] = n
         if os.environ.get("RENDER_EXPOSURE"):
             data["look"]["exposure"] = float(os.environ["RENDER_EXPOSURE"])
         if quality not in data["quality"]:

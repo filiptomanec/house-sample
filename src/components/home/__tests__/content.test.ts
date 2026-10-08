@@ -1,5 +1,6 @@
 // The texts and figures of the start page in both languages: complete, formatted by the formatter, taken from the model.
 import { describe, expect, it } from "vitest";
+import { compassPoint } from "@/lib/calc/sun";
 import { stillMinutes, stills, media } from "@/lib/data/media";
 import { LOCALES, type Locale } from "@/lib/i18n/config";
 import { getFormatter, NBSP } from "@/lib/i18n/format";
@@ -28,7 +29,9 @@ describe.each(LOCALES)("start page content (%s)", (locale: Locale) => {
       clean(m.text);
       expect([m.from, m.to]).toEqual([story.windows[i].from, story.windows[i].to]);
     });
-    expect(moments.find((m) => m.key === "morning")!.text).toContain(f.clockHours(story.times.sunrise!));
+    const morning = moments.find((m) => m.key === "morning")!.text;
+    expect(morning).toContain(f.clockHours(story.times.sunrise!));
+    expect(morning).toContain(t(`home.compass.${compassPoint(story.times.sunriseAzimuth!)}`));
     const noon = moments.find((m) => m.key === "noon")!.text;
     expect(noon).toContain(f.clockHours(story.times.solarNoon));
     expect(noon).toContain(f.degrees(story.times.noonAltitude));
@@ -43,7 +46,7 @@ describe.each(LOCALES)("start page content (%s)", (locale: Locale) => {
     const by = Object.fromEntries(caps.map((c) => [c.key, c.text]));
     expect(by.terrace).toContain(f.area(facts.terrace.area));
     expect(by.roof).toContain(f.degrees(facts.roof!.pitchDeg));
-    expect(by.roof).toContain(f.length(facts.roof!.ridgeHeight));
+    expect(by.roof).toContain(f.length(facts.roof!.ridgeHeight, 1));
     expect(by.garage).toContain(f.area(facts.garage!.area));
     expect(by.garage).toContain(t(`home.side.${facts.garage!.side!}`));
     expect(by.entry).toContain(t(`home.side.${facts.entrySide!}`));

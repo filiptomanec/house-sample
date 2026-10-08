@@ -21,6 +21,9 @@
 /* ---------------------------------------------------------------- reserve and breakdown | groups */
 .budget-grid { display: grid; grid-template-columns: minmax(300px, 360px) minmax(0, 1fr); gap: clamp(20px, 3vw, 40px); align-items: start; }
 .budget-side { position: sticky; top: calc(var(--nav-h) + env(safe-area-inset-top) + var(--sp-4)); max-height: calc(100dvh - var(--nav-h) - env(safe-area-inset-top) - var(--sp-8)); overflow-y: auto; overscroll-behavior: contain; gap: var(--sp-5); }
+/* amounts never break inside a number; the label takes what is left (the shared .kv lets any value wrap anywhere) */
+.budget-kv { grid-template-columns: minmax(0, 1fr) auto; }
+.budget-kv > :nth-child(even) { white-space: nowrap; overflow-wrap: normal; }
 .budget-kv > .sub { padding-left: var(--sp-3); color: var(--ink-3); font-size: var(--fs-sm); }
 .budget-actions { display: grid; gap: var(--sp-2); }
 

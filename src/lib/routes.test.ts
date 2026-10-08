@@ -73,12 +73,13 @@ describe("resolveRequest (proxy)", () => {
     expect(resolveRequest("/pudorys")).toEqual({ type: "rewrite", to: "/cs/plan" });
     expect(resolveRequest("/pudorys/")).toEqual({ type: "rewrite", to: "/cs/plan" });
     expect(resolveRequest("/en/floor-plan")).toEqual({ type: "rewrite", to: "/en/plan" });
-    expect(resolveRequest("/en/floor-plan/x")).toEqual({ type: "rewrite", to: "/en/plan/x" });
+    // a known page with something appended is not a page: the 404 page, with status 404
+    expect(resolveRequest("/en/floor-plan/x")).toEqual({ type: "rewrite", to: "/en/plan/x", status: 404 });
   });
   it("lets URLs that already are key URLs through", () => {
     expect(resolveRequest("/en")).toEqual({ type: "next" });
     expect(resolveRequest("/en/model")).toEqual({ type: "next" });
-    expect(resolveRequest("/en/model/export")).toEqual({ type: "next" });
+    expect(resolveRequest("/en/model/export")).toEqual({ type: "rewrite", to: "/en/model/export", status: 404 });
   });
   it("redirects other spellings of a known page to the canonical URL", () => {
     expect(resolveRequest("/cs")).toEqual({ type: "redirect", to: "/" });

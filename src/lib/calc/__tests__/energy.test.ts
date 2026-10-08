@@ -12,6 +12,7 @@ import {
   computeEnergy,
   computeEnvelope,
   computeVentilation,
+  createEnergyContext,
   defaultEnergyContext,
   defaultInputs,
   energyInputSpecs,
@@ -460,6 +461,23 @@ describe("economics", () => {
     expect(noSale.economics.status).toBe("never");
   });
 
+  it("adds the fixed charges of the connection to both costs and leaves the saving as it is", () => {
+    const fixed = ctx.assumptions.economy.fixedChargesPerYear;
+    expect(fixed).toBeGreaterThan(0);
+    const r = computeEnergy(base, ctx);
+    const e = r.economics;
+    expect(e.costWithoutPv).toBeCloseTo(r.totals.elTotalKwh * base.priceBuy + fixed, 6);
+    expect(e.costWithPv).toBeCloseTo(r.totals.importKwh * base.priceBuy - r.totals.exportKwh * base.priceSell + fixed, 6);
+    // without panels the two bills are the same and the saving is zero
+    const none = computeEnergy({ ...base, pv: { ...base.pv, panelCount: 0 } }, ctx);
+    expect(none.economics.costWithPv).toBeCloseTo(none.economics.costWithoutPv, 6);
+    expect(none.economics.savings).toBeCloseTo(0, 6);
+    // the same saving with other fixed charges
+    const more = { ...ctx.assumptions, economy: { ...ctx.assumptions.economy, fixedChargesPerYear: fixed + 5000 } };
+    const ctx2 = createEnergyContext({ house: ctx.house, derived: ctx.derived, metrics: ctx.metrics, climate: ctx.climate, assumptions: more });
+    expect(computeEnergy(base, ctx2).economics.savings).toBeCloseTo(e.savings, 6);
+  });
+
   it("charges for the battery only when there are panels", () => {
     const r = computeEnergy({ ...base, pv: { ...base.pv, panelCount: 0 } }, ctx);
     expect(r.economics.investmentGross).toBe(0);
@@ -674,6 +692,8 @@ describe("inputs", () => {
     const none = computeEnergy({ ...base, pv: { ...base.pv, enabledPlanes: [] } }, ctx);
     expect(none.warnings.map((w) => w.key)).toContain("noPlanesEnabled");
     expect(none.totals.pvKwh).toBe(0);
+    // with every plane off the request cannot "not fit": only the note about the planes is shown
+    expect(none.warnings.map((w) => w.key)).not.toContain("panelsClamped");
   });
 });
 

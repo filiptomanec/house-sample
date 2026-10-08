@@ -34,7 +34,7 @@ export async function buildSunEngine(handle: StageHandle): Promise<SunEngine> {
   const analyzer = analysis.makeSunAnalyzer(handle.viewer, handle.house);
   const own = { slats: slats && slats.counts.screens ? slats : null, blinds: blinds && blinds.sections.length ? blinds : null };
   let disposed = false;
-  return {
+  const engine: SunEngine = {
     handle,
     analyzer,
     ...own,
@@ -43,6 +43,11 @@ export async function buildSunEngine(handle: StageHandle): Promise<SunEngine> {
       if (disposed) return;
       disposed = true;
       for (const part of [slats, blinds]) attempt("disposal", () => part?.dispose());
+      if (process.env.NODE_ENV !== "production" && hook.__sun === engine) delete hook.__sun;
     },
   };
+  // development hook for manual checks and the e2e tests, like `window.__stage`
+  const hook = window as unknown as { __sun?: SunEngine };
+  if (process.env.NODE_ENV !== "production") hook.__sun = engine;
+  return engine;
 }

@@ -19,8 +19,9 @@ import { RoomInfo } from "./RoomInfo";
 import { RoomTable } from "./RoomTable";
 import { useScale } from "./useScale";
 
-/** The enlarged plan is this wide (px); the chip is offered only where the plan is narrower. */
+/** The enlarged plan is this wide (px); the chip is offered only where the plan is clearly narrower (below ZOOM_OFFER of it). */
 const ZOOM_PX = 1000;
+const ZOOM_OFFER = 0.85;
 /** Scale assumed before the SVG is measured (server render): a desktop width. */
 const ASSUMED_SCALE = 36;
 
@@ -143,7 +144,7 @@ export function PlanTool({ view }: { view: PlanView }) {
   const measurePts = pts.length === 1 && hover ? [pts[0], hover] : pts;
   const layerOptions: ChipOption<LayerKey>[] = [
     { value: "zones", label: t("plan.layers.zones") }, { value: "furniture", label: t("plan.layers.furniture") }, { value: "dims", label: t("plan.layers.dims") },
-    ...(on.zoom || (measured !== null && measured * view.drawing.viewBox.w < ZOOM_PX - 1) ? [{ value: "zoom" as const, label: t("plan.layers.zoom") }] : []),
+    ...(on.zoom || (measured !== null && measured * view.drawing.viewBox.w < ZOOM_PX * ZOOM_OFFER) ? [{ value: "zoom" as const, label: t("plan.layers.zoom") }] : []),
   ];
   const changeMode = (m: PlanMode) => { setMode(m); setPts([]); setHover(null); setCursor(null); setSel(null); };
 

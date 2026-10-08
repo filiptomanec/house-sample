@@ -4,7 +4,6 @@ seeded random numbers, so adding one plant never moves another."""
 from __future__ import annotations
 
 import math
-import zlib
 
 from mathutils import Vector
 
@@ -35,6 +34,7 @@ class Vegetation:
         self.hints = {}
         self._species = {}
         self._mats = {}
+        plants._KEEP[TREE_MODEL] = float(self.cfg["trees"]["keep"][scn.mode])
         self.stats = plants.model_stats(TREE_MODEL)
 
     # ------------------------------------------------------------------ helpers
@@ -47,13 +47,25 @@ class Vegetation:
             self._mats[key] = factory()
         return self._mats[key]
 
-    def _tree_collection(self, species, leaf, copies):
-        """Library collection of one species: the scanned tree with tinted leaves, `copies` = number of rotated copies on
-        one trunk (1 = as scanned, 3 = a full crown)."""
-        key = (species, leaf, copies)
+    TONES = {"conifer": "#2f4d3a", "dark": "#4f7a30", "mid": "#6a9442", "light": "#86a95a"}
+
+    def _tone(self, leaf):
+        """The species colour of the data, reduced to three leaf tones (every tone is one material: the mesh is shared, which
+        keeps memory and render time low; an instance varies a little by its random value)."""
+        from .util import hex_to_linear
+        c = hex_to_linear(leaf)
+        best = min(self.TONES, key=lambda k: sum((a - b) ** 2 for a, b in zip(hex_to_linear(self.TONES[k]), c)))
+        return best
+
+    def _tree_collection(self, leaf, copies):
+        """Library collection of one leaf tone: the scanned tree with `copies` rotated copies on one trunk (1 = as scanned,
+        3 = a full crown)."""
+        tone = self._tone(leaf)
+        key = (tone, copies)
         if key not in self._species:
-            cp = [(0.0, 1.0, 0.0, 0.0), (125.0, 0.93, 0.0, 0.0), (250.0, 0.86, 0.0, 0.0)][:copies]
-            self._species[key] = plants.species_collection(TREE_MODEL, species, plants.leaf_tint(leaf, REF_GREEN), "tree", copies=cp)
+            cp = [(0.0, 1.0, 0.0, 0.0), (38.0, 0.92, 0.0, 0.0), (-38.0, 0.86, 0.0, 0.0)][:copies]
+            self._species[key] = plants.species_collection(TREE_MODEL, tone, plants.leaf_tint(self.TONES[tone], REF_GREEN),
+                                                           "tree", copies=cp, cutout=False, vary=0.5)
         return self._species[key]
 
     # ------------------------------------------------------------------ trees
@@ -64,73 +76,25 @@ class Vegetation:
 
     def _tree(self, tr):
         form = tr.get("form", "broadleaf-round")
-        if form == "conifer-pine":
-            return self._pine(tr)
         st = self.stats
         copies = {"birch-airy": 2, "orchard-round": 1, "orchard-oval": 1, "broadleaf-oval": 2}.get(form, 3)
-        col = self._tree_collection(tr["species"], tr["leaf"], copies)
+        copies = min(copies, int(self.cfg["trees"]["copies"][self.scn.mode]))
+        col = self._tree_collection(tr["leaf"], copies)
         r = rng("tree", tr["seed"])
-        sxy = tr["crown"] / st["crown"] * tr.get("scale", 1.0)
+        fit = float(self.cfg["trees"]["crownFit"])       # the scanned crown measures a little more than its leaf percentiles
+        sxy = tr["crown"] / st["crown"] * tr.get("scale", 1.0) * fit * (0.75 if form == "conifer-pine" else 1.0)
         sz = tr["height"] / st["height"] * tr.get("scale", 1.0)
         # the crown base of the data: the model's lowest leaves sit at z0; stretch the trunk so that they start at crownBase
         sz = max(sz, 0.5 * sxy) if form.startswith("orchard") else sz
         loc = (tr["x"], tr["y"], self.t.z(tr["x"], tr["y"], tr["z"]) - 0.05)
-        self._link(plants.instance(col, loc, (sxy, sxy, sz), tr.get("yawDeg", r.uniform(0, 360)), "tree_%s" % tr["species"]))
-
-    def _pine(self, tr):
-        """A Scots pine: leaning bare trunk, a ragged crown of a few flattened leafy clusters at the top."""
-        import bmesh
-        import bpy
-        r = rng("pine", tr["seed"])
-        h, cw = tr["height"], tr["crown"]
-        z0 = self.t.z(tr["x"], tr["y"], tr["z"]) - 0.05
-        bark = self._mat("bark", lambda: leafy.leaf_material("bark", "#5a4a3c", dark=0.55, light=1.0, scale=40.0, bump=1.0,
-                                                               rough=0.9))
-        bm = bmesh.new()
-        seg = 14
-        lean = Vector((r.uniform(-0.04, 0.04), r.uniform(-0.04, 0.04), 0))
-        rings = []
-        for k in range(seg + 1):
-            t = k / seg
-            rad = 0.26 * (1 - 0.75 * t) + 0.04
-            c = Vector((lean.x * h * t * t, lean.y * h * t * t, h * 0.9 * t))
-            ring = []
-            for a in range(10):
-                an = a / 10 * 2 * math.pi
-                ring.append(bm.verts.new(c + Vector((math.cos(an) * rad, math.sin(an) * rad, 0))))
-            rings.append(ring)
-        for k in range(seg):
-            for a in range(10):
-                bm.faces.new((rings[k][a], rings[k][(a + 1) % 10], rings[k + 1][(a + 1) % 10], rings[k + 1][a]))
-        me = bpy.data.meshes.new("pine_trunk")
-        bm.to_mesh(me)
-        bm.free()
-        for p in me.polygons:
-            p.use_smooth = True
-        me.materials.append(bark)
-        trunk = bpy.data.objects.new("pine_trunk", me)
-        trunk.location = (tr["x"], tr["y"], z0)
-        self._link(trunk)
-        mat = self._mat("pine", lambda: leafy.leaf_material("pine_needles", "#35523f", dark=0.35, light=1.0, scale=22.0,
-                                                              bump=1.4, rough=0.7))
-        top = h * 0.97
-        base = max(tr.get("crownBase", h * 0.5), h * 0.52)
-        # a rounded irregular crown at the top: clumps of needles inside an ellipsoid, the lower ones wider, the top ones small
-        cz = 0.5 * (base + top)
-        rz = 0.5 * (top - base)
-        for k in range(15):
-            a = r.uniform(0, 2 * math.pi)
-            u = r.random() ** 0.6
-            v = r.uniform(-1, 1)
-            ring = math.sqrt(max(0.0, 1 - v * v)) * u
-            zc = cz + v * rz * 0.9
-            rad = cw * 0.5 * r.uniform(0.28, 0.42) * (1.1 - 0.35 * (zc - base) / (top - base))
-            lx = lean.x * h * (zc / h) ** 2
-            ly = lean.y * h * (zc / h) ** 2
-            ob = leafy.ball("pine_clump_%d" % k, rad, mat, tr["seed"] + k, squash=0.62, subdiv=4, amp=0.34)
-            ob.location = (tr["x"] + lx + math.cos(a) * ring * cw * 0.5 * 0.85, ty_(tr, ly, a, ring, cw), z0 + zc)
-            ob.rotation_euler = (0, 0, r.uniform(0, 6.28))
-            self._link(ob)
+        yaw = tr.get("yawDeg", r.uniform(0, 360))
+        c = self.inputs["house"]["center"]
+        if math.hypot(tr["x"] - c[0], tr["y"] - c[1]) < 22.0:
+            # the scanned crown leans to one side: turn it away from the house, so that it does not cover the facade
+            away = math.degrees(math.atan2(tr["y"] - c[1], tr["x"] - c[0]))
+            lean = math.degrees(math.atan2(st["cy"], st["cx"]))
+            yaw = away - lean + r.uniform(-25, 25)
+        self._link(plants.instance(col, loc, (sxy, sxy, sz), yaw, "tree_%s" % tr["species"]))
 
     # ------------------------------------------------------------------ shrubs and hedges
     def shrubs(self):
@@ -176,7 +140,7 @@ class Vegetation:
     def hedges(self):
         for k, h in enumerate(self.inputs["site"]["hedges"]):
             leaf = h["leaf"]
-            mat = self._mat(("hedge", leaf), lambda: leafy.leaf_material("hedge_%d" % k, leaf, dark=0.5, scale=22.0, bump=0.7))
+            mat = self._mat(("hedge", leaf), lambda: leafy.leaf_material("hedge_%d" % k, leaf, dark=0.4, light=0.95, scale=22.0, bump=0.7, ao=0.6))
             ob = leafy.hedge("hedge_%d" % k, h["path"], lambda x, y: self.t.z(x, y), h["height"], h["width"], mat, k + 3)
             self._link(ob)
 
@@ -198,7 +162,7 @@ class Vegetation:
             blocked.append([tuple(p) for p in n["footprint"]])
         cols = {}
         for i, hexc in enumerate(("#5f8a3a", "#6a9442", "#52803a", "#7a9a4a")):
-            cols[i] = self._tree_collection("far%d" % i, hexc, 2)
+            cols[i] = self._tree_collection(hexc, int(self.cfg["trees"]["farCopies"][self.scn.mode]))
         placed = []
 
         def ok(x, y):

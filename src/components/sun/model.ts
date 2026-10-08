@@ -146,6 +146,9 @@ export interface AreaRow {
   label: LocalizedText;
 }
 
+/** Said of a covered area that is not a terrace ("Zpevněná plocha (zastřešeno)"), so that it is not mistaken for open paving. */
+const ROOFED: LocalizedText = { cs: "zastřešeno", en: "roofed" };
+
 /** Terraces and covered areas (what the analysis reports), in model order; equal names get a number. */
 export function sunAreas(derived: Pick<Derived, "outdoor">): AreaRow[] {
   const list: DerivedOutdoor[] = derived.outdoor.filter((a) => a.type === "terrace" || a.covered);
@@ -157,7 +160,8 @@ export function sunAreas(derived: Pick<Derived, "outdoor">): AreaRow[] {
     seen.set(a.type, n);
     const base = OUTDOOR_TYPE_NAMES[a.type];
     const suffix = (total.get(a.type) ?? 0) > 1 ? ` ${n}` : "";
-    return { id: a.id, type: a.type, covered: a.covered, label: { cs: base.cs + suffix, en: base.en + suffix } };
+    const roof = a.covered && a.type !== "terrace";
+    return { id: a.id, type: a.type, covered: a.covered, label: { cs: `${base.cs}${suffix}${roof ? ` (${ROOFED.cs})` : ""}`, en: `${base.en}${suffix}${roof ? ` (${ROOFED.en})` : ""}` } };
   });
 }
 

@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from mathutils import Vector
 
-from . import ground_materials as GM
 from .util import hex_to_linear, log
 
 

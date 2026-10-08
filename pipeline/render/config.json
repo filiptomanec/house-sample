@@ -25,15 +25,26 @@
     },
     "belowHorizonHoldDeg": 0.5,
     "belowHorizonFalloff": 0.2,
-    "categoryEv": {
-      "interior": 0.9,
-      "compare": 0.0
-    },
-    "daylightLampsEv": 0.7,
+    "categoryEv": {},
+    "daylightLampsEv": 0.0,
     "glare": {
-      "mix": -0.92,
-      "threshold": 1.2,
-      "size": 8
+      "enabled": true,
+      "type": "Bloom",
+      "threshold": 2.0,
+      "strength": 0.25,
+      "size": 0.55
+    },
+    "autoExposure": {
+      "categories": [
+        "interior",
+        "compare"
+      ],
+      "target": 0.15,
+      "minEv": -1.5,
+      "maxEv": 2.3,
+      "previewWidth": 320,
+      "previewSamples": 16,
+      "percentile": 50
     }
   },
   "quality": {
@@ -64,20 +75,20 @@
     "final": {
       "stills": {
         "scale": 1.0,
-        "samples": 256,
+        "samples": 160,
         "threshold": 0.01,
         "quality": 95
       },
       "day": {
         "scale": 1.0,
-        "samples": 96,
+        "samples": 56,
         "threshold": 0.02,
         "quality": 95
       },
       "orbit": {
         "scale": 0.8333,
         "portraitScale": 0.6667,
-        "samples": 48,
+        "samples": 24,
         "threshold": 0.015,
         "quality": 95,
         "motionBlur": 0.15
@@ -97,7 +108,7 @@
     "grassDensityPerM2": {
       "stills": 16,
       "day": 16,
-      "orbit": 6
+      "orbit": 10
     },
     "grassFullRadiusM": 16,
     "grassFadeRadiusM": 42,
@@ -109,5 +120,23 @@
   },
   "lampScale": 1.0,
   "lampColorMix": 0.6,
-  "interiorLampBoost": 1.0
+  "interiorLampBoost": 1.0,
+  "trees": {
+    "copies": {
+      "stills": 3,
+      "day": 2,
+      "orbit": 2
+    },
+    "farCopies": {
+      "stills": 2,
+      "day": 1,
+      "orbit": 1
+    },
+    "keep": {
+      "stills": 0.6,
+      "day": 0.45,
+      "orbit": 0.3
+    },
+    "crownFit": 0.88
+  }
 }

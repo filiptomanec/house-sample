@@ -8,12 +8,16 @@ import pvgisJson from "@/lib/data/pvgis.json";
 import { DIRS, FLOORS, OPENING_KINDS, ROOM_TYPES } from "@/lib/model/catalog";
 import { baseline } from "@/lib/model/__tests__/helpers";
 import * as budget from "../budget";
-import * as energy from "../energy";
+import * as energyCore from "../energy";
+import * as energySchema from "../energySchema";
 import * as printModel from "../printModel";
 import * as roofLayout from "../roofLayout";
 import * as storageKeys from "../storageKeys";
 import * as sun from "../sun";
 import * as uvalue from "../uvalue";
+
+/** The energy API: the calculation (energy.ts) and the validator of the assumptions file (energySchema.ts, kept out of the browser bundle). */
+const energy = { ...energyCore, ...energySchema };
 
 const surface: Record<string, { module: Record<string, unknown>; functions: string[]; values: string[] }> = {
   sun: {
@@ -268,7 +272,7 @@ describe("model/pricebook.json", () => {
 
 describe("climate data (src/lib/data/pvgis.json) as ClimateData", () => {
   it("has every field the energy module reads, for each house-frame facing", () => {
-    const c = pvgisJson as unknown as energy.ClimateData;
+    const c = pvgisJson as unknown as energyCore.ClimateData;
     expect(c.schema).toBe("pvgis/1");
     for (const d of DIRS) {
       expect(c.facings[d].azimuthDeg, d).toBeTypeOf("number");
@@ -283,7 +287,7 @@ describe("climate data (src/lib/data/pvgis.json) as ClimateData", () => {
 
   it("belongs to the model: roof pitch, house axis bearing and location", () => {
     const { house, derived } = baseline();
-    const c = pvgisJson as unknown as energy.ClimateData;
+    const c = pvgisJson as unknown as energyCore.ClimateData;
     for (const f of derived.roofPlanes) expect(Math.abs(f.pitch - c.slope)).toBeLessThan(0.5);
     expect(Math.abs(derived.houseAxisBearingDeg - c.houseAxisBearingDeg)).toBeLessThan(0.5);
     expect(c.meta.lat).toBe(house.location.lat);

@@ -121,6 +121,8 @@ export function resolveRequest(pathname: string): Resolution {
   key = key ?? "home";
   if (explicitDefault) return { type: "redirect", to: routePath(locale, key, tail) };
   const to = internalPath(locale, key, tail);
+  // a known page with something appended is not a page: serve the 404 page with status 404 (no soft 404)
+  if (tail.length) return { type: "rewrite", to, status: 404 };
   const from = `/${segmentsOf(pathname).join("/")}`;
   return to === from ? { type: "next" } : { type: "rewrite", to };
 }

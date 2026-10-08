@@ -8,12 +8,12 @@ export default defineMessages({
     lede: "Fiktivní přízemní dům s dlouhou valbovou střechou, spočítaný a vykreslený z jednoho datového modelu.",
     hero: {
       kicker: "Fiktivní dům · datově řízený projekt",
-      hint: "Posouvejte a projděte jeden den",
+      hint: "Posouvejte dolů a projděte celý den",
       alt: "Dům od rána do setmění v jednom dni",
     },
     day: {
       moments: {
-        morning: { title: "Ráno", text: "Slunce vychází v {sunrise} a nejdřív osvětlí východní fasádu.", textAlways: "Slunce je nad obzorem celý den." },
+        morning: { title: "Ráno", text: "Slunce vychází v {sunrise} na {direction}.", textAlways: "Slunce je nad obzorem celý den." },
         noon: { title: "Poledne", text: "V {noon} je slunce nejvýš, {altitude} nad obzorem. Střecha přesahuje o {overhang} a stíní okna před vysokým sluncem." },
         evening: { title: "Večer", text: "Slunce se sklání k západu a stíny se táhnou přes zahradu." },
         afterSunset: { title: "Po západu", text: "Slunce zapadá v {sunset}. Zbývá soumrak." },
@@ -42,6 +42,8 @@ export default defineMessages({
       entry: { title: "Vstup", text: "Hlavní vstup je na {side} fasádě." },
     },
     side: { N: "severní", E: "východní", S: "jižní", W: "západní" },
+    // the direction of the sunrise on the horizon, in the locative ("na severovýchodě")
+    compass: { N: "severu", NE: "severovýchodě", E: "východě", SE: "jihovýchodě", S: "jihu", SW: "jihozápadě", W: "západě", NW: "severozápadě" },
     plan: {
       kicker: "Dispozice",
       title: "Čtyři zóny, jeden půdorys",
@@ -85,12 +87,12 @@ export default defineMessages({
     lede: "A fictional single-storey house with a long hipped roof, calculated and rendered from a single data model.",
     hero: {
       kicker: "Fictional house · data-driven project",
-      hint: "Scroll to move through one day",
+      hint: "Scroll down to follow a whole day",
       alt: "The house from morning to dusk in a single day",
     },
     day: {
       moments: {
-        morning: { title: "Morning", text: "The sun rises at {sunrise} and lights the east facade first.", textAlways: "The sun stays above the horizon all day." },
+        morning: { title: "Morning", text: "The sun rises at {sunrise} in the {direction}.", textAlways: "The sun stays above the horizon all day." },
         noon: { title: "Noon", text: "At {noon} the sun is highest, {altitude} above the horizon. The roof overhangs by {overhang} and shades the windows from the high sun." },
         evening: { title: "Evening", text: "The sun sinks towards the west and shadows stretch across the garden." },
         afterSunset: { title: "After sunset", text: "The sun sets at {sunset}. Twilight follows." },
@@ -119,6 +121,7 @@ export default defineMessages({
       entry: { title: "Entrance", text: "The main entrance is on the {side} facade." },
     },
     side: { N: "north", E: "east", S: "south", W: "west" },
+    compass: { N: "north", NE: "north-east", E: "east", SE: "south-east", S: "south", SW: "south-west", W: "west", NW: "north-west" },
     plan: {
       kicker: "Layout",
       title: "Four zones, one floor plan",

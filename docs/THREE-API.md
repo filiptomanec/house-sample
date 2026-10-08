@@ -5,9 +5,9 @@ plot, plants, movable shading, photovoltaics, a walk mode and a ray-cast sun ana
 (`docs/ARCHITECTURE.md`): no number of the house and no id appears in the engine; geometry that is not in the GLB is generated from
 `derive()` and `model/site.json`.
 
-**Status (engine finished).** Everything below is implemented, tested (`src/lib/three/*.test.ts`, 181 tests including the Sun agent's: pure geometry, invariants of the
-model, independent oracles; no GL context needed) and checked visually on the Model and Sun pages (desktop 1440, iPhone 15 and SE
-in WebKit, dark scheme). The interface of the first draft is unchanged; the additions are listed in section 15.
+**Status.** Everything below is implemented and tested (`src/lib/three/*.test.ts`, about 180 tests: pure geometry, invariants of the
+model, independent oracles; no GL context needed) and checked on the Model and Sun pages in Chromium and WebKit (desktop 1440, iPhone 15 and SE,
+light and dark scheme; the Playwright suite in `e2e/` covers the stage states).
 
 | module | content |
 |---|---|
@@ -20,7 +20,7 @@ in WebKit, dark scheme). The interface of the first draft is unchanged; the addi
 | `terrain.ts`, `surroundings.ts`, `vegetation.ts`, `meshBuilder.ts` | ground, neighbours and fences, plants, a small mesh builder |
 | `blinds.ts`, `extBlinds.ts`, `pv.ts` | slat screens, exterior blinds, PV and battery |
 | `walkCollision.ts`, `walk.ts` | colliders (pure), the walk controller |
-| `sunAnalysis.ts` | owned by the Sun page agent |
+| `sunAnalysis.ts` | the ray-cast sun analysis (section 10) |
 | `dispose.ts` | freeing scene graphs |
 | `src/components/three/Stage.tsx`, `src/styles/components/stage.css` | the React shell and its styles |
 | `index.ts`, `n8ao.d.ts` | type-only barrel, types for the AO package |
@@ -34,7 +34,7 @@ in WebKit, dark scheme). The interface of the first draft is unchanged; the addi
 2. **The scene is the house frame.** The world frame is the house frame mapped to glTF Y-up: house `(x, y, z)` is scene
    `(x, z, -y)` (`toScene`, `fromScene`). There is no rotating "plan group": the GLB, the terrain, the plot and all add-ons are in
    one frame. True orientation enters only through `ctx.bearingDeg` (`derived.houseAxisBearingDeg`), for the sun direction and
-   the compass. (The earlier engine kept a rotated group and a map-grid convergence; both are gone.)
+   the compass.
 3. **No hidden global state.** Nothing mutable lives at module level except the shared Draco decoder (released after
    `idleDecoderMs`). Parsed GLB scenes are not cached across viewers: one `HouseScene` owns what it loaded and disposes it
    (geometries, materials, textures, BVH). The HTTP cache serves the bytes (URLs carry the content hash).
@@ -162,7 +162,7 @@ const viewer = createViewer(container, { bearingDeg: ctx.bearingDeg, extent: sce
 | high tier | `EffectComposer` (its modules and n8ao are `import()`ed on the high tier only, the first frames are drawn without them): **N8AOPass** (renders the scene itself; no RenderPass before it; `gammaCorrection: false`) then **SMAAPass** then `OutputPass`. AO radius and intensity ease (4 per second) between the outdoor and the indoor setting when the camera enters the interior region (`interior.contains(camera)`) |
 | low tier | no composer; `antialias: true` on the context (MSAA); alpha-tested foliage uses `alphaToCoverage` only here |
 | sky and light | No HDRI file. The environment is a procedural gradient dome (tokens `--sky-top`, `--sky-bottom`, a warm ground bounce derived from the `lawn` material, `ViewerOptions.groundColor`) times `SKY_GAIN` (1.7), baked with `PMREMGenerator.fromScene` once (in the task after the first frame), on a scheme change and after a context restore. A dark theme has dark tokens, but daylight stays daylight: a dome darker than `MIN_DOME_LUMINANCE` is lifted towards white. `backdrop: "stage"` is a flat `--stage-bg`, `"sky"` a vertical gradient between the sky tokens; fog has the backdrop colour (`setFog(near, far)`; the house scene starts it at 0.8 and ends it at 2.0 times the distance to the far corner of the ground) |
-| sun | `setSun(azTrue, altitude)`: `DirectionalLight` at 150 m along `sunDirectionScene`; starting values from the earlier engine: intensity `5.2 * smoothstep(alt, -1, 6)`, colour `(1, 0.72 + 0.25 k, 0.5 + 0.42 k)` with `k = clamp(alt / 14, 0, 1)`, hemisphere `0.05 + 0.12 d`, environment `0.12 + 0.43 d`, background `0.25 + 0.75 d` with `d = smoothstep(alt, -8, 20)` |
+| sun | `setSun(azTrue, altitude)`: `DirectionalLight` at 150 m along `sunDirectionScene`; intensity `5.2 * smoothstep(alt, -1, 6)`, colour `(1, 0.72 + 0.25 k, 0.5 + 0.42 k)` with `k = clamp(alt / 14, 0, 1)`, hemisphere `0.05 + 0.12 d`, environment `0.12 + 0.43 d`, background `0.25 + 0.75 d` with `d = smoothstep(alt, -8, 20)` |
 | camera | one `PerspectiveCamera`; `OrbitControls` with damping 0.08 (off with reduced motion), `screenSpacePanning = false` (pan over the ground like a map), limits from `orbitLimitsFor(extent)`, the target is pulled back into the target box together with the camera |
 | gestures | `setPanMode(false)`: left drag / one finger rotates, right drag / two fingers pan (two fingers also pinch-zoom). `true` swaps them. Both gestures stay available in both modes |
 | views | `setView(view, { animate })` eases position, target and fov over `transitionMs` (600), cancelled by the next call or by user input; no animation with reduced motion |
@@ -187,7 +187,7 @@ a warm bounce under covered outdoor areas, all through an `onBeforeCompile` patc
 * `setDaylight(altitude, sunHorizontal)` (called by `viewer.setSun`): `fill = 0.34 + 0.5 d`; side light `(1, 0.86 + 0.08 d, 0.70 + 0.16 d) * fill * 1.14`,
   from above `* 1.02`, from below `(1, 0.82 + 0.06 d, 0.64 + 0.10 d) * fill * 0.75`; faces turned to the sun get up to 24 % more; 45 % of the diffuse
   IBL stays, 90 % of the specular is replaced by the room; 20 % darker towards the floor (smoothstep over 1.4 m). Mirrors (`userData.mirror`) show a bright room.
-  These are the values of the earlier engine; tune them against the renders.
+  The constants are tuned against the renders.
 * `patch(material)` is idempotent, keeps an existing `onBeforeCompile`, sets `customProgramCacheKey`, and ignores transparent materials (glass would turn milky).
 * `contains(pointScene)` is the point-in-polygon test of the ring (without the inset) with the height range (AO radius, tests).
 
@@ -294,10 +294,27 @@ a wall of the room with `role: "plant"` returned by `batteryMount(ctx)`, inverte
 
 ## 10. Sun analysis (`sunAnalysis.ts`)
 
-`makeSunAnalyzer(viewer, house, opts?).day(date, step = 10, shades = [])` returns hours of direct sun per room, per terrace / covered outdoor area (with and without the movable
-shading) and a time series, all from `derived` (windows: `glazingArea > 0` and `room`; areas: `derived.outdoor`). Samples: 3 x 2 per window behind the outer face, 5 x 3 per area at 0.45 m;
-ray start +3 cm along the normal; `ray.far` large enough for the plot; neighbours, trees, hedges and fences count with leaf-dependent transmittance (kernel `rayTransmittance`).
-`calc/sun.sunHoursOnSurface` is the analytic upper bound used as test oracle (a window with nothing in front gets exactly that; with the roof overhang it gets at most that). Months are 0-based.
+`makeSunAnalyzer(viewer, house, opts?)` returns a `SunAnalyzer`: hours of direct sun per room, per terrace and covered outdoor area, and a time series, all from
+`derived` (windows: `glazingArea > 0` and `room`; areas: `derived.outdoor`). The calc side (astronomy, the analytic oracle) is in `docs/CALC-API.md`, section 4.1.
+
+| member | meaning |
+|---|---|
+| `day(date, step = 10, shades = [])` | a `SunDayResult` for one calendar day (months 0-based): the sampled instants above the horizon (`times`, `altitude`, `azimuthTrue`) and a `SunSeries {hours, fraction[]}` per room (`rooms`), per area with the movable shading as set (`outdoors`) and without it (`outdoorsOpen`, memoised per day because it does not depend on the shades). Synchronous, some tens of milliseconds. `shades` are the movable occluders in their current state (`SlatScreens.occluders()`, `ExtBlinds.occluders()`) |
+| `dayAsync(date, step, shades, {signal, sliceMs = 8})` | the same result computed in slices of a few milliseconds that yield to the event loop, so sliders and scrolling stay smooth on phones; resolves `null` when the `AbortSignal` fires (abort before changing the shades). No web worker: the scene, its BVHs and the instance matrices of the blinds live on the main thread, and copying them would cost more memory and start-up time than slicing costs in latency |
+| `windows`, `areas` | what is sampled (`SampledWindow`: opening id, room id, outward normal and sample points in the scene frame; `SampledArea`: area id and points), for tests and debugging |
+| `terrainHorizon(azimuthTrue)` | elevation in degrees of the terrain horizon seen from the house in a true azimuth (negative: the ground falls away). The analytic ground is marched once per direction and the sun below it lights nothing |
+| `blockers(origin, direction)` | debugging: every static house mesh a ray meets (its nearest hit), nearest first, with `role`, `id` and `name` |
+
+Options (`SunAnalyzerOptions`): `sunPosition` (a function `(date, minuteOfDay) -> {azimuth, altitude}`; the default is `calc/sun` for `placeOf(house)`, tests inject their own), `surroundings`
+(neighbours, trees, hedges and fences count, default true), `terrain` (the terrain is a horizon, default true) and `cull` (test only the surrounding solids that can touch the bundle of rays of one
+instant; the result is the same, just faster).
+
+Samples: a 3 x 6 grid per window in the glass plane (`GLASS_DEPTH` behind the outer face, where the Blender builder puts the glass; a window's value is the sunlit share of its glass, so a low
+strip lit under a deep overhang counts in proportion instead of rounding to zero), 5 x 3 per area at 0.45 m above its floor; the ray starts 3 cm along the normal. **An opening counts only
+while the sun is in front of its wall** (`dot(sun, outward normal) > 0`, the same test as the analytic oracle `calc/sun.sunHoursOnSurface`; at grazing angles the reveal and the wall shade the
+sample anyway). Occluders: `house.occluders`, the `shades` passed in, and the surroundings as analytic solids with leaf-dependent transmittance (kernel `rayTransmittance`); each sample's value
+is its transmittance (0 to 1). The static house is cast with the BVH of `three-mesh-bvh`; the movable slats (hundreds of instances) go through a small AABB index built once per call. A day is about
+70 sunlit instants times 100 rays. `sunHoursOnSurface` is the upper bound used as the test oracle (a window with nothing in front gets exactly that; with the roof overhang at most that).
 
 ## 11. React: `Stage` (`src/components/three/Stage.tsx`)
 
@@ -349,8 +366,8 @@ Same stage with `extent="house"`, `backdrop="sky"`, no furniture switch; `makeSu
 | `walkColliders.test.ts` | gaps at every passable opening, windows and garage doors solid, no tunnelling at 5 fps while running, every room and the terrace reachable by flood fill with and without furniture, furniture solid, start pose |
 | `contract.test.ts` | `checkHouseContract` on scenes built from the real GLB JSON and on each violation, progress groups, loading failures are `GlbError`s |
 | `imports.test.ts` | three.js is imported only by the engine, its shell and the Model and Sun components; the pure modules import no three.js |
-| `sunAnalysis` (Sun agent) | see docs/CALC-API.md |
-| e2e (Playwright, later) | `.stage[data-status="ready"]`, `canvas.gl` non-blank, context-loss overlay, 3D navigation Model <-> Sun without heap growth (checked by hand: the heap stays flat over repeated navigation, the old context is lost), walk and joystick |
+| `sunAnalysis.test.ts` | sample grids from the data (glass plane, 3 x 6 per window, 5 x 3 per area); the open scene against `calc/sun.sunHoursOnSurface`; overhang strips counted in proportion; obstacles, shades, surroundings and terrain never add sun; `blockers`; the box prefilter and the culling give exactly the result of plain ray casting; `dayAsync` equals `day` and can be aborted; days with 23 and 25 hours |
+| e2e (Playwright, `e2e/`) | `.stage[data-status="ready"]`, `canvas.gl` non-blank, context-loss overlay, 3D navigation Model <-> Sun without heap growth (checked by hand: the heap stays flat over repeated navigation, the old context is lost), walk and joystick |
 
 Visual checks need WebGL: use the browser screenshot script (`scripts/shot.mjs`) against the dev server; check desktop 1440, iPhone 15 and SE, dark mode.
 
@@ -363,16 +380,16 @@ Visual checks need WebGL: use the browser screenshot script (`scripts/shot.mjs`)
 * Hidden or off-screen stages do no work. The walk and LOD pause with them.
 * A GLB that violates the contract fails loudly in development and tests and degrades with a console warning in production.
 
-## 14. Requests to shared files
+## 14. Integration with shared files
 
-1. `model/style.json` **optional** section `generated` (roles `pv_cell`, `pv_frame`, `blind_slat`, `blind_rail`, `battery_case`, `battery_trim`, `battery_led`, `bark`, `foliage_tree`, `foliage_shrub`, `asphalt`, `field`, `kerb`, `fence_wood`, `fence_plinth`, `fence_mesh`, `neighbour_wall`, `neighbour_roof`), same shape as `materials`, no orange. Not part of `materials`, so `style.test.ts` keeps passing. Until it exists, `generatedMaterial` falls back to named style roles (the engine works without it; the scene above was checked that way).
-2. `next.config.ts` headers: `/models/*` immutable (URLs carry the hash), `/draco/*` one day.
-3. `ASSETS.md`: entry for the Draco decoder (Google Draco, Apache-2.0, copied from three.js r169 `examples/jsm/libs/draco/gltf`).
-4. `scripts/check-bundles.mjs` must keep allowing `three`, `three-mesh-bvh` and `n8ao` (and `postprocessing`, a peer of n8ao) only on the Model and Sun routes; `Stage.tsx` imported by other pages would break it (`imports.test.ts` guards the source).
-5. `calc/sun.ts` `sunDirection` should delegate to `frame.ts` `sunDirectionHouse` (or be tested against it).
-6. The camera "terrace" of `house.cameras` stands outside the plot behind the west hedge (the view is blocked by the hedge); the "street" and "entry" cameras are across the street, behind the plinth fence. Cameras are data, not engine.
+1. `model/style.json` may have an **optional** section `generated` (roles `pv_cell`, `pv_frame`, `blind_slat`, `blind_rail`, `battery_case`, `battery_trim`, `battery_led`, `bark`, `foliage_tree`, `foliage_shrub`, `asphalt`, `field`, `kerb`, `fence_wood`, `fence_plinth`, `fence_mesh`, `neighbour_wall`, `neighbour_roof`), same shape as `materials`, no orange. It is not part of `materials`, so `style.test.ts` is unaffected. The shipped file has none: `generatedMaterial` derives each colour from a named style role, and the engine works without the section.
+2. `next.config.ts` serves `/models/*.glb|json` with `Cache-Control: public, max-age=31536000, immutable` (URLs carry the content hash), `/draco/*` for one day and `*.usdz` for one hour with the USDZ media type.
+3. `ASSETS.md` has the entry for the Draco decoder (Google Draco, Apache-2.0, copied from three.js r169 `examples/jsm/libs/draco/gltf`).
+4. `scripts/check-bundles.mjs` finds three.js by its renderer signature and fails when a page other than Model and Sun loads a chunk that carries it (three-mesh-bvh and n8ao are bundled with it); `Stage.tsx` imported by another page would break it, and `imports.test.ts` guards the source.
+5. `calc/sun.ts` `sunDirection` and `frame.ts` `sunDirectionHouse` are the same formula; a test compares them.
+6. Cameras are data (`house.cameras`, `use: "web"`), never engine code.
 
-## 15. Changes to the first draft (all backward compatible)
+## 15. Changes since the first design (all backward compatible)
 
 * `Viewer.setFog(near, far)`, `Viewer.extent`, `ViewerOptions.groundColor` (the lawn colour of the style, for the light bounced from the ground).
 * `LoadOptions.tier` (sets the number of Draco workers when the decoder is created); `loadHouseGltf` / `loadFurnitureGltf` pass it. `extrasOf(node)` (extras of a mesh or its parent group).

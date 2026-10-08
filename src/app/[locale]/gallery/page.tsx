@@ -25,7 +25,7 @@ export default async function Page({ params }: Props) {
   const view = buildGalleryView(media, locale);
   return (
     <div className="night gal-page">
-      <ToolHead n={ROUTES.gallery.n} title={t("nav.items.gallery.label")} lede={t("gallery.lede")} />
+      <ToolHead n={ROUTES.gallery.n} title={t("nav.items.gallery.label")} lede={t(view.video ? "gallery.lede" : "gallery.ledeStills")} />
       <I18n locale={locale} namespaces={["gallery"]}>
         <Gallery view={view} />
       </I18n>

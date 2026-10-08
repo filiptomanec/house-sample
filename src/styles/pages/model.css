@@ -39,7 +39,10 @@
 .export-grid .btn { justify-self: start; }
 .export-grid .note.warn { color: var(--bad); }
 .ar-link img { border-radius: var(--r-xs); }
-.ar-size { font: var(--weight-medium) var(--fs-xs) / 1 var(--font-mono); opacity: 0.7; }
+.ar-size { font: var(--weight-medium) var(--fs-xs) / 1 var(--font-mono); opacity: 0.7; white-space: nowrap; }
+/* the values of the print report stay on one line; the label gives way */
+.model-export .kv { grid-template-columns: minmax(0, 1fr) max-content; }
+.model-export .kv > :nth-child(even) { white-space: nowrap; }
 
 /* ---------------------------------------------------------------- narrower: the panel goes below, the stage stays in view */
 @media (max-width: 1180px) {
@@ -55,10 +58,16 @@
   .export-grid { grid-template-columns: minmax(0, 1fr); }
 }
 @media (max-width: 640px) {
+  /* Czech labels ("Otáčet", "Posouvat", "Projít se") in one row at 320 px */
+  .model-tools .seg button { padding-inline: 8px; }
+  .model-tools .btn { padding-inline: 14px; }
+  /* the label above the size, instead of a size squeezed into three lines beside it */
+  .export-grid .btn { flex-direction: column; gap: var(--sp-1); padding-block: 10px; border-radius: var(--r-md); text-align: center; }
   /* full width, edge to edge */
   .model-stage { margin-inline: calc(-1 * var(--gutter-l)) calc(-1 * var(--gutter-r)); border-radius: 0; border-inline: 0; }
   .model-stage .stage { height: min(46svh, 440px); border-radius: 0; }
-  .model-tools { left: max(var(--sp-3), env(safe-area-inset-left)); }
+  /* the compass (44 px) and its margin stay clear: both controls fit side by side down to 320 px */
+  .model-tools { left: max(var(--sp-3), env(safe-area-inset-left)); max-width: calc(100% - 76px); }
   .model-controls { grid-template-columns: minmax(0, 1fr); }
   .model-controls .grp:nth-last-child(2) { border-bottom: 1px solid var(--rule); }
 }

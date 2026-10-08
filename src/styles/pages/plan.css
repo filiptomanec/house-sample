@@ -1,6 +1,6 @@
 /* Floor plan page. Tokens and layout classes only; breakpoints 640 / 900 / 1180. */
 
-.plan-tool { display: grid; gap: var(--sp-4); padding-bottom: var(--sp-6); }
+.plan-tool { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-4); padding-bottom: var(--sp-6); }
 
 /* toolbar: mode and layers on one wrapping row */
 .pl-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sp-3) var(--sp-5); }
@@ -75,7 +75,7 @@
 .pl-section { padding-top: 0; }
 .pl-section .h2 { margin-bottom: var(--sp-5); }
 .room-table { max-width: 1000px; }
-.room-table td { vertical-align: middle; }
+table.data.room-table td { vertical-align: middle; }
 .room-table tbody tr { cursor: pointer; }
 .room-table tbody tr[aria-current="true"] { background: var(--accent-soft); }
 .room-table th .u { font-weight: var(--weight-body); }
@@ -115,4 +115,5 @@
 }
 @media (pointer: coarse) {
   .row-btn { min-height: var(--touch); display: inline-flex; align-items: center; }
+  .pl-info .link-arrow { min-height: var(--touch); display: inline-flex; align-items: center; }
 }

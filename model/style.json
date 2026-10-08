@@ -1,8 +1,8 @@
 {
   "schema": "style/1",
   "description": {
-    "cs": "Materiály podle rolí a varianty vzhledu pro web i rendery. Barvy jsou sladěné s tokeny webu (src/styles/tokens.css).",
-    "en": "Materials by role and look variants for the web and the renders. Colours are in step with the design tokens (src/styles/tokens.css)."
+    "cs": "Materiály podle rolí a varianty vzhledu pro web i rendery. Barvy jsou sladěné s tokeny webu (src/styles/tokens.css) a se vzorem: bílá omítka (i sloupy), světlé dřevo na obkladu, antracitová střecha a rámy, tmavé vstupní dveře (role frame), světlé vnitřní dveře (role door_leaf).",
+    "en": "Materials by role and look variants for the web and the renders. Colours are in step with the design tokens (src/styles/tokens.css) and with the model: white plaster (also the posts), light timber cladding, anthracite roof and frames, dark entrance door (role frame), light interior doors (role door_leaf)."
   },
   "palette": {
     "graphite": "#1b1e21",
@@ -15,7 +15,7 @@
         "cs": "Venkovní omítka",
         "en": "Exterior plaster"
       },
-      "color": "#e9e5d8",
+      "color": "#efece2",
       "roughness": 0.92
     },
     "wood_cladding": {
@@ -23,7 +23,7 @@
         "cs": "Dřevěný obklad",
         "en": "Timber cladding"
       },
-      "color": "#cdc4ae",
+      "color": "#d3c6a9",
       "roughness": 0.7
     },
     "frame": {
@@ -59,7 +59,7 @@
         "cs": "Podhled přesahu",
         "en": "Eaves soffit"
       },
-      "color": "#cfc7b3",
+      "color": "#eeeade",
       "roughness": 0.8
     },
     "fascia": {
@@ -114,11 +114,11 @@
     },
     "door_leaf": {
       "name": {
-        "cs": "Vstupní dveře",
-        "en": "Entrance door"
+        "cs": "Vnitřní dveře",
+        "en": "Interior door"
       },
-      "color": "#3fb48f",
-      "roughness": 0.5
+      "color": "#f6f4ee",
+      "roughness": 0.55
     },
     "slab": {
       "name": {
@@ -197,16 +197,15 @@
         "cs": "Sloupky",
         "en": "Posts"
       },
-      "color": "#2d3033",
-      "roughness": 0.5,
-      "metallic": 0.5
+      "color": "#efece2",
+      "roughness": 0.85
     },
     "screen_slats": {
       "name": {
         "cs": "Latě stínění",
         "en": "Screen slats"
       },
-      "color": "#cdc4ae",
+      "color": "#d3c6a9",
       "roughness": 0.7
     },
     "lawn": {
@@ -242,7 +241,10 @@
           "default": true,
           "set": {
             "plaster": {
-              "color": "#e9e5d8"
+              "color": "#efece2"
+            },
+            "post": {
+              "color": "#efece2"
             }
           }
         },
@@ -254,6 +256,9 @@
           },
           "set": {
             "plaster": {
+              "color": "#cfd2d0"
+            },
+            "post": {
               "color": "#cfd2d0"
             }
           }
@@ -267,6 +272,9 @@
           "set": {
             "plaster": {
               "color": "#cfe0d6"
+            },
+            "post": {
+              "color": "#cfe0d6"
             }
           }
         },
@@ -278,6 +286,9 @@
           },
           "set": {
             "plaster": {
+              "color": "#3c4146"
+            },
+            "post": {
               "color": "#3c4146"
             }
           }
@@ -299,10 +310,10 @@
           "default": true,
           "set": {
             "wood_cladding": {
-              "color": "#cdc4ae"
+              "color": "#d3c6a9"
             },
             "screen_slats": {
-              "color": "#cdc4ae"
+              "color": "#d3c6a9"
             }
           }
         },

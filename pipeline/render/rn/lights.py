@@ -5,8 +5,6 @@ import math
 
 from mathutils import Vector
 
-from .util import log
-
 
 def kelvin_to_rgb(k):
     """Linear RGB of a black body (Tanner Helland's fit), normalised so that the largest channel is 1."""

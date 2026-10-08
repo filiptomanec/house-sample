@@ -12,7 +12,7 @@ export default defineMessages({
     exportLink: "Export a 3D tisk",
     stage: {
       loading: "Načítám model domu…",
-      progress: "Načítám model domu, {percent} %",
+      progress: "Načítám model domu, {percent}",
       error: "Model se nepodařilo načíst.",
       retry: "Zkusit znovu",
       lost: "Prohlížeč uvolnil grafickou paměť.",
@@ -35,8 +35,8 @@ export default defineMessages({
       start: "Projít se",
       stop: "Ukončit procházku",
       joystick: "Joystick pro chůzi",
-      hintMouse: "Táhnutím myši se rozhlížíte, šipkami nebo WASD chodíte, Shift zrychlí, Esc procházku ukončí.",
-      hintTouch: "Táhnutím prstu se rozhlížíte, joystickem chodíte.",
+      hintMouse: "Tažením myši se rozhlížíte, šipkami nebo WASD chodíte, Shift zrychlí, Esc procházku ukončí.",
+      hintTouch: "Tažením prstu se rozhlížíte, joystickem chodíte.",
     },
     help: {
       mouseRotate: "Tažením otáčíte, pravým tlačítkem posouváte, kolečkem přibližujete.",
@@ -74,7 +74,7 @@ export default defineMessages({
       furnitureLoading: "Načítám vybavení pokojů…",
       furnitureError: "Vybavení pokojů se nepodařilo načíst, stavba zůstává. Vypnutím a zapnutím přepínače to zkusíte znovu.",
       blinds: "Venkovní žaluzie",
-      blindsHint: "Stažené žaluzie na okenních a dveřních otvorech, které je mají v modelu.",
+      blindsHint: "Stažené žaluzie na oknech a dveřích, které je mají.",
       pv: "Fotovoltaika",
       pvHint: {
         battery: "{panels} ({power}), baterie {capacity} v technické místnosti, podle nastavení na stránce Energie.",
@@ -152,7 +152,7 @@ export default defineMessages({
     exportLink: "Export and 3D printing",
     stage: {
       loading: "Loading the house model…",
-      progress: "Loading the house model, {percent} %",
+      progress: "Loading the house model, {percent}",
       error: "The model could not be loaded.",
       retry: "Try again",
       lost: "The browser released the graphics memory.",
@@ -214,7 +214,7 @@ export default defineMessages({
       furnitureLoading: "Loading the room furnishings…",
       furnitureError: "The room furnishings could not be loaded; the building stays. Switch it off and on to try again.",
       blinds: "Exterior blinds",
-      blindsHint: "Lowered blinds on the windows and doors that have them in the model.",
+      blindsHint: "Lowered blinds on the windows and doors that have them.",
       pv: "Photovoltaics",
       pvHint: {
         battery: "{panels} ({power}), {capacity} battery in the plant room, as set on the Energy page.",

@@ -21,10 +21,27 @@ normal (`*_nor_gl_2k.jpg`), 2k JPG. To restore the cache, download these two map
 | `concrete_floor_02` | plinth and garage floor (`slab`, `floor_concrete`) | resized, neutral mean, contrast 0.7 |
 | `concrete_pavers_02` | terrace, driveway and path paving (`terrace_paving`, `drive_paving`, `path`) | resized, neutral mean, contrast 0.55, scaled up to large-format slabs |
 | `gravel_floor_02` | gravel border (`gravel`) | resized, neutral mean |
+| `asphalt_02` | street surface in the renders (`pipeline/render`, not in the GLB) | used as it is (diffuse, roughness, normal), darkened in the shader |
+| `farm_soil` | mulch beds in the renders (`pipeline/render`, not in the GLB) | diffuse, roughness, normal, tinted brown in the shader |
 
 The textures in the GLB are *neutral* (their mean colour is a light grey); the colour of a role comes from `model/style.json`
 and is applied as the glTF `baseColorFactor`, so the web can recolour a role (the "looks") without new textures. For the
 USDZ the tint is baked into the image because USD readers drop the factor.
+
+## CC0 models (Poly Haven), renders only
+
+Source: [Poly Haven](https://polyhaven.com), licence **CC0 1.0**, 1k glTF with textures (`grass_bermuda_01` 2k). Copied to
+`assets/models/<id>/` (the whole glTF folder, as downloaded). They are used by `pipeline/render` only (never by the web GLB) and are
+not committed.
+
+| id | used for | processing |
+|---|---|---|
+| `tree_small_02` | all trees (plot trees, neighbour gardens, tree line on the horizon), in four leaf tones (conifer, dark, mid, light) | imported at render time; the leaves are thinned (a seeded share of the leaf pieces is kept and scaled up, `pipeline/render/rn/tree_lod.py`), tinted, instanced with rotation and scale |
+| `grass_bermuda_01` | the lawn blades | 380 blades joined into 0.35 m patches, scattered with Geometry Nodes, recoloured in the shader (the atlas is very dark) |
+| `grass_medium_02` | the ornamental grass (miscanthus) | tufts scaled to the height of the data, recoloured |
+
+Everything else in the render (hedges, shrubs, topiary, lavender, neighbour houses, fences, PV modules, blinds, lamps) is procedural
+geometry written for this project. No HDRI is used: the sky is the physical Sky Texture of Blender.
 
 ## Procedural textures (own code, no third-party content)
 

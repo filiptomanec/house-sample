@@ -67,7 +67,7 @@ function Shading(p: SunControlsProps) {
   const s = p.settings, R = SHADING_RANGE;
   return (
     <div className="stack sun-shading">
-      <h3 className="label sun-group">{t("sun.shading.title")}</h3>
+      <h3 className="label sun-group" aria-level={2}>{t("sun.shading.title")}</h3>
       {p.hasSlats && (
         <fieldset className="sun-fieldset">
           <legend>{t("sun.shading.slats")}</legend>

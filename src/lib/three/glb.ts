@@ -234,8 +234,8 @@ export interface FurnitureFootprint {
 }
 export interface FurnitureFootprints {
   schema: "furniture-footprints/1";
+  /** Hash of the furniture, rooms and openings the boxes were computed from (not of the whole data model). */
   inputHash: string;
-  modelHash: string;
   units: "m";
   items: FurnitureFootprint[];
 }

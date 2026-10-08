@@ -1,8 +1,11 @@
 // Direct-sun hours by ray casting against the house (owned by the Sun page agent from the second phase on; the API below is
 // the contract the Model and Sun pages share). Windows and outdoor areas come from `derived`, never from ids:
 //
-//  * Rooms: every exterior opening that has glazing (`glazingArea > 0`) and a room (`room`) is sampled at 3 x 2 points in the
-//    glass plane, 0.25 m behind the outer face (so the reveals shade oblique sun); the room's value is the best window.
+//  * Rooms: every exterior opening that has glazing (`glazingArea > 0`) and a room (`room`) is sampled on a grid of 3 x 6 points
+//    (centres of equal cells) in the glass plane, `GLASS_DEPTH` behind the outer face where the model puts the glass (so the
+//    reveals shade oblique sun, and the roof overhang shades the upper glass). The value of a window at an instant is the share
+//    of its glass in sun; the room's value is its best window. A high summer sun under a deep overhang lights only a low strip of
+//    the glass: that strip is counted in proportion, not rounded away (coarse probes read 0 h for such a room).
 //    An opening counts only while the sun is in front of its wall (`dot(sun, outward normal) > 0`, the same test as the analytic
 //    oracle `sunHoursOnSurface`; at grazing angles the reveal and the wall shade the sample anyway).
 //  * Outdoor areas: every `derived.outdoor[]` of type "terrace" and every `covered` area is sampled on a 5 x 3 grid at 0.45 m
@@ -119,11 +122,16 @@ export interface SunAnalyzer {
 // ------------------------------------------------------------------------------------------------ sampling parameters
 // Properties of the method, not of any house.
 
-/** Sample positions across the width of a window (fractions of its width) and up its height (fractions of sill to head). */
-const WINDOW_U = [-0.35, 0, 0.35] as const;
-const WINDOW_V = [0.25, 0.75] as const;
-/** The sample sits this far behind the outer face of the wall (at most 60 % of a thin wall), so the reveals shade oblique sun. */
-const REVEAL_DEPTH = 0.25;
+/**
+ * Sample grid of a window: positions across its width (fractions of the width from its centre) and the number of equal rows
+ * from sill to head (a sample sits in the middle of each row, so the lit share of the samples estimates the lit share of the glass).
+ */
+export const WINDOW_GRID = { across: [-1 / 3, 0, 1 / 3], rows: 6 } as const;
+/**
+ * The samples lie in the glass plane: the model puts the frame 0.10 m behind the outer face of the wall and the glass in the middle
+ * of a 0.07 m deep frame (pipeline/blender/hb/params.py: `setback`, `frame_depth`). At most 60 % of a thin wall.
+ */
+export const GLASS_DEPTH = 0.135;
 /** Outdoor areas: grid of samples and their height above the floor. */
 const AREA_GRID = { nx: 5, ny: 3 } as const;
 const AREA_SAMPLE_HEIGHT = 0.45;
@@ -170,10 +178,11 @@ export function sampleWindows(ctx: HouseContext): WindowSamples[] {
     const thickness = wall?.t ?? ctx.derived.wall.ext;
     const [nx, ny] = outwardNormalHouse(o.azimuth);
     const along: [number, number] = o.orient === "h" ? [1, 0] : [0, 1];
-    const out_ = thickness / 2 - Math.min(REVEAL_DEPTH, 0.6 * thickness);
+    const out_ = thickness / 2 - Math.min(GLASS_DEPTH, 0.6 * thickness);
     const points: Sample[] = [];
-    for (const u of WINDOW_U) {
-      for (const v of WINDOW_V) {
+    for (const u of WINDOW_GRID.across) {
+      for (let row = 0; row < WINDOW_GRID.rows; row++) {
+        const v = (row + 0.5) / WINDOW_GRID.rows;
         points.push(sample([
           o.cx + along[0] * u * o.w + nx * out_,
           o.cy + along[1] * u * o.w + ny * out_,
@@ -497,6 +506,7 @@ export function makeSunAnalyzer(viewer: Pick<Viewer, "scene">, scene: Pick<House
       if (!hidden) {
         for (const w of windows) {
           if (dirH[0] * w.normalHouse[0] + dirH[1] * w.normalHouse[1] <= 0) continue; // the sun is behind the wall
+          if (roomNow[w.room] >= 1) continue; // another window of the room is fully lit already: this one cannot add to the best
           let sum = 0;
           for (const p of w.points) {
             origin.copy(p.scene).addScaledVector(w.normalScene, RAY_START_OFFSET);

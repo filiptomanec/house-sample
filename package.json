@@ -27,7 +27,9 @@
     "models": "bash pipeline/build_model.sh",
     "models:check": "tsx scripts/build-models-manifest.ts --check",
     "verify:glb": "tsx scripts/verify-glb.ts public/models/house.glb",
-    "verify:furniture": "tsx scripts/verify-furniture.ts"
+    "verify:furniture": "tsx scripts/verify-furniture.ts",
+    "e2e": "playwright test -c e2e/playwright.config.ts",
+    "readme:shots": "node scripts/readme-shots.mjs"
   },
   "dependencies": {
     "geist": "^1.7.2",

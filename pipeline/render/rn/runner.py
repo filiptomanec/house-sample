@@ -6,7 +6,7 @@ import time
 
 from . import cycles_setup
 from .scene import Scene
-from .util import log, repo_path
+from .util import log, repo_path, strip_jpeg_metadata
 
 
 def _log_file(out, mode, quality):
@@ -51,6 +51,7 @@ def run(inp, cfg, mode, shots, out, args):
         sc.render.filepath = tmp
         t0 = time.time()
         bpy.ops.render.render(write_still=True)
+        strip_jpeg_metadata(tmp)
         os.replace(tmp, path)
         dt = time.time() - t0
         done += 1

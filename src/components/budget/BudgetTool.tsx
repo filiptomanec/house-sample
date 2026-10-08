@@ -24,7 +24,10 @@ export default function BudgetTool({ base }: { base: Quantities }) {
           <h2 id="budget-groups-h" className="sr-only">{t("budget.groups.heading")}</h2>
           {result.groups.map((g) => {
             const def = defs.get(g.id);
-            return def ? <GroupPanel key={g.id} group={g} def={def} onToggle={(on) => toggleGroup(g.id, on)} onEdit={edit} /> : null;
+            return def ? (
+              <GroupPanel key={g.id} group={g} def={def} overheadName={book.siteOverhead?.groupId === g.id ? book.siteOverhead.name : undefined}
+                onToggle={(on) => toggleGroup(g.id, on)} onEdit={edit} />
+            ) : null;
           })}
         </section>
       </div>

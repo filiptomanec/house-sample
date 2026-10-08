@@ -19,6 +19,7 @@ export default function LanguageSwitch() {
           href={here ? routePath(l, here.key, here.tail) : routePath(l, "home")}
           lang={LOCALE_META[l].htmlLang}
           hrefLang={LOCALE_META[l].htmlLang}
+          prefetch={false} /* the other language is served by a proxy rewrite: its segment prefetch would 404 */
           aria-label={t(`common.language.${l}`)}
           aria-current={l === locale ? "true" : undefined}
         >

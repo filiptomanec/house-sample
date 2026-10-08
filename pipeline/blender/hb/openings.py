@@ -183,7 +183,8 @@ def build_entry(cfg, ms, o):
     lt = 0.05
     dl0 = d0 + 0.015
     zt = z1 - fw
-    F.box(ms, "door_leaf", leaf[0] + 0.004, leaf[1] - 0.004, dl0, dl0 + lt, z0 + thr, zt - 0.004)
+    # the entrance leaf is dark graphite like the frames (role "frame"); "door_leaf" is the light interior door
+    F.box(ms, "frame", leaf[0] + 0.004, leaf[1] - 0.004, dl0, dl0 + lt, z0 + thr, zt - 0.004)
     # long handle bar on the free edge of the leaf
     hx = leaf[1] - 0.10 if hinge_low else leaf[0] + 0.10
     F.box(ms, "sill", hx - 0.012, hx + 0.012, dl0 - 0.05, dl0 - 0.026, z0 + 0.9, z0 + 1.9)

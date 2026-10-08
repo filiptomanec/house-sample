@@ -72,7 +72,7 @@
   .day-intro { top: calc(var(--nav-h) + env(safe-area-inset-top) + 8px); gap: var(--sp-2); }
   .day-kicker, .day-sub { display: none; }
   .day-hint { margin-top: 2px; padding: 6px 12px; }
-  .day-moment { bottom: calc(76px + env(safe-area-inset-bottom)); gap: 6px; }
+  .day-moment { bottom: calc(92px + env(safe-area-inset-bottom)); gap: 6px; }
   .day-moment .h2 { font-size: var(--fs-lg); }
   .day-moment .lede { font-size: 1rem; }
   .day-hud { bottom: calc(12px + env(safe-area-inset-bottom)); }
@@ -123,6 +123,8 @@
 .plan-copy .link-arrow { justify-self: start; }
 
 .plan-draw { width: 100%; height: auto; }
+.plan-draw .pd-labels, .plan-draw .pd-scale { font-family: var(--font-mono), monospace; fill: var(--ink); }
+.plan-draw .pd-scale { fill: var(--ink-2); }
 .plan-draw .pd-line { stroke-dasharray: 1; stroke-dashoffset: 0; transition: stroke-dashoffset 2.6s cubic-bezier(0.6, 0.1, 0.2, 1); }
 .plan-draw .pd-zones, .plan-draw .pd-walls, .plan-draw .pd-open, .plan-draw .pd-labels, .plan-draw .pd-north { transition: opacity 1.2s var(--ease) 1.4s; }
 /* not yet revealed (only with JS and full motion; Reveal adds .js-reveal and .in): the outline is undrawn, the rest is faded out */
@@ -178,6 +180,10 @@
 /* ---------------------------------------------------------------- narrow screens */
 @media (max-width: 900px) {
   .plan-grid { grid-template-columns: 1fr; }
+}
+/* on a phone the drawing is about 12 px per metre: the room areas and the scale text would be unreadable, the zone list above says it */
+@media (max-width: 640px) {
+  .plan-draw .pd-labels, .plan-draw .pd-scale { display: none; }
 }
 
 /* ---------------------------------------------------------------- reduced motion (last, so that it wins over the rules above)

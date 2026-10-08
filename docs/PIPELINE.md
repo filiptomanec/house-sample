@@ -23,7 +23,10 @@ BLENDER=/path/to/Blender pipeline/build_model.sh
 The script runs Blender three times (`high`, `lite`, `lite --usdz`), then `scripts/verify-glb.ts` on both GLBs, the 6 MB check of
 the USDZ and `scripts/build-models-manifest.ts`. It stops on the first failure. The build takes about 10 seconds; textures
 are cached in `pipeline/out/tex` (git-ignored). The GLB files are deterministic (the same inputs give byte-identical files, also with a
-cold texture cache); the USDZ differs between builds only in the order of its objects (Blender's USD exporter).
+cold texture cache). Blender's USD exporter is **not** byte-reproducible (the token table of the `.usdc` is ordered by pointer
+hash, textures and geometry are the same), so the script rebuilds `house.usdz` only when an input changed (derived data without its
+model hash, `house.json`, `style.json`, the builder code, the list of texture files); the key of the last build is kept in
+`pipeline/out/house.usdz.key` (git-ignored, delete it to force a rebuild). Running the script twice therefore gives the same manifest.
 
 Direct call (all paths are explicit, so a different house can be built the same way):
 
@@ -108,6 +111,10 @@ exactly the ceiling height there) and `eave_depth` at the eave, so the soffit co
   `<role>_<id>`; `extras` is `{role, toggle?, id?}`.
 * Material = role, named exactly like the role, one material per role, single-sided. Colours, roughness, metalness and alpha
   from `style.json`; textured roles carry a neutral texture and the style colour as `baseColorFactor`.
+* Doors: the **entrance door leaf** is built in the dark `frame` role (graphite like the window frames, handle bar in `sill`);
+  the role `door_leaf` is only the **interior doors** (lining and leaf, warm white in `style.json`). The web recolours both through
+  the roles, so no extra role is needed; `scripts/verify-glb.ts` requires `door_leaf` only when the data has interior doors.
+* `post` (the terrace and porch posts) is white like the plaster and follows the façade look (`style.json` sets it with `plaster`).
 * `toggle: "roof"`: `roof_tile`, `ridge_cap`, `fascia`, `gutter`, `soffit` (overhang undersides, flat terrace ceilings, light pipe
   domes) and `ceiling`. Downpipes, snow guards and light pipe collars are in the `gutter` / `ridge_cap` nodes, so they hide too.
 * Glass: one node per glazed opening (every exterior opening except garage doors), two opposite quads per pane.
@@ -140,7 +147,13 @@ drops constant alpha), the style tints are baked into the textures.
 * `scripts/__tests__/glb.test.ts` (vitest) runs those rules on synthetic files and, when the GLBs exist, on the real files,
   the manifest (hashes match the files) and the USDZ size. `npm test` skips the file tests when `public/models` is empty.
 * `scripts/build-models-manifest.ts` writes `public/models/manifest.json` (SHA-256, size, triangles, bounding box in the house
-  frame, `inputHash` of `derived.json`, one content hash for the `?v=` cache-buster); `--check` fails when it is stale.
+  frame, `inputHash` of `derived.json`, one content hash of all files); `--check` fails when it is stale. The web busts the cache
+  with the SHA-256 of each file (`?v=`), not with the manifest hash.
+* What the model hash binds: `inputHash` (also in `derived.json`) is the hash of **all** `model/*.json`, including `render.json`,
+  `assumptions.json` and `pricebook.json` (the renders need `render.json` in it, see `docs/RENDER-INPUTS.md`). The GLBs, the USDZ,
+  the furniture and the footprints do **not** depend on those three files (the footprints carry their own `inputHash` of furniture,
+  rooms and openings, not the model hash), so editing only them leaves every model file byte-identical and only the `inputHash`
+  strings stale: run `npx tsx scripts/build-derived.ts && npx tsx scripts/build-models-manifest.ts` (no Blender needed).
 * `hb/selfcheck.py` runs inside every build and fails it on non-finite, non-planar or duplicated faces.
 
 ## 7. Previews

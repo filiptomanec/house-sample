@@ -1,6 +1,6 @@
 # House format `house/1`
 
-`model/house.json` describes the whole fictional house in one file. It is a superset of the earlier `concept/1` plan
+`model/house.json` describes the whole fictional house in one file. It is a superset of the compact `concept/1` plan
 format: every plan key of `concept/1` is kept (`wall`, `clearHeight`, `slab`, `bearingAxes`, `rooms`, `openings`,
 `roofs`, `outdoor`, `accents`, `furniture`, `lightpipes`, `screens`, `notes`) and the rest of the building (location,
 zones, assemblies, windows, equipment, shading, roof details, cameras) is added around it.
@@ -217,12 +217,33 @@ valley (`V-SVOD-UDOLI`). Snow guards run over openings of the listed kinds.
 ### 4.6 `cameras[]`
 
 ```json
-{ "id": "street", "name": {...}, "kind": "perspective", "position": [20.5, 38.5, 1.7], "target": [11.5, 6, 2.4],
-  "fov": 32, "use": ["web", "render", "og"] }
+{ "id": "entry", "name": {...}, "kind": "perspective", "position": [17.5, 20.7, 2.1], "target": [17.5, 11.8, 1.7],
+  "fov": 42, "use": ["web", "render"] }
 ```
 
-House-frame metres. `fov` is the vertical field of view (degrees, required for perspective), `orthoHeight` the visible
-height (m, required for orthographic). `use`: `web` (viewer presets), `render` (Blender stills), `og` (Open Graph image).
+House-frame metres, `z` absolute (0 = top of the finished floor, **not** height above the ground: the terrain of the plot
+lies between about -0.7 and +0.5 m, so the eye height of a camera is `groundAt(x, y) + 1.6 .. 1.8`). `fov` is the vertical
+field of view (degrees, required for perspective), `orthoHeight` the visible height (m, required for orthographic). `use`:
+`web` (viewer presets, in this order; the first one is the opening view of the 3D page), `render` (marks a view as suitable
+for stills; the stills themselves are planned in `model/render.json` with their own cameras, which follow the same rules),
+`og` (a view that shows the whole building at 1200 x 630, checked by a test).
+
+**How cameras are chosen** (checked by `scripts/__tests__/cameras.test.ts`, compare `docs/SITE.md`):
+
+* The plot is closed on every side: a solid plinth fence on the street, hedges on two sides, a timber fence on the third.
+  A camera outside the plot at eye height only sees these boundary elements. So an **eye-level camera stands on the plot**: inside
+  the plot polygon, at least 0.8 m from the boundary (hedges and fences stand 0.1 to 0.5 m inside it), 1.0 to 2.6 m above
+  the ground, not inside a tree, shrub or hedge.
+* A **high camera** (8 m or more above the ground: aerial and street-side views) may stand outside the plot, over the street,
+  the field or a neighbour, if its line of sight passes above the boundary: steep enough that the street fence is not in the
+  frame, no hedge, fence or neighbouring building between it and the house.
+* Nothing stands between the camera and the house: the ray to the target is free of crowns and the ray to the centre of the house
+  is free of hedges, fences and walls. Trees and shrubs of the garden may frame a view at its edges. Look for the corridors
+  between the crowns in `site.json` (`trees`, `shrubs`) and keep the camera and the target on a line through one.
+* Frame the house for the stage of the web page (about 1.45 : 1, `fov` is vertical): the whole roof for aerial views, the part
+  the view is named after for the others. Interior cameras stand in a room, at least 0.2 m from the walls, and look into it.
+* Check a view visually on `/model` in the dev server: `window.__stage.viewer.setView({ id, name, position, target, fov, ortho: false },
+  { animate: false })` takes scene-frame coordinates (`(x, y, z)` of the house becomes `(x, z, -y)`).
 
 ### 4.7 `notes`
 
@@ -286,7 +307,7 @@ sum of the faces, envelope = footprint perimeter x average wall top + roof area 
 ## 6. `generated/derived.json` (derived data)
 
 Written by `npx tsx scripts/build-derived.ts` from `derive(house)`; read by the Blender pipeline (which never re-derives
-geometry) and by tests. It is a **superset of the concept/1 derived format**: all keys and shapes of the earlier format are
+geometry) and by tests. It is a **superset of the concept/1 derived format**: all keys and shapes of that format are
 kept (except that `rooms[].name` is now a bilingual object), plus new keys. All coordinates are house-frame metres.
 
 | key | content |
@@ -410,7 +431,7 @@ msg = b"".join(p.name.encode() + b"\0" + p.read_bytes().replace(b"\r\n", b"\n") 
 print(hashlib.sha256(msg).hexdigest())
 ```
 
-## 9. From concept/1 to house/1
+## 9. Relation to concept/1
 
 | concept/1 | house/1 |
 |---|---|
@@ -421,7 +442,7 @@ print(hashlib.sha256(msg).hexdigest())
 | `notes` (record of strings with Czech keys) | `notes` record of `{cs, en}` with English keys |
 | not present | `fictional`, `location`, `zones`, `assemblies`, `windows`, `equipment`, `shading`, `roof`, `cameras` |
 
-The geometry derived from the same plan is identical to the concept-stage derivation (the oracle test compares them to 1e-6).
+The geometry derived from the same plan is identical to the stored oracle output (`src/lib/model/__fixtures__/oracle-*.json`); the oracle test compares them to 1e-6.
 
 ## 10. Changing the format
 

@@ -58,7 +58,7 @@
 .lightbox {
   --lb-chrome: calc(var(--touch) + 96px + env(safe-area-inset-top) + env(safe-area-inset-bottom));
   position: fixed; inset: 0; z-index: var(--z-overlay); display: grid; place-items: center;
-  background: color-mix(in srgb, var(--bg) 97%, transparent); overscroll-behavior: contain; touch-action: pan-y;
+  background: color-mix(in srgb, var(--bg) 99%, transparent); overscroll-behavior: contain; touch-action: pan-y;
 }
 .lb-figure { margin: 0; display: grid; justify-items: center; gap: var(--sp-3); max-width: 100%; padding-inline: max(var(--sp-4), env(safe-area-inset-left)) max(var(--sp-4), env(safe-area-inset-right)); }
 .lb-figure img {
@@ -66,7 +66,8 @@
   object-fit: contain; border-radius: var(--r-sm); -webkit-user-select: none; user-select: none;
 }
 .lb-cap { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: center; gap: var(--sp-1) var(--sp-3); max-width: 70ch; text-align: center; font-size: var(--fs-sm); color: var(--ink-2); }
-.lb-count::before { content: "\00b7"; margin-right: var(--sp-3); }
+/* the counter always has a line of its own, so no separator dot can end up at the start of a wrapped line */
+.lb-count { flex-basis: 100%; color: var(--ink-3); font-size: var(--fs-xs); }
 .lb-cap b { color: var(--ink); font-weight: var(--weight-medium); }
 .lb-btn {
   position: absolute; z-index: 1; display: grid; place-items: center; width: var(--touch); height: var(--touch); padding: 0;
