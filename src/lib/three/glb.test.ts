@@ -128,3 +128,25 @@ describe("furniture GLB contract", () => {
     });
   }
 });
+
+// The baked web tree (docs/PIPELINE.md section 9, `TREE_MODEL_FILE` in vegetation.ts): checked once the manifest lists it.
+const TREE_FILES = ["tree.glb", "tree-lite.glb"].filter((f) => f in MODEL_MANIFEST.files);
+describe.skipIf(TREE_FILES.length === 0)("tree GLB contract", () => {
+  for (const file of TREE_FILES) {
+    it(`${file}: bark and foliage nodes with their roles, normalised to height 1 and crown 1, size and hash as listed`, () => {
+      const bytes = readFileSync(join(models, file));
+      expect(bytes.length).toBe(modelInfo(file).bytes);
+      expect(createHash("sha256").update(bytes).digest("hex")).toBe(modelInfo(file).sha256);
+      const g = readGlb(file);
+      expect(g.extensionsUsed).toContain("KHR_draco_mesh_compression");
+      const roles = g.nodes.filter((n) => n.mesh !== undefined).map((n) => n.extras?.role).sort();
+      expect(roles).toEqual(["bark", "foliage"]);
+      for (const n of g.nodes) expect(n.matrix ?? n.translation ?? n.rotation ?? n.scale).toBeUndefined();
+      const extras = (g as unknown as { scenes: { extras?: Record<string, unknown> }[] }).scenes[0].extras ?? {};
+      // the engine reads a normalised file by `sourceHeight`; the crown base is a share of the height
+      expect(typeof extras.sourceHeight).toBe("number");
+      expect(extras.crownBase as number).toBeGreaterThan(0);
+      expect(extras.crownBase as number).toBeLessThan(1);
+    });
+  }
+});

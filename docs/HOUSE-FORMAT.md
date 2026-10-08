@@ -399,8 +399,9 @@ Areas and counts for the pages (one definition each, used everywhere):
 
 * `kind: "flat"`: at `top` (default −0.02). `corners` (heights at the rect corners `[x0 y0, x1 y0, x1 y1, x0 y1]`) are all `top`.
 * `kind: "ramp"`: the strips that the site extends to the street (`site.access.driveway/walkway.outdoorType`, the strip
-  reaching furthest to the street) rise linearly along +y from `top` at the house end to the graded ground at their gate
-  plus 0.03 m (`ramp.z0`, `ramp.z1`, `ramp.slope`; at most 8 %, `E-RAMP` of the site validation). `plane` gives the top
+  reaching furthest to the street) run linearly along +y from `top` at the house end to the graded ground at their gate
+  plus 0.03 m (`ramp.z0`, `ramp.z1`, `ramp.slope` = dz/dy, negative when the ramp falls towards the street; at most 8 %, `E-RAMP` of the site validation; falling less than 1 % from
+  the house to the gate, or rising towards it, is the warning `W-RAMP-FALL`). `plane` gives the top
   everywhere (`z = z0 + gx (x - ox) + gy (y - oy)`); `ramp.apron` is the continuation to the plot boundary with the top at
   its vertices.
 

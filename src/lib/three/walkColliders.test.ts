@@ -187,24 +187,59 @@ describe("walk colliders", () => {
 
 describe("walkStart", () => {
   const start = walkStart(ctx);
-  const entry = ctx.derived.rooms.find((r) => r.role === "entry")!;
+  const living = ctx.derived.rooms.find((r) => r.role === "main-living")!;
+  const glazing = ctx.derived.openings.filter((o) => o.room === living.id && o.exterior === true && o.glazingArea > 0).sort((a, b) => b.glazingArea - a.glazingArea)[0];
 
-  it("is in the entry room, on its label point, inside the outline", () => {
-    expect(start.position).toEqual([entry.label.x, entry.label.y]);
-    expect(entry.cleanRects.some(([x0, y0, x1, y1]) => start.position[0] > x0 && start.position[0] < x1 && start.position[1] > y0 && start.position[1] < y1)).toBe(true);
+  it("is in the main living room, inside the outline, clear of the furniture", () => {
+    expect(living.cleanRects.some(([x0, y0, x1, y1]) => start.position[0] > x0 && start.position[0] < x1 && start.position[1] > y0 && start.position[1] < y1)).toBe(true);
+    for (const f of ctx.derived.furniture) {
+      if (!f.rect) continue;
+      const [x0, y0, x1, y1] = f.rect;
+      const inside = start.position[0] > x0 - R && start.position[0] < x1 + R && start.position[1] > y0 - R && start.position[1] < y1 + R;
+      expect(inside, `furniture ${f.type}`).toBe(false);
+    }
   });
 
-  it("looks towards the middle of the building (house azimuth: clockwise from +y)", () => {
-    const b = ctx.derived.bbox;
-    const dx = (b.x0 + b.x1) / 2 - start.position[0], dy = (b.y0 + b.y1) / 2 - start.position[1];
-    const a = (start.yawDeg * Math.PI) / 180;
-    expect((Math.sin(a) * dx + Math.cos(a) * dy) / Math.hypot(dx, dy)).toBeCloseTo(1, 9);
+  it("looks out of the room's largest glazed opening (house azimuth: clockwise from +y), towards the garden", () => {
+    expect(glazing).toBeDefined();
+    expect(start.yawDeg).toBeCloseTo(glazing.azimuth!, 9);
     expect(start.yawDeg).toBeGreaterThanOrEqual(0);
     expect(start.yawDeg).toBeLessThan(360);
+    // the opening is ahead: the vector from the start to its centre points along the view
+    const a = (start.yawDeg * Math.PI) / 180;
+    const dx = glazing.cx - start.position[0], dy = glazing.cy - start.position[1];
+    expect((Math.sin(a) * dx + Math.cos(a) * dy) / Math.hypot(dx, dy)).toBeGreaterThan(0.9);
+  });
+
+  it("has a free sight line of several metres to the glass: no wall in between", () => {
+    const { walls } = buildWalkColliders(ctx);
+    const a = (start.yawDeg * Math.PI) / 180;
+    const d = Math.abs((glazing.cx - start.position[0]) * Math.sin(a) + (glazing.cy - start.position[1]) * Math.cos(a));
+    expect(d).toBeGreaterThan(3);
+    // walk the line up to just before the opening: never closer than the radius to a wall
+    for (let t = 0; t < d - 0.5; t += 0.1) {
+      const p: [number, number] = [start.position[0] + Math.sin(a) * t, start.position[1] + Math.cos(a) * t];
+      for (const sg of walls) expect(distToSeg(p, sg)).toBeGreaterThan(R * 0.5);
+    }
   });
 
   it("starts at a free point: nothing closer than the radius", () => {
     const { walls } = buildWalkColliders(ctx);
     for (const s of walls) expect(distToSeg(start.position, s)).toBeGreaterThanOrEqual(R - 1e-9);
+  });
+});
+
+describe("pool collider", () => {
+  it("makes the water of every pool solid: the walker cannot step into the basin from the coping", () => {
+    const { walls } = buildWalkColliders(ctx);
+    const pools = ctx.derived.outdoor.filter((o) => o.pool);
+    expect(pools.length).toBeGreaterThan(0);
+    for (const o of pools) {
+      const [x0, y0, x1, y1] = o.pool!.water;
+      const cy = (y0 + y1) / 2;
+      // from the coping beside the water, walk straight across it
+      const end = move([x0 - 0.5, cy], [x1 - x0 + 1, 0], (q) => collidersAt({ walls, furniture: [] }, false, q));
+      expect(end[0]).toBeLessThan(x0);
+    }
   });
 });

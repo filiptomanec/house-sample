@@ -1,77 +1,118 @@
 "use client";
 
-// Electricity by month: consumption stacked by purpose, production beside it. Tapping a month selects it for the day chart
-// (the month picker under the chart does the same with proper touch targets, and a table of the numbers is there for
-// screen readers).
+// Electricity by month: consumption stacked by purpose in the graphite ramp (pool and car hatched), solar production beside it
+// in mint. Drawn at its real width with 11 px axis text; the value axis steps by 1, 2 or 5 times a power of ten. Clicking a month
+// selects it for the day chart (the month control of the day chart does the same with proper touch targets); a table of the
+// numbers is there for screen readers.
 
+import { useId, useRef } from "react";
 import { monthNames } from "@/lib/calendar";
 import type { EnergyResult } from "@/lib/calc/energy";
-import { useNarrow } from "@/components/ui/useNarrow";
 import { useFormat, useLocale, useT } from "@/lib/i18n/client";
-import { shortMonths } from "./months";
-import { niceMax, px, tickDecimals, ticks } from "./chartScale";
+import { HatchDef, useChartWidth } from "./chartParts";
+import { CHART_COMPACT_WIDTH, niceTicks, px, tickDecimals } from "./chartScale";
+import { narrowMonths, shortMonths } from "./months";
+
+/** The stack from the bottom: the steady household load first, then what follows the seasons. */
+const PARTS = ["household", "heat", "dhw", "pool", "ev"] as const;
+const HATCHED = new Set<string>(["pool", "ev"]);
 
 export function MonthlyChart({ result, month, onMonth }: { result: EnergyResult; month: number; onMonth: (m: number) => void }) {
   const t = useT();
   const f = useFormat();
   const locale = useLocale();
-  const narrow = useNarrow();
-  const names = shortMonths(locale);
-  const W = narrow ? 320 : 720, H = narrow ? 240 : 300, L = narrow ? 36 : 44, B = 26, T = 16, R = 6, fs = narrow ? 11 : 11;
+  const hatch = useId();
+  const ref = useRef<HTMLDivElement>(null);
+  const W = useChartWidth(ref);
+  const compact = W < CHART_COMPACT_WIDTH;
+  // the height is set by .chart-monthly svg in energy.css (300 px, 240 px on phones); these must agree
+  const H = compact ? 240 : 300;
+  const L = compact ? 38 : 46, R = 2, T = 24, B = 26;
 
-  const parts = [
-    { key: "heat", label: t("energy.charts.heat"), v: result.months.map((m) => m.elHeatKwh) },
-    { key: "dhw", label: t("energy.charts.dhw"), v: result.months.map((m) => m.elDhwKwh) },
-    { key: "household", label: t("energy.charts.household"), v: result.months.map((m) => m.elApplianceKwh + m.elVentKwh) },
-    { key: "ev", label: t("energy.charts.ev"), v: result.months.map((m) => m.elEvKwh) },
-  ].filter((p) => p.v.some((x) => x > 0));
+  const values: Record<(typeof PARTS)[number], number[]> = {
+    household: result.months.map((m) => m.elApplianceKwh + m.elVentKwh),
+    heat: result.months.map((m) => m.elHeatKwh),
+    dhw: result.months.map((m) => m.elDhwKwh),
+    pool: result.months.map((m) => m.elPoolKwh),
+    ev: result.months.map((m) => m.elEvKwh),
+  };
+  const labels: Record<(typeof PARTS)[number], string> = {
+    household: t("energy.charts.household"), heat: t("energy.charts.heat"), dhw: t("energy.charts.dhw"), pool: t("energy.charts.pool"), ev: t("energy.charts.ev"),
+  };
+  const parts = PARTS.filter((k) => values[k].some((v) => v > 0));
   const pv = result.months.map((m) => m.pvKwh);
-  const max = niceMax(Math.max(...result.months.map((m) => m.elTotalKwh), ...pv));
-  const y = (v: number) => px(T + (H - T - B) * (1 - v / max));
-  const gw = px((W - L - R) / 12), bw = px(Math.min(22, gw * 0.36));
-  const decimals = tickDecimals(max / 4);
+  const axis = niceTicks(Math.max(...result.months.map((m) => m.elTotalKwh), ...pv), compact ? 4 : 5);
+  const y = (v: number) => px(T + (H - T - B) * (1 - v / axis.max));
+  const gw = (W - L - R) / 12;
+  const bw = px(Math.min(compact ? 9 : 22, gw * 0.34));
+  const decimals = tickDecimals(axis.step);
+  const names = compact ? narrowMonths(locale) : shortMonths(locale);
+  const long = monthNames(locale, "long");
+  const kwh = t("energy.units.kwh");
+  const sel = result.months[month];
+  // a compact axis labels every other month (I, III, V ...) and the selected one, whose neighbours then give way
+  const showLabel = (i: number) => !compact || i === month || (i % 2 === 0 && Math.abs(i - month) !== 1);
 
   return (
-    <figure className="chart">
+    <figure className="chart chart-monthly" ref={ref}>
+      <p className="chart-readout small" aria-live="polite">
+        <b>{long[month]}</b>
+        <span>{t("energy.charts.consumption")} <span className="num">{f.unit(sel.elTotalKwh, kwh)}</span></span>
+        <span><i className="dot s-pv" aria-hidden />{t("energy.charts.production")} <span className="num">{f.unit(sel.pvKwh, kwh)}</span></span>
+      </p>
       <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={t("energy.charts.monthlyAria")}>
-        {ticks(max, 4).map((v) => (
+        <HatchDef id={hatch} />
+        {axis.ticks.map((v) => (
           <g key={v}>
-            <line className="chart-grid" x1={L} x2={W - R} y1={y(v)} y2={y(v)} />
-            <text className="chart-axis" x={L - 6} y={y(v) + 4} textAnchor="end" fontSize={fs}>{f.num(v, decimals)}</text>
+            <line className={v === 0 ? "chart-base" : "chart-grid"} x1={L} x2={W - R} y1={y(v)} y2={y(v)} />
+            <text className="chart-axis" x={L - 8} y={y(v) + 4} textAnchor="end">{f.num(v, decimals)}</text>
           </g>
         ))}
-        <text className="chart-axis" x={L} y={T - 5} fontSize={fs}>{t("energy.charts.axisKwh")}</text>
+        <text className="chart-axis" x={0} y={T - 12}>{t("energy.charts.axisKwh")}</text>
         {result.months.map((m, i) => {
-          const x0 = px(L + i * gw + gw / 2 - bw - 1);
+          const cx = L + i * gw + gw / 2;
+          const x0 = px(cx - bw - 1);
           let acc = 0;
           return (
-            <g key={i} onClick={() => onMonth(i)} className="chart-month">
-              <rect className={i === month ? "chart-pick on" : "chart-pick"} x={px(L + i * gw)} y={T} width={gw} height={H - T - B} />
-              {parts.map((p) => {
-                const top = y(acc + p.v[i]), h = px(y(acc) - top);
-                acc += p.v[i];
-                return h > 0.2 ? <rect key={p.key} className={`s-${p.key}`} x={x0} y={top} width={bw} height={h} /> : null;
+            <g key={i} onClick={() => onMonth(i)} className={i === month ? "chart-month on" : "chart-month"}>
+              <rect className="chart-pick" x={px(L + i * gw + 1)} y={T - 6} width={px(gw - 2)} height={H - T - B + 6} rx={4} />
+              {parts.map((k) => {
+                const v = values[k][i];
+                const top = y(acc + v), h = px(y(acc) - top);
+                acc += v;
+                if (h <= 0.2) return null;
+                return (
+                  <g key={k}>
+                    <rect className={`s-${k}`} x={x0} y={top} width={bw} height={h} />
+                    {HATCHED.has(k) && <rect fill={`url(#${hatch})`} x={x0} y={top} width={bw} height={h} />}
+                  </g>
+                );
               })}
-              <rect className="s-pv" x={px(x0 + bw + 2)} y={y(pv[i])} width={bw} height={px(Math.max(0, y(0) - y(pv[i])))} />
-              <text className={i === month ? "chart-axis on" : "chart-axis"} x={px(L + i * gw + gw / 2)} y={H - 8} textAnchor="middle" fontSize={fs}>{narrow ? f.int(i + 1) : names[i]}</text>
+              {pv[i] > 0 && (
+                <>
+                  <rect className="s-pv-area" x={px(cx + 1)} y={y(pv[i])} width={bw} height={px(Math.max(0, y(0) - y(pv[i])))} />
+                  <line className="s-pv-cap" x1={px(cx + 1)} x2={px(cx + 1 + bw)} y1={y(pv[i]) + 1} y2={y(pv[i]) + 1} />
+                </>
+              )}
+              {showLabel(i) && <text className="chart-axis chart-axis-x" x={px(cx)} y={H - 7} textAnchor="middle">{names[i]}</text>}
             </g>
           );
         })}
       </svg>
       <figcaption className="legend small">
-        {parts.map((p) => <span key={p.key}><i className={`dot s-${p.key}`} />{p.label}</span>)}
-        <span><i className="dot s-pv" />{t("energy.charts.production")}</span>
+        {parts.map((k) => <span key={k}><i className={`dot s-${k}${HATCHED.has(k) ? " hatch" : ""}`} aria-hidden />{labels[k]}</span>)}
+        <span><i className="dot s-pv" aria-hidden />{t("energy.charts.production")}</span>
       </figcaption>
       <div className="sr-only">
-      <table>
-        <caption>{t("energy.charts.monthlyAria")}</caption>
-        <thead><tr><th>{t("energy.charts.tableMonth")}</th><th>{t("energy.charts.tableConsumption")}</th><th>{t("energy.charts.tableProduction")}</th></tr></thead>
-        <tbody>
-          {result.months.map((m, i) => (
-            <tr key={i}><th>{monthNames(locale, "long")[i]}</th><td>{f.unit(m.elTotalKwh, t("energy.units.kwh"))}</td><td>{f.unit(m.pvKwh, t("energy.units.kwh"))}</td></tr>
-          ))}
-        </tbody>
-      </table>
+        <table>
+          <caption>{t("energy.charts.monthlyAria")}</caption>
+          <thead><tr><th>{t("energy.charts.tableMonth")}</th><th>{t("energy.charts.tableConsumption")}</th><th>{t("energy.charts.tableProduction")}</th></tr></thead>
+          <tbody>
+            {result.months.map((m, i) => (
+              <tr key={i}><th>{long[i]}</th><td>{f.unit(m.elTotalKwh, kwh)}</td><td>{f.unit(m.pvKwh, kwh)}</td></tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </figure>
   );

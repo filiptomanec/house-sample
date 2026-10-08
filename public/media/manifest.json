@@ -1,6 +1,8 @@
 {
   "schema": "media/1",
-  "inputHash": "399fe6bb6974bc62d1ec5afbb8956c30aa57927c1b17b05a1c6303b48f4a3b28",
+  "inputHash": "8abc6381ed73cac9fe36b617e9e3dd6a12448086cbb77a5db497c6e203f00bec",
+  "builtAt": "2026-10-08",
+  "standIns": 314,
   "day": {
     "date": "2026-06-21",
     "times": [
@@ -24,6 +26,7 @@
       "19:00",
       "19:20",
       "19:40",
+      "19:50",
       "20:00",
       "20:10",
       "20:20",
@@ -33,245 +36,621 @@
       "21:00",
       "21:10",
       "21:20",
-      "21:30"
+      "21:30",
+      "21:40"
     ],
-    "stillTime": "13:00",
-    "hash": "b0f113d9bc",
+    "stillTime": "19:20",
+    "hash": "39bd0845ae",
     "landscape": {
-      "pattern": "media/day/l/{time}.{hash}.jpg",
+      "pattern": "media/day/l/{time}.{hash}.webp",
       "width": 1920,
-      "height": 1080
+      "height": 1080,
+      "format": "webp",
+      "small": {
+        "pattern": "media/day/l960/{time}.{hash}.webp",
+        "width": 960,
+        "height": 540
+      }
     },
     "portrait": {
-      "pattern": "media/day/p/{time}.{hash}.jpg",
-      "width": 800,
-      "height": 1200
+      "pattern": "media/day/p/{time}.{hash}.webp",
+      "width": 1080,
+      "height": 1620,
+      "format": "webp"
     }
   },
   "orbit": {
     "frames": 60,
     "degPerFrame": 6,
-    "hash": "790a640781",
+    "hash": "680bee004c",
+    "startAzimuthDeg": 225,
+    "direction": "counterclockwise",
+    "captionHalfWindowDeg": 30,
+    "captions": [
+      {
+        "feature": "pv",
+        "azimuthDeg": 180
+      },
+      {
+        "feature": "entry",
+        "azimuthDeg": 0
+      },
+      {
+        "feature": "garage",
+        "azimuthDeg": 0
+      },
+      {
+        "feature": "terrace",
+        "azimuthDeg": 241.104
+      },
+      {
+        "feature": "pool",
+        "azimuthDeg": 205.141
+      }
+    ],
     "landscape": {
-      "pattern": "media/orbit/l/{i}.{hash}.jpg",
+      "pattern": "media/orbit/l/{i}.{hash}.webp",
       "width": 1600,
-      "height": 900
+      "height": 900,
+      "format": "webp",
+      "small": {
+        "pattern": "media/orbit/l960/{i}.{hash}.webp",
+        "width": 960,
+        "height": 540
+      }
     },
     "portrait": {
-      "pattern": "media/orbit/p/{i}.{hash}.jpg",
-      "width": 600,
-      "height": 900
+      "pattern": "media/orbit/p/{i}.{hash}.webp",
+      "width": 900,
+      "height": 1350,
+      "format": "webp",
+      "stride": 2
     },
     "video": {
-      "file": "media/orbit/orbit.1967cc42fa.mp4",
-      "poster": "media/orbit/poster.77ed34e414.jpg",
+      "file": "media/orbit/orbit-1600.93645d9f59.mp4",
+      "poster": "media/orbit/poster-1600.77ed34e414.jpg",
       "width": 1600,
       "height": 900,
       "fps": 24,
-      "durationS": 12.5
+      "durationS": 10,
+      "variants": [
+        {
+          "w": 1600,
+          "h": 900,
+          "file": "media/orbit/orbit-1600.93645d9f59.mp4"
+        },
+        {
+          "w": 960,
+          "h": 540,
+          "file": "media/orbit/orbit-960.dfe915c1b7.mp4"
+        }
+      ],
+      "posterVariants": [
+        {
+          "w": 640,
+          "h": 360,
+          "avif": "media/orbit/poster-640.290cd14ece.avif",
+          "webp": "media/orbit/poster-640.255e2aba42.webp",
+          "jpg": "media/orbit/poster-640.f507bbcd4d.jpg"
+        },
+        {
+          "w": 1280,
+          "h": 720,
+          "avif": "media/orbit/poster-1280.d70d6be068.avif",
+          "webp": "media/orbit/poster-1280.30a4ef9012.webp",
+          "jpg": "media/orbit/poster-1280.0d6e465c17.jpg"
+        },
+        {
+          "w": 1600,
+          "h": 900,
+          "avif": "media/orbit/poster-1600.5da9b5eff8.avif",
+          "webp": "media/orbit/poster-1600.260edceb4c.webp",
+          "jpg": "media/orbit/poster-1600.77ed34e414.jpg"
+        }
+      ]
     }
   },
   "stills": [
     {
-      "id": "street-sunset",
-      "file": "media/stills/street-sunset.0a3c20b4fd.jpg",
+      "id": "garden-walnut",
+      "file": "media/stills/garden-walnut-1920.f5ef0e1c3e.jpg",
+      "width": 1920,
+      "height": 1080,
+      "date": "2026-06-21",
+      "time": "16:30",
+      "category": "exterior",
+      "title": {
+        "cs": "Zahrada pod ořechem",
+        "en": "Garden under the walnut"
+      },
+      "alt": {
+        "cs": "Bazén, krytá terasa a jižní strana domu v odpoledním slunci, pohled zpod koruny starého ořechu.",
+        "en": "The pool, the covered terrace and the south side of the house in afternoon sun, seen from under the crown of the old walnut."
+      },
+      "variants": [
+        {
+          "w": 640,
+          "h": 360,
+          "avif": "media/stills/garden-walnut-640.e0654bc2a3.avif",
+          "webp": "media/stills/garden-walnut-640.a682d91c22.webp",
+          "jpg": "media/stills/garden-walnut-640.02bddc4b13.jpg"
+        },
+        {
+          "w": 1280,
+          "h": 720,
+          "avif": "media/stills/garden-walnut-1280.d5cc30dede.avif",
+          "webp": "media/stills/garden-walnut-1280.f098fe338a.webp",
+          "jpg": "media/stills/garden-walnut-1280.1b00d496a5.jpg"
+        },
+        {
+          "w": 1920,
+          "h": 1080,
+          "avif": "media/stills/garden-walnut-1920.80a2a01d06.avif",
+          "webp": "media/stills/garden-walnut-1920.06b2996d0b.webp",
+          "jpg": "media/stills/garden-walnut-1920.f5ef0e1c3e.jpg"
+        }
+      ],
+      "gallery": true
+    },
+    {
+      "id": "street-approach",
+      "file": "media/stills/street-approach-1920.0f133a4480.jpg",
       "width": 1920,
       "height": 1080,
       "date": "2026-06-21",
       "time": "20:15",
       "category": "exterior",
       "title": {
-        "cs": "Vstup od ulice při západu slunce",
-        "en": "Entrance from the street at sunset"
+        "cs": "Příjezd od ulice",
+        "en": "Approach from the street"
       },
       "alt": {
-        "cs": "Severní fasáda s vraty garáže a vstupem v zlatém večerním světle, v oknech se rozsvěcí světlo.",
-        "en": "The north facade with the garage door and the entrance in golden evening light, the windows starting to glow."
-      }
+        "cs": "Uliční strana při západu slunce: pootevřená brána, příjezd k otevřené garáži s auty a vstup pod závětřím.",
+        "en": "The street side at sunset: the drive gate half open, the drive to the open garage with the cars and the entrance under the porch."
+      },
+      "variants": [
+        {
+          "w": 640,
+          "h": 360,
+          "avif": "media/stills/street-approach-640.51a579ec85.avif",
+          "webp": "media/stills/street-approach-640.4baae7c45e.webp",
+          "jpg": "media/stills/street-approach-640.9dc66104ca.jpg"
+        },
+        {
+          "w": 1280,
+          "h": 720,
+          "avif": "media/stills/street-approach-1280.18c01b23d5.avif",
+          "webp": "media/stills/street-approach-1280.395c17c371.webp",
+          "jpg": "media/stills/street-approach-1280.1796c431ac.jpg"
+        },
+        {
+          "w": 1920,
+          "h": 1080,
+          "avif": "media/stills/street-approach-1920.f5ff7ef00c.avif",
+          "webp": "media/stills/street-approach-1920.0508a664fd.webp",
+          "jpg": "media/stills/street-approach-1920.0f133a4480.jpg"
+        }
+      ],
+      "gallery": true
     },
     {
-      "id": "garden-afternoon",
-      "file": "media/stills/garden-afternoon.256f4f7186.jpg",
+      "id": "terrace-louvres",
+      "file": "media/stills/terrace-louvres-1920.da23d05ac0.jpg",
       "width": 1920,
       "height": 1080,
       "date": "2026-06-21",
-      "time": "16:40",
+      "time": "17:00",
       "category": "exterior",
       "title": {
-        "cs": "Zahrada a terasa odpoledne",
-        "en": "Garden and terrace in the afternoon"
+        "cs": "Lamely terasy",
+        "en": "Terrace louvres"
       },
       "alt": {
-        "cs": "Krytá terasa s jídelním stolem a lehátkem, za ní zahrada a jižní fasáda domu v odpoledním slunci.",
-        "en": "The covered terrace with the dining table and the lounger, the garden and the south facade of the house in afternoon sun."
-      }
+        "cs": "Natočené dřevěné lamely na západní straně terasy kreslí na dřevěnou podlahu pruhy světla, vpravo posezení u stěny garáže.",
+        "en": "Angled timber louvres on the west side of the terrace draw stripes of light on the deck, with the lounge set against the garage wall on the right."
+      },
+      "variants": [
+        {
+          "w": 640,
+          "h": 360,
+          "avif": "media/stills/terrace-louvres-640.d5bfd20215.avif",
+          "webp": "media/stills/terrace-louvres-640.b252218a32.webp",
+          "jpg": "media/stills/terrace-louvres-640.0a78cf90f2.jpg"
+        },
+        {
+          "w": 1280,
+          "h": 720,
+          "avif": "media/stills/terrace-louvres-1280.12af79f402.avif",
+          "webp": "media/stills/terrace-louvres-1280.43eb0d2cf5.webp",
+          "jpg": "media/stills/terrace-louvres-1280.9fa956ca8e.jpg"
+        },
+        {
+          "w": 1920,
+          "h": 1080,
+          "avif": "media/stills/terrace-louvres-1920.f3c274dcd7.avif",
+          "webp": "media/stills/terrace-louvres-1920.c258b34e9f.webp",
+          "jpg": "media/stills/terrace-louvres-1920.da23d05ac0.jpg"
+        }
+      ],
+      "gallery": true
     },
     {
-      "id": "terrace-evening",
-      "file": "media/stills/terrace-evening.faab346102.jpg",
+      "id": "entrance",
+      "file": "media/stills/entrance-1920.0fc279ab60.jpg",
       "width": 1920,
       "height": 1080,
       "date": "2026-06-21",
-      "time": "21:15",
+      "time": "21:10",
       "category": "exterior",
       "title": {
-        "cs": "Osvětlená terasa za soumraku",
-        "en": "The lit terrace at dusk"
+        "cs": "Vstup za soumraku",
+        "en": "Entrance at dusk"
       },
       "alt": {
-        "cs": "Osvětlená terasa a okna obýváku po západu slunce, na obloze doznívá oranžová záře.",
-        "en": "The lit terrace and the living room windows after sunset, an orange glow fading in the sky."
-      }
+        "cs": "Chodník mezi trávami vede k rozsvícenému závětří se vstupními dveřmi, podél něj svítí sloupková světla.",
+        "en": "The path between the grasses leads to the lit porch and the front door, with bollard lights along it."
+      },
+      "variants": [
+        {
+          "w": 640,
+          "h": 360,
+          "avif": "media/stills/entrance-640.a725ac4cb1.avif",
+          "webp": "media/stills/entrance-640.444155daf9.webp",
+          "jpg": "media/stills/entrance-640.16e44b714d.jpg"
+        },
+        {
+          "w": 1280,
+          "h": 720,
+          "avif": "media/stills/entrance-1280.9f83b36e2c.avif",
+          "webp": "media/stills/entrance-1280.21472930f4.webp",
+          "jpg": "media/stills/entrance-1280.f9ca1cd9b3.jpg"
+        },
+        {
+          "w": 1920,
+          "h": 1080,
+          "avif": "media/stills/entrance-1920.6e2b6d3bce.avif",
+          "webp": "media/stills/entrance-1920.c6787db511.webp",
+          "jpg": "media/stills/entrance-1920.0fc279ab60.jpg"
+        }
+      ],
+      "gallery": true
+    },
+    {
+      "id": "living",
+      "file": "media/stills/living-1920.075b60946f.jpg",
+      "width": 1920,
+      "height": 1080,
+      "date": "2026-06-21",
+      "time": "15:30",
+      "category": "interior",
+      "title": {
+        "cs": "Obývací pokoj",
+        "en": "Living room"
+      },
+      "alt": {
+        "cs": "Pohovka a jídelní stůl u dvou prosklených stěn do terasy a zahrady, odpolední slunce na dubové podlaze.",
+        "en": "The sofa and the dining table by the two sliding glass walls to the terrace and the garden, afternoon sun on the oak floor."
+      },
+      "variants": [
+        {
+          "w": 640,
+          "h": 360,
+          "avif": "media/stills/living-640.7c378b8bde.avif",
+          "webp": "media/stills/living-640.0f5ec24006.webp",
+          "jpg": "media/stills/living-640.49aa5d5965.jpg"
+        },
+        {
+          "w": 1280,
+          "h": 720,
+          "avif": "media/stills/living-1280.1a56a436a1.avif",
+          "webp": "media/stills/living-1280.5c3c107e07.webp",
+          "jpg": "media/stills/living-1280.0a490ab79b.jpg"
+        },
+        {
+          "w": 1920,
+          "h": 1080,
+          "avif": "media/stills/living-1920.23f4cf00a1.avif",
+          "webp": "media/stills/living-1920.e13e06b5e6.webp",
+          "jpg": "media/stills/living-1920.075b60946f.jpg"
+        }
+      ],
+      "gallery": true
+    },
+    {
+      "id": "kitchen",
+      "file": "media/stills/kitchen-1920.0096ced693.jpg",
+      "width": 1920,
+      "height": 1080,
+      "date": "2026-06-21",
+      "time": "10:30",
+      "category": "interior",
+      "title": {
+        "cs": "Kuchyně s ostrůvkem",
+        "en": "Kitchen with island"
+      },
+      "alt": {
+        "cs": "Kuchyňský ostrůvek ze světlého dřeva s barovými židlemi a kuchyňská linka v dopoledním světle.",
+        "en": "The light-wood kitchen island with bar stools and the kitchen run in morning light."
+      },
+      "variants": [
+        {
+          "w": 640,
+          "h": 360,
+          "avif": "media/stills/kitchen-640.ffa23fc7c7.avif",
+          "webp": "media/stills/kitchen-640.f9e491cfb7.webp",
+          "jpg": "media/stills/kitchen-640.2078af1b19.jpg"
+        },
+        {
+          "w": 1280,
+          "h": 720,
+          "avif": "media/stills/kitchen-1280.7e5ce870aa.avif",
+          "webp": "media/stills/kitchen-1280.c8f32529b0.webp",
+          "jpg": "media/stills/kitchen-1280.5c5c2dc0af.jpg"
+        },
+        {
+          "w": 1920,
+          "h": 1080,
+          "avif": "media/stills/kitchen-1920.fb01603217.avif",
+          "webp": "media/stills/kitchen-1920.a7ba50d93d.webp",
+          "jpg": "media/stills/kitchen-1920.0096ced693.jpg"
+        }
+      ],
+      "gallery": true
+    },
+    {
+      "id": "bedroom-morning",
+      "file": "media/stills/bedroom-morning-1920.7ce307f7e2.jpg",
+      "width": 1920,
+      "height": 1080,
+      "date": "2026-06-21",
+      "time": "07:30",
+      "category": "interior",
+      "title": {
+        "cs": "Ložnice ráno",
+        "en": "Bedroom in the morning"
+      },
+      "alt": {
+        "cs": "Ložnice s manželskou postelí a křeslem, ranní slunce prochází napůl staženými žaluziemi východního okna.",
+        "en": "The main bedroom with the double bed and the armchair, morning sun coming through the half-lowered blinds of the east window."
+      },
+      "variants": [
+        {
+          "w": 640,
+          "h": 360,
+          "avif": "media/stills/bedroom-morning-640.e0d7fd8863.avif",
+          "webp": "media/stills/bedroom-morning-640.5027f1bd6e.webp",
+          "jpg": "media/stills/bedroom-morning-640.90e93d32ee.jpg"
+        },
+        {
+          "w": 1280,
+          "h": 720,
+          "avif": "media/stills/bedroom-morning-1280.a4cc7f44c7.avif",
+          "webp": "media/stills/bedroom-morning-1280.85bd2126a5.webp",
+          "jpg": "media/stills/bedroom-morning-1280.6ab87ff719.jpg"
+        },
+        {
+          "w": 1920,
+          "h": 1080,
+          "avif": "media/stills/bedroom-morning-1920.f7cc85b77c.avif",
+          "webp": "media/stills/bedroom-morning-1920.436ee37aca.webp",
+          "jpg": "media/stills/bedroom-morning-1920.7ce307f7e2.jpg"
+        }
+      ],
+      "gallery": true
+    },
+    {
+      "id": "bathroom",
+      "file": "media/stills/bathroom-1920.c4585e6d8b.jpg",
+      "width": 1920,
+      "height": 1080,
+      "date": "2026-06-21",
+      "time": "08:00",
+      "category": "interior",
+      "title": {
+        "cs": "Koupelna u ložnice",
+        "en": "En-suite bathroom"
+      },
+      "alt": {
+        "cs": "Koupelna u ložnice se sprchovým koutem a dvojitým umyvadlem, ranní slunce z východního okna.",
+        "en": "The en-suite bathroom with the walk-in shower and the double basin, morning sun from the east window."
+      },
+      "variants": [
+        {
+          "w": 640,
+          "h": 360,
+          "avif": "media/stills/bathroom-640.a976dbe234.avif",
+          "webp": "media/stills/bathroom-640.0704b449f2.webp",
+          "jpg": "media/stills/bathroom-640.a3fa307d44.jpg"
+        },
+        {
+          "w": 1280,
+          "h": 720,
+          "avif": "media/stills/bathroom-1280.ba29e0bebd.avif",
+          "webp": "media/stills/bathroom-1280.9d4b908836.webp",
+          "jpg": "media/stills/bathroom-1280.9448781117.jpg"
+        },
+        {
+          "w": 1920,
+          "h": 1080,
+          "avif": "media/stills/bathroom-1920.41725f91e7.avif",
+          "webp": "media/stills/bathroom-1920.c20d22e368.webp",
+          "jpg": "media/stills/bathroom-1920.c4585e6d8b.jpg"
+        }
+      ],
+      "gallery": true
     },
     {
       "id": "aerial",
-      "file": "media/stills/aerial.60cac40336.jpg",
+      "file": "media/stills/aerial-1920.144243e9a1.jpg",
       "width": 1920,
       "height": 1080,
       "date": "2026-06-21",
-      "time": "18:30",
+      "time": "17:30",
       "category": "aerial",
       "title": {
-        "cs": "Dům z ptačí perspektivy",
-        "en": "The house from above"
+        "cs": "Dům na pozemku",
+        "en": "The house on its plot"
       },
       "alt": {
-        "cs": "Pohled shora od jihozápadu: dlouhá valbová střecha s fotovoltaikou, zahrada, sousední domy a ulice.",
-        "en": "A view from above from the south-west: the long hip roof with solar panels, the garden, the neighbouring houses and the street."
-      }
+        "cs": "Pohled z výšky od jihozápadu: valbová střecha s fotovoltaikou, terasa, bazén a zahrada uvnitř dřevěného plotu.",
+        "en": "A view from above from the south-west: the hipped roof with solar panels, the terrace, the pool and the garden inside the timber fence."
+      },
+      "variants": [
+        {
+          "w": 640,
+          "h": 360,
+          "avif": "media/stills/aerial-640.11a0757d4f.avif",
+          "webp": "media/stills/aerial-640.4af2f60432.webp",
+          "jpg": "media/stills/aerial-640.7a090f784b.jpg"
+        },
+        {
+          "w": 1280,
+          "h": 720,
+          "avif": "media/stills/aerial-1280.e88c8ef7c6.avif",
+          "webp": "media/stills/aerial-1280.1a193e5d6c.webp",
+          "jpg": "media/stills/aerial-1280.fbb8077a2e.jpg"
+        },
+        {
+          "w": 1920,
+          "h": 1080,
+          "avif": "media/stills/aerial-1920.010c0e61cc.avif",
+          "webp": "media/stills/aerial-1920.c4ed874b17.webp",
+          "jpg": "media/stills/aerial-1920.144243e9a1.jpg"
+        }
+      ],
+      "gallery": true
     },
     {
-      "id": "terrace-detail",
-      "file": "media/stills/terrace-detail.c15009f040.jpg",
+      "id": "pool-terrace-before",
+      "file": "media/stills/pool-terrace-before-1920.d0363c3896.jpg",
       "width": 1920,
       "height": 1080,
       "date": "2026-06-21",
       "time": "17:45",
       "category": "exterior",
       "title": {
-        "cs": "Detail terasy",
-        "en": "Terrace detail"
+        "cs": "Terasa odpoledne",
+        "en": "The terrace in the afternoon"
       },
       "alt": {
-        "cs": "Dřevěné svislé lamely stíní západní stranu terasy, závěsné lehátko a stolek s lucernou.",
-        "en": "Vertical timber slats shade the west side of the terrace, with a hanging daybed and a side table with a lantern."
-      }
+        "cs": "Krytá terasa a prosklená stěna obývacího pokoje za bazénem v bočním odpoledním slunci.",
+        "en": "The covered terrace and the glass wall of the living room beyond the pool in raking afternoon sun."
+      },
+      "variants": [
+        {
+          "w": 640,
+          "h": 360,
+          "avif": "media/stills/pool-terrace-before-640.1c8e62e007.avif",
+          "webp": "media/stills/pool-terrace-before-640.353f544166.webp",
+          "jpg": "media/stills/pool-terrace-before-640.106de79943.jpg"
+        },
+        {
+          "w": 1280,
+          "h": 720,
+          "avif": "media/stills/pool-terrace-before-1280.855641acb8.avif",
+          "webp": "media/stills/pool-terrace-before-1280.8afe6fdce0.webp",
+          "jpg": "media/stills/pool-terrace-before-1280.7977c4d832.jpg"
+        },
+        {
+          "w": 1920,
+          "h": 1080,
+          "avif": "media/stills/pool-terrace-before-1920.88374e6201.avif",
+          "webp": "media/stills/pool-terrace-before-1920.534181a61c.webp",
+          "jpg": "media/stills/pool-terrace-before-1920.d0363c3896.jpg"
+        }
+      ],
+      "gallery": false
     },
     {
-      "id": "living-garden",
-      "file": "media/stills/living-garden.da28ff4b5c.jpg",
+      "id": "pool-terrace-after",
+      "file": "media/stills/pool-terrace-after-1920.109c26a905.jpg",
       "width": 1920,
       "height": 1080,
       "date": "2026-06-21",
-      "time": "11:00",
-      "category": "interior",
-      "title": {
-        "cs": "Obývací pokoj s kuchyní a výhledem do zahrady",
-        "en": "Living room and kitchen looking to the garden"
-      },
-      "alt": {
-        "cs": "Světlý otevřený prostor s kuchyňským ostrovem, jídelním stolem a pohovkou, prosklená stěna otevřená do zahrady.",
-        "en": "A bright open-plan space with a kitchen island, a dining table and a sofa, a glass wall opening to the garden."
-      }
-    },
-    {
-      "id": "bedroom",
-      "file": "media/stills/bedroom.3f84c13afa.jpg",
-      "width": 1920,
-      "height": 1080,
-      "date": "2026-06-21",
-      "time": "08:30",
-      "category": "interior",
-      "title": {
-        "cs": "Hlavní ložnice ráno",
-        "en": "Primary bedroom in the morning"
-      },
-      "alt": {
-        "cs": "Ložnice s dvoulůžkem a křeslem, ranní slunce proniká východním oknem a jižním oknem do zahrady.",
-        "en": "The bedroom with a double bed and an armchair, morning sun entering through the east window, the south window facing the garden."
-      }
-    },
-    {
-      "id": "garage",
-      "file": "media/stills/garage.3f2215b08e.jpg",
-      "width": 1920,
-      "height": 1080,
-      "date": "2026-06-21",
-      "time": "11:00",
-      "category": "interior",
-      "title": {
-        "cs": "Garáž pro dvě auta",
-        "en": "The two-car garage"
-      },
-      "alt": {
-        "cs": "Garáž se dvěma zaparkovanými auty, policemi a vraty, osvětlená stropními světly.",
-        "en": "The garage with two parked cars, shelving and the garage door, lit by ceiling lights."
-      }
-    },
-    {
-      "id": "south-facade",
-      "file": "media/stills/south-facade.98354a344e.jpg",
-      "width": 1920,
-      "height": 1080,
-      "date": "2026-06-21",
-      "time": "13:30",
+      "time": "21:15",
       "category": "exterior",
       "title": {
-        "cs": "Jižní fasáda s fotovoltaikou a žaluziemi",
-        "en": "South facade with solar panels and blinds"
+        "cs": "Terasa po západu slunce",
+        "en": "The terrace after sunset"
       },
       "alt": {
-        "cs": "Jižní strana domu v poledním slunci: 36 fotovoltaických panelů na střeše a spuštěné venkovní žaluzie.",
-        "en": "The south side of the house in midday sun: 36 solar panels on the roof and the external blinds lowered."
-      }
-    },
-    {
-      "id": "day-night-before",
-      "file": "media/stills/day-night-before.7125098cf2.jpg",
-      "width": 1920,
-      "height": 1080,
-      "date": "2026-06-21",
-      "time": "14:00",
-      "category": "interior",
-      "title": {
-        "cs": "Odpoledne",
-        "en": "Afternoon"
+        "cs": "Rozsvícená terasa a obývací pokoj se zrcadlí v bazénu, nad valbovou střechou modrá obloha po západu slunce.",
+        "en": "The lit terrace and living room reflected in the pool, a blue sky after sunset above the hipped roof."
       },
-      "alt": {
-        "cs": "Odpoledne. Obývací pokoj s kuchyní ve dne a večer: stejný pohled, večer svítí závěsná světla a venku se stmívá.",
-        "en": "Afternoon. The living room and kitchen by day and in the evening: the same view, with the pendant lights on and dusk outside."
-      }
-    },
-    {
-      "id": "day-night-after",
-      "file": "media/stills/day-night-after.472d1c1061.jpg",
-      "width": 1920,
-      "height": 1080,
-      "date": "2026-06-21",
-      "time": "21:20",
-      "category": "interior",
-      "title": {
-        "cs": "Večer",
-        "en": "Evening"
-      },
-      "alt": {
-        "cs": "Večer. Obývací pokoj s kuchyní ve dne a večer: stejný pohled, večer svítí závěsná světla a venku se stmívá.",
-        "en": "Evening. The living room and kitchen by day and in the evening: the same view, with the pendant lights on and dusk outside."
-      }
+      "variants": [
+        {
+          "w": 640,
+          "h": 360,
+          "avif": "media/stills/pool-terrace-after-640.1c8af1a747.avif",
+          "webp": "media/stills/pool-terrace-after-640.e32899841b.webp",
+          "jpg": "media/stills/pool-terrace-after-640.15b56a30bf.jpg"
+        },
+        {
+          "w": 1280,
+          "h": 720,
+          "avif": "media/stills/pool-terrace-after-1280.8bda969be9.avif",
+          "webp": "media/stills/pool-terrace-after-1280.420c21a8c1.webp",
+          "jpg": "media/stills/pool-terrace-after-1280.58ede0af94.jpg"
+        },
+        {
+          "w": 1920,
+          "h": 1080,
+          "avif": "media/stills/pool-terrace-after-1920.3df2f92d7d.avif",
+          "webp": "media/stills/pool-terrace-after-1920.ebb7629be2.webp",
+          "jpg": "media/stills/pool-terrace-after-1920.109c26a905.jpg"
+        }
+      ],
+      "gallery": true
     }
   ],
   "compare": {
-    "a": "day-night-before",
-    "b": "day-night-after"
+    "a": "pool-terrace-before",
+    "b": "pool-terrace-after",
+    "alt": {
+      "cs": "Terasa a obývací pokoj přes bazén ze stejného místa: odpoledne v bočním slunci a po západu slunce s rozsvíceným interiérem.",
+      "en": "The terrace and the living room across the pool from the same spot: in raking afternoon sun and after sunset with the interior lit."
+    },
+    "before": {
+      "label": {
+        "cs": "Odpoledne",
+        "en": "Afternoon"
+      },
+      "title": {
+        "cs": "Terasa odpoledne",
+        "en": "The terrace in the afternoon"
+      },
+      "alt": {
+        "cs": "Krytá terasa a prosklená stěna obývacího pokoje za bazénem v bočním odpoledním slunci.",
+        "en": "The covered terrace and the glass wall of the living room beyond the pool in raking afternoon sun."
+      }
+    },
+    "after": {
+      "label": {
+        "cs": "Po západu slunce",
+        "en": "After sunset"
+      },
+      "title": {
+        "cs": "Terasa po západu slunce",
+        "en": "The terrace after sunset"
+      },
+      "alt": {
+        "cs": "Rozsvícená terasa a obývací pokoj se zrcadlí v bazénu, nad valbovou střechou modrá obloha po západu slunce.",
+        "en": "The lit terrace and living room reflected in the pool, a blue sky after sunset above the hipped roof."
+      }
+    }
   },
   "og": {
-    "file": "media/og.e3f179ecd7.jpg",
+    "file": "media/og.52696dbe20.jpg",
     "width": 1200,
     "height": 630,
     "twitter": {
-      "file": "media/twitter.954f7463dd.jpg",
+      "file": "media/twitter.a375e19643.jpg",
       "width": 1200,
       "height": 600
+    },
+    "alt": {
+      "cs": "Dům pod ořechem za soumraku: rozsvícená terasa a okna obývacího pokoje za bazénem, vpravo starý ořech.",
+      "en": "Walnut House at dusk: the lit terrace and living-room windows beyond the pool, the old walnut on the right."
     }
   }
 }

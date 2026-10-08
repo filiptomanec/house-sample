@@ -1,5 +1,5 @@
-"""PV modules on the roof (render-inputs.json: pv.panels): a dark glass face with a cell grid in an aluminium frame, held
-`standoff` above the roof plane."""
+"""PV modules on the roof (render-inputs.json: pv.panels): all-black modules (black cells with a barely visible grid, black
+frame, anti-reflective glass with a light coat), held `standoff` above the roof plane."""
 from __future__ import annotations
 
 from mathutils import Vector
@@ -25,14 +25,14 @@ def _pv_glass():
     br.inputs["Bias"].default_value = 0.0
     br.inputs["Brick Width"].default_value = 1.0
     br.inputs["Row Height"].default_value = 1.0
-    br.inputs["Color1"].default_value = (*hex_to_linear("#101a2e"), 1)
-    br.inputs["Color2"].default_value = (*hex_to_linear("#142038"), 1)
-    br.inputs["Mortar"].default_value = (*hex_to_linear("#8a95a8"), 1)
+    br.inputs["Color1"].default_value = (*hex_to_linear("#0b0e12"), 1)
+    br.inputs["Color2"].default_value = (*hex_to_linear("#0e1217"), 1)
+    br.inputs["Mortar"].default_value = (*hex_to_linear("#12161b"), 1)
     links.new(mp.outputs[0], br.inputs["Vector"])
     links.new(br.outputs["Color"], bs.inputs["Base Color"])
-    bs.inputs["Roughness"].default_value = 0.12
+    bs.inputs["Roughness"].default_value = 0.06
     bs.inputs["Metallic"].default_value = 0.0
-    for key, val in (("Coat Weight", 0.6), ("Coat Roughness", 0.03), ("Specular IOR Level", 0.8)):
+    for key, val in (("Coat Weight", 0.35), ("Coat Roughness", 0.05), ("Specular IOR Level", 0.5)):
         if key in bs.inputs:
             bs.inputs[key].default_value = val
     return m
@@ -43,9 +43,9 @@ def _frame_mat():
     m = bpy.data.materials.new("pv_frame")
     m.use_nodes = True
     bs = m.node_tree.nodes.get("Principled BSDF")
-    bs.inputs["Base Color"].default_value = (*hex_to_linear("#9aa0a6"), 1)
-    bs.inputs["Metallic"].default_value = 0.9
-    bs.inputs["Roughness"].default_value = 0.4
+    bs.inputs["Base Color"].default_value = (*hex_to_linear("#1b1e21"), 1)
+    bs.inputs["Metallic"].default_value = 0.6
+    bs.inputs["Roughness"].default_value = 0.35
     return m
 
 

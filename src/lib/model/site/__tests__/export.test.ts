@@ -25,10 +25,14 @@ describe("exportSiteDerived", () => {
   });
 
   it("trees, shrubs, posts and gates carry their ground height, neighbours their base height and ridge", () => {
-    for (const t of derived.trees) expect(t.z).toBeCloseTo(graded.groundAt(t.x, t.y), 3);
+    // z is rounded to mm at the exact point, the point itself to mm too: allow half a millimetre plus the rise of the ground
+    // over the rounding of x and y (at most 0.5 mm * sqrt 2 along the local slope)
+    const onGround = (z: number, x: number, y: number) =>
+      Math.abs(z - graded.groundAt(x, y)) <= 0.0005 + 0.0005 * Math.SQRT2 * (graded.slopeAt(x, y).slopePct / 100) + 1e-9;
+    for (const t of derived.trees) expect(onGround(t.z, t.x, t.y), t.id).toBe(true);
     for (const t of derived.trees) expect(typeof t.uplight).toBe("boolean");
-    for (const f of derived.fences) for (const p of f.posts) expect(p.z).toBeCloseTo(graded.groundAt(p.x, p.y), 3);
-    for (const g of derived.gates) expect(g.z).toBeCloseTo(graded.groundAt(g.center[0], g.center[1]), 3);
+    for (const f of derived.fences) for (const p of f.posts) expect(onGround(p.z, p.x, p.y), `${f.id} ${p.x},${p.y}`).toBe(true);
+    for (const g of derived.gates) expect(onGround(g.z, g.center[0], g.center[1]), g.id).toBe(true);
     for (const n of derived.neighbours) {
       expect(n.ridgeHeight).toBeGreaterThan(n.eaveHeight);
       expect(n.footprint).toHaveLength(4);

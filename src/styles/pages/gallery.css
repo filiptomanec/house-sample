@@ -1,17 +1,23 @@
 /* Gallery page (a .night block: dark in both schemes). Tokens and layout classes only; breakpoints 640 / 900 / 1180.
-   The grid has fixed row heights derived from the width, so lazy-loaded pictures never move the layout. */
+   Desktop: a bento grid with fixed row heights derived from the width (lazy pictures never move the layout) and captions on
+   the pictures over a strong scrim. Phones: one column of whole pictures with the caption below. */
 
 .gal-page { padding-bottom: var(--section-y-sm); }
-.gal { display: grid; gap: var(--sp-5); }
-.gal .chips { gap: var(--sp-2); }
+.gal { display: grid; gap: var(--sp-6); }
+.gal-bar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-3); }
 .gal-n { margin-left: 7px; font-size: var(--fs-2xs); opacity: 0.65; }
 
-/* orbit video */
+/* ---------------------------------------------------------------- orbit video: the stage keeps the video's aspect ratio and is
+   never letterboxed; on a short screen it gets narrower instead of taller */
 .gal-video { margin: 0; display: grid; gap: var(--sp-3); }
-.gal-video-stage { position: relative; width: 100%; max-height: 78svh; overflow: hidden; border-radius: var(--r-md); background: var(--bg-2); }
-.gal-video-stage video { display: block; width: 100%; height: 100%; object-fit: contain; background: var(--bg-2); }
+.gal-video-stage {
+  position: relative; width: min(100%, calc(84svh * 16 / 9)); margin-inline: auto; overflow: hidden; isolation: isolate;
+  border-radius: var(--r-md); background: var(--bg-2);
+}
+.gal-video-stage video { display: block; width: 100%; height: 100%; object-fit: cover; background: var(--bg-2); }
+.gal-poster, .gal-poster img { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: cover; }
 .gal-play {
-  position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: var(--sp-3);
+  position: absolute; inset: 0; z-index: 1; display: grid; place-content: center; justify-items: center; gap: var(--sp-3);
   border: 0; padding: 0; color: var(--on-media); cursor: pointer; background: var(--media-scrim-lo);
   -webkit-tap-highlight-color: transparent;
 }
@@ -22,11 +28,12 @@
 .gal-play-icon svg { margin-left: 3px; }
 @media (hover: hover) { .gal-play:hover .gal-play-icon { transform: scale(1.06); } }
 .gal-play:active .gal-play-icon { transform: scale(0.96); }
+.gal-play:focus-visible { outline: 2px solid var(--focus); outline-offset: -4px; }
 .gal-play-tag { padding: 4px 12px; border-radius: var(--r-pill); background: var(--media-scrim); font-size: var(--fs-xs); letter-spacing: 0.06em; text-transform: uppercase; }
-.gal-video-error { position: absolute; inset-inline: var(--sp-4); inset-block-end: var(--sp-4); margin: 0; padding: var(--sp-3) var(--sp-4); border-radius: var(--r-sm); background: var(--surface); color: var(--bad); font-size: var(--fs-sm); }
-.gal-video figcaption { color: var(--ink-3); }
+.gal-video-error { position: absolute; z-index: 2; inset-inline: var(--sp-4); inset-block-end: var(--sp-4); margin: 0; padding: var(--sp-3) var(--sp-4); border-radius: var(--r-sm); background: var(--surface); color: var(--bad); font-size: var(--fs-sm); }
+.gal-video figcaption { width: min(100%, calc(84svh * 16 / 9)); margin-inline: auto; color: var(--ink-3); }
 
-/* bento grid: four columns, rows a quarter of the column width times 3 (4:3 cells) */
+/* ---------------------------------------------------------------- bento grid: four columns, rows a quarter of the width x 3 (4:3 cells) */
 .gal-wrap { container-type: inline-size; }
 .gal-grid {
   --cols: 4;
@@ -37,6 +44,8 @@
   position: relative; min-width: 0; min-height: 0; margin: 0; padding: 0; overflow: hidden; isolation: isolate; text-align: left;
   border: 0; border-radius: var(--r-md); background: var(--surface); color: var(--on-media); cursor: pointer; -webkit-tap-highlight-color: transparent;
 }
+.gal-ph { position: absolute; inset: 0; display: block; overflow: hidden; }
+.gal-ph picture { display: contents; }
 .gal-item img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform var(--dur-3) var(--ease); }
 @media (hover: hover) { .gal-item:hover img { transform: scale(1.035); } }
 .gal-item:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }
@@ -45,41 +54,60 @@
 .gal-item[data-size="big"][data-mirror="true"] { grid-column: 3 / span 2; }
 .gal-item[data-size="full"] { grid-column: 1 / -1; grid-row: span 2; }
 
+/* the caption on the picture: two scrims stacked (dense at the bottom edge, fading out above the text) */
 .gal-cap {
-  position: absolute; inset: auto 0 0 0; z-index: 1; display: flex; align-items: baseline; justify-content: space-between; gap: var(--sp-3);
-  padding: var(--sp-7) var(--sp-3) var(--sp-3); font-size: var(--fs-sm); line-height: 1.25;
-  background: linear-gradient(to top, var(--media-scrim), transparent);
+  position: absolute; inset: auto 0 0 0; z-index: 1; display: grid; gap: 4px; padding: var(--sp-8) var(--sp-4) var(--sp-3);
+  font-size: var(--fs-sm); line-height: 1.3;
+  background: linear-gradient(to top, var(--media-scrim), transparent 70%), linear-gradient(to top, var(--media-scrim), transparent);
 }
-.gal-cap b { font-weight: var(--weight-medium); overflow-wrap: anywhere; }
-.gal-cap .mono { flex: none; font-size: var(--fs-xs); opacity: 0.85; }
-.gal-note { margin: var(--sp-2) 0 0; }
+.gal-cap b { font-weight: var(--weight-medium); overflow-wrap: anywhere; text-wrap: balance; }
+.gal-cap .mono { font-size: var(--fs-xs); line-height: 1.4; opacity: 0.86; text-wrap: pretty; }
+.gal-item[data-size="small"] .gal-cap { padding-inline: var(--sp-3); }
 
-/* lightbox (portal into <body>, also a .night block) */
+/* ---------------------------------------------------------------- lightbox (portal into <body>, also a .night block). The viewer
+   handles every gesture itself (pinch and pan zoom the picture, never the page), so the browser gets none. */
 .lightbox {
-  --lb-chrome: calc(var(--touch) + 96px + env(safe-area-inset-top) + env(safe-area-inset-bottom));
-  position: fixed; inset: 0; z-index: var(--z-overlay); display: grid; place-items: center;
-  background: color-mix(in srgb, var(--bg) 99%, transparent); overscroll-behavior: contain; touch-action: pan-y;
+  --lb-chrome: calc(var(--touch) + 112px + env(safe-area-inset-top) + env(safe-area-inset-bottom));
+  --lb-side: max(var(--sp-4), env(safe-area-inset-left));
+  position: fixed; inset: 0; z-index: var(--z-overlay); display: grid; place-items: center; overflow: hidden;
+  background: color-mix(in srgb, var(--bg) 99%, transparent); overscroll-behavior: contain; touch-action: none;
+  -webkit-user-select: none; user-select: none;
 }
-.lb-figure { margin: 0; display: grid; justify-items: center; gap: var(--sp-3); max-width: 100%; padding-inline: max(var(--sp-4), env(safe-area-inset-left)) max(var(--sp-4), env(safe-area-inset-right)); }
-.lb-figure img {
-  display: block; width: auto; height: auto; max-width: min(100%, 1800px); max-height: calc(100dvh - var(--lb-chrome));
-  object-fit: contain; border-radius: var(--r-sm); -webkit-user-select: none; user-select: none;
+.lb-figure { margin: 0; display: grid; justify-items: center; gap: var(--sp-3); width: 100%; max-width: 100%; padding-inline: var(--lb-side) max(var(--sp-4), env(safe-area-inset-right)); }
+.lb-stage { display: grid; place-items: center; max-width: 100%; }
+.lb-stage picture { display: contents; }
+.lb-stage img {
+  display: block; width: auto; height: auto; max-width: min(100%, 2560px); max-height: calc(100dvh - var(--lb-chrome));
+  object-fit: contain; border-radius: var(--r-sm); transform-origin: 50% 50%; will-change: transform; cursor: zoom-in;
 }
-.lb-cap { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: center; gap: var(--sp-1) var(--sp-3); max-width: 70ch; text-align: center; font-size: var(--fs-sm); color: var(--ink-2); }
-/* the counter always has a line of its own, so no separator dot can end up at the start of a wrapped line */
-.lb-count { flex-basis: 100%; color: var(--ink-3); font-size: var(--fs-xs); }
+.lightbox[data-zoomed="true"] .lb-stage img { cursor: grab; border-radius: 0; }
+.lb-stage img[data-animate="true"] { transition: transform 0.26s var(--ease-out); }
+.lb-cap { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: center; gap: var(--sp-1) var(--sp-3); max-width: 72ch; text-align: center; font-size: var(--fs-sm); color: var(--ink-2); transition: opacity var(--dur-2) var(--ease); }
 .lb-cap b { color: var(--ink); font-weight: var(--weight-medium); }
+.lb-line { font-size: var(--fs-xs); color: var(--ink-2); }
+/* the counter and the hint each have a line of their own, so no separator can start a wrapped line */
+.lb-count, .lb-hint { flex-basis: 100%; color: var(--ink-3); font-size: var(--fs-xs); }
+.lb-hint { display: none; }
+@media (pointer: coarse) { .lb-hint { display: block; } }
+.lightbox[data-zoomed="true"] .lb-cap { opacity: 0; }
 .lb-btn {
   position: absolute; z-index: 1; display: grid; place-items: center; width: var(--touch); height: var(--touch); padding: 0;
-  border: 0; border-radius: 50%; background: var(--scrim); color: var(--ink); font-size: 1.375rem; line-height: 1; cursor: pointer; box-shadow: var(--shadow-1);
+  border: 0; border-radius: 50%; background: var(--scrim); color: var(--ink); font-size: var(--fs-lg); line-height: 1; cursor: pointer; box-shadow: var(--shadow-1);
   -webkit-tap-highlight-color: transparent;
 }
 @media (hover: hover) { .lb-btn:hover { background: var(--surface-2); } }
 .lb-btn:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.lb-btn[aria-pressed="true"] { background: var(--surface-2); }
 .lb-close { inset-block-start: max(var(--sp-4), env(safe-area-inset-top)); inset-inline-end: max(var(--sp-4), env(safe-area-inset-right)); }
+.lb-zoom { inset-block-start: max(var(--sp-4), env(safe-area-inset-top)); inset-inline-end: calc(max(var(--sp-4), env(safe-area-inset-right)) + var(--touch) + var(--sp-2)); }
 .lb-prev, .lb-next { inset-block-start: 50%; margin-top: calc(var(--touch) / -2); }
 .lb-prev { inset-inline-start: max(var(--sp-3), env(safe-area-inset-left)); }
 .lb-next { inset-inline-end: max(var(--sp-3), env(safe-area-inset-right)); }
+/* wide screens: the arrows sit beside the picture, never on it */
+@media (min-width: 900px) {
+  .lightbox { --lb-side: calc(max(var(--sp-3), env(safe-area-inset-left)) + var(--touch) + var(--sp-5)); }
+  .lb-figure { padding-inline: var(--lb-side); }
+}
 
 /* the morph between a tile and the lightbox picture */
 ::view-transition-group(gal-hero) { animation-duration: 0.38s; animation-timing-function: cubic-bezier(0.2, 0.7, 0.2, 1); }
@@ -88,15 +116,37 @@
 @media (max-width: 900px) {
   .gal-grid { --cols: 2; }
   .gal-item[data-size="big"][data-mirror="true"] { grid-column: span 2; }
-}
-@media (max-width: 640px) {
-  .gal-item[data-size="small"] .gal-cap .mono { display: none; }
-  .gal-item[data-size="small"] .gal-cap { font-size: var(--fs-xs); padding-inline: var(--sp-2); padding-bottom: var(--sp-2); }
-  .gal-cap { padding-top: var(--sp-6); }
-  .gal-play-icon { width: 64px; height: 64px; }
+  /* phones and small tablets: the arrows go to the bottom corners, the caption between them */
   .lb-prev, .lb-next { inset-block-start: auto; inset-block-end: max(var(--sp-4), env(safe-area-inset-bottom)); margin-top: 0; }
-  .lightbox { --lb-chrome: calc(var(--touch) * 2 + 80px + env(safe-area-inset-top) + env(safe-area-inset-bottom)); }
+  .lightbox { --lb-chrome: calc(var(--touch) * 2 + 104px + env(safe-area-inset-top) + env(safe-area-inset-bottom)); }
 }
+
+/* phones: one column of whole pictures (16:9, the renders' own shape) with the caption below, on the page's ink.
+   Same specificity as the bento rules above and later in the file, so it wins without !important. */
+@media (max-width: 640px) {
+  .gal-grid { --cols: 1; grid-auto-rows: auto; gap: var(--sp-5); }
+  .gal-grid .gal-item[data-size] { grid-column: 1 / -1; grid-row: auto; display: grid; background: transparent; border-radius: 0; overflow: visible; color: var(--ink); }
+  .gal-ph { position: relative; aspect-ratio: 16 / 9; border-radius: var(--r-md); background: var(--surface); }
+  .gal-grid .gal-item[data-size] .gal-cap { position: static; background: none; padding: var(--sp-2) 0 0; font-size: var(--fs-sm); }
+  .gal-cap .mono { color: var(--ink-3); opacity: 1; }
+  .gal-play-icon { width: 64px; height: 64px; }
+}
+
+/* landscape phones: the picture takes the full height; the caption is a pill over its bottom edge, the arrows sit at mid-height */
+@media (max-height: 560px) and (orientation: landscape) {
+  .lightbox { --lb-chrome: calc(16px + env(safe-area-inset-top) + env(safe-area-inset-bottom)); --lb-side: calc(max(var(--sp-3), env(safe-area-inset-left)) + var(--touch) + var(--sp-3)); }
+  .lb-figure { padding-inline: var(--lb-side); }
+  .lb-cap {
+    position: absolute; inset-inline: 0; bottom: max(var(--sp-2), env(safe-area-inset-bottom)); margin-inline: auto; width: max-content; max-width: 70vw;
+    padding: 4px 12px; border-radius: var(--r-pill); background: var(--media-scrim); color: var(--on-media); flex-wrap: nowrap; white-space: nowrap; overflow: hidden;
+  }
+  .lb-cap .lb-line, .lb-count, .lb-hint { display: none; }
+  .lb-prev, .lb-next { inset-block-start: 50%; inset-block-end: auto; margin-top: calc(var(--touch) / -2); }
+  /* the zoom button under the close button, both in the side gutter */
+  .lb-zoom { inset-block-start: calc(max(var(--sp-4), env(safe-area-inset-top)) + var(--touch) + var(--sp-2)); inset-inline-end: max(var(--sp-4), env(safe-area-inset-right)); }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .gal-item img, .gal-play-icon { transition: none; }
+  .gal-item img, .gal-play-icon, .lb-cap { transition: none; }
+  .lb-stage img[data-animate="true"] { transition: none; }
 }

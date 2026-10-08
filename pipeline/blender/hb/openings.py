@@ -193,31 +193,42 @@ def build_entry(cfg, ms, o):
 
 
 def build_garage(cfg, ms, o):
+    """Sectional garage door: graphite lining (role frame) and the leaf (role garage_door, node id = the opening id) with
+    sections of about `garage_section_h` separated by V-grooves; the web lifts the leaf node to open the door."""
     p = cfg.p
     F = Frame(cfg, o)
-    sb, t = p["setback"], F.t
+    sb = p["setback"]
     s0, s1, z0, z1 = o["from"], o["to"], o["sill"], o["head"]
     lw = 0.07
     gd = sb
+    lt = p["garage_leaf_t"]
     _reveals(cfg, ms, F, o, z0, z1, "floor")
-    F.box(ms, "frame", s0, s0 + lw, gd - 0.02, gd + 0.06, z0, z1, skip=("-s",))
-    F.box(ms, "frame", s1 - lw, s1, gd - 0.02, gd + 0.06, z0, z1, skip=("+s",))
-    F.box(ms, "frame", s0 + lw, s1 - lw, gd - 0.02, gd + 0.06, z1 - 0.10, z1, skip=("+z",))
+    F.box(ms, "frame", s0, s0 + lw, gd - 0.02, gd + lt + 0.02, z0, z1, skip=("-s",))
+    F.box(ms, "frame", s1 - lw, s1, gd - 0.02, gd + lt + 0.02, z0, z1, skip=("+s",))
+    F.box(ms, "frame", s0 + lw, s1 - lw, gd - 0.02, gd + lt + 0.02, z1 - 0.10, z1, skip=("+z",))
     a, b, zt = s0 + lw, s1 - lw, z1 - 0.10
     h = zt - z0
     n = max(2, int(h / p["garage_section_h"] + 0.5))
-    g = p["garage_groove"]
-    # back plate closes the grooves (seen from both sides)
-    F.quad(ms, "frame", a, b, gd + 0.04, gd + 0.04, z0, zt, F.ed)
-    F.quad(ms, "frame", a, b, gd + 0.04, gd + 0.04, z0, zt, _neg(F.ed))
-    if p["garage_grooves"]:
-        sec = (h - (n - 1) * g) / n
-        z = z0
-        for k in range(n):
-            F.box(ms, "frame", a, b, gd, gd + 0.04, z, z + sec, skip=("+d",))
-            z += sec + g
-    else:
-        F.box(ms, "frame", a, b, gd, gd + 0.04, z0, zt, skip=("+d",))
+    g = p["garage_groove"] if p["garage_grooves"] else 0.0
+    # profile of the outer face in (z, d), bottom to top, with a V-groove of depth g (width 2 g) at every section joint
+    prof = [(z0, gd)]
+    for k in range(1, n):
+        zj = z0 + h * k / n
+        if g > 0:
+            prof += [(zj - g, gd), (zj, gd + g), (zj + g, gd)]
+    prof.append((zt, gd))
+    oid = o["id"]
+    up = (0.0, 0.0, 1.0)
+    for (za, da), (zb, db) in zip(prof[:-1], prof[1:]):
+        nz, nd = (db - da), -(zb - za)               # perpendicular in (z, d), pointing outwards (smaller d)
+        if nd > 0:
+            nz, nd = -nz, -nd
+        nrm = (up[0] * nz + F.ed[0] * nd, up[1] * nz + F.ed[1] * nd, nz)
+        pts = [F.pt(a, da, za), F.pt(b, da, za), F.pt(b, db, zb), F.pt(a, db, zb)]
+        ms.poly("garage_door", pts, nrm, id=oid, uvmode="box_v")
+    # inner face, top edge
+    F.quad(ms, "garage_door", a, b, gd + lt, gd + lt, z0, zt, F.ed, id=oid)
+    F.quad(ms, "garage_door", a, b, gd, gd + lt, zt, zt, (0, 0, 1), id=oid)
 
 
 def build_door(cfg, ms, o):

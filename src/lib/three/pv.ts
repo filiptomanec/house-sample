@@ -17,6 +17,7 @@ import { doorSwing, rectHitsSwing, type Pt, type Pt3, type PvPanel } from "@/lib
 import type { HouseContext } from "./context";
 import { disposeTree } from "./dispose";
 import type { HouseScene } from "./house";
+import { mergeMeshes } from "./merge";
 import { generatedMaterial } from "./style";
 import { readToken } from "./theme";
 import type { Viewer } from "./viewer";
@@ -245,6 +246,22 @@ function cellTexture(cell: THREE.Color, frame: THREE.Color): THREE.CanvasTexture
   return t;
 }
 
+/**
+ * A unit box whose faces form two groups: the five frame faces (group 0) and the +z face with the cells (group 1). A plain
+ * BoxGeometry has six groups, so an instanced module would cost six draw calls instead of two.
+ */
+export function cellBox(): THREE.BufferGeometry {
+  const g = new THREE.BoxGeometry(1, 1, 1);
+  const index = g.getIndex()!;
+  // BoxGeometry: faces +x, -x, +y, -y, +z, -z, six indices each, in that order
+  const faces = [0, 1, 2, 3, 5, 4].flatMap((f) => Array.from({ length: 6 }, (_, k) => index.getX(f * 6 + k)));
+  g.setIndex(faces);
+  g.clearGroups();
+  g.addGroup(0, 30, 0);
+  g.addGroup(30, 6, 1);
+  return g;
+}
+
 /** Builds the modules and the battery and adds them to the house scene (`house.adopt`). Initially hidden. */
 export function buildPv(viewer: Viewer, house: HouseScene, config?: PvConfig): PvScene {
   const { ctx } = house;
@@ -260,8 +277,8 @@ export function buildPv(viewer: Viewer, house: HouseScene, config?: PvConfig): P
     ? new THREE.MeshPhysicalMaterial({ map: cellTex, roughness: 0.18, metalness: 0.1, clearcoat: 1, clearcoatRoughness: 0.06, envMapIntensity: 1.4 })
     : new THREE.MeshStandardMaterial({ map: cellTex, roughness: 0.25, metalness: 0.2, envMapIntensity: 1.3 });
   const frame = new THREE.MeshStandardMaterial({ color: frameStyle.color, roughness: frameStyle.roughness, metalness: frameStyle.metallic });
-  const box = new THREE.BoxGeometry(1, 1, 1); // the +z face (index 4) carries the cells
-  const faceMaterials = [frame, frame, frame, frame, top, frame];
+  const box = cellBox(); // the +z face carries the cells (group 1), the other five faces the frame (group 0): two draw calls
+  const faceMaterials = [frame, top];
 
   const up = new THREE.Vector3(0, 1, 0);
   let panels: THREE.InstancedMesh | null = null;
@@ -338,6 +355,10 @@ export function buildPv(viewer: Viewer, house: HouseScene, config?: PvConfig): P
     part(B.inverterWidth * 0.4, 0.1, 0.004, screen, iz + B.inverterHeight * 0.65, 0, B.inverterDepth, 0.004);
     part(B.conduit, iz - stackTop - B.coverHeight, B.conduit, grey, stackTop + B.coverHeight, B.moduleWidth * 0.3, 0, 0.01);
     part(B.conduit, ctx.house.clearHeight - iz - B.inverterHeight, B.conduit, grey, iz + B.inverterHeight, -B.moduleWidth * 0.3, 0, 0.01);
+    // a dozen small parts in four materials: one mesh per material (fewer draw calls on every tier)
+    const parts: THREE.Mesh[] = [];
+    g.traverse((o) => { if ((o as THREE.Mesh).isMesh) parts.push(o as THREE.Mesh); });
+    mergeMeshes(parts, (m) => (m.material as THREE.Material).uuid);
     battery = g;
     group.add(g);
   }

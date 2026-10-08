@@ -1,23 +1,24 @@
 {
-  "_comment": "Render settings. Quality presets are per mode (stills, day, orbit); `scale` multiplies the size that generated/render-inputs.json gives the shot. Environment: BLENDER, FFMPEG, RENDER_DEVICE (auto|gpu|cpu), RENDER_SAMPLES (overrides the samples of the preset).",
+  "_comment": "Render settings (docs/PIPELINE-RENDER.md, sections 4 and 5). Quality presets per mode; `scale` multiplies the size that generated/render-inputs.json gives a shot. Product and look settings only: nothing here describes the house (that is model/*.json). Environment: BLENDER, RENDER_DEVICE (auto|gpu|cpu), RENDER_SAMPLES, RENDER_SKY, RENDER_EXPOSURE, RENDER_LOOK, RENDER_SKIP, RENDER_QA_KEEP.",
   "cycles": {
-    "maxBounces": 8,
+    "maxBounces": 10,
     "diffuseBounces": 3,
-    "glossyBounces": 3,
-    "transmissionBounces": 6,
+    "glossyBounces": 4,
+    "transmissionBounces": 8,
+    "transparentBounces": 16,
     "volumeBounces": 0,
     "clampIndirect": 8,
     "clampDirect": 0,
     "blurGlossy": 1.0,
-    "minSamples": 0,
-    "denoiser": "OPENIMAGEDENOISE",
-    "tileSize": 2048
+    "denoiser": "OPENIMAGEDENOISE"
   },
   "look": {
     "viewTransform": "AgX",
     "look": "AgX - Base Contrast",
     "exposure": 0.0,
-    "skyStrength": 0.3,
+    "coveredEv": 0.9,
+    "skyStrength": 0.08,
+    "bounceSaturation": 0.2,
     "dusk": {
       "fromElevationDeg": 6.0,
       "toElevationDeg": -4.5,
@@ -25,76 +26,224 @@
     },
     "belowHorizonHoldDeg": 0.5,
     "belowHorizonFalloff": 0.2,
-    "categoryEv": {},
-    "daylightLampsEv": 0.0,
+    "skyCamera": {
+      "gain": 0.8,
+      "saturation": 1.2
+    },
+    "twilight": {
+      "color": "#6f95d6",
+      "amount": 0.55
+    },
+    "haze": {
+      "distanceM": 6000,
+      "amount": 1.0,
+      "horizonDeg": 1.5
+    },
+    "clouds": {
+      "asset": "kloofendal_38d_partly_cloudy_puresky_4k",
+      "rotationDeg": 0.0,
+      "coverage": 0.65,
+      "duskCoverage": 0.55,
+      "gain": 1.25,
+      "glowTint": 0.35,
+      "glowBelowDeg": 20.0,
+      "skyTint": 0.5,
+      "duskDarken": 0.35,
+      "sunClearDeg": 9.0,
+      "horizonFadeDeg": 4.0
+    },
+    "whiteBalance": {
+      "exterior": {
+        "temperature": 6800,
+        "tint": 18
+      },
+      "aerial": {
+        "temperature": 6800,
+        "tint": 18
+      },
+      "interior": {
+        "temperature": 6100,
+        "tint": 24
+      },
+      "dusk": {
+        "temperature": 5200,
+        "tint": 12
+      }
+    },
     "glare": {
       "enabled": true,
       "type": "Bloom",
       "threshold": 2.0,
-      "strength": 0.25,
+      "strength": 0.22,
       "size": 0.55
     },
     "autoExposure": {
       "categories": [
-        "interior",
-        "compare"
+        "interior"
       ],
-      "target": 0.15,
-      "minEv": -1.5,
-      "maxEv": 2.3,
+      "target": 0.18,
+      "minEv": -3.0,
+      "maxEv": 4.5,
       "previewWidth": 320,
       "previewSamples": 16,
-      "percentile": 50
+      "percentile": 60
+    }
+  },
+  "lamps": {
+    "scale": 1.0,
+    "colorMix": 0.85,
+    "duskBoost": 1.5,
+    "exteriorDuskBoost": 0.0,
+    "spotsWithDecor": {
+      "level": 0.3,
+      "kelvin": 3000
+    },
+    "decorKinds": [
+      "pendant",
+      "floor_lamp",
+      "table_lamp",
+      "desk_lamp"
+    ],
+    "spotKinds": [
+      "downlight"
+    ],
+    "excludeGroundFromRoomLamps": true
+  },
+  "fallbackLights": {
+    "_comment": "Used only for the light kinds that generated/render-inputs.json does not contain yet (docs/PIPELINE-RENDER.md, section 3).",
+    "pool": {
+      "perPool": 2,
+      "depthBelowWater": 0.45,
+      "lumens": 1100,
+      "kelvin": 4000,
+      "coneDeg": 70,
+      "blend": 0.8,
+      "radius": 0.04,
+      "wattsPerLumen": 0.1
+    },
+    "treeUplight": {
+      "perTree": 2,
+      "offsetM": 0.7,
+      "lumens": 320,
+      "kelvin": 3000,
+      "coneDeg": 38,
+      "blend": 0.6,
+      "radius": 0.03,
+      "wattsPerLumen": 0.1
+    },
+    "deckStep": {
+      "spacingM": 2.6,
+      "height": 0.08,
+      "inset": 0.06,
+      "lumens": 70,
+      "kelvin": 3000,
+      "radius": 0.02,
+      "wattsPerLumen": 0.1
+    },
+    "pillar": {
+      "lumens": 180,
+      "kelvin": 3000,
+      "coneDeg": 110,
+      "blend": 0.7,
+      "radius": 0.03,
+      "wattsPerLumen": 0.1
+    }
+  },
+  "siteParts": {
+    "_comment": "Product details of the fence, gates and pillar that the model does not specify (the model gives positions, sizes, the slat spec and the items).",
+    "fence": {
+      "plinthBelow": 0.08,
+      "postCap": 0.012,
+      "slatInsetFromPost": 0.004
+    },
+    "gate": {
+      "frame": 0.05,
+      "beam": 0.12,
+      "clearance": 0.05,
+      "carriage": [
+        0.28,
+        0.2,
+        0.14
+      ],
+      "handleHeight": 1.05
+    },
+    "pillar": {
+      "cap": 0.025,
+      "items": {
+        "meter-box": {
+          "w": 0.5,
+          "h": 0.62,
+          "zf": 0.12
+        },
+        "mailbox": {
+          "w": 0.36,
+          "h": 0.3,
+          "zf": 0.55,
+          "d": 0.035
+        },
+        "intercom": {
+          "w": 0.11,
+          "h": 0.2,
+          "zf": 0.74
+        },
+        "house-number": {
+          "w": 0.3,
+          "h": 0.11,
+          "zf": 0.88
+        }
+      }
     }
   },
   "quality": {
     "draft": {
       "stills": {
         "scale": 0.5,
-        "samples": 12,
-        "threshold": 0.08,
+        "samples": 16,
+        "threshold": 0.06,
         "quality": 90
       },
       "day": {
         "scale": 0.5,
-        "samples": 12,
-        "threshold": 0.08,
+        "portraitScale": 0.5,
+        "samples": 16,
+        "threshold": 0.06,
         "quality": 90
       },
       "orbit": {
         "scale": 0.5,
-        "portraitScale": 0.3333,
+        "portraitScale": 0.5,
         "samples": 12,
         "threshold": 0.08,
         "quality": 90,
         "motionBlur": 0.15
       },
-      "grassDensity": 0.5,
-      "farTrees": 20
+      "grassDensity": 0.8,
+      "farTrees": 0.5
     },
     "final": {
       "stills": {
-        "scale": 1.0,
+        "scale": 1.3333,
         "samples": 160,
         "threshold": 0.01,
         "quality": 95
       },
       "day": {
-        "scale": 1.0,
-        "samples": 56,
-        "threshold": 0.02,
+        "scale": 1.3333,
+        "portraitScale": 1.0,
+        "samples": 64,
+        "threshold": 0.015,
         "quality": 95
       },
       "orbit": {
         "scale": 0.8333,
-        "portraitScale": 0.6667,
-        "samples": 24,
+        "portraitScale": 0.8889,
+        "samples": 32,
         "threshold": 0.015,
         "quality": 95,
         "motionBlur": 0.15
       },
       "grassDensity": 1.0,
-      "farTrees": 70
+      "farTrees": 1.0
     }
   },
   "seed": {
@@ -103,24 +252,89 @@
     "orbit": 5
   },
   "ground": {
-    "grassPatchM": 0.35,
-    "grassBladesPerPatch": 380,
-    "grassDensityPerM2": {
-      "stills": 16,
-      "day": 16,
-      "orbit": 10
+    "grassPatchM": 0.45,
+    "grassBladesPerPatch": 1300,
+    "blade": {
+      "heightM": [
+        0.06,
+        0.12
+      ],
+      "widthM": [
+        0.003,
+        0.005
+      ],
+      "lean": [
+        0.12,
+        0.5
+      ]
     },
-    "grassFullRadiusM": 16,
-    "grassFadeRadiusM": 42,
-    "farGroundRadiusM": 1800,
-    "lawnColors": [
-      "#2d4a1a",
-      "#46692a"
-    ]
+    "dryBlades": {
+      "share": 0.06,
+      "color": "#8f8a52"
+    },
+    "stripeM": 1.25,
+    "grassDensityPerM2": {
+      "stills": 24,
+      "day": 22,
+      "orbit": 16
+    },
+    "grassScale": [
+      0.6,
+      0.85
+    ],
+    "grassEdgeGapM": 0.03,
+    "verge": 1.0,
+    "grassFullRadiusM": 30,
+    "grassFadeRadiusM": 46,
+    "farGroundRadiusM": 15000,
+    "edging": {
+      "width": 0.005,
+      "reveal": 0.015,
+      "depth": 0.08
+    }
   },
-  "lampScale": 1.0,
-  "lampColorMix": 0.6,
-  "interiorLampBoost": 1.0,
+  "landscape": {
+    "_comment": "The country around the plot (seeded, never on the plot, the street or a neighbour house): hedgerows along invented field roads, woodlots, a far village edge.",
+    "hedgerows": {
+      "count": 5,
+      "minM": 90,
+      "maxM": 260,
+      "lengthM": [
+        60,
+        140
+      ],
+      "spacingM": 4.5,
+      "jitterM": 1.5,
+      "heightM": [
+        7,
+        13
+      ],
+      "treeShare": 0.7,
+      "bushM": [
+        3.0,
+        4.8
+      ]
+    },
+    "woodlots": {
+      "count": 3,
+      "minM": 130,
+      "maxM": 320,
+      "radiusM": 24,
+      "trees": 50,
+      "heightM": [
+        10,
+        18
+      ]
+    },
+    "village": {
+      "minM": 420,
+      "maxM": 700,
+      "arcDeg": 70,
+      "houses": 18,
+      "trees": 14
+    },
+    "neighbourGardenTrees": 4
+  },
   "trees": {
     "copies": {
       "stills": 3,
@@ -128,7 +342,7 @@
       "orbit": 2
     },
     "farCopies": {
-      "stills": 2,
+      "stills": 1,
       "day": 1,
       "orbit": 1
     },
@@ -137,6 +351,71 @@
       "day": 0.45,
       "orbit": 0.3
     },
-    "crownFit": 0.88
+    "crownFit": 0.88,
+    "forms": {
+      "broadleaf-round": {
+        "copies": 3,
+        "spread": 1.12,
+        "trunkScale": 1.6,
+        "clusters": 9,
+        "clusterScale": 0.5,
+        "limbs": 3
+      },
+      "broadleaf-oval": {
+        "copies": 2,
+        "spread": 0.95,
+        "trunkScale": 1.15,
+        "clusters": 4,
+        "clusterScale": 0.5,
+        "limbs": 2
+      },
+      "orchard-round": {
+        "copies": 2,
+        "spread": 1.0,
+        "trunkScale": 1.0,
+        "clusters": 4,
+        "clusterScale": 0.55,
+        "limbs": 3
+      },
+      "orchard-oval": {
+        "copies": 2,
+        "spread": 0.9,
+        "trunkScale": 1.0,
+        "clusters": 3,
+        "clusterScale": 0.55,
+        "limbs": 2
+      }
+    }
+  },
+  "shrubs": {
+    "lavenderSpikes": 260,
+    "lavender": {
+      "needles": 900,
+      "domeShare": 0.55
+    },
+    "miscanthus": {
+      "leaves": 150,
+      "leafShare": 0.85,
+      "plumes": 22,
+      "plumeColor": "#cdbfa8"
+    },
+    "hydrangea": {
+      "stems": 34,
+      "leafM": 0.15
+    },
+    "bedPlanting": {
+      "perennialsPerM2": 7.0,
+      "grassesPerM2": 2.0,
+      "groundCoverPerM2": 10.0,
+      "scale": [
+        1.6,
+        2.6
+      ]
+    }
+  },
+  "qa": {
+    "minHouseShare": 0.45,
+    "maxBareLawn": 0.03,
+    "minFreeDiskGB": 8
   }
 }

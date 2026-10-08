@@ -18,6 +18,12 @@ class Config:
                 data["trees"]["copies"][k] = n
         if os.environ.get("RENDER_EXPOSURE"):
             data["look"]["exposure"] = float(os.environ["RENDER_EXPOSURE"])
+        if os.environ.get("RENDER_LOOK"):                     # calibration: RENDER_LOOK='{"bounceSaturation": 0.2}'
+            for k, v in json.loads(os.environ["RENDER_LOOK"]).items():
+                if isinstance(v, dict) and isinstance(data["look"].get(k), dict):
+                    data["look"][k].update(v)
+                else:
+                    data["look"][k] = v
         if quality not in data["quality"]:
             raise SystemExit("quality must be one of %s" % ", ".join(data["quality"]))
         self.quality = quality

@@ -144,8 +144,9 @@ def lawn(name, c0, c1, scale=1.0):
     return m
 
 
-def farmland(cfg, inputs):
-    """The land beyond the plot: meadow near the house, patchwork of fields (Voronoi, six colours) farther out."""
+def farmland(cfg, inputs, c3=None):
+    """The land beyond the plot: meadow near the house, patchwork of fields (Voronoi: ripening grain, stubble, maize and
+    grass greens; the stubble colour is the style `field`) farther out."""
     import bpy
     m = bpy.data.materials.new("farmland")
     nodes, links, out = _clear(m)
@@ -164,13 +165,20 @@ def farmland(cfg, inputs):
     vec.operation = "ADD"
     links.new(geo.outputs["Position"], vec.inputs[0])
     links.new(sc_.outputs[0], vec.inputs[1])
+    stretch = nodes.new("ShaderNodeVectorMath")             # fields are long strips, not round patches
+    stretch.operation = "MULTIPLY"
+    stretch.inputs[1].default_value = (0.45, 1.0, 1.0)
+    links.new(vec.outputs[0], stretch.inputs[0])
     vo = nodes.new("ShaderNodeTexVoronoi")
-    vo.inputs["Scale"].default_value = 0.012
-    links.new(vec.outputs[0], vo.inputs["Vector"])
+    vo.inputs["Scale"].default_value = 0.014
+    links.new(stretch.outputs[0], vo.inputs["Vector"])
     ramp = nodes.new("ShaderNodeValToRGB")
     cr = ramp.color_ramp
     cr.interpolation = "CONSTANT"
-    cols = ["#4a7a2c", "#678a38", "#9d9a58", "#55802f", "#7c7a4c", "#3f6a28"]
+    fieldc = c3.color("field", "#9c9566") if c3 else "#9c9566"
+    # strips of crops: greens of maize and grass, the style stubble colour, ripening grain, ploughed soil (darkened a little: a
+    # field seen from afar under the sun is never pastel)
+    cols = ["#466e29", "#62803a", fieldc, "#53792f", "#9a9264", "#3f6127", "#6e5f49", "#7f7f4a"]
     cr.elements[0].color = (*hex_to_linear(cols[0]), 1)
     cr.elements[1].position = 1.0
     cr.elements[1].color = (*hex_to_linear(cols[-1]), 1)
@@ -236,8 +244,8 @@ def farmland(cfg, inputs):
     return m
 
 
-def field(cfg, inputs):
-    """Cultivated field south of the plot: green crop with faint rows (a wave texture) and a patchy tone."""
+def field(cfg, inputs, c3=None):
+    """Cultivated field beside the plot: ripening crop in the style `field` colour with rows (a wave texture) and a patchy tone."""
     import bpy
     m = bpy.data.materials.new("field")
     nodes, links, out = _clear(m)
@@ -249,10 +257,11 @@ def field(cfg, inputs):
     nz.inputs["Detail"].default_value = 5
     links.new(geo.outputs["Position"], nz.inputs["Vector"])
     ramp = nodes.new("ShaderNodeValToRGB")
+    fc = hex_to_linear(c3.color("field", "#9c9566") if c3 else "#9c9566")
     ramp.color_ramp.elements[0].position = 0.3
-    ramp.color_ramp.elements[0].color = (*hex_to_linear("#4f7d2a"), 1)
+    ramp.color_ramp.elements[0].color = (*[c * 0.78 for c in fc], 1)
     ramp.color_ramp.elements[1].position = 0.7
-    ramp.color_ramp.elements[1].color = (*hex_to_linear("#7f9440"), 1)
+    ramp.color_ramp.elements[1].color = (*[min(1.0, c * 1.08) for c in fc], 1)
     links.new(nz.outputs["Fac"], ramp.inputs["Fac"])
     wv = nodes.new("ShaderNodeTexWave")
     wv.wave_type = "BANDS"
@@ -279,19 +288,72 @@ def field(cfg, inputs):
 _asphalt = []
 
 
-def asphalt_material():
+def asphalt_material(hex_color="#5c6064"):
     if not _asphalt:
-        _asphalt.append(pbr_world("asphalt", "asphalt_02", 3.0, tint=(1.0, 1.0, 1.0), rough_mul=1.0, nstr=0.6, val=0.55))
+        _asphalt.append(tinted_texture("asphalt", "asphalt_02", 3.0, hex_color, nstr=0.6)
+                        or pbr_world("asphalt", "asphalt_02", 3.0, val=0.55))
     return _asphalt[0]
 
 
-def ground_materials(cfg, inputs):
-    c0, c1 = cfg["ground"]["lawnColors"]
+_means = {}
+
+
+def texture_level(folder):
+    """Mean of the brightest channel of a texture's diffuse map, linear (what a desaturated sample of it averages to)."""
+    import bpy
+    if folder in _means:
+        return _means[folder]
+    f = glob.glob(os.path.join(ASSETS, "textures", folder, "*_diff_2k.jpg"))
+    if not f:
+        _means[folder] = None
+        return None
+    im = bpy.data.images.load(f[0], check_existing=True)
+    sm = im.copy()
+    sm.scale(16, 16)
+    px = list(sm.pixels[:])
+    bpy.data.images.remove(sm)
+    vals = [max(px[i], px[i + 1], px[i + 2]) for i in range(0, len(px), 4)]
+    lin = [v / 12.92 if v <= 0.04045 else ((v + 0.055) / 1.055) ** 2.4 for v in vals]
+    _means[folder] = sum(lin) / len(lin)
+    return _means[folder]
+
+
+def tinted_texture(name, folder, size, hex_color, gain=1.0, nstr=0.6, rough_mul=1.0, anti_tile=True):
+    """A Poly Haven texture used for its detail only: desaturated and tinted so that it averages to the style colour."""
+    level = texture_level(folder)
+    if not level:
+        return None
+    target = hex_to_linear(hex_color)
+    tint = tuple(min(4.0, gain * target[i] / level) for i in range(3))
+    return pbr_world(name, folder, size, tint=tint, rough_mul=rough_mul, nstr=nstr, sat=0.0, val=1.0, anti_tile=anti_tile)
+
+
+def grass_texture(name, hex_color, size=2.2, darken=1.0):
+    """Mown grass seen from a distance (the neighbour gardens, the meadow): the Poly Haven grass texture for its detail,
+    coloured by the style colour; no blades."""
+    m = tinted_texture(name, "leafy_grass", size, hex_color, darken, nstr=0.5)
+    return m or lawn(name, hex_color, hex_color)
+
+
+def lawn_base(name, colors, size=1.1, gain=0.42):
+    """The ground under the blades: the Poly Haven grass texture for its detail, darkened to the root colour of the blades
+    (`lawnColors`), so a gap between blade patches reads as the dense bottom of the sward, not as flat paint."""
+    root, tip = hex_to_linear(colors[0]), hex_to_linear(colors[1])
+    mid = "#%02x%02x%02x" % tuple(int(round(255 * ((0.5 * (a + b)) ** (1 / 2.2)))) for a, b in zip(root, tip))
+    return tinted_texture(name, "grass_ground", size, mid, gain, nstr=0.7) or lawn(name, colors[0], colors[1])
+
+
+def ground_materials(cfg, inputs, c3=None):
+    lc = c3.lawn_colors() if c3 else ["#2d4a1a", "#46692a"]
+    neighbour = c3.color("neighbour", "#6c8752") if c3 else "#6c8752"
+    verge = c3.color("verge", neighbour) if c3 else neighbour
     return {
-        "lawn": lawn("lawn_base", c0, c1),
-        "verge": lawn("verge_base", "#33491F", "#51692C"),
-        "meadow": lawn("meadow_base", "#3A5421", "#5F7A38"),
-        "field": field(cfg, inputs),
+        "lawn": lawn_base("lawn_base", lc),
+        "verge": lawn_base("verge_base", lc),
+        "street": lawn("street_base", "#3b3e40", "#4a4d50"),
+        "neighbour": grass_texture("neighbour_lawn", neighbour, 2.4, 0.82),
+        "field": field(cfg, inputs, c3),
+        "meadow": grass_texture("meadow", verge, 3.0, 0.72),
     }
 
 

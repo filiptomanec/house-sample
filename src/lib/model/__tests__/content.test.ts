@@ -10,8 +10,8 @@ import { ceil5 } from "../derive";
 import { localized } from "../metrics";
 import { validateHouse } from "../validate";
 import {
-  analyzeSite, createSite, distToPolygon, parseSite, pointInPolygon, polylineLength, rayChord, validateSite, validateSiteWithHouse,
-  type HouseInput, type XY,
+  RAMP_MAX_SLOPE, RAMP_MIN_FALL, analyzeSite, createSite, distToPolygon, parseSite, pointInPolygon, polylineLength, rayChord, validateSite,
+  validateSiteWithHouse, type HouseInput, type XY,
 } from "../site";
 import { rawHouse, repoRoot } from "./helpers";
 
@@ -161,6 +161,24 @@ describe("plot", () => {
     expect(groundAt(crown[0], crown[1])).toBeLessThan(0);
     const drive = d.outdoor.find((o) => o.grade.ramp?.access === "driveway")!;
     expect(drive.grade.ramp!.z1).toBeLessThan(drive.grade.ramp!.z0);
+  });
+
+  it("the drive and the front path fall to their gates steeply enough to drain (and stay barrier-free)", () => {
+    const ramps = d.outdoor.filter((o) => o.grade.ramp).map((o) => o.grade.ramp!);
+    expect(new Set(ramps.map((r) => r.access))).toEqual(new Set(["driveway", "walkway"]));
+    for (const r of ramps) {
+      // slope is dz/dy towards the gate: negative = falling away from the house
+      expect(-r.slope, r.access).toBeGreaterThanOrEqual(RAMP_MIN_FALL);
+      expect(-r.slope, r.access).toBeLessThanOrEqual(RAMP_MAX_SLOPE);
+      // independent: the fall over the run from the house end to the gate
+      expect((r.z0 - r.z1) / (r.to - r.from)).toBeCloseTo(-r.slope, 5); // derived levels are rounded
+    }
+    // the lawn around the house stays below the floor on every side (the plinth shows) and the ground falls away from it
+    const plateau = site.terrain.plateau;
+    expect(plateau.level).toBeLessThan(0);
+    const box = d.outline.bbox!;
+    const ring: XY[] = [[box.x0 - 1, box.y0 - 1], [box.x1 + 1, box.y0 - 1], [box.x1 + 1, box.y1 + 1], [box.x0 - 1, box.y1 + 1]];
+    for (const p of ring) expect(groundAt(p[0], p[1])).toBeLessThanOrEqual(plateau.level + 1e-9);
   });
 
   it("one fence closes the plot: it is cut only for the gates and the pillar, and each leaf fills its opening", () => {

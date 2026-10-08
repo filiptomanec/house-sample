@@ -8,9 +8,13 @@
 //    the glass: that strip is counted in proportion, not rounded away (coarse probes read 0 h for such a room).
 //    An opening counts only while the sun is in front of its wall (`dot(sun, outward normal) > 0`, the same test as the analytic
 //    oracle `sunHoursOnSurface`; at grazing angles the reveal and the wall shade the sample anyway).
-//  * Outdoor areas: every `derived.outdoor[]` of type "terrace" and every `covered` area is sampled on a 5 x 3 grid at 0.45 m
-//    above the floor of the area. Reported twice: with the movable shading as it is (`shades`, slat screens, blinds) and
-//    "open" (without it).
+//  * "Sun on the window" (`windowSun`): the hours when at least one sample of a glazed window of the room is in sun (transmittance
+//    at least `WINDOW_SUN.minTransmittance`) while the sun is at least `WINDOW_SUN.minAltitude` high: the reading of the Czech
+//    insolation standard (ČSN 73 4301 counts the time the sun reaches the window), next to the glass-weighted hours above.
+//  * Outdoor areas: every `derived.outdoor[]` whose type is in `SUN_SAMPLED_OUTDOOR` (terraces and the pool) and every `covered`
+//    area is sampled on a 5 x 3 grid: 0.45 m above the slab top of a terrace (from its grade plane), just above the water of a
+//    pool (its `pool.water` rectangle at `pool.waterZ`). Reported twice: with the movable shading as it is (`shades`, slat
+//    screens, blinds) and "open" (without it).
 //  * Occluders: `house.occluders` (building, roof, posts), the `shades` passed in, and the surroundings as analytic solids
 //    with leaf-dependent transmittance (`ctx.layout.occluders()` and `rayTransmittance`, kernel): the neighbours' houses,
 //    trees, hedges and fences count, with the leaf state of the day. The terrain beyond the plateau is a horizon: the analytic
@@ -29,6 +33,7 @@
 import * as THREE from "three";
 import { dayOfYear } from "@/lib/calendar";
 import { SUN_UP_ALTITUDE, localToUtc, placeOf, sunDirection, sunPosition, type CalendarDate, type SunPosition, type Vec3 } from "@/lib/calc/sun";
+import { SUN_SAMPLED_OUTDOOR, type DerivedOutdoor } from "@/lib/model";
 import type { Occluder } from "@/lib/model/site";
 import { rayTransmittance } from "@/lib/model/site/occluders";
 import type { HouseContext } from "./context";
@@ -61,7 +66,13 @@ export interface SunDayResult {
   azimuthTrue: number[];
   /** Per `derived.rooms[].id` of the rooms that have a glazed exterior opening (the hours may be 0); rooms without one are absent. */
   rooms: Record<string, SunSeries>;
-  /** Per `derived.outdoor[].id` for terraces and covered areas, with the movable shading as set. */
+  /**
+   * "Sun on the window", per room (the same keys as `rooms`): fraction 1 at an instant when any sample of any glazed window of
+   * the room is in sun (transmittance at least `WINDOW_SUN.minTransmittance`) and the sun is at least `WINDOW_SUN.minAltitude`
+   * high, else 0. Where the glass-weighted fraction is 1 at such an altitude, this one is 1 too.
+   */
+  windowSun: Record<string, SunSeries>;
+  /** Per `derived.outdoor[].id` for the sampled areas (types in `SUN_SAMPLED_OUTDOOR`: terraces, the pool; and covered areas), with the movable shading as set. */
   outdoors: Record<string, SunSeries>;
   /** The same without the movable shading. */
   outdoorsOpen: Record<string, SunSeries>;
@@ -132,9 +143,12 @@ export const WINDOW_GRID = { across: [-1 / 3, 0, 1 / 3], rows: 6 } as const;
  * of a 0.07 m deep frame (pipeline/blender/hb/params.py: `setback`, `frame_depth`). At most 60 % of a thin wall.
  */
 export const GLASS_DEPTH = 0.135;
-/** Outdoor areas: grid of samples and their height above the floor. */
+/** Outdoor areas: grid of samples and their height above the slab top (a person sitting) or above the water of a pool. */
 const AREA_GRID = { nx: 5, ny: 3 } as const;
 const AREA_SAMPLE_HEIGHT = 0.45;
+const WATER_SAMPLE_HEIGHT = 0.03;
+/** "Sun on the window": a sample counts as sunlit from this transmittance on, and only while the sun is at least this high (degrees). */
+export const WINDOW_SUN = { minTransmittance: 0.5, minAltitude: 5 } as const;
 /** Rays start this far from the sample towards the open side, so they do not hit the surface they start on. */
 const RAY_START_OFFSET = 0.03;
 /** Terrain horizon: directions per circle, eye height above the floor, distances marched (geometric steps), m. */
@@ -196,17 +210,22 @@ export function sampleWindows(ctx: HouseContext): WindowSamples[] {
   return out;
 }
 
-/** Terraces and covered outdoor areas with their sample grid. */
+/** Is an outdoor area sampled by the analysis? Its type is in `SUN_SAMPLED_OUTDOOR` (terraces, the pool), or it is covered. */
+export const isSampledArea = (a: Pick<DerivedOutdoor, "type" | "covered">): boolean => (SUN_SAMPLED_OUTDOOR as readonly string[]).includes(a.type) || a.covered;
+
+/** The sampled outdoor areas with their sample grid: over the slab top of a terrace, just above the water of a pool. */
 export function sampleAreas(ctx: HouseContext): AreaSamples[] {
   const out: AreaSamples[] = [];
   for (const a of ctx.derived.outdoor) {
-    if (a.type !== "terrace" && !a.covered) continue;
-    const [x0, y0, x1, y1] = a.rect;
-    const floor = ctx.site.terrain.groundAt((x0 + x1) / 2, (y0 + y1) / 2);
+    if (!isSampledArea(a)) continue;
+    const [x0, y0, x1, y1] = a.pool ? a.pool.water : a.rect;
+    const pl = a.grade.plane;
+    const at = (x: number, y: number) => (a.pool ? a.pool.waterZ + WATER_SAMPLE_HEIGHT : pl.z0 + pl.gx * (x - pl.ox) + pl.gy * (y - pl.oy) + AREA_SAMPLE_HEIGHT);
     const points: Sample[] = [];
     for (let i = 0; i < AREA_GRID.nx; i++) {
       for (let j = 0; j < AREA_GRID.ny; j++) {
-        points.push(sample([x0 + ((i + 0.5) / AREA_GRID.nx) * (x1 - x0), y0 + ((j + 0.5) / AREA_GRID.ny) * (y1 - y0), floor + AREA_SAMPLE_HEIGHT]));
+        const x = x0 + ((i + 0.5) / AREA_GRID.nx) * (x1 - x0), y = y0 + ((j + 0.5) / AREA_GRID.ny) * (y1 - y0);
+        points.push(sample([x, y, at(x, y)]));
       }
     }
     out.push({ area: a.id, points });
@@ -471,12 +490,13 @@ export function makeSunAnalyzer(viewer: Pick<Viewer, "scene">, scene: Pick<House
     const computeOpen = !cachedOpen;
     const computeShaded = shadeIndex.count > 0 || computeOpen;
 
-    const result: SunDayResult = { date: { ...date }, step, times: [], altitude: [], azimuthTrue: [], rooms: {}, outdoors: {}, outdoorsOpen: {} };
-    for (const r of rooms) result.rooms[r] = emptySeries();
+    const result: SunDayResult = { date: { ...date }, step, times: [], altitude: [], azimuthTrue: [], rooms: {}, windowSun: {}, outdoors: {}, outdoorsOpen: {} };
+    for (const r of rooms) { result.rooms[r] = emptySeries(); result.windowSun[r] = emptySeries(); }
     for (const a of areas) { result.outdoors[a.area] = emptySeries(); result.outdoorsOpen[a.area] = emptySeries(); }
     const stepHours = step / 60;
     const dirScene = new THREE.Vector3(), origin = new THREE.Vector3();
     const roomNow: Record<string, number> = {};
+    const anyNow: Record<string, number> = {};
 
     /** The surrounding solids that matter for this instant (set per instant). */
     let nearby: Occluder[] = [];
@@ -501,22 +521,30 @@ export function makeSunAnalyzer(viewer: Pick<Viewer, "scene">, scene: Pick<House
       result.altitude.push(sun.altitude);
       result.azimuthTrue.push(sun.azimuth);
 
-      // rooms: the best window of each room
-      for (const r of rooms) roomNow[r] = 0;
+      // rooms: the best window of each room, and whether the sun reaches any window of it at all
+      for (const r of rooms) { roomNow[r] = 0; anyNow[r] = 0; }
+      const highEnough = sun.altitude >= WINDOW_SUN.minAltitude;
       if (!hidden) {
         for (const w of windows) {
           if (dirH[0] * w.normalHouse[0] + dirH[1] * w.normalHouse[1] <= 0) continue; // the sun is behind the wall
-          if (roomNow[w.room] >= 1) continue; // another window of the room is fully lit already: this one cannot add to the best
+          // another window of the room is fully lit already: this one cannot add to the best (nor to "any")
+          if (roomNow[w.room] >= 1) continue;
           let sum = 0;
           for (const p of w.points) {
             origin.copy(p.scene).addScaledVector(w.normalScene, RAY_START_OFFSET);
             if (house.blocked(origin, dirScene) || shadeIndex.blocked(origin, dirScene)) continue;
-            sum += around(p, dirH, w.normalHouse);
+            const t = around(p, dirH, w.normalHouse);
+            sum += t;
+            if (highEnough && t >= WINDOW_SUN.minTransmittance) anyNow[w.room] = 1;
           }
           roomNow[w.room] = Math.max(roomNow[w.room], sum / w.points.length);
+          if (highEnough && roomNow[w.room] >= 1) anyNow[w.room] = 1;
         }
       }
-      for (const r of rooms) { result.rooms[r].fraction.push(roomNow[r]); result.rooms[r].hours += roomNow[r] * stepHours; }
+      for (const r of rooms) {
+        result.rooms[r].fraction.push(roomNow[r]); result.rooms[r].hours += roomNow[r] * stepHours;
+        result.windowSun[r].fraction.push(anyNow[r]); result.windowSun[r].hours += anyNow[r] * stepHours;
+      }
 
       // outdoor areas, as set and open
       for (const a of areas) {

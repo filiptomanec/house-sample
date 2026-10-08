@@ -57,6 +57,24 @@ def build_furniture(scene, only=None):
     scene.timing['furniture'] = round(time.time() - t0, 2)
 
 
+def settle_outdoor(scene):
+    """Outdoor slabs lie below the finished floor (derived grade, e.g. -0.02): every object standing outside is lowered
+    onto the slab top under the centre of its plan bounds, so legs touch the deck instead of floating above it."""
+    m = scene.model
+    for it in scene.items:
+        if it.room is not None or it.zone is None:
+            continue
+        b = it.soup.bounds()
+        if b is None:
+            continue
+        cx, cy = float(b[0][0] + b[1][0]) / 2, float(b[0][1] + b[1][1]) / 2
+        dz = m.slab_top_at(cx, cy)
+        if abs(dz) < 1e-6:
+            continue
+        for part in it.soup.parts:
+            part['pos'] = part['pos'] + np.array([0.0, 0.0, dz])
+
+
 def compose(model, hi=True, decor=True, only=None):
     scene = Scene(model, hi)
     build_furniture(scene, only)
@@ -65,6 +83,7 @@ def compose(model, hi=True, decor=True, only=None):
         from . import decor as D
         D.run(scene)
         scene.timing['decor'] = round(time.time() - t0, 2)
+    settle_outdoor(scene)
     return scene
 
 

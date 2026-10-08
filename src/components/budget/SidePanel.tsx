@@ -1,11 +1,15 @@
 "use client";
 
-// The side panel: the reserve slider, the breakdown from the house to the total, the CSV download and the reset.
-import { Fragment } from "react";
+// The side rail: the contingency slider, the breakdown from the house to the total (the total is the rail's hero figure), the
+// CSV download and the reset. Short on purpose: the notes about prices and the method live in the page's MethodNote. When the
+// rail is taller than the window it scrolls on its own and fades its lower edge (useRailMask).
+
+import { Fragment, useRef } from "react";
 import { Slider } from "@/components/ui/controls";
 import { toCsv, type BudgetResult } from "@/lib/calc/budgetCompute";
 import type { Pricebook, UnitKey } from "@/lib/calc/budgetCore";
 import { useFormat, useLocale, useT } from "@/lib/i18n/client";
+import { useRailMask } from "@/components/energy/disclosure";
 import { downloadText } from "./download";
 
 export function SidePanel({ result, book, reserve, isDefault, pvFromEnergy, onReserve, onReset }: {
@@ -20,6 +24,8 @@ export function SidePanel({ result, book, reserve, isDefault, pvFromEnergy, onRe
   const t = useT();
   const f = useFormat();
   const locale = useLocale();
+  const rail = useRef<HTMLElement>(null);
+  useRailMask(rail);
   const { min, max, step } = book.reserve;
 
   const overheadLine = result.groups.flatMap((g) => g.lines).find((l) => l.overhead);
@@ -39,15 +45,15 @@ export function SidePanel({ result, book, reserve, isDefault, pvFromEnergy, onRe
       labels: {
         group: t("budget.csv.group"), item: t("budget.csv.item"), quantity: t("budget.csv.quantity"), unit: t("budget.csv.unit"),
         unitPrice: t("budget.csv.unitPrice"), amount: t("budget.csv.amount"), net: t("budget.csv.net"),
-        reserve: (percent) => t("budget.csv.reserve", { percent: `${f.num(percent, 0, 1)} %` }), vat: t("budget.csv.vat"), total: t("budget.csv.total"),
+        reserve: (percent) => t("budget.csv.reserve", { percent: f.percent(percent, Number.isInteger(percent) ? 0 : 1) }), vat: t("budget.csv.vat"), total: t("budget.csv.total"),
       },
     });
     downloadText(text, t("budget.csv.file"), "text/csv;charset=utf-8");
   };
 
   return (
-    <aside className="panel panel-pad budget-side stack" aria-labelledby="budget-side-h">
-      <h2 id="budget-side-h" className="h3">{t("budget.side.heading")}</h2>
+    <aside className="panel panel-pad budget-side" id="budget-side" aria-labelledby="budget-side-h" ref={rail}>
+      <h2 id="budget-side-h" className="label">{t("budget.side.heading")}</h2>
       <Slider label={t("budget.side.reserve")} value={Math.round(reserve * 100)} min={Math.round(min * 100)} max={Math.round(max * 100)}
         step={Math.max(1, Math.round(step * 100))} format={(v) => f.percent(v)} hint={t("budget.side.reserveHint")} onChange={(v) => onReserve(v / 100)} />
 
@@ -78,10 +84,7 @@ export function SidePanel({ result, book, reserve, isDefault, pvFromEnergy, onRe
         <button type="button" className="btn" onClick={exportCsv}>{t("budget.side.csv")}</button>
         <button type="button" className="btn ghost sm" onClick={onReset} disabled={isDefault}>{t("budget.side.reset")}</button>
       </div>
-
-      <p className="note">{t("budget.note", { year: String(book.meta.priceYear) })}</p>
       {pvFromEnergy && <p className="note">{t("budget.pv")}</p>}
-      {book.meta.status === "starter" && <p className="note">{t("budget.starter")}</p>}
     </aside>
   );
 }

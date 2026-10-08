@@ -55,6 +55,11 @@ def run(inp, cfg, mode, shots, out, args):
         os.replace(tmp, path)
         dt = time.time() - t0
         done += 1
+        if args.get("qa"):
+            from . import qa
+            res = qa.measure(path, size)
+            qa.append_report(out, s["file"], dict(res, time=(s.get("time") or {}).get("local"), category=s.get("category")))
+            info += "  qa " + " ".join("%s=%s" % (k, v) for k, v in res.items() if k != "plasterRGB")
         line = "%s %s %dx%d %d spp %.1f s  %s" % (time.strftime("%H:%M:%S"), s["file"], size[0], size[1], sc_mode["samples"], dt, info)
         log(line)
         lf.write(line + "\n")

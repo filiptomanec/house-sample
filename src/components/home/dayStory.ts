@@ -16,8 +16,11 @@ export interface DayStory {
   sun: SunSpot[];
   /** The whole path of the sun above the horizon on that day. */
   path: SunSpot[];
-  /** Sun times, wall-clock hours (null when the sun does not rise or set), the true azimuth of the sunrise. */
-  times: { sunrise: number | null; sunriseAzimuth: number | null; solarNoon: number; sunset: number | null; noonAltitude: number };
+  /** Sun times, wall-clock hours (null when the sun does not rise or set), the true azimuths of the sunrise and the sunset. */
+  times: {
+    sunrise: number | null; sunriseAzimuth: number | null; solarNoon: number; sunset: number | null; noonAltitude: number;
+    sunsetAzimuth: number | null;
+  };
   windows: MomentWindow[];
 }
 
@@ -44,6 +47,7 @@ export function buildDayStory(house: Pick<House, "location">, media: Pick<Media,
       solarNoon: t.solarNoon,
       sunset: t.sunset,
       noonAltitude: t.noonAltitude,
+      sunsetAzimuth: t.sunset === null ? null : sunPosition(localToUtc(place.tz, date, t.sunset), place).azimuth,
     },
     windows: momentWindows(t, minutes[0], minutes[minutes.length - 1]),
   };

@@ -29,6 +29,9 @@ function parseSaved(data: unknown): Saved | null {
   return { inputs: sanitizeInputs(d.inputs, ctx), month: Math.round(finiteIn(d.month, 0, 11, START_MONTH)) };
 }
 
+/** The switches of the inputs: EV charging in daylight, heat recovery, hot water at midday, the pool in its season. */
+export type FlagKey = "evChargeDaytime" | "heatRecovery" | "dhwDaytime" | "pool";
+
 export interface EnergyState {
   ctx: typeof ctx;
   inputs: EnergyInputs;
@@ -36,7 +39,7 @@ export interface EnergyState {
   month: number;
   setMonth: (m: number) => void;
   setNumber: (key: NumericInputKey, value: number) => void;
-  setFlag: (key: "evChargeDaytime" | "heatRecovery" | "dhwDaytime", value: boolean) => void;
+  setFlag: (key: FlagKey, value: boolean) => void;
   setPanelCount: (count: number) => void;
   setBattery: (id: string) => void;
   togglePlane: (key: string) => void;
@@ -68,7 +71,7 @@ export function useEnergy(): EnergyState {
   const result = useMemo(() => computeEnergy(deferred, ctx), [deferred]);
 
   const setNumber = useCallback((key: NumericInputKey, value: number) => setInputs((o) => ({ ...o, [key]: value })), []);
-  const setFlag = useCallback((key: "evChargeDaytime" | "heatRecovery" | "dhwDaytime", value: boolean) => setInputs((o) => ({ ...o, [key]: value })), []);
+  const setFlag = useCallback((key: FlagKey, value: boolean) => setInputs((o) => ({ ...o, [key]: value })), []);
   const setPanelCount = useCallback((count: number) => setInputs((o) => ({ ...o, pv: { ...o.pv, panelCount: count } })), []);
   const setBattery = useCallback((id: string) => setInputs((o) => ({ ...o, pv: { ...o.pv, batteryId: id } })), []);
   const togglePlane = useCallback(

@@ -1,6 +1,6 @@
-// Synthetic "renders" for testing the media build without Blender: gradients with a marker for the stills and the day frames,
-// and a seamless pan over a fractal texture for the orbit (so that its last frame leads into the first one, like a real
-// closed orbit). Made with ImageMagick from scratch; no photographs are involved.
+// Synthetic "renders" for testing the media build without Blender: gradients with a marker for the stills, the day frames (both
+// cameras) and the poster captures, and a seamless pan over a fractal texture for the orbit (so that its last frame leads into the
+// first one, like a real closed orbit). Made with ImageMagick from scratch; no photographs are involved.
 //
 //   npx tsx scripts/lib/media-synthetic.ts <dir> [--scale 0.25] [--detail 0.4]    writes the renders of model/render.json below <dir>
 import { execFile } from "node:child_process";
@@ -23,6 +23,8 @@ export interface SyntheticOptions {
   scale?: number;
   /** Blur of the orbit texture in pixels: smaller = more detail = a bigger video. */
   detail?: number;
+  /** Also the captures of the 3D pages (scripts/posters.mjs). */
+  posters?: boolean;
   jobs?: number;
 }
 
@@ -79,8 +81,10 @@ export async function makeSyntheticRenders(o: SyntheticOptions): Promise<string[
     });
   };
   plan.day.src.forEach((b, i) => flat(b, plan.day.size[0], plan.day.size[1], i / Math.max(1, plan.day.src.length - 1)));
+  plan.day.portraitSrc?.forEach((b, i) => flat(b, 1080, 1620, i / Math.max(1, plan.day.src.length - 1)));
   plan.stills.forEach((s, i) => flat(s.src, 1920, 1080, i / Math.max(1, plan.stills.length - 1)));
   flat(plan.og.src, 1200, 630, 0.5);
+  if (o.posters) for (const p of plan.posters) flat(p.src, p.device === "phone" ? 1179 : 2400, p.device === "phone" ? 1800 : 1300, 0.3);
 
   // orbit: a pan over a texture that repeats every frameCount frames, so the loop closes
   const n = plan.orbit.frameCount;

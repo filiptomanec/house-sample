@@ -38,6 +38,19 @@ export interface ShadeBox {
 
 /** The fill reaches this far above the ceiling before it fades out (the ceiling surface itself must still be lit), metres. */
 const CEILING_FADE = 0.1;
+/**
+ * Strength of the interior fill while the camera is outside (`setView`): from outside a room behind glass reads several
+ * times darker than the sunlit facade, so the bounce light that makes it readable from inside is mostly taken away.
+ */
+export const INTERIOR_VIEW_OUTSIDE = 0.3;
+/** Time the fill takes to follow the camera in or out, seconds (eased by the viewer). */
+export const INTERIOR_VIEW_EASE = 0.3;
+/**
+ * Strength and colour of the bounce light in the rooms: `base + day * smoothstep(alt, -8, 20)`, a nearly neutral tint by day (white
+ * plaster and ceilings stay white under AgX; HSL saturation of a ceiling at most a few per cent) that warms by `warmNight` (blue
+ * minus that, green minus half) towards the night. Neutralised before the switch to AgX (web3d-09).
+ */
+export const INTERIOR_FILL = { base: 0.3, day: 0.46, tint: [1, 0.995, 0.99] as const, warmNight: 0.12 } as const;
 
 /** The interior region of the house: outline ring, mid-wall inset, floor and ceiling heights. Throws when the ring has more than `INTERIOR_MAX_VERTS` corners. */
 export function interiorRegionOf(ctx: HouseContext): InteriorRegion {
@@ -79,6 +92,13 @@ export interface InteriorFill {
    */
   setDaylight(altitudeDeg: number, sunHorizontal: readonly [number, number]): void;
   /**
+   * Where the camera is, 0..1: 1 inside the building (full fill), `INTERIOR_VIEW_OUTSIDE` outside (the viewer eases it every
+   * frame from `contains(camera)`). Scales only the light the fill adds, not the sky light it keeps out of the rooms. Default 1.
+   */
+  setView(t: number): void;
+  /** The current view factor. */
+  readonly view: number;
+  /**
    * Lets a standard material receive the fill (idempotent, keeps an existing `onBeforeCompile`). Not for transparent
    * materials (glass would turn milky from outside). A material with `userData.mirror` reflects the bright room
    * instead of the sky.
@@ -108,6 +128,7 @@ uniform vec3 shadeMin[ INTERIOR_SHADE_N ];
 uniform vec3 shadeMax[ INTERIOR_SHADE_N ];
 uniform int shadeCount;
 uniform vec3 shadeFill;
+uniform float interiorView;
 // 1 inside the walls (fading in over the wall thickness), 0 outside; p is in plan metres (x east, y north, z up)
 float interiorMask( vec3 p ) {
   if ( interiorCount < 3 || p.z < interiorZ.x || p.z > interiorZ.y + ${CEILING_FADE.toFixed(2)} ) return 0.0;
@@ -144,12 +165,12 @@ const GLSL_MAIN = /* glsl */ `
     interiorK *= mix( 0.8, 1.0, smoothstep( interiorZ.x + 0.3, interiorZ.x + 1.7, interiorP.z ) );
     // the sunlit windows light the walls across the room: faces turned towards the sun get more, the others less
     vec3 interiorS = interiorSide * ( 1.0 + dot( interiorN.xz, interiorDir.xz ) );
-    irradiance += interiorK * PI * mix( interiorS, interiorN.y > 0.0 ? interiorSky : interiorGround, abs( interiorN.y ) );
+    irradiance += interiorK * interiorView * PI * mix( interiorS, interiorN.y > 0.0 ? interiorSky : interiorGround, abs( interiorN.y ) );
     iblIrradiance *= mix( 1.0, interiorIbl, interiorK );
     #ifdef INTERIOR_MIRROR
-      radiance = mix( radiance, interiorMirror( inverseTransformDirection( reflect( - geometryViewDir, normal ), viewMatrix ) ), interiorK );
+      radiance = mix( radiance, interiorView * interiorMirror( inverseTransformDirection( reflect( - geometryViewDir, normal ), viewMatrix ) ), interiorK );
     #else
-      radiance = mix( radiance, 0.8 * interiorSide, interiorK * interiorSpec );
+      radiance = mix( radiance, 0.8 * interiorView * interiorSide, interiorK * interiorSpec );
     #endif
   }
   // under a covered outdoor area: a warm bounce instead of part of the cold sky light (not in the rooms behind the glass)
@@ -168,7 +189,7 @@ const GLSL_MAIN = /* glsl */ `
 #endif
 `;
 
-const PROGRAM_KEY = "interior-v1";
+const PROGRAM_KEY = "interior-v2";
 
 export function createInteriorFill(): InteriorFill {
   const ring: Pt[] = [];
@@ -188,6 +209,7 @@ export function createInteriorFill(): InteriorFill {
     shadeMax: { value: Array.from({ length: INTERIOR_MAX_SHADE }, () => new THREE.Vector3(-1e4, -1e4, -1e4)) },
     shadeCount: { value: 0 },
     shadeFill: { value: new THREE.Color() }, // warm bounce under covered outdoor areas, linear
+    interiorView: { value: 1 }, // 1 with the camera inside, INTERIOR_VIEW_OUTSIDE outside
   };
   const smooth = THREE.MathUtils.smoothstep;
 
@@ -220,15 +242,23 @@ export function createInteriorFill(): InteriorFill {
       uniforms.shadeCount.value = n;
     },
     setDaylight(altitudeDeg, sunHorizontal) {
-      // by day the walls and the floor bounce about as much light as the sky brings; towards night the fill is weaker and warmer
-      const day = smooth(altitudeDeg, -8, 20), fill = 0.34 + 0.5 * day;
-      uniforms.interiorSide.value.setRGB(1, 0.86 + 0.08 * day, 0.7 + 0.16 * day).multiplyScalar(fill * 1.14);
-      uniforms.interiorSky.value.setRGB(1, 0.86 + 0.08 * day, 0.7 + 0.16 * day).multiplyScalar(fill * 1.02);
-      uniforms.interiorGround.value.setRGB(1, 0.82 + 0.06 * day, 0.64 + 0.1 * day).multiplyScalar(fill * 0.75);
-      uniforms.shadeFill.value.setRGB(1, 0.86, 0.68).multiplyScalar(0.3 * day);
+      // by day the walls and the floor bounce about as much light as the sky brings, nearly neutral (white plaster stays white
+      // under the AgX tone mapping); towards night the fill is weaker and a little warmer (lamps)
+      const day = smooth(altitudeDeg, -8, 20), fill = INTERIOR_FILL.base + INTERIOR_FILL.day * day;
+      const [r, g, b] = INTERIOR_FILL.tint;
+      // by day nearly neutral; towards night warmer (lamps): the tint grows by `warmNight` at night
+      const w = (1 - day) * INTERIOR_FILL.warmNight;
+      uniforms.interiorSide.value.setRGB(r, g - w * 0.5, b - w).multiplyScalar(fill * 1.14);
+      uniforms.interiorSky.value.setRGB(r, g - w * 0.5, b - w).multiplyScalar(fill * 1.02);
+      uniforms.interiorGround.value.setRGB(r, g - w * 0.6, b - w * 1.2).multiplyScalar(fill * 0.75);
+      uniforms.shadeFill.value.setRGB(r, g, b).multiplyScalar(0.22 * day);
       // house frame (x east, y north) to the scene frame (x, -y)
       uniforms.interiorDir.value.set(sunHorizontal[0], 0, -sunHorizontal[1]).normalize().multiplyScalar(0.24 * smooth(altitudeDeg, -2, 12));
     },
+    setView(t) {
+      uniforms.interiorView.value = Math.min(1, Math.max(0, t));
+    },
+    get view() { return uniforms.interiorView.value; },
     patch(material) {
       const s = material as THREE.MeshStandardMaterial;
       // not for see-through materials: glass in the wall would turn milky from outside

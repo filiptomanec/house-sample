@@ -64,7 +64,7 @@ def sofa_l(pc, w, d, variant):
     zs = lh + 0.19
     pc.box(-hw + 0.004, hd - md, lh, hw - 0.004, hd - 0.004, zs, fab, r=0.035, s=1, keep=True)    # base, main run
     pc.box(hw - ch, -hd + 0.004, lh, hw - 0.004, hd - md + 0.01, zs, fab, r=0.035, s=1, keep=True)  # base, chaise
-    pc.box(-hw, hd - md, lh, -hw + arm, hd - 0.003, lh + 0.50, fab, r=0.05, s=1, keep=True)    # arm, left
+    pc.box(-hw, hd - md - 0.004, lh, -hw + arm, hd - 0.003, lh + 0.50, fab, r=0.05, s=1, keep=True)    # arm, left (4 mm proud)
     pc.box(-hw + 0.007, hd - 0.17, lh, hw, hd, lh + 0.62, fab, r=0.05, s=1, keep=True)        # back rail
     x1 = hw - ch
     _seats(pc, -hw + arm, x1, hd - md, hd - 0.17, zs, zs + 0.15, 2, fab, 2.0 + pc.rand(0, 3))
@@ -88,7 +88,7 @@ def armchair(pc, w, d, variant):
     pc.box(-hw + 0.04, -hd + 0.04, lh, hw - 0.04, hd - 0.04, lh + 0.17, fab, r=0.05, s=1, keep=True)
     # back and arms as one rounded shell
     for sx in (-1, 1):
-        pc.box(sx * (hw - 0.04) - (0.14 if sx > 0 else 0), -hd + 0.10, lh + 0.1, sx * (hw - 0.04) + (0 if sx > 0 else 0.14),
+        pc.box(sx * (hw - 0.037) - (0.143 if sx > 0 else 0), -hd + 0.10, lh + 0.1, sx * (hw - 0.037) + (0 if sx > 0 else 0.143),
                hd - 0.02, lh + 0.44, fab, r=0.06, s=1, keep=True)
     with pc.at(0, hd - 0.13, lh + 0.14, rx=math.radians(-14)):
         pc.box(-hw + 0.045, -0.10, 0, hw - 0.045, 0.10, 0.50, fab, r=0.07, s=1, keep=True)

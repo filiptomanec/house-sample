@@ -1,6 +1,6 @@
 // Pure rules of the scroll sequences on the home page: scroll position -> frame -> time of day, the windows of the day captions
-// (anchored on the sun times of the place, never on fixed minutes), the fade of the intro, which frames to fetch first and which
-// decoded frames to keep. No DOM, no React: everything here is covered by unit tests.
+// (anchored on the sun times of the place, never on fixed minutes), the fade of the intro, the orbit captions (bound to the camera
+// azimuth), which frames to fetch first and which decoded frames to keep. No DOM, no React: everything here is covered by unit tests.
 
 export const clamp01 = (v: number): number => (v < 0 ? 0 : v > 1 ? 1 : v);
 
@@ -15,6 +15,15 @@ export const sectionProgress = (top: number, scrollable: number): number => (scr
 
 /** Fractional frame index of a progress value. */
 export const frameAt = (progress: number, count: number): number => clamp01(progress) * Math.max(0, count - 1);
+
+/**
+ * Progress of the frames when the last `hold` share of the scroll rests on the last frame (0..1 in, 0..1 out): the sequence
+ * reaches its end early and stays there, so its last caption and link can be read before the section scrolls away.
+ */
+export function heldProgress(progress: number, hold: number): number {
+  const h = Math.min(0.9, Math.max(0, hold));
+  return h === 0 ? clamp01(progress) : clamp01(progress / (1 - h));
+}
 
 /**
  * Time of day (minutes) shown at a fractional frame index. The frames are unevenly spaced in time (denser around dusk), so the
@@ -58,9 +67,9 @@ export interface SunHours {
 }
 
 /** Margins around the key moments, minutes. */
-const MORNING_END_BEFORE_NOON = 100;
+const MORNING_END_BEFORE_NOON = 60;
 const NOON_BEFORE = 60;
-const NOON_AFTER = 75;
+const NOON_AFTER = 150;
 const EVENING_BEFORE_SUNSET = 210;
 const EVENING_END_BEFORE_SUNSET = 30;
 const DUSK_AFTER_SUNSET = 15;
@@ -94,40 +103,141 @@ export function momentWindows(sun: SunHours, first: number, last: number): Momen
   return out;
 }
 
-/** Opacity of a caption at a time of day: zero outside its window, rising to 1 over `ramp` minutes from either edge. */
+/**
+ * Opacity of a caption at a time of day: zero outside its window, rising to 1 over `ramp` minutes from either edge.
+ * @deprecated The hero fades its captions over a scroll distance (`momentOpacity`): the frames are denser in time at dusk, so a
+ * ramp in minutes is abrupt at noon and drags at dusk, and the last caption never reached full opacity.
+ */
 export function windowOpacity(minute: number, w: Pick<MomentWindow, "from" | "to">, ramp = 25): number {
   if (minute < w.from || minute > w.to) return 0;
   return clamp01(Math.min(minute - w.from, w.to - minute) / ramp);
 }
 
+/** Frames (of scroll) over which a day caption fades in and out. */
+export const MOMENT_RAMP_FRAMES = 1;
+/** A ramp never takes more than this share of a closed window, nor more than OPEN_RAMP_SHARE of the last (open) one. */
+const RAMP_SHARE = 0.4;
+const OPEN_RAMP_SHARE = 0.7;
+
+/**
+ * Opacity of a day caption at a fractional frame. The window (minutes) is mapped onto the frames, and the caption fades in and
+ * out over `ramp` frames of scroll (at most 40 % of the window), so a fade feels the same at noon and at dusk. A window that
+ * reaches the last frame is open: it never fades out, so the end of the day (and its link) stays on screen to the end.
+ */
+export function momentOpacity(frame: number, w: Pick<MomentWindow, "from" | "to">, minutes: readonly number[], ramp = MOMENT_RAMP_FRAMES): number {
+  const last = minutes.length - 1;
+  if (last < 0) return 0;
+  const a = frameAtMinute(minutes, w.from), b = frameAtMinute(minutes, w.to);
+  const open = w.to >= minutes[last];
+  if (frame < a || (!open && frame > b) || (!open && b <= a)) return 0;
+  if (open && frame >= last) return 1;
+  const r =Math.max(1e-6, Math.min(ramp, (b - a) * (open ? OPEN_RAMP_SHARE : RAMP_SHARE)));
+  const rise = (frame - a) / r;
+  return clamp01(open ? rise : Math.min(rise, (b - frame) / r));
+}
+
 // ------------------------------------------------------------------------------------------------ intro fade
 
-/** Scroll distance (as a fraction of the sequence) over which the title leaves; shorter on low screens. */
-const TITLE_FADE_SLOW = 9;
+/** Scroll distance (as a fraction of the sequence) over which the title leaves: 1/16 of it, 1/24 on low screens. */
+const TITLE_FADE_SLOW = 16;
 const TITLE_FADE_FAST = 24;
+/** A caption starts only when the title is less than 1/CAPTION_GATE visible, and is whole once the title has gone. */
+const CAPTION_GATE = 2.5;
 
 export interface IntroFade {
   /** Opacity factor of the title block on normal screens and on low ones. */
   slow: number;
   fast: number;
-  /** 0..1: a caption on a low screen appears only after the title has gone. */
-  after: number;
+  /** 0..1 factor of a caption on normal and on low screens: the two text blocks never stand over each other. */
+  afterSlow: number;
+  afterFast: number;
 }
 
-/** The still frame (reduced motion) keeps the title and shows no captions. */
+/** The caption factor for a title opacity. */
+const gate = (title: number): number => clamp01(1 - title * CAPTION_GATE);
+
+/** The still frame (reduced motion) keeps the title, and its captions are listed under the picture (factor 1). */
 export function introFade(progress: number, still: boolean): IntroFade {
-  if (still) return { slow: 1, fast: 1, after: 1 };
-  return {
-    slow: Math.max(0, 1 - progress * TITLE_FADE_SLOW),
-    fast: Math.max(0, 1 - progress * TITLE_FADE_FAST),
-    after: clamp01((progress * TITLE_FADE_FAST - 1) * 2),
-  };
+  if (still) return { slow: 1, fast: 1, afterSlow: 1, afterFast: 1 };
+  const slow = Math.max(0, 1 - progress * TITLE_FADE_SLOW);
+  const fast = Math.max(0, 1 - progress * TITLE_FADE_FAST);
+  return { slow, fast, afterSlow: gate(slow), afterFast: gate(fast) };
 }
 
 // ------------------------------------------------------------------------------------------------ orbit captions
 
-/** Which of `count` captions is active at a progress value (equal parts of the turn). */
+/**
+ * Which of `count` captions is active at a progress value (equal parts of the turn).
+ * @deprecated The orbit binds its captions to the camera azimuth (`captionAt`); equal parts name features that are out of view.
+ */
 export const captionIndex = (progress: number, count: number): number => (count <= 0 ? 0 : Math.min(count - 1, Math.floor(clamp01(progress) * count)));
+
+/** An angle in degrees brought into 0..360. */
+export const mod360 = (a: number): number => ((a % 360) + 360) % 360;
+
+/** Signed difference a - b of two azimuths, -180..180. */
+export function angleDiff(a: number, b: number): number {
+  const d = mod360(a - b);
+  return d > 180 ? d - 360 : d;
+}
+
+/** Circular mean of azimuths (degrees, 0..360); the first one when they cancel out. */
+export function meanAzimuth(azimuths: readonly number[]): number {
+  let x = 0, y = 0;
+  for (const a of azimuths) { x += Math.sin((a * Math.PI) / 180); y += Math.cos((a * Math.PI) / 180); }
+  return Math.hypot(x, y) < 1e-9 ? mod360(azimuths[0] ?? 0) : mod360((Math.atan2(x, y) * 180) / Math.PI);
+}
+
+/** House azimuth (clockwise from +y) of a point seen from a centre: the convention of the render cameras. */
+export const azimuthOf = (from: readonly [number, number], to: readonly [number, number]): number =>
+  mod360((Math.atan2(to[0] - from[0], to[1] - from[1]) * 180) / Math.PI);
+
+/** Where the orbit camera starts and which way it turns: the media manifest (`orbit`), falling back to the render settings. */
+export interface OrbitPath {
+  /** House azimuth of the camera at frame 0, seen from the orbit centre. */
+  startAzimuthDeg: number;
+  direction: "clockwise" | "counterclockwise";
+  /** Degrees between two scroll frames. */
+  degPerFrame: number;
+  /** Half the window (degrees of azimuth) in which a caption shows; CAPTION_HALF_WINDOW when not given. */
+  halfWindowDeg?: number;
+}
+
+/** House azimuth of the camera at a (fractional) scroll frame. */
+export const orbitAzimuthAt = (frame: number, o: OrbitPath): number =>
+  mod360(o.startAzimuthDeg + (o.direction === "clockwise" ? 1 : -1) * o.degPerFrame * frame);
+
+/**
+ * A caption is shown while the camera is at most this far (degrees of azimuth) from the best view of its feature, unless the
+ * orbit says otherwise (`OrbitPath.halfWindowDeg`: render.json `orbit.captions.halfWindowDeg`, the window the render pipeline
+ * keeps free of trees).
+ */
+export const CAPTION_HALF_WINDOW = 50;
+
+/**
+ * The caption of the orbit at a frame: the feature whose best view (`az`, a house azimuth seen from the orbit centre) is
+ * nearest to the camera, when it is within `maxDeg`; -1 between features. So a caption never names something on the far side.
+ */
+export function captionAt(frame: number, caps: readonly { az: number }[], o: OrbitPath, maxDeg = o.halfWindowDeg ?? CAPTION_HALF_WINDOW): number {
+  const cam = orbitAzimuthAt(frame, o);
+  let best = -1, bestD = Infinity;
+  caps.forEach((c, i) => {
+    const d = Math.abs(angleDiff(cam, c.az));
+    if (d <= maxDeg && d < bestD) { best = i; bestD = d; }
+  });
+  return best;
+}
+
+/** Captions in the order the camera first shows them (captionAt), starting at frame 0; never-shown ones last. For the reading order and the still list. */
+export function orbitOrder<C extends { az: number }>(caps: readonly C[], o: OrbitPath, maxDeg = o.halfWindowDeg ?? CAPTION_HALF_WINDOW): C[] {
+  const first = new Map<C, number>();
+  const degree: OrbitPath = { ...o, degPerFrame: 1 };
+  for (let d = 0; d < 360; d++) {
+    const i = captionAt(d, caps, degree, maxDeg);
+    if (i >= 0 && !first.has(caps[i])) first.set(caps[i], d);
+  }
+  return [...caps].sort((a, b) => (first.get(a) ?? 360) - (first.get(b) ?? 360));
+}
 
 // ------------------------------------------------------------------------------------------------ loading and memory
 
@@ -145,6 +255,28 @@ export function loadOrder(count: number, steps: readonly number[] = [8, 4, 2, 1]
     order.splice(1, 0, count - 1);
   }
   return order;
+}
+
+/**
+ * How many frames the first, coarsest pass of `loadOrder` holds (every `step`-th frame plus the last). The hero fetches only
+ * these before the visitor scrolls, so a phone stays within its image budget until it is clear the sequence will be watched.
+ */
+export function coarseCount(count: number, step = 8): number {
+  if (count <= 0) return 0;
+  return Math.ceil(count / step) + (count > 1 && (count - 1) % step !== 0 ? 1 : 0);
+}
+
+/**
+ * Is the smaller variant of a sequence sharp enough for this canvas? The canvas is drawn "cover" at no more than 2 device
+ * pixels per CSS pixel; the small frames may be stretched by at most `tolerance`.
+ */
+export function smallVariantFits(
+  cssWidth: number, cssHeight: number, dpr: number,
+  full: { width: number; height: number }, small: { width: number }, tolerance = 1.1,
+): boolean {
+  const scale = Math.max(1, Math.min(2, dpr));
+  const needed = Math.max(cssWidth * scale, cssHeight * scale * (full.width / full.height));
+  return needed <= small.width * tolerance;
 }
 
 /** The decoded frame nearest to `i` (ties go to the earlier one), or -1 when none is decoded. */

@@ -84,7 +84,7 @@ def _arch(x):
     return k * (0.74 - 0.25)
 
 
-def _loft_grid(stations, m, hi, arches=True, cap=0.16, taper=0.0, crown=0.025, nx=40, rt=0.17, rb=0.06):
+def _loft_grid(stations, m, hi, arches=True, cap=0.10, taper=0.0, crown=0.025, nx=40, rt=0.17, rb=0.06):
     """Station grid P (rows along x, m points around). Rounded end caps are appended."""
     stations = sorted(stations, key=lambda q: q[0])
     xmin, xmax = stations[0][0], stations[-1][0]
@@ -99,16 +99,25 @@ def _loft_grid(stations, m, hi, arches=True, cap=0.16, taper=0.0, crown=0.025, n
         if arches and zb < 0.5:
             zb = max(zb, 0.25 + _arch(x))
         rows.append((x, hw, zb, zt, 1.0))
-    caps_t = [0.45, 0.8, 0.96] if hi else [0.6, 0.95]
+    # blunt end caps: the section shrinks to `blunt` of its size instead of to a point, so the nose and the tail read as
+    # a bumper face and not as a rounded blob
+    caps_t = [0.45, 0.8, 1.0] if hi else [0.6, 1.0]
+    blunt = 0.72
     front, back = rows[-1], rows[0]
-    ext_f = [(front[0] + cap * math.sin(t * math.pi / 2), front[1], front[2], front[3], math.cos(t * math.pi / 2)) for t in caps_t]
-    ext_b = [(back[0] - cap * math.sin(t * math.pi / 2), back[1], back[2], back[3], math.cos(t * math.pi / 2)) for t in caps_t]
+    sc_of = lambda t: blunt + (1 - blunt) * math.cos(t * math.pi / 2)
+    ext_f = [(front[0] + cap * math.sin(t * math.pi / 2), front[1], front[2], front[3], sc_of(t)) for t in caps_t]
+    ext_b = [(back[0] - cap * math.sin(t * math.pi / 2), back[1], back[2], back[3], sc_of(t)) for t in caps_t]
     P = []
     for (x, hw, zb, zt, sc) in ext_b[::-1] + rows + ext_f:
         zc = (zb + zt) / 2
         hh = (zt - zb) / 2 * sc
         sec = _section(hw * sc, zc - hh, zc + hh, m, crown * sc, taper, None, rt, rb)
         P.append(np.stack([np.full(len(sec), x), sec[:, 0], sec[:, 1]], axis=1))
+    # close the blunt ends with a fan to the centre of the last section
+    for idx in (0, -1):
+        c = P[idx].mean(axis=0)
+        ring = P[idx]
+        P.insert(0 if idx == 0 else len(P), np.repeat(c[None, :], len(ring), axis=0))
     return np.array(P)
 
 
@@ -159,10 +168,11 @@ def car(pc, w, d, variant):
         _add_grid(pc, _loft_grid(spec['body'], m, pc.hi, True, nx=pc.n(22, 14)), paint)
         cab = _loft_grid(spec['cabin'], m, pc.hi, False, cap=0.05, taper=0.14, crown=0.012, nx=pc.n(18, 10), rt=0.10, rb=0.03)
         _add_grid(pc, cab, 'f_car_glass')
-        # painted roof cap: the top arc of the cabin loft between the windscreen and the rear glass
+        # painted roof cap: the top of the cabin loft between the windscreen and the rear glass, down to the roof edge, so
+        # the glass reads as a band of windows under a solid roof
         roof_x1, roof_x0 = 0.50, spec['roof_end']
         rows = [i for i in range(len(cab)) if roof_x0 <= cab[i, 0, 0] <= roof_x1]
-        k0, k1 = int(0.38 * m), int(0.62 * m) + 1
+        k0, k1 = int(0.31 * m), int(0.69 * m) + 1
         if len(rows) > 1:
             cap = cab[rows[0]:rows[-1] + 1, k0:k1].copy()
             cap[:, :, 2] += 0.006
@@ -175,16 +185,19 @@ def car(pc, w, d, variant):
         if spec['rails']:
             for sy in (-1, 1):
                 pc.tube((0.35, sy * 0.60, 1.50), (-1.95, sy * 0.60, 1.50), 0.016, 'f_car_trim', seg=pc.n(8, 6))
-        # lights, grille, bumpers, plates
+        # lights (wide and slim, they carry the face of the car from a distance), grille, bumpers, plates
         for sy in (-1, 1):
-            pc.box(2.06, sy * 0.62 - 0.17, 0.64, 2.17, sy * 0.62 + 0.17, 0.73, 'f_car_light', r=0.025, s=1)
-            pc.box(-2.27, sy * 0.66 - 0.16, 0.78, -2.15, sy * 0.66 + 0.16, 0.88, 'f_car_tail', r=0.025, s=1)
+            pc.box(2.16, sy * 0.56 - 0.22, 0.66, 2.29, sy * 0.56 + 0.22, 0.735, 'f_car_light', r=0.02, s=1)
+            pc.box(-2.31, sy * 0.58 - 0.24, 0.80, -2.17, sy * 0.58 + 0.24, 0.87, 'f_car_tail', r=0.02, s=1)
+            # dark sill between the wheel arches and dark arch liners
+            pc.box(AXLES[1] + 0.47, sy * 0.95 - 0.012, 0.25, AXLES[0] - 0.47, sy * 0.95 + 0.012, 0.36, 'f_car_trim', r=0.0)
             # door mirrors
             pc.box(0.82, sy * 0.93 - 0.05 + sy * 0.02, 1.0, 0.98, sy * 0.93 + 0.05 + sy * 0.10, 1.10, paint, r=0.02, s=1)
-        pc.box(2.05, -0.38, 0.42, 2.26, 0.38, 0.60, 'f_car_trim', r=0.02, s=1)                    # grille
-        pc.box(2.12, -0.30, 0.30, 2.3, 0.30, 0.40, 'f_car_trim', r=0.01, s=1)                      # lower intake
-        pc.box(2.27, -0.26, 0.42, 2.285, 0.26, 0.5, 'f_white', r=0.0)                              # plates
-        pc.box(-2.335, -0.26, 0.52, -2.32, 0.26, 0.60, 'f_white', r=0.0)
+        # the body ends in a blunt face at about +-2.30 (stations +-2.20 plus the end cap): details sit on that face
+        pc.box(2.14, -0.36, 0.42, 2.305, 0.36, 0.60, 'f_car_trim', r=0.02, s=1)                    # grille
+        pc.box(2.14, -0.30, 0.30, 2.31, 0.30, 0.40, 'f_car_trim', r=0.01, s=1)                     # lower intake
+        pc.box(2.305, -0.26, 0.44, 2.318, 0.26, 0.54, 'f_white', r=0.0)                            # plates
+        pc.box(-2.318, -0.26, 0.52, -2.305, 0.26, 0.62, 'f_white', r=0.0)
         pc.box(-2.0, -0.74, 0.22, 2.0, 0.74, 0.34, 'f_car_trim', r=0.0)                            # underbody
         if pc.hi:
             for sy in (-1, 1):                                                                     # door shut lines

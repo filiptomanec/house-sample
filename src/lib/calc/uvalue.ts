@@ -21,6 +21,35 @@ export const SURFACE_RESISTANCE: Record<HeatFlow, { rsi: number; rse: number }> 
   down: { rsi: 0.17, rse: 0.04 },
 };
 
+/** Kinds of construction that ČSN 73 0540-2 gives a U-value requirement for (the ones the model has). */
+export type CsnConstruction =
+  | "exteriorWall"
+  | "warmRoof"
+  | "ceilingUnderAttic"
+  | "floorOnGround"
+  | "wallToUnheated"
+  | "window"
+  | "entryDoor"
+  | "doorToUnheated";
+
+/**
+ * Required and recommended heat transfer coefficients of ČSN 73 0540-2:2011 (table 3, rooms heated to 18-22 degC), W/(m2 K):
+ * a heavy external wall 0.30 / 0.25; a pitched roof up to 45 degrees 0.24 / 0.16; a ceiling under an unheated attic 0.30 / 0.20;
+ * a floor and a wall on the ground 0.45 / 0.30; a wall or ceiling from a heated to an unheated room 0.60 / 0.40; a window in an
+ * external wall 1.5 / 1.2; an entrance door 1.7 / 1.2; a door from a heated to an unheated room 3.5 / 2.3. A normative table,
+ * not a property of the house: pages and tests compare the model's assemblies with it.
+ */
+export const CSN_730540_U: Record<CsnConstruction, { required: number; recommended: number }> = {
+  exteriorWall: { required: 0.3, recommended: 0.25 },
+  warmRoof: { required: 0.24, recommended: 0.16 },
+  ceilingUnderAttic: { required: 0.3, recommended: 0.2 },
+  floorOnGround: { required: 0.45, recommended: 0.3 },
+  wallToUnheated: { required: 0.6, recommended: 0.4 },
+  window: { required: 1.5, recommended: 1.2 },
+  entryDoor: { required: 1.7, recommended: 1.2 },
+  doorToUnheated: { required: 3.5, recommended: 2.3 },
+};
+
 /** EN ISO 13370, 9.1: the coefficient of the well-insulated slab branch (d_t >= B'), and 0.37 of the external periodic coefficient (Annex H). */
 const SLAB_FACTOR = 0.457;
 const PERIODIC_FACTOR = 0.37;

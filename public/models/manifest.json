@@ -1,88 +1,124 @@
 {
   "schema": "models/1",
   "frame": "house (x east, y north, z up, metres)",
-  "inputHash": "399fe6bb6974bc62d1ec5afbb8956c30aa57927c1b17b05a1c6303b48f4a3b28",
-  "hash": "34b24f9199d14a31919424340be034b9d0cac7b360f1b380b14730fee616995c",
+  "inputHash": "27f3db7aa27b88aa9ff5ca20d700c6c49c64a60fa690dec785bc56b7c482f3fa",
+  "hash": "318561494291a66360a09e61837181033b2724d912c096b89a8ad73a91c9730d",
   "files": {
     "furniture-footprints.json": {
-      "sha256": "a608914f4d697a131654742afb9244444d15d117f34ac346fe908dc70fad0900",
-      "bytes": 11953
+      "sha256": "99319a90222ef41f93438237c67673fbb59a3cb05dcb99ca25f578cc26e17a3d",
+      "bytes": 11658
     },
     "furniture-lite.glb": {
-      "sha256": "7a333ca45da0e747c7e97b9b7b570d43c9f67e645edcfb52eb8ef323a9b861ef",
-      "bytes": 474840,
-      "triangles": 62348,
-      "nodes": 194,
+      "sha256": "a1029e5b8bbfa8672bb328d8cd2a09f7012df0481e5af2e30b7a8625974b2420",
+      "bytes": 464040,
+      "triangles": 60562,
+      "nodes": 193,
       "bbox": {
         "min": [
-          -0.1698,
-          0,
-          -0.0071
+          -0.1478,
+          -4.62,
+          -0.0261
         ],
         "max": [
-          23.164,
+          22.8021,
           11.6846,
           2.75
         ]
       }
     },
     "furniture.glb": {
-      "sha256": "0253e1ddef60d59ca72579e40d56422efeaa01a7ddeca358f219cd638750d1f4",
-      "bytes": 741192,
-      "triangles": 155112,
-      "nodes": 194,
+      "sha256": "0f0573abcf9c36a021545d9f7a37acd66861dd54cb6ca66ebdc8f1f3c09ae6b1",
+      "bytes": 731928,
+      "triangles": 152776,
+      "nodes": 193,
       "bbox": {
         "min": [
-          -0.1703,
-          0,
-          -0.0071
+          -0.1459,
+          -4.62,
+          -0.0262
         ],
         "max": [
-          23.164,
+          22.8011,
           11.6817,
           2.75
         ]
       }
     },
     "house-lite.glb": {
-      "sha256": "fdb24b63ef296344b3a4012e43ca136a86dee22d4ad6cc201d4dca21c2dfd1cc",
-      "bytes": 306680,
-      "triangles": 5261,
-      "nodes": 54,
+      "sha256": "d74a59dede9d2864338ceaa60b30c0ec6b51acce02dd0af9ded0eed9e38ffeb3",
+      "bytes": 425168,
+      "triangles": 6379,
+      "nodes": 65,
       "bbox": {
         "min": [
           -1.19,
-          -4,
-          -0.45
+          -9.5,
+          -1.42
         ],
         "max": [
           24.19,
           20.5,
-          5.7712
+          6.0712
         ]
       }
     },
     "house.glb": {
-      "sha256": "f6d9bf68ad7ffc22ba7de4b4fd1cf90b24e1073da54abbe3fa8a9bef4f30a977",
-      "bytes": 2153852,
-      "triangles": 7033,
-      "nodes": 54,
+      "sha256": "35a3ba571edb7d57057e3e7c39f57631f5054a20f87008a0671f6d01dc725514",
+      "bytes": 2795780,
+      "triangles": 10427,
+      "nodes": 65,
       "bbox": {
         "min": [
           -1.19,
-          -4,
-          -0.45
+          -9.5,
+          -1.42
         ],
         "max": [
           24.19,
           20.5,
-          5.7712
+          6.0712
         ]
       }
     },
     "house.usdz": {
-      "sha256": "a579b95d0a4d87f06aa97bff1e2b9200ea85f5ce9c9a0572ff73feab32bb077f",
-      "bytes": 859516
+      "sha256": "7bdd5eff0267e25d2218e131c8171e7135d112f770385ed9f6956193f214e9d0",
+      "bytes": 1016810
+    },
+    "tree-lite.glb": {
+      "sha256": "7c10e3ffacb8011342616a2e4d61794ee52eb99c73910b07aa5a9d19819e9b24",
+      "bytes": 68740,
+      "triangles": 2358,
+      "nodes": 2,
+      "bbox": {
+        "min": [
+          -0.492,
+          -0.7109,
+          -0.0004
+        ],
+        "max": [
+          0.5918,
+          0.3635,
+          1.0449
+        ]
+      }
+    },
+    "tree.glb": {
+      "sha256": "86be59bd3728f65ddcb52061361a36853800bb284e30eb160a97415f1e3e8d59",
+      "bytes": 164740,
+      "triangles": 5638,
+      "nodes": 2,
+      "bbox": {
+        "min": [
+          -0.463,
+          -0.686,
+          -0.0005
+        ],
+        "max": [
+          0.557,
+          0.3447,
+          1.0229
+        ]
+      }
     }
   }
 }

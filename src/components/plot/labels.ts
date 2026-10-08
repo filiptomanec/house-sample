@@ -138,7 +138,8 @@ export function placeSetbackLabels(lines: readonly SetbackLine[], chars: readonl
         if (score > bestScore) { bestScore = score; best = b; }
       }
     }
-    placed.push(best as Box);
+    // a degenerate input (NaN scores) still gets a box: the middle of the line
+    placed.push(best ?? { x: round2((F[0] + T[0]) / 2), y: round2((F[1] + T[1]) / 2), w: chars[i] * 0.62 * fs, h: fs * 1.05 });
   });
   return placed;
 }

@@ -5,6 +5,9 @@ from . import geom2d as G
 from .inputs import piece_id, seed_of
 
 SIDES = ('back', 'front', 'left', 'right')
+# door lining (frame) on each side of a door opening: the clear passage in front of a door is the opening minus the lining,
+# so a piece standing beside the frame does not block it (a construction detail, like the 0.55 m clear zone)
+DOOR_LINING = 0.05
 
 
 def rect_of(f, w, d):
@@ -142,7 +145,7 @@ class Layout:
     def _zones(self):
         for o in self.model.openings:
             if o['kind'] in ('door', 'entry'):
-                for q in G.door_zone_rects(o, o['t']):
+                for q in G.door_zone_rects(o, o['t'], lining=DOOR_LINING):
                     self.zones.append({'id': o['id'], 'rect': q, 'kind': o['kind']})
                 poly = G.swing_polygon(o, o['t'])
                 if poly:
@@ -165,8 +168,19 @@ class Layout:
                                 p['id'], room=p['room'], excess=round(area - inside, 3))
             elif p['outdoor']:
                 od = self.model.outdoor_at(p['x'], p['y'])
-                if G.inter_area(od['rect'], r) < area * 0.98:
+                if self.model.is_water(od):
+                    self._issue('error', 'in-water', '%s stands in pool %s.' % (p['type'], od['id']), p['id'])
+                    continue
+                # the walkable part of the area: its rect without its holes (a pool cut out of a deck), plus neighbouring
+                # areas the piece may straddle (a grill on the paving next to the deck)
+                inside = sum(G.inter_area(q['rect'], r) - sum(G.inter_area(h, G.rect_inter(q['rect'], r) or [0, 0, 0, 0])
+                                                            for h in q.get('holes') or [])
+                             for q in self.model.outdoor if not self.model.is_water(q))
+                if inside < area * 0.98:
                     self._issue('warn', 'outside-area', '%s extends beyond outdoor area %s.' % (p['type'], od['id']), p['id'])
+                for q in self.model.outdoor:
+                    if self.model.is_water(q) and G.inter_area(q['rect'], r) > 1e-4:
+                        self._issue('warn', 'in-water', '%s reaches over the water of pool %s.' % (p['type'], q['id']), p['id'])
             if p['type'] != 'car' and p['room'] is not None:
                 for z in self.zones:
                     hit = G.rect_hits_polygon(r, z['poly']) if 'poly' in z else G.inter_area(r, z['rect']) > 1e-4

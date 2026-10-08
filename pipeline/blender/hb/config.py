@@ -58,8 +58,19 @@ class Config:
             rr["overhang"] = float(r.get("overhang", 0.7))
             rr["wallTop"] = float(r.get("wallTop", self.default_wall_top))
             self.roofs.append(rr)
-        self.outdoor = d.get("outdoor") or h.get("outdoor", [])
+        # outdoor areas: derived form (role, top, grade with corner heights, holes, pool, postSize); the builder never
+        # computes a level itself
+        self.outdoor = [self._outdoor(o) for o in (d.get("outdoor") or h.get("outdoor", []))]
+        self.pools = [o for o in self.outdoor if o.get("pool")]
         self.screens = [self._screen(s) for s in (d.get("screens") or h.get("screens", []))]
+        self.outdoor_unit = d.get("outdoorUnit")
+        site = d.get("site") or {}
+        plateau = (site.get("terrain") or {}).get("plateau") or {}
+        # finished ground around the house (lawn, gravel): the plateau level of the graded site (0 without a site)
+        self.ground_z = float(plateau.get("level", 0.0))
+        # paved surfaces of the site next to the house slabs (aprons to the gates, service path): an edge of a slab that
+        # borders one of them is not a free edge (no slab side, no edging)
+        self.site_paved = [[tuple(q) for q in pv["polygon"]] for pv in (site.get("paved") or []) if pv.get("polygon")]
         roof = h.get("roof", {}) or {}
         self.roof_cfg = roof
         self.covering = (roof.get("covering") or {}).get("type", "standing-seam-steel")
@@ -79,6 +90,22 @@ class Config:
         # net room rectangles (inside the wall faces): the kernel's description of the free floor, authoritative for rooms
         net = {n["id"]: n.get("rects", []) for n in d.get("netRooms", [])} or {r["id"]: r.get("cleanRects", []) for r in self.rooms}
         self.net_rects = {rid: [tuple(x) for x in rs] for rid, rs in net.items()}
+
+    @staticmethod
+    def _outdoor(o):
+        """Outdoor area with the derived fields filled in for the model form (flat at `top`, default -0.02)."""
+        o = dict(o)
+        top = float(o.get("top", -0.02))
+        o.setdefault("top", top)
+        if not o.get("grade"):
+            o["grade"] = {"kind": "flat", "top": top, "corners": [top] * 4,
+                          "plane": {"z0": top, "ox": 0, "oy": 0, "gx": 0, "gy": 0}}
+        if not o.get("role"):
+            o["role"] = {"drive": "drive_paving", "path": "path", "deck": "deck", "pool": "pool_coping"}.get(o.get("type"),
+                                                                                                      "terrace_paving")
+        o.setdefault("holes", [])
+        o.setdefault("posts", [])
+        return o
 
     @staticmethod
     def _screen(s):
@@ -120,13 +147,28 @@ class Config:
         return self.default_wall_top if best is None else best
 
     def wall_top(self, w):
+        """Top of a wall: derived `height` (the walls that carry a roof), else the default wall top (clear height + slab:
+        interior walls end at the ceiling structure, also under a cold attic)."""
         if w.get("height"):
             return float(w["height"])
-        if w["orient"] == "h":
-            mx, my = (w["from"] + w["to"]) / 2.0, w["at"]
-        else:
-            mx, my = w["at"], (w["from"] + w["to"]) / 2.0
-        return self.roof_top_at(mx, my)
+        return self.default_wall_top
+
+    @property
+    def soffit_z(self):
+        """Level of the flat soffits: the clear height. Overhangs and covered outdoor areas continue the ceiling plane."""
+        return self.clear_height
+
+    def room_ceiling(self, rid):
+        """Ceiling height of a room: derived rooms[].height (the clear height)."""
+        r = self.room_by_id.get(rid) or {}
+        return float(r.get("height") or self.clear_height)
+
+    @staticmethod
+    def grade_z(o, x, y):
+        """Top of an outdoor slab at a plan point, from its derived plane (z = z0 + gx (x - ox) + gy (y - oy))."""
+        pl = o["grade"].get("plane") or {}
+        return float(pl.get("z0", o["top"])) + float(pl.get("gx", 0.0)) * (x - float(pl.get("ox", 0.0))) + \
+            float(pl.get("gy", 0.0)) * (y - float(pl.get("oy", 0.0)))
 
     def floor_role(self, room):
         kind = room.get("floor", "concrete")

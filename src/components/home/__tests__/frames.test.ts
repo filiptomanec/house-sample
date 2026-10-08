@@ -10,7 +10,7 @@ class FakeBitmap implements Bitmap {
 }
 
 /** Fake network: every request waits until the test releases it, so concurrency can be observed. */
-function setup(n: number, opts: { capacity?: number; failFirst?: ReadonlySet<number>; retryDelayMs?: number } = {}) {
+function setup(n: number, opts: { capacity?: number; failFirst?: ReadonlySet<number>; retryDelayMs?: number; onProgress?: (settled: number, total: number) => void } = {}) {
   const urls = Array.from({ length: n }, (_, i) => `/f/${i}`);
   const started: number[] = [];
   const pending = new Map<number, () => void>();
@@ -37,7 +37,7 @@ function setup(n: number, opts: { capacity?: number; failFirst?: ReadonlySet<num
     },
   };
   const decoded: number[] = [];
-  const store = new FrameStore(urls, deps, { capacity: opts.capacity ?? 6, retryDelayMs: opts.retryDelayMs ?? 0, onDecoded: (i) => decoded.push(i) });
+  const store = new FrameStore(urls, deps, { capacity: opts.capacity ?? 6, retryDelayMs: opts.retryDelayMs ?? 0, onDecoded: (i) => decoded.push(i), onProgress: opts.onProgress });
   const release = async (i: number) => { pending.get(i)?.(); pending.delete(i); await vi.waitFor(() => undefined); await Promise.resolve(); };
   const releaseAll = async () => { while (pending.size) for (const i of [...pending.keys()]) await release(i); await new Promise((r) => setTimeout(r, 5)); };
   return { store, started, pending, bitmaps, decoded, release, releaseAll, peak: () => peak, attempts };
@@ -53,6 +53,32 @@ describe("FrameStore", () => {
     expect(t.peak()).toBe(4);
     expect(t.started).toEqual(loadOrder(30));
     expect(t.store.loadedCount).toBe(30);
+    t.store.dispose();
+  });
+
+  it("fetches only the first frames of the load order when started with a limit, the rest when started again", async () => {
+    const t = setup(30);
+    t.store.start(5);
+    await t.releaseAll();
+    expect(t.started).toEqual(loadOrder(30).slice(0, 5));
+    expect(t.store.started).toBe(true);
+    t.store.start(3); // a smaller limit changes nothing
+    await t.releaseAll();
+    expect(t.started).toHaveLength(5);
+    t.store.start();
+    await t.releaseAll();
+    expect(t.started).toEqual(loadOrder(30));
+    t.store.dispose();
+  });
+
+  it("reports every finished download, failed ones included, until all have settled", async () => {
+    const seen: [number, number][] = [];
+    const t = setup(6, { failFirst: new Set([2]), retryDelayMs: 0, onProgress: (s, n) => seen.push([s, n]) });
+    t.store.start();
+    await t.releaseAll();
+    await t.releaseAll();
+    expect(seen.map(([s]) => s)).toEqual([1, 2, 3, 4, 5, 6]);
+    expect(seen.every(([, n]) => n === 6)).toBe(true);
     t.store.dispose();
   });
 

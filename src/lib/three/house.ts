@@ -10,13 +10,16 @@ import { disposeMaterial, disposeTree } from "./dispose";
 import { prepareFurniture } from "./furniture";
 import { GlbError, checkHouseContract, createProgressGroup, extrasOf, isGroundRole, isOccluderRole, loadFurnitureGltf, loadHouseGltf, modelFile, type LoadProgress } from "./glb";
 import { interiorRegionOf, shadeBoxesOf } from "./interior";
+import { mergeMeshes } from "./merge";
+import { buildOutdoorFallback, outdoorFallback } from "./outdoor";
 import { createRoomTags } from "./roomTags";
-import { effectiveRole, resolveLook, type LookSelection } from "./style";
+import { effectiveRole, generatedMaterial, resolveLook, type LookSelection } from "./style";
 import { buildSurroundings, type SurroundingsScene } from "./surroundings";
 import { onSchemeChange, readToken } from "./theme";
-import { buildTerrain, type TerrainScene } from "./terrain";
+import { HORIZON, buildTerrain, type TerrainScene } from "./terrain";
 import { buildVegetation, type VegetationScene } from "./vegetation";
-import type { Viewer } from "./viewer";
+import { ENV_GAIN, type Viewer } from "./viewer";
+import { fitContextOf, shadowRangeFor } from "./views";
 
 export type FurnitureState = "idle" | "loading" | "ready" | "error";
 export type VegetationState = "idle" | "loading" | "ready" | "error";
@@ -136,10 +139,68 @@ export const HOUSE_SCENE = {
   boundaryStep: 1.5,
   /** The cut plane when there is no cut (above everything). */
   noCut: 1e4,
-  /** The fog starts at this share of the distance to the far edge of the ground and ends at the second. */
-  fogStart: 0.8,
-  fogEnd: 2.0,
+  /** The fog starts this far short of the distant tree line and is complete at this share of the horizon ring. */
+  fogNearBeforeTrees: 30,
+  fogFar: 0.85,
+  /**
+   * Glass and water mirror the sky: their reflections see this share of the displayed sky (the environment as a light source is
+   * scaled down by the viewer's `ENV_GAIN`, a mirror is not).
+   */
+  reflection: 0.6,
+  /** Size of one ripple tile of the water normal map (high tier), metres, and the strength of the ripples. */
+  rippleTile: 1.6,
+  rippleStrength: 0.18,
 } as const;
+
+/**
+ * Fresnel transparency for glass and water (shader patch of a transparent physical material): the surface is as opaque as its
+ * material at normal incidence and becomes a mirror at grazing angles; the reflection is not attenuated by the opacity
+ * (alpha = opacity + (1 - opacity) F, colour = (diffuse * opacity + specular) / alpha). Idempotent.
+ */
+export function patchFresnel(m: THREE.MeshPhysicalMaterial, key: string): void {
+  if (m.userData.fresnel) return;
+  m.userData.fresnel = true;
+  m.onBeforeCompile = (sh) => {
+    sh.fragmentShader = sh.fragmentShader.replace("#include <opaque_fragment>", `
+      float fresnelF = 0.04 + 0.96 * pow( 1.0 - saturate( dot( normal, geometryViewDir ) ), 5.0 );
+      float fresnelA = clamp( diffuseColor.a + ( 1.0 - diffuseColor.a ) * fresnelF, 0.0, 1.0 );
+      outgoingLight = ( totalDiffuse * diffuseColor.a + totalSpecular + totalEmissiveRadiance ) / max( fresnelA, 1e-3 );
+      gl_FragColor = vec4( outgoingLight, fresnelA );`);
+  };
+  m.customProgramCacheKey = () => `fresnel-${key}-v1`;
+  m.needsUpdate = true;
+}
+
+/** A tiling normal map of small ripples (a sum of a few seeded waves), for the water on the high tier. */
+function rippleNormalTexture(): THREE.DataTexture {
+  const N = 128;
+  const h = new Float32Array(N * N);
+  let seed = 7;
+  const rnd = () => ((seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0) / 0x100000000);
+  const waves = Array.from({ length: 6 }, () => ({ kx: Math.round(1 + rnd() * 5) * (rnd() < 0.5 ? -1 : 1), ky: Math.round(1 + rnd() * 5), ph: rnd() * Math.PI * 2, a: 0.5 + rnd() }));
+  for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) {
+    let v = 0;
+    for (const w of waves) v += w.a * Math.sin(((w.kx * i + w.ky * j) / N) * Math.PI * 2 + w.ph);
+    h[j * N + i] = v;
+  }
+  const data = new Uint8Array(N * N * 4);
+  for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) {
+    const dx = h[j * N + ((i + 1) % N)] - h[j * N + ((i + N - 1) % N)], dy = h[((j + 1) % N) * N + i] - h[((j + N - 1) % N) * N + i];
+    const l = Math.hypot(dx, dy, 4);
+    const k = (j * N + i) * 4;
+    data[k] = Math.round((0.5 - dx / l / 2) * 255); data[k + 1] = Math.round((0.5 - dy / l / 2) * 255); data[k + 2] = Math.round((0.5 + 2 / l) * 255); data[k + 3] = 255;
+  }
+  const t = new THREE.DataTexture(data, N, N, THREE.RGBAFormat);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.magFilter = THREE.LinearFilter;
+  t.minFilter = THREE.LinearMipmapLinearFilter;
+  t.generateMipmaps = true;
+  t.needsUpdate = true;
+  return t;
+}
+
+/** Roles of house meshes that add-ons find by id and move or hide (louvre blades, the garage door leaf): never merged. */
+export const HOUSE_KEEP_APART: ReadonlySet<string> = new Set(["screen_slats", "garage_door", "water"]);
 
 const strictContract = process.env.NODE_ENV !== "production";
 
@@ -225,16 +286,47 @@ export async function buildHouse(viewer: Viewer, ctx: HouseContext, opts: BuildH
   viewer.interior.setShade(shadeBoxesOf(ctx));
   const materials = new Map<string, THREE.Material>();
   const meshes: THREE.Mesh[] = [];
-  const glass = new THREE.MeshPhysicalMaterial({ roughness: 0.03, metalness: 0, transparent: true, depthWrite: false, side: THREE.DoubleSide, envMapIntensity: 1.6 });
+  const mirror = HOUSE_SCENE.reflection / ENV_GAIN;
+  const glass = new THREE.MeshPhysicalMaterial({ roughness: 0.03, metalness: 0, transparent: true, depthWrite: false, side: THREE.DoubleSide, envMapIntensity: mirror });
   glass.name = "glass";
+  patchFresnel(glass, "glass");
+  // water: on the high tier a transparent physical surface over the liner with small ripples; on phones an opaque mint
+  // reflective surface (no transparency sorting, no extra pass)
+  const waterStyle = generatedMaterial(ctx.style, "water", "glass");
+  const ripples = tier === "high" ? rippleNormalTexture() : null;
+  const water: THREE.MeshStandardMaterial = tier === "high"
+    ? new THREE.MeshPhysicalMaterial({
+      color: waterStyle.color, roughness: 0.05, metalness: 0, transparent: true, opacity: waterStyle.alpha, depthWrite: false, envMapIntensity: mirror,
+      normalMap: ripples, normalScale: new THREE.Vector2(HOUSE_SCENE.rippleStrength, HOUSE_SCENE.rippleStrength),
+    })
+    : new THREE.MeshStandardMaterial({ color: new THREE.Color(waterStyle.color).multiplyScalar(0.55), roughness: 0.08, metalness: 0, envMapIntensity: mirror });
+  water.name = "water";
+  if (tier === "high") patchFresnel(water as THREE.MeshPhysicalMaterial, "water");
+  /** Water meshes get texture coordinates in metres over the plan, so the ripple tiles keep their size. */
+  const waterUvs = (mesh: THREE.Mesh) => {
+    const pos = mesh.geometry.getAttribute("position") as THREE.BufferAttribute | undefined;
+    if (!pos) return;
+    const uv = new Float32Array(pos.count * 2);
+    for (let i = 0; i < pos.count; i++) { uv[i * 2] = pos.getX(i) / HOUSE_SCENE.rippleTile; uv[i * 2 + 1] = -pos.getZ(i) / HOUSE_SCENE.rippleTile; }
+    mesh.geometry.setAttribute("uv", new THREE.BufferAttribute(uv, 2));
+  };
+  const presentIds = new Set<string>(), presentRoles = new Set<string>();
   building.traverse((o) => {
     const mesh = o as THREE.Mesh;
     if (!mesh.isMesh) return;
     const role = extrasOf(mesh).role ?? "";
     mesh.userData.role = role;
+    const id = extrasOf(mesh).id;
+    if (id) presentIds.add(id);
+    presentRoles.add(role);
     if (role === "glass") {
       mesh.material = glass;
       materials.set(role, glass);
+    } else if (role === "water") {
+      (mesh.material as THREE.Material).dispose();
+      mesh.material = water;
+      materials.set(role, water);
+      waterUvs(mesh);
     } else {
       const m = mesh.material as THREE.MeshStandardMaterial;
       if (!materials.has(role)) {
@@ -247,11 +339,45 @@ export async function buildHouse(viewer: Viewer, ctx: HouseContext, opts: BuildH
         viewer.interior.patch(m);
       }
     }
-    mesh.castShadow = role !== "glass" && !isGroundRole(role);
+    mesh.castShadow = role !== "glass" && role !== "water" && !isGroundRole(role);
+    mesh.receiveShadow = true;
+    meshes.push(mesh);
+  });
+  // outdoor areas and pools the GLB does not hold yet (a file built from an older model) are built from the derived data
+  const fallbackPlan = outdoorFallback(ctx, presentIds, presentRoles);
+  const fallback = buildOutdoorFallback(fallbackPlan, (role) => {
+    if (role === "water") return water;
+    const have = materials.get(role);
+    if (have) return have;
+    const st = ctx.style.materials[role] ?? ctx.style.materials.terrace_paving;
+    const m = new THREE.MeshStandardMaterial({ color: st?.color ?? "#cccccc", roughness: st?.roughness ?? 0.8, metalness: st?.metallic ?? 0 });
+    m.name = role;
+    materials.set(role, m);
+    viewer.interior.patch(m);
+    return m;
+  });
+  fallback.traverse((o) => {
+    const mesh = o as THREE.Mesh;
+    if (!mesh.isMesh) return;
+    const role = mesh.userData.role as string;
+    if (role === "water") { materials.set("water", water); waterUvs(mesh); }
+    mesh.castShadow = role !== "water" && !isGroundRole(role);
     mesh.receiveShadow = true;
     meshes.push(mesh);
   });
   for (const m of materials.values()) { m.clippingPlanes = clip; m.clipShadows = true; }
+  // a flat pane needs no back-face pass (a transparent double-sided material is otherwise drawn twice)
+  glass.forceSinglePass = true;
+
+  // phones: the static meshes of one role and material become one mesh (one draw call per role); what an add-on moves or
+  // hides by id stays apart
+  if (settings.mergeHouse) {
+    const merged = mergeMeshes(meshes.filter((m) => !m.userData.fallback), (m) => {
+      const role = m.userData.role as string;
+      return HOUSE_KEEP_APART.has(role) ? null : `${role}|${extrasOf(m).toggle ?? ""}`;
+    });
+    meshes.splice(0, meshes.length, ...merged.meshes, ...meshes.filter((m) => m.userData.fallback));
+  }
 
   // BVH for ray casting where it is needed: what blocks the sun and what a person can stand on
   const occluders = meshes.filter((m) => isOccluderRole(m.userData.role as string));
@@ -272,33 +398,40 @@ export async function buildHouse(viewer: Viewer, ctx: HouseContext, opts: BuildH
       m.metalness = r.metallic;
       if (role === "glass") { m.opacity = r.alpha; m.needsUpdate = true; }
     }
+    // the opaque phone water shows the colour of the water over the deep basin
+    if (tier !== "high" && resolved.materials.water) water.color.set(resolved.materials.water.color).multiplyScalar(0.55);
     // a substituted role is drawn with the material of the other role
     for (const role of materials.keys()) {
       const eff = effectiveRole(resolved, role);
       const target = materials.get(eff) ?? materials.get(role);
       for (const mesh of rolesOf(role)) if (target && mesh.material !== target) mesh.material = target;
     }
+    // the fence and gate boards follow the timber of the house (their own colour when the look takes the timber away)
+    const wood = effectiveRole(resolved, "wood_cladding") === "wood_cladding" ? resolved.materials.wood_cladding?.color : undefined;
+    surroundingsRef?.setWood(wood ?? generatedMaterial(ctx.style, "fence_wood", "wood_cladding").color);
   }
+  let surroundingsRef: SurroundingsScene | null = null;
   applyLook(opts.look ?? {});
 
   // ---- ground, surroundings, boundary, labels
   const terrain = buildTerrain(ctx, { tier });
   const surroundings = buildSurroundings(ctx, { tier });
+  surroundingsRef = surroundings;
+  applyLook(lookSel);
   const boundary = boundaryLine(ctx);
   boundary.visible = boundaryOn;
   const tags = createRoomTags(viewer, ctx, opts.formatTag, !!opts.labels);
-  root.add(building, terrain.group, surroundings.group, boundary, tags.group);
+  root.add(building, fallback, terrain.group, surroundings.group, boundary, tags.group);
+  // the camera may move back safely only with the plot known; the shadows reach every site occluder the sun analysis counts
+  viewer.setFitContext(fitContextOf(ctx));
+  viewer.setShadowRange(Math.max(viewer.shadowRange, shadowRangeFor(viewer.extent, ctx)));
   const offScheme = onSchemeChange(() => {
     terrain.repaint();
     (boundary.material as THREE.LineDashedMaterial).color.set(readToken("--on-media", "#ffffff"));
     viewer.requestRender();
   });
-  // the fog hides the edge of the ground: it starts shortly before the farthest corner of the ground seen from the middle of the plot
-  {
-    const b = ctx.site.bounds, [cx, cy] = viewer.extent.center;
-    const far = Math.max(...[[b.x0, b.y0], [b.x1, b.y0], [b.x1, b.y1], [b.x0, b.y1]].map(([x, y]) => Math.hypot(x - cx, y - cy)));
-    viewer.setFog(far * HOUSE_SCENE.fogStart, far * HOUSE_SCENE.fogEnd);
-  }
+  // aerial perspective: the distant tree line is a little hazy, the horizon ring dissolves into the sky
+  viewer.setFog(HORIZON.trees.from - HOUSE_SCENE.fogNearBeforeTrees, HORIZON.radius * HOUSE_SCENE.fogFar);
 
   // ---- the switches
   function setRoof(on: boolean) {
@@ -343,7 +476,7 @@ export async function buildHouse(viewer: Viewer, ctx: HouseContext, opts: BuildH
     if (vegetation || vegetationState === "loading") return;
     vegetationState = "loading";
     emit({ type: "vegetation", state: "loading" });
-    buildVegetation(ctx, { tier, dayOfYear })
+    buildVegetation(ctx, { tier, dayOfYear, signal: abort.signal })
       .then((v) => {
         if (disposed) { v.dispose(); return; }
         vegetation = v;
@@ -431,7 +564,10 @@ export async function buildHouse(viewer: Viewer, ctx: HouseContext, opts: BuildH
       disposeMaterial(boundary.material as THREE.Material);
       if (furnitureRoot) disposeTree(furnitureRoot);
       disposeTree(building);
+      disposeTree(fallback, new Set([water]));
       glass.dispose();
+      water.dispose();
+      ripples?.dispose();
       root.removeFromParent();
       root.clear();
       viewer.requestRender();

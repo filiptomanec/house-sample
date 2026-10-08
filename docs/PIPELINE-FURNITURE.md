@@ -1,7 +1,8 @@
 # Furniture pipeline
 
 Data-driven furniture and decor for the fictional house. Input: `model/house.json` (`furniture[]`, `outdoor[]`,
-`clearHeight`) and `generated/derived.json` (net rooms, openings, walls). Output: `public/models/furniture.glb` (desktop),
+`clearHeight`) and `generated/derived.json` (net rooms, openings, walls, the derived outdoor areas with their slab tops, holes
+and pools). Output: `public/models/furniture.glb` (desktop),
 `public/models/furniture-lite.glb` (phones), `public/models/furniture-footprints.json` (walk collisions) and a validation
 report. The code lives in `pipeline/furniture/`; the style is described in `pipeline/furniture/STYLE.md`.
 
@@ -45,7 +46,7 @@ export owns the file). Both builds are deterministic: the same inputs give the s
 * Node `extras`: `{ "role": "<material>", "toggle": "furniture", "roomId": "<room id or terrace>" }`.
 * Coordinates are the house frame baked into the vertices, Y-up export (house `(x, y, z)` becomes glTF `(x, z, -y)`).
 * Budgets: `furniture.glb` at most 1.4 MB and 200 000 triangles; `furniture-lite.glb` at most 0.6 MB and 80 000 triangles. The
-  committed files are about 0.75 MB / 155 k triangles and 0.49 MB / 62 k triangles for the sample house.
+  committed files are about 0.73 MB / 153 k triangles and 0.46 MB / 61 k triangles for the sample house.
 
 ## Footprints (`public/models/furniture-footprints.json`)
 
@@ -58,21 +59,27 @@ export owns the file). Both builds are deterministic: the same inputs give the s
 
 `box` is an axis-aligned rectangle in the house frame, `h` the height of the highest body part (m), `room` the room id or
 `terrace`, `kind` is `furniture` or `decor` (plants, floor lamps and other floor objects taller than 0.3 m). L-shaped pieces give
-several boxes. Boxes reaching into a door clear zone (the wall gap plus 0.55 m on both sides) are cut back; one that lies
-completely inside the zone is listed in `leftOut`. Rugs and wall or surface decor have no box.
+several boxes. Boxes reaching into a door clear zone (the clear passage of the door, extended 0.55 m on both sides) are cut
+back; one that lies completely inside the zone is listed in `leftOut`. Rugs and wall or surface decor have no box.
 
 ## Layout and validation (`fx/layout.py`)
 
-* A piece belongs to the room whose net floor contains its centre, or to the outdoor area (zone `terrace`). Rotation is 0, 90,
-  180 or 270 degrees counter-clockwise; at rot 0 the width runs along x and the back (wall side) faces +y.
+* A piece belongs to the room whose net floor contains its centre, or to the outdoor area (zone `terrace`): any outdoor type,
+  the covered terrace, the paving, a timber deck (`deck`) or the deck around a pool (its `holes`, the water, are not floor).
+  Outdoor pieces stand on the derived slab top under them (`grade.plane`, the ramps included). Rotation is 0, 90, 180 or 270
+  degrees counter-clockwise; at rot 0 the width runs along x and the back (wall side) faces +y.
 * Variants come from `catalog.json` (`variants` rules by room type, size, outdoor, neighbouring piece type): a `shelf` in a
   garage becomes a rack, next to a bed a bedside table, in a wardrobe room an open shelf; a `wardrobe` in a wardrobe room is a
   walk-in with hanging garments; a `chair` next to an `island` is a stool, next to a `desk` a task chair; a small `table6` is a
   coffee table; the two cars of a garage alternate between two models.
 * Pieces flagged `wallBacked` whose front (not back) touches a wall are turned by 180 degrees (issue `rot-corrected`).
 * Checks (report `issues`, console warnings): `outside-room` (more than 2 % of the footprint outside the net floor),
-  `door-zone` (clear zone or swing quarter circle of a door or entry), `collision` (overlap of two pieces),
-  `unknown-type`, `outside`. Furniture is never moved; the report only says what is wrong.
+  `outside-area` (an outdoor piece beyond the walkable part of the outdoor areas), `in-water` (an outdoor piece on or over the
+  water of a pool; an error when its centre is in the water), `door-zone` (clear zone or swing quarter circle of a door or
+  entry; the clear zone is the clear passage, the opening minus the door lining `DOOR_LINING` = 0.05 m on each side, extended
+  0.55 m into both rooms, so a basin or a chair beside the frame does not count), `collision` (overlap of two pieces),
+  `unknown-type`, `outside`. Furniture is never moved; the report only says what is wrong. The acceptance for the sample house
+  is a report without warnings.
 
 ## Decor (`decor_rules.json`, `fx/decor.py`)
 
@@ -86,8 +93,15 @@ with a reason (no free corner, surface too small, tall furniture at the opening,
 ## Detail levels
 
 `high` uses rounded edges (`rbox`, chamfer boxes), fuller plants, 14 to 30 segment lathes and loft grids; `lite` drops edge
-rounding unless a part is flagged `keep`, halves the segments and leaf counts and keeps outlines and colours. Cars: about 8 000
-triangles at `high`, about 2 800 at `lite`.
+rounding unless a part is flagged `keep`, halves the segments and leaf counts and keeps outlines and colours.
+
+* Cars (`pieces/car.py`): a lofted, subdivided body with wheel arches cut around the wheels, a glasshouse with tinted glass,
+  lights, mirrors and spoked wheels, so a car reads as a car from 8 m (the street views look through the open garage door).
+  Two models (estate, hatchback) alternate in a garage.
+* Kitchen sink: an undermount basin at `high` (a cut-out in the stone worktop, a steel bowl 0.18 m deep with a drain, the
+  carcass left open under it); `lite` keeps a flat steel plate.
+* Coplanar faces of different parts are avoided by insetting one part at least 3 mm (`STYLE.md`); `fx/qa.py` reports any
+  left over under `qa` in the build report (none for the sample house).
 
 ## Code map
 

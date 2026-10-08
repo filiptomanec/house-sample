@@ -76,8 +76,8 @@ def bounds(obj):
 
 
 def foliage_material(m, tint=None, value=2.1, translucency=0.3, recolor=False, cutout=True, vary=0.0):
-    """Leaf cards from a Poly Haven atlas: the alpha comes from the luminance of the atlas (black background), the colour is
-    brightened, a share of translucency lets light through. Returns a new material (a tinted copy when `tint` is given)."""
+    """Leaf cards from a Poly Haven atlas: the alpha comes from the atlas alpha channel when the material has one, else from
+    the luminance of the atlas (black background); the colour is brightened, a share of translucency lets light through. Returns a new material (a tinted copy when `tint` is given)."""
     nt0 = m.node_tree
     bs0 = nt0.nodes.get("Principled BSDF")
     if bs0 is None or not bs0.inputs["Base Color"].links:
@@ -86,6 +86,12 @@ def foliage_material(m, tint=None, value=2.1, translucency=0.3, recolor=False, c
     m.use_backface_culling = False
     nodes, links = m.node_tree.nodes, m.node_tree.links
     bs = nodes.get("Principled BSDF")
+    alpha_src = bs.inputs["Alpha"].links[0].from_socket if bs.inputs["Alpha"].links else None
+    alpha_map = _alpha_map(nodes, links, bs)
+    if alpha_map is not None:
+        alpha_src = alpha_map
+    elif alpha_src is not None and _is_jpeg(alpha_src.node):
+        alpha_src = None                 # a JPEG has no alpha channel: the cut-out falls back to the luminance of the atlas
     for key in ("Metallic", "Normal", "Alpha"):
         for l in list(bs.inputs[key].links):
             links.remove(l)
@@ -157,11 +163,48 @@ def foliage_material(m, tint=None, value=2.1, translucency=0.3, recolor=False, c
         return m
     tp = nodes.new("ShaderNodeBsdfTransparent")
     cut = nodes.new("ShaderNodeMixShader")
-    links.new(mr.outputs[0], cut.inputs[0])
+    if alpha_src is not None:
+        # the atlas has an alpha channel: a crisp cut at 0.5 (no hashed noise)
+        ma = nodes.new("ShaderNodeMapRange")
+        ma.inputs["From Min"].default_value = 0.42
+        ma.inputs["From Max"].default_value = 0.58
+        links.new(alpha_src, ma.inputs["Value"])
+        links.new(ma.outputs[0], cut.inputs[0])
+    else:
+        links.new(mr.outputs[0], cut.inputs[0])
     links.new(tp.outputs[0], cut.inputs[1])
     links.new(mix.outputs[0], cut.inputs[2])
     links.new(cut.outputs[0], out.inputs["Surface"])
     return m
+
+
+def _is_jpeg(node):
+    im = getattr(node, "image", None)
+    return bool(im and im.filepath.lower().endswith((".jpg", ".jpeg")))
+
+
+def _alpha_map(nodes, links, bs):
+    """The separate alpha map of a Poly Haven foliage atlas (`<id>_alpha_<res>.png` next to `<id>_diff_<res>.jpg`; the glTF
+    references only the JPEG): an image node sampled with the same coordinates as the atlas, or None."""
+    import bpy
+    src = bs.inputs["Base Color"].links[0].from_node
+    if getattr(src, "type", "") != "TEX_IMAGE" or not src.image:
+        return None
+    path = bpy.path.abspath(src.image.filepath)
+    folder, name = os.path.split(path)
+    if "_diff_" not in name:
+        return None
+    stem, res = name.split("_diff_")[0], name.split("_diff_")[1].split(".")[0]
+    cands = glob.glob(os.path.join(folder, "%s_alpha_%s.png" % (stem, res))) or glob.glob(os.path.join(folder, stem + "_alpha_*.png"))
+    if not cands:
+        return None
+    t = nodes.new("ShaderNodeTexImage")
+    t.image = bpy.data.images.load(cands[0], check_existing=True)
+    t.image.colorspace_settings.name = "Non-Color"
+    t.interpolation = src.interpolation
+    if src.inputs["Vector"].links:
+        links.new(src.inputs["Vector"].links[0].from_socket, t.inputs["Vector"])
+    return t.outputs["Color"]
 
 
 def leaf_tint(hex_color, reference="#6a8b45"):
@@ -170,23 +213,53 @@ def leaf_tint(hex_color, reference="#6a8b45"):
     return tuple(min(2.0, a[i] / max(r[i], 1e-3)) for i in range(3))
 
 
-def species_collection(model, species, tint, tag, recolor=False, copies=None, cutout=True, vary=0.0):
+def leaf_sources(name):
+    """Copies of the model's objects that keep only the faces of their leaf material (a material named `*leaves*`); cached."""
+    import bmesh
+    key = ("leaves", name)
+    if key in _cache:
+        return _cache[key]
+    out = []
+    for ob in load_model(name):
+        me = ob.data
+        keep = [i for i, m in enumerate(me.materials) if m and "leaves" in m.name.lower()]
+        if not keep:
+            out.append(ob)
+            continue
+        o = ob.copy()
+        o.data = me.copy()
+        o.name = ob.name + "_leaves"
+        bm = bmesh.new()
+        bm.from_mesh(o.data)
+        bmesh.ops.delete(bm, geom=[f for f in bm.faces if f.material_index not in keep], context="FACES")
+        bm.to_mesh(o.data)
+        bm.free()
+        _library().objects.link(o)
+        out.append(o)
+    _cache[key] = out
+    return out
+
+
+def species_collection(model, species, tint, tag, recolor=False, copies=None, cutout=True, vary=0.0, value=2.1, split=False,
+                       leaves_only=False):
     """A collection with copies of the model's objects whose materials are tinted foliage (mesh data is shared).
-    `copies` = [(yaw_deg, scale, dx, dy)]: several rotated copies around the same trunk make a fuller crown (default one)."""
+    `copies` = [(yaw_deg, scale, dx, dy)]: several rotated copies around the same trunk make a fuller crown (default one).
+    `leaves_only`: the objects without their trunk and branches (crown fillers)."""
     import bpy
     import math
     copies = copies or [(0.0, 1.0, 0.0, 0.0)]
-    key = ("sc", model, species, tag, tuple(copies))
+    key = ("sc", model, species, tag, tuple(copies), value, split, leaves_only)
     if key in _cache:
         return _cache[key]
     col = bpy.data.collections.new("S_%s_%s" % (model, species))
     _library().children.link(col)
     mats = {}
-    for src in load_model(model):
+    sources = split_row(model) if split else (leaf_sources(model) if leaves_only else load_model(model))
+    for src in sources:
         for i, base in enumerate(src.data.materials):
-            mats[(src.name, i)] = foliage_material(base, tint, recolor=recolor, cutout=cutout, vary=vary) if base else None
+            mats[(src.name, i)] = foliage_material(base, tint, value=value, recolor=recolor, cutout=cutout, vary=vary) if base else None
     for yaw, sc, dx, dy in copies:
-        for src in load_model(model):
+        for src in sources:
             o = src.copy()
             col.objects.link(o)
             o.location = (dx, dy, 0.0)
@@ -239,3 +312,65 @@ def model_stats(name):
           "z0": q(sel[:, 2], 4), "z1": q(sel[:, 2], 98)}
     _cache[key] = st
     return st
+
+
+def split_row(name):
+    """Some models hold several plants side by side in one object (a row along x). Splits such an object at the empty gaps
+    of its polygon centres along x into one object per plant (in the hidden library). Returns the list of objects."""
+    import bpy
+    key = ("row", name)
+    if key in _cache:
+        return _cache[key]
+    out = []
+    for ob in load_model(name):
+        me = ob.data
+        lo, hi = bounds(ob)
+        if (hi[0] - lo[0]) < 3.0 * max(hi[1] - lo[1], 1e-3) or len(me.polygons) < 100:
+            out.append(ob)
+            continue
+        n = len(me.polygons)
+        cen = np.empty(n * 3, dtype=np.float32)
+        me.polygons.foreach_get("center", cen)
+        cx = cen.reshape(-1, 3)[:, 0]
+        bins = 240
+        hist, edges = np.histogram(cx, bins=bins, range=(lo[0], hi[0]))
+        cuts = []
+        run = 0
+        for i, c in enumerate(hist):
+            if c == 0:
+                run += 1
+            else:
+                if run >= 2:
+                    cuts.append(edges[i - run // 2])
+                run = 0
+        if not cuts:
+            out.append(ob)
+            continue
+        lab = np.searchsorted(np.array(cuts), cx)
+        for k in range(len(cuts) + 1):
+            sel = lab == k
+            if sel.sum() < 50:
+                continue
+            o = ob.copy()
+            o.data = me.copy()
+            o.name = "%s_part%d" % (ob.name, k)
+            import bmesh
+            bm = bmesh.new()
+            bm.from_mesh(o.data)
+            bm.faces.ensure_lookup_table()
+            drop = [f for f, s in zip(bm.faces, sel) if not s]
+            bmesh.ops.delete(bm, geom=drop, context="FACES")
+            bm.to_mesh(o.data)
+            bm.free()
+            # origin to the base centre of the part
+            co = np.empty(len(o.data.vertices) * 3, dtype=np.float32)
+            o.data.vertices.foreach_get("co", co)
+            co = co.reshape(-1, 3)
+            from mathutils import Matrix, Vector
+            c = Vector((float(co[:, 0].mean()), float(co[:, 1].mean()), float(co[:, 2].min())))
+            o.data.transform(Matrix.Translation(-c))
+            _library().objects.link(o)
+            out.append(o)
+    _cache[key] = out
+    log("%s: %d plants" % (name, len(out)))
+    return out

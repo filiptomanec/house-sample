@@ -86,20 +86,25 @@ export interface GlbNodeExtras {
   roomId?: string;
 }
 
-/** Material roles of house.glb (docs/ARCHITECTURE.md section 3). `lawn` and `mulch` are generated in JS, not in the GLB. */
+/**
+ * Material roles of house.glb (docs/ARCHITECTURE.md section 3, contract C2). `lawn` and `mulch` are generated in JS, not in
+ * the GLB. Since R2: `deck`, `pool_coping`, `pool_liner`, `water` (the web swaps in its own material), `garage_door`,
+ * `screen_rail` (the louvre rails; only `screen_slats` is replaced by the movable blades) and `equipment`.
+ */
 export const HOUSE_ROLES = [
   "plaster", "wood_cladding", "frame", "glass", "sill", "soffit", "fascia", "gutter", "roof_tile", "ridge_cap", "ceiling", "plaster_in",
   "door_leaf", "slab", "floor_oak", "floor_tile", "floor_stone", "floor_concrete", "terrace_paving", "drive_paving", "path", "gravel", "post", "screen_slats",
+  "deck", "pool_coping", "pool_liner", "water", "garage_door", "screen_rail", "equipment",
 ] as const;
 export type HouseRole = (typeof HOUSE_ROLES)[number];
 
-const GROUND_EXTRA = new Set<string>(["slab", "terrace_paving", "drive_paving", "path", "gravel"]);
-/** Roles a person can stand on: floors, paving, path, gravel, the slab. Used by the walk and for planting. */
+const GROUND_EXTRA = new Set<string>(["slab", "terrace_paving", "drive_paving", "path", "gravel", "deck", "pool_coping"]);
+/** Roles a person can stand on: floors, paving, path, gravel, the slab, the deck and the pool coping. Used by the walk and for planting. */
 export const isGroundRole = (role: string): boolean => role.startsWith("floor_") || GROUND_EXTRA.has(role);
 
-const NO_OCCLUSION = new Set<string>(["glass"]);
-/** Roles that block direct sun in the analysis: everything except glass (the slat screens are handled by their own module). */
-export const isOccluderRole = (role: string): boolean => !NO_OCCLUSION.has(role) && role !== "screen_slats";
+const NO_OCCLUSION = new Set<string>(["glass", "water", "screen_slats"]);
+/** Roles that block direct sun in the analysis: everything except glass and water (the louvre blades are handled by their own module). */
+export const isOccluderRole = (role: string): boolean => !NO_OCCLUSION.has(role);
 
 /** Roles the Roof switch hides are marked by `toggle: "roof"` in the file, not listed here. */
 export const roleOf = (node: THREE.Object3D): string | undefined => (node.userData as Partial<GlbNodeExtras>).role;

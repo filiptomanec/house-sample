@@ -17,9 +17,35 @@ const PAGE_STEP = 25;
 const capture = (el: Element, id: number) => { try { el.setPointerCapture(id); } catch { /* the pointer is gone */ } };
 const clampPct = (v: number) => Math.min(100, Math.max(0, v));
 
-export interface CompareImage { src: string; width: number; height: number; label: string }
+export interface CompareImage {
+  src: string;
+  width: number;
+  height: number;
+  label: string;
+  /** Responsive sources (mediaExtras.stillPicture); without them the single file is used. */
+  srcSet?: string;
+  sources?: { type: string; srcSet: string }[];
+}
 
-export default function CompareSlider({ a, b, alt, ariaLabel }: { a: CompareImage; b: CompareImage; alt: string; ariaLabel: string }) {
+/** One half of the pair as a <picture> (modern formats first). */
+function Half({ img, sizes, alt, className, style }: { img: CompareImage; sizes: string; alt: string; className?: string; style?: CSSProperties }) {
+  return (
+    <picture>
+      {img.sources?.map((s) => <source key={s.type} type={s.type} srcSet={s.srcSet} sizes={sizes} />)}
+      <img className={className} src={img.src} srcSet={img.srcSet} sizes={img.srcSet ? sizes : undefined} alt={alt} width={img.width} height={img.height}
+        draggable={false} loading="lazy" decoding="async" style={style} />
+    </picture>
+  );
+}
+
+export default function CompareSlider({ a, b, alt, altB, ariaLabel, sizes = "100vw" }: {
+  a: CompareImage; b: CompareImage;
+  /** Alt text of the picture (the first half), and of the second half when the manifest describes it separately. */
+  alt: string; altB?: string | null;
+  ariaLabel: string;
+  /** Rendered width of the pictures (full bleed by default). */
+  sizes?: string;
+}) {
   const box = useRef<HTMLDivElement>(null);
   const gesture = useRef<Gesture | null>(null);
   const [x, setX] = useState(50);
@@ -73,10 +99,8 @@ export default function CompareSlider({ a, b, alt, ariaLabel }: { a: CompareImag
   return (
     <div ref={box} className="compare" data-glide={glide} style={{ "--ratio": `${a.width} / ${a.height}` } as CSSProperties}
       onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={() => { gesture.current = null; }}>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={a.src} alt={alt} width={a.width} height={a.height} draggable={false} loading="lazy" decoding="async" />
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img className="compare-b" src={b.src} alt="" width={b.width} height={b.height} draggable={false} loading="lazy" decoding="async" style={{ clipPath: `inset(0 0 0 ${x}%)` }} />
+      <Half img={a} sizes={sizes} alt={alt} />
+      <Half img={b} sizes={sizes} alt={altB ?? ""} className="compare-b" style={{ clipPath: `inset(0 0 0 ${x}%)` }} />
       <span className="compare-tag mono" data-side="a">{a.label}</span>
       <span className="compare-tag mono" data-side="b">{b.label}</span>
       <div className="compare-handle" style={{ left: `${x}%` }} role="slider" tabIndex={0} aria-label={ariaLabel}

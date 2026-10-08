@@ -2,7 +2,7 @@
 import {
   dist, distToBoundary, distToPolygon, edgeDirection, intersectionArea, pointInPolygon, polygonArea, polylineLength, segmentsIntersect, signedArea, type XY,
 } from "./geometry";
-import { RAMP_MAX_SLOPE, gradeOutdoor } from "./grading";
+import { RAMP_MAX_SLOPE, RAMP_MIN_FALL, gradeOutdoor } from "./grading";
 import { accessGeometry, accessRect, distToGateSweep, neighbourPlot, plotPolygon, resolveBoundary } from "./layout";
 import { orientedRect } from "./occluders";
 import type { SiteModel } from "./siteSchema";
@@ -116,12 +116,14 @@ export const GATE_OPENING_SLACK = 0.25;
 
 /**
  * Checks of the site together with the outdoor areas of the house (which give the access strips, the gates' positions and
- * the ramps): gates (E-BRANA), ramp slopes (E-RAMP) and the rainwater tank against the paved areas (E-TANK).
+ * the ramps): gates (E-BRANA), ramp slopes (E-RAMP; W-RAMP-FALL when a ramp does not fall away from the house far enough to
+ * drain) and the rainwater tank against the paved areas (E-TANK).
  */
 export function validateSiteWithHouse(site: SiteModel, outdoor: readonly OutdoorInput[], bearingDeg: number): SiteValidation {
   const errors: SiteIssue[] = [];
   const warnings: SiteIssue[] = [];
   const err = (code: string, message: string) => errors.push({ code, message });
+  const warn = (code: string, message: string) => warnings.push({ code, message });
   let access;
   try {
     access = accessGeometry(site, outdoor);
@@ -158,6 +160,10 @@ export function validateSiteWithHouse(site: SiteModel, outdoor: readonly Outdoor
   for (const gr of grades) {
     if (gr.ramp && Math.abs(gr.ramp.slope) > RAMP_MAX_SLOPE + 1e-9) {
       err("E-RAMP", `the ${gr.ramp.access} ramp is ${(Math.abs(gr.ramp.slope) * 100).toFixed(1)} %, more than ${RAMP_MAX_SLOPE * 100} %`);
+    }
+    // the slope is dz/dy along +y (towards the gate): a ramp that drains away from the house has slope <= -RAMP_MIN_FALL
+    if (gr.ramp && gr.ramp.slope > -RAMP_MIN_FALL + 1e-9) {
+      warn("W-RAMP-FALL", `the ${gr.ramp.access} ramp falls ${(-gr.ramp.slope * 100).toFixed(1)} % from the house to the gate, less than ${RAMP_MIN_FALL * 100} %: the paving does not drain away from the house`);
     }
   }
   const tank = site.rainwater?.tank;

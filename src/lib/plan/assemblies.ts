@@ -5,9 +5,24 @@ import { nb } from "@/lib/i18n/format";
 import type { Assembly, House, Locale } from "@/lib/model/types";
 import type { StyleMaterials } from "./view";
 
-/** The six constructions of the model, in the order the page shows them (keys of `house.assemblies`). */
-export const ASSEMBLY_KEYS = ["exteriorWall", "roof", "ceiling", "groundFloor", "bearingWall", "partitionWall"] as const satisfies readonly (keyof House["assemblies"])[];
+/**
+ * The constructions of the model (keys of `house.assemblies`, schema keys that name a role, not ids). `wallToUnheated` is
+ * optional in the model; a card is made for every key the house has. The page orders the cards by `envelope` first.
+ */
+export const ASSEMBLY_KEYS = ["exteriorWall", "roof", "ceiling", "groundFloor", "wallToUnheated", "bearingWall", "partitionWall"] as const satisfies readonly (keyof House["assemblies"])[];
 export type AssemblyKey = (typeof ASSEMBLY_KEYS)[number];
+
+/**
+ * The constructions that bound the heated volume (the thermal envelope the energy balance uses): the external walls, the
+ * floor on the ground, the top closure (the ceiling under a cold loft, else the roof: `roof.attic`) and the wall to an
+ * unheated room when the model has one. Everything else (internal walls, the roof over a cold loft) is not part of it, so
+ * its U-value says nothing about the heat loss of the house.
+ */
+export function envelopeKeys(house: Pick<House, "roof" | "assemblies">): Set<AssemblyKey> {
+  const keys = new Set<AssemblyKey>(["exteriorWall", "groundFloor", house.roof.attic === "cold" ? "ceiling" : "roof"]);
+  if (house.assemblies.wallToUnheated) keys.add("wallToUnheated");
+  return keys;
+}
 
 export interface LayerRow {
   name: string;
@@ -23,6 +38,8 @@ export interface LayerRow {
 export interface AssemblyCard {
   key: AssemblyKey;
   name: string;
+  /** Part of the thermal envelope (see `envelopeKeys`): the page shows its U-value large; for the others the thickness. */
+  envelope: boolean;
   /** Total thickness, m, resistance of the layers without surface films, m2K/W, and U-value, W/(m2K). */
   thickness: number;
   r: number;
@@ -31,15 +48,19 @@ export interface AssemblyCard {
   layers: LayerRow[];
 }
 
+/** One card per construction of the house: the envelope first, then the rest, each group in the order of ASSEMBLY_KEYS. */
 export function buildAssemblyCards(house: House, locale: Locale): AssemblyCard[] {
-  return ASSEMBLY_KEYS.map((key) => {
-    const a: Assembly = house.assemblies[key];
+  const env = envelopeKeys(house);
+  const cards = ASSEMBLY_KEYS.flatMap((key): AssemblyCard[] => {
+    const a: Assembly | undefined = house.assemblies[key];
+    if (!a) return [];
     const b = assemblyBreakdown(a);
-    return {
-      key, name: nb(a.name[locale], locale), thickness: b.thickness, r: b.rLayers, u: b.u, ventilated: b.ventilated,
+    return [{
+      key, name: nb(a.name[locale], locale), envelope: env.has(key), thickness: b.thickness, r: b.rLayers, u: b.u, ventilated: b.ventilated,
       layers: a.layers.map((l, i) => ({ name: nb(l.name[locale], locale), thickness: b.layers[i].thickness, ignored: b.layers[i].ignored, share: b.layers[i].share, role: l.role ?? null })),
-    };
+    }];
   });
+  return [...cards.filter((c) => c.envelope), ...cards.filter((c) => !c.envelope)];
 }
 
 export interface MaterialRow { role: string; name: string; color: string }

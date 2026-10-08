@@ -2,20 +2,20 @@ import { memo, useMemo } from "react";
 import type { ContourLabel } from "@/lib/model/site/contours";
 import { nearestOnSegment, type XY } from "@/lib/model/site/geometry";
 import type { Terrain } from "@/lib/model/site/terrain";
-import { useFormat, useT } from "@/lib/i18n/client";
+import { useFormat, useLocale, useT } from "@/lib/i18n/client";
 import { signed } from "./fmt";
 import { K, boxInFrame, boxTouchesPoly, boxesHit, cornerWidgets, gridPoints, gridSpacing, placeContourLabels, scaleLength, placeSetbackLabels, textBox, toScreen, type Box, type Frame } from "./labels";
 import type { Layers } from "./MapLayers";
 import type { PlotView } from "./view";
 
 /** Font sizes on screen (px); the sizes in drawing units follow from the scale of the map. */
-const PX = { setback: 12.5, house: 13, place: 11, contour: 10.5, height: 10 };
+const PX = { setback: 12.5, house: 13, place: 11, contour: 10.5, height: 10, tree: 11.5 };
 
 /** Texts of the map. They are not turned with the map: positions are computed in the turned frame, text stays upright. */
 export const MapText = memo(function MapText({ view, rot, c, frame, s, layers, terrain, contourLabels }: {
   view: PlotView; rot: number; c: XY; frame: Frame; s: number; layers: Layers; terrain: Terrain; contourLabels: readonly ContourLabel[];
 }) {
-  const t = useT(), f = useFormat();
+  const t = useT(), f = useFormat(), locale = useLocale();
   const out = useMemo(() => {
     const scr = (p: readonly number[]) => toScreen(p, rot, c);
     const fs = (px: number) => px / s;
@@ -34,6 +34,16 @@ export const MapText = memo(function MapText({ view, rot, c, frame, s, layers, t
     const sbBoxes = layers.setbacks ? placeSetbackLabels(sbLines, sbTexts.map((x) => x.length), fs(PX.setback), houseS, plotS, taken) : [];
     taken.push(...sbBoxes);
     const setbacks = sbBoxes.map((box, i) => ({ box, text: sbTexts[i], short: view.setbacks[i].d < view.limits.minToBoundary }));
+
+    // the feature tree (the walnut of the name) gets its species name, under its crown or above it
+    const ft = fs(PX.tree), trees: { x: number; y: number; text: string }[] = [];
+    for (const tr of view.trees.filter((q) => q.feature)) {
+      const [x, y] = scr(tr.pos), r = (tr.crown / 2) * K, text = tr.name[locale];
+      for (const dy of [r + ft * 0.95, -(r + ft * 0.95)]) {
+        const b = textBox(x, y + dy, text.length * 0.92, ft);
+        if (boxInFrame(b, frame, ft * 0.4) && !taken.some((o) => boxesHit(b, o, ft * 0.3))) { trees.push({ x, y: y + dy, text }); taken.push(b); break; }
+      }
+    }
 
     // street and field names, where the map shows them
     const ps = fs(PX.place), places: { x: number; y: number; text: string }[] = [];
@@ -66,8 +76,8 @@ export const MapText = memo(function MapText({ view, rot, c, frame, s, layers, t
         heights.push({ x, y, text });
       }
     }
-    return { houseText, hp, hs, setbacks, places, ps, contours, fc, heights, fh };
-  }, [view, rot, c, frame, s, layers, terrain, contourLabels, t, f]);
+    return { houseText, hp, hs, setbacks, places, ps, contours, fc, heights, fh, trees, ft };
+  }, [view, rot, c, frame, s, layers, terrain, contourLabels, t, f, locale]);
 
   const cross = 3 / s;
   return (
@@ -83,6 +93,7 @@ export const MapText = memo(function MapText({ view, rot, c, frame, s, layers, t
         </g>
       ))}
       {out.places.map((p, i) => <text key={i} className="pt-t pt-t-place" x={p.x} y={p.y} fontSize={out.ps} textAnchor="middle" dominantBaseline="central">{p.text}</text>)}
+      {out.trees.map((p, i) => <text key={i} className="pt-t pt-t-tree" x={p.x} y={p.y} fontSize={out.ft} textAnchor="middle" dominantBaseline="central">{p.text}</text>)}
       <text className="pt-t pt-t-house" x={out.hp[0]} y={out.hp[1]} fontSize={out.hs} textAnchor="middle" dominantBaseline="central">{out.houseText}</text>
       {out.setbacks.map((l, i) => (
         <text key={i} className="pt-t pt-t-setback" data-short={l.short} x={l.box.x} y={l.box.y} fontSize={fontOf(l.box)} textAnchor="middle" dominantBaseline="central">{l.text}</text>

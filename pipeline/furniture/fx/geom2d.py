@@ -111,10 +111,10 @@ class Region:
         return out
 
 
-def door_zone_rects(op, wall_t, clear=0.55):
-    """Rectangles that must stay free in front of a door or entry: the wall gap extended `clear` metres into both
-    rooms. op uses orient/axis/from/to."""
-    a, b = op['from'], op['to']
+def door_zone_rects(op, wall_t, clear=0.55, lining=0.0):
+    """Rectangles that must stay free in front of a door or entry: the clear passage (the wall gap minus the door lining
+    `lining` on each side) extended `clear` metres into both rooms. op uses orient/axis/from/to."""
+    a, b = op['from'] + lining, op['to'] - lining
     ax = op['axis']
     h = wall_t / 2 + clear
     if op['orient'] == 'h':

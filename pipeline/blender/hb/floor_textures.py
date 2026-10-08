@@ -247,3 +247,31 @@ def textures(kind, out_dir, size=1024, neutral=None):
     write_png(diff, c)
     write_png(nor, nm)
     return diff, nor
+
+
+def seam_maps(out_dir, n, seam_frac, rough, metal, crest_rough=None):
+    """Standing-seam stripe for the roof sheet, one seam per texture repeat (u = across the seams, the seam centred on
+    u = 0): an OpenGL normal map of the folded seam and a glTF metallic-roughness map (G = roughness, B = metallic, R = 1).
+    At a distance, where the modelled seams are thinner than a pixel, the mipmaps keep an even seam rhythm. Returns paths."""
+    os.makedirs(out_dir, exist_ok=True)
+    crest = rough * 0.7 if crest_rough is None else crest_rough
+    tag = "%d_%d" % (n, int(round(seam_frac * 1000)))
+    nor_p = os.path.join(out_dir, "proc_seam_nor_gl_%s.png" % tag)
+    mr_p = os.path.join(out_dir, "proc_seam_mr_%s_%d_%d_%d.png" % (tag, int(rough * 100), int(metal * 100), int(crest * 100)))
+    if os.path.exists(nor_p) and os.path.exists(mr_p):
+        return nor_p, mr_p
+    u = (np.arange(n) + 0.5) / n
+    d = np.minimum(u, 1 - u)                                     # distance to the seam line (in repeats)
+    half = seam_frac / 2.0
+    # height: a rounded fold over the seam width plus a faint stiffening rib halfway between seams
+    hgt = np.clip(1 - (d / half) ** 2, 0, 1) ** 0.5 + 0.04 * np.exp(-((d - 0.5) / 0.01) ** 2)
+    hgt2 = np.tile(hgt[None, :], (n, 1))
+    nor = normal_from_height(hgt2 * (n * seam_frac * 0.6), 1.0)
+    mr = np.empty((n, n, 3))
+    mr[..., 0] = 1.0
+    r_line = rough + (crest - rough) * np.clip(1 - (d / half) ** 2, 0, 1)
+    mr[..., 1] = np.tile(r_line[None, :], (n, 1))
+    mr[..., 2] = metal
+    write_png(nor_p, nor)
+    write_png(mr_p, mr)
+    return nor_p, mr_p

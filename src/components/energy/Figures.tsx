@@ -1,86 +1,50 @@
 "use client";
 
-// The two rows of big numbers (heat and electricity; money) and the notes that explain odd situations. Both rows are live
-// regions: a screen reader announces the new numbers after a change, politely and without interrupting.
+// The figure rows (heat and electricity; money with the bill split) and the notes that explain odd situations. The rows are
+// live regions: a screen reader announces the new numbers after a change, politely and without interrupting. What the figures
+// say is built in view.ts (tested); this file only lays them out.
 
 import { Stat } from "@/components/ui/controls";
 import type { EnergyResult } from "@/lib/calc/energy";
-import { useFormat, useLocale, useT } from "@/lib/i18n/client";
-import { NBSP } from "@/lib/i18n/format";
-import { pluralCategory } from "@/lib/i18n/plural";
+import { useFormat, useT } from "@/lib/i18n/client";
+import { billRows, keyFigures, moneyFigures, type StatModel } from "./view";
+
+const StatOf = ({ s }: { s: StatModel }) => <Stat value={s.value} unit={s.unit} prefix={s.prefix} suffix={s.suffix} label={s.label} accent={s.accent} />;
 
 export function KeyFigures({ result }: { result: EnergyResult }) {
   const t = useT();
   const f = useFormat();
-  const { designLoad, totals } = result;
   return (
     <section className="stats-4 energy-figures" aria-label={t("energy.figures.label")} aria-live="polite">
-      <Stat value={f.num(designLoad.totalW / 1000, 1)} unit={t("energy.units.kw")} label={t("energy.figures.designLoad", { temp: f.unit(designLoad.outdoorC, "°C") })} />
-      <Stat value={f.num(totals.heatNeedKwh / 1000, 1)} unit={t("energy.units.mwh")} label={t("energy.figures.heat", { specific: f.unit(totals.specificHeatNeed, t("energy.units.kwh")) })} />
-      <Stat value={f.num(totals.elTotalKwh / 1000, 1)} unit={t("energy.units.mwh")} label={t("energy.figures.electricity")} />
-      <Stat accent value={f.num(totals.pvKwh / 1000, 1)} unit={t("energy.units.mwh")} label={t("energy.figures.pv", { kwp: f.unit(totals.kwp, t("energy.units.kwp"), 2) })} />
+      {keyFigures(result, t, f).map((s) => <StatOf key={s.key} s={s} />)}
     </section>
   );
 }
 
-/** A duration in years with the unit word that agrees with the number: "5 let", "14,4 roku", "1 year". */
-function useYears() {
-  const t = useT();
-  const f = useFormat();
-  const locale = useLocale();
-  return (years: number): { value: string; unit: string } => {
-    const rounded = Math.round(years * 10) / 10;
-    const word = { one: t("energy.units.yearOne"), few: t("energy.units.yearFew"), other: t("energy.units.yearMany") }[pluralCategory(locale, rounded)];
-    return { value: f.num(rounded, 0, 1), unit: Number.isInteger(rounded) ? word : t("energy.units.yearFraction") };
-  };
-}
-
+/** Money: four figures and, beside them, the yearly bill with panels split into purchases, fixed charges and export income. */
 export function MoneyFigures({ result }: { result: EnergyResult }) {
   const t = useT();
   const f = useFormat();
-  const years = useYears();
-  const { economics: e, inputs, layout } = result;
-  const currency = t("energy.units.currency");
-  const withBattery = layout.kwp > 0 && e.battery.investment > 0;
-  const subsidised = inputs.subsidy > 0;
-
-  const investmentLabel = withBattery
-    ? t(subsidised ? "energy.money.investmentBatterySubsidy" : "energy.money.investmentBattery")
-    : t(subsidised ? "energy.money.investmentSubsidy" : "energy.money.investment");
-
-  let payback: string | null = null;
-  let paybackUnit: string | undefined;
-  let paybackLabel = t("energy.money.payback");
-  if (e.status === "ok" && e.paybackYears !== null) {
-    const main = years(e.paybackYears);
-    payback = main.value;
-    paybackUnit = main.unit;
-    if (withBattery) {
-      const text = (v: number | null) => {
-        if (v === null) return t("energy.money.batteryNever");
-        const y = years(v);
-        return `${y.value}${NBSP}${y.unit}`;
-      };
-      paybackLabel = t("energy.money.paybackSplit", { pv: text(e.pvOnly.paybackYears), battery: text(e.battery.paybackYears) });
-    }
-  } else if (e.status === "never") {
-    paybackLabel = t("energy.money.never");
-  } else if (e.investmentGross > 0) {
-    paybackLabel = t("energy.money.subsidyCovers");
-  } else {
-    paybackLabel = t("energy.money.none");
-  }
-
-  const costLabel = layout.kwp <= 0
-    ? t("energy.money.costNoPv")
-    : t(e.costWithPv < 0 ? "energy.money.costNegative" : "energy.money.cost", { without: f.unit(e.costWithoutPv, currency) });
-
+  const rows = billRows(result, t, f);
   return (
-    <section className="stats-4 energy-money" aria-label={t("energy.money.label")} aria-live="polite">
-      <Stat accent value={f.num(e.savings)} unit={currency} label={t("energy.money.savings")} />
-      <Stat value={f.num(e.costWithPv)} unit={currency} label={costLabel} />
-      <Stat value={f.num(e.investment)} unit={currency} label={investmentLabel} />
-      <Stat value={payback ?? "–"} unit={paybackUnit} label={paybackLabel} />
+    <section className="panel energy-money-card" aria-labelledby="money-title">
+      <h2 className="sr-only" id="money-title">{t("energy.money.label")}</h2>
+      <div className="energy-money" aria-live="polite">
+        {moneyFigures(result, t, f).map((s) => <StatOf key={s.key} s={s} />)}
+      </div>
+      {result.layout.kwp > 0 && (
+        <div className="bill">
+          <h3 className="label">{t("energy.bill.title")}</h3>
+          <dl className="bill-rows">
+            {rows.map((r) => (
+              <div key={r.key} className={`bill-row bill-${r.key}`} data-sign={r.key === "net" ? undefined : r.amount < 0 ? "minus" : "plus"}>
+                <dt>{r.label}</dt>
+                <dd className="num">{r.text}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      )}
     </section>
   );
 }

@@ -216,6 +216,56 @@ describe("plan drawing: furniture, outdoor, annotations", () => {
     expect(wide.viewBox.h).toBeGreaterThan(drawing.viewBox.h);
   });
 
+  it("with the garden draws the pools and the areas around them whole, and still cuts the rest near them", () => {
+    const g = buildPlanDrawing(derived, { garden: true });
+    const pools = derived.outdoor.filter((o) => o.pool);
+    expect(pools.length).toBeGreaterThan(0); // the model has a pool; the drawing must show it
+    for (const o of derived.outdoor) {
+      const p = g.outdoor.find((q) => q.id === o.id);
+      if (o.pool) {
+        expect(p).toBeDefined();
+        expect(p!.fill).toBe("pool");
+        expect(p!.pool!.water).toEqual(toPlan(o.pool.water));
+        expect(p!.rect).toEqual(toPlan(o.pool.outer));
+        expect(p!.cut).toBe(false);
+      } else if (o.holes.length) {
+        expect(p!.rect).toEqual(toPlan(o.rect));
+        expect(p!.holes).toEqual(o.holes.map(toPlan));
+      }
+    }
+    // the areas drawn whole set the reach of the others: nothing uncovered reaches further than that from them
+    const whole = derived.outdoor.filter((o) => o.covered || o.pool || o.holes.length);
+    const ob = derived.outline.bbox!;
+    const core = whole.reduce((b, o) => { const r = o.pool?.outer ?? o.rect; return [Math.min(b[0], r[0]), Math.min(b[1], r[1]), Math.max(b[2], r[2]), Math.max(b[3], r[3])]; }, [ob.x0, ob.y0, ob.x1, ob.y1]);
+    for (const p of g.outdoor) {
+      expect(p.rect[0]).toBeGreaterThanOrEqual(core[0] - 1.8 - 1e-9);
+      expect(-p.rect[1]).toBeLessThanOrEqual(core[3] + 1.8 + 1e-9);
+    }
+    // pools are drawn on top of the decks they sit in
+    const order = g.outdoor.map((o) => o.fill);
+    expect(order.lastIndexOf("paving")).toBeLessThan(order.indexOf("pool"));
+    expect(g.viewBox.h).toBeGreaterThan(drawing.viewBox.h);
+    // without the option the drawing is the old one: no pool (it lies beyond the reach of the house)
+    expect(drawing.outdoor.some((o) => o.fill === "pool")).toBe(false);
+  });
+
+  it("gives every outdoor area a label cell inside it, clear of its holes, the house and the furniture", () => {
+    const g = buildPlanDrawing(derived, { garden: true });
+    const blocked = [...derived.outline.rects.map(toPlan), ...g.furniture.map((f) => f.rect)];
+    for (const o of g.outdoor) {
+      const { at, w, h } = o.label, cell: PlanRect = [at[0] - w / 2, at[1] - h / 2, at[0] + w / 2, at[1] + h / 2];
+      const inner = o.pool ? o.pool.water : o.rect;
+      expect(w).toBeGreaterThan(0);
+      expect(h).toBeGreaterThan(0);
+      expect(cell[0]).toBeGreaterThanOrEqual(inner[0] - 1e-3);
+      expect(cell[2]).toBeLessThanOrEqual(inner[2] + 1e-3);
+      expect(cell[1]).toBeGreaterThanOrEqual(inner[1] - 1e-3);
+      expect(cell[3]).toBeLessThanOrEqual(inner[3] + 1e-3);
+      const overlap = (r: readonly number[]) => cell[0] < r[2] - 1e-3 && r[0] < cell[2] - 1e-3 && cell[1] < r[3] - 1e-3 && r[1] < cell[3] - 1e-3;
+      if (!o.pool) for (const r of [...o.holes, ...blocked]) expect(overlap(r)).toBe(false);
+    }
+  });
+
   it("measures the overall dimensions of the footprint", () => {
     const ob = derived.outline.bbox!;
     const w = drawing.dimensions.find((m) => m.axis === "width")!, d = drawing.dimensions.find((m) => m.axis === "depth")!;
@@ -254,11 +304,46 @@ describe("plan svg", () => {
     expect(open).toBe(close);
   });
 
+  it("draws the deck boards and paving joints inside their areas and the pool water above its coping", () => {
+    const g = buildPlanDrawing(derived, { garden: true }), L = planLayers(g);
+    expect((L.outdoor.match(/class="pl-od"/g) ?? []).length).toBe(g.outdoor.length);
+    expect((L.outdoor.match(/class="pl-water"/g) ?? []).length).toBe(g.outdoor.filter((o) => o.pool).length);
+    expect(L.outdoor.indexOf("pl-coping")).toBeLessThan(L.outdoor.indexOf("pl-water"));
+    // every pattern line lies inside the drawn rect of its area
+    let lines = 0;
+    for (const m of L.outdoor.matchAll(/<g class="pl-od" data-fill="(terrace|paving)"><rect x="([-\d.]+)" y="([-\d.]+)" width="([\d.]+)" height="([\d.]+)"[^>]*\/>(.*?)<rect x=/g)) {
+      const [x, y, w, h] = [m[2], m[3], m[4], m[5]].map(Number);
+      for (const l of m[6].matchAll(/<line x1="([-\d.]+)" y1="([-\d.]+)" x2="([-\d.]+)" y2="([-\d.]+)"/g)) {
+        const [x1, y1, x2, y2] = [l[1], l[2], l[3], l[4]].map(Number);
+        lines++;
+        for (const [px, py] of [[x1, y1], [x2, y2]]) {
+          expect(px).toBeGreaterThanOrEqual(x - 1e-3);
+          expect(px).toBeLessThanOrEqual(x + w + 1e-3);
+          expect(py).toBeGreaterThanOrEqual(y - 1e-3);
+          expect(py).toBeLessThanOrEqual(y + h + 1e-3);
+        }
+      }
+    }
+    expect(lines).toBeGreaterThan(g.outdoor.length);
+    // window glass is a double line, door swings are solid
+    expect(L.openings).not.toMatch(/stroke-dasharray="3 2"/);
+    expect(L.compass).toBe(L.north + L.scale);
+  });
+
   it("splits the geometry into the layers the page toggles", () => {
     const L = planLayers(drawing);
     expect(L.furniture.match(/<rect/g)).toHaveLength(drawing.furniture.length);
     expect(L.walls.match(/<path/g)).toHaveLength(3);
     expect(L.openings.match(/data-kind=/g)).toHaveLength(drawing.openings.length);
     expect(planLayers(buildPlanDrawing(derived, { furniture: false })).furniture).toBe("");
+  });
+
+  it("draws every post as a square of the size the model gives it", () => {
+    const L = planLayers(drawing);
+    const posts = drawing.outdoor.flatMap((o) => o.posts.map(() => o.postSize));
+    expect(L.posts.match(/<rect/g) ?? []).toHaveLength(posts.length);
+    for (const o of drawing.outdoor) expect(o.postSize).toBe(derived.outdoor.find((q) => q.id === o.id)!.postSize);
+    const sizes = [...L.posts.matchAll(/width="([\d.]+)" height="([\d.]+)"/g)].map((m) => [Number(m[1]), Number(m[2])]);
+    sizes.forEach(([w, hh], i) => { expect(w).toBeCloseTo(posts[i]!, 3); expect(hh).toBeCloseTo(posts[i]!, 3); });
   });
 });

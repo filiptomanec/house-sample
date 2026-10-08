@@ -9,7 +9,8 @@ const ease = (k: number) => 1 - (1 - k) ** 4;
 
 /**
  * A number that counts up once when it scrolls into view. The server markup and a page without JavaScript, with reduced
- * motion, or already in view on load show the final value. The text node is updated in place (no re-render per frame).
+ * motion, or already in view on load show the final value. The text node is updated in place (no re-render per frame); while it
+ * counts the span carries `data-counting` (tabular digits, so the width does not jitter; proportional again at rest).
  */
 export default function CountUp({ to, decimals = 0 }: { to: number; decimals?: number }) {
   const f = useFormat();
@@ -26,15 +27,17 @@ export default function CountUp({ to, decimals = 0 }: { to: number; decimals?: n
       if (!entry.isIntersecting) return;
       io.disconnect();
       const t0 = performance.now();
+      el.dataset.counting = "";
       const step = (now: number) => {
         const k = Math.min(1, (now - t0) / DURATION_MS);
         text.nodeValue = k < 1 ? f.num(to * ease(k), decimals) : final;
         if (k < 1) raf = requestAnimationFrame(step);
+        else delete el.dataset.counting;
       };
       raf = requestAnimationFrame(step);
     }, { threshold: 0.6 });
     io.observe(el);
-    return () => { io.disconnect(); cancelAnimationFrame(raf); text.nodeValue = final; };
+    return () => { io.disconnect(); cancelAnimationFrame(raf); text.nodeValue = final; delete el.dataset.counting; };
   }, [to, decimals, f]);
   return <span ref={ref}>{f.num(to, decimals)}</span>;
 }

@@ -2,8 +2,6 @@
 translucent lamp shades, a car-paint clear coat."""
 from __future__ import annotations
 
-import bpy
-
 FABRICS = ("f_linen", "f_sand", "f_fabric_grey", "f_sage", "f_clay", "f_blue", "f_ochre", "f_greige", "t_fabric", "t_sage",
            "t_rope", "f_rattan")
 SHADES = ("f_paper",)

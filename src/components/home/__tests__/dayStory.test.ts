@@ -41,6 +41,13 @@ describe("buildDayStory", () => {
     expect(az).toBeLessThan(75);
   });
 
+  it("sets in the north-west at midsummer, mirroring the sunrise about the south", () => {
+    const az = story.times.sunsetAzimuth!;
+    expect(az).toBeGreaterThan(285);
+    expect(az).toBeLessThan(325);
+    expect(Math.abs((story.times.sunriseAzimuth! + az) / 2 - 180)).toBeLessThan(3);
+  });
+
   it("puts the sun in the east in the morning and the west in the evening (true azimuth)", () => {
     expect(story.sun[0].az).toBeGreaterThan(45);
     expect(story.sun[0].az).toBeLessThan(135);
@@ -118,6 +125,26 @@ describe("arcGeometry", () => {
   it("puts east left of south left of west", () => {
     const xs = geo.cardinals.map((c) => c.x);
     expect([...xs].sort((a, b) => a - b)).toEqual(xs);
+  });
+
+  it("draws the travelled part: nothing before sunrise, up to the sun during the day, the whole path after sunset", () => {
+    const first = story.path[0], lastP = story.path[story.path.length - 1];
+    expect(geo.travelled({ az: first.az - 5, alt: -2 })).toBe("");
+    expect(geo.travelled({ az: lastP.az + 5, alt: -2 })).toBe(geo.d);
+    const noon = story.path[Math.floor(story.path.length / 2)];
+    const mid = { az: noon.az + 0.5, alt: noon.alt };
+    const d = geo.travelled(mid);
+    const points = d.match(/[ML]/g)!.length;
+    expect(points).toBeGreaterThan(2);
+    expect(points).toBeLessThan(story.path.length);
+    // it ends at the sun
+    const [x, y] = geo.project(mid.az, mid.alt);
+    expect(d.endsWith(`${Math.round(x * 10) / 10},${Math.round(y * 10) / 10}`)).toBe(true);
+  });
+
+  it("knows where the sunrise and the sunset end of the path are", () => {
+    expect(geo.ends.start).toBeCloseTo(box.padX, 6);
+    expect(geo.ends.end).toBeCloseTo(box.width - box.padX, 6);
   });
 
   it("survives an empty path and a path of one point", () => {

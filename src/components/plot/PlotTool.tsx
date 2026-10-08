@@ -1,5 +1,5 @@
 "use client";
-import { useMemo, useRef, useState, type MouseEvent, type PointerEvent, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type MouseEvent, type PointerEvent, type ReactNode } from "react";
 import { createTerrain } from "@/lib/model/site/terrain";
 import type { XY } from "@/lib/model/site/geometry";
 import { Chips, Segmented } from "@/components/ui/controls";
@@ -10,35 +10,60 @@ import { K, cornerWidgets, frameFor, fromScreen, scaleLength, toScreen, toUnits 
 import { MapLayers, type Layers } from "./MapLayers";
 import { MapText } from "./MapText";
 import { MeasurePanel } from "./MeasurePanel";
-import { useSize } from "./useWidth";
+import { useSize } from "@/components/ui/useWidth";
 import type { PlotView } from "./view";
 
 type North = "true" | "drawing";
 type LayerKey = keyof Layers;
 
-/** Metres of margin around the plot on the map. */
+/** Metres of margin around the plot on the map; less where the map is narrow (a phone), so the plot itself gets the pixels. */
 const PAD = 9;
+const PAD_NARROW = 5;
+const NARROW_PX = 520;
 /** Pixels per drawing unit assumed before the map has been measured (server render): a desktop width. */
 const ASSUMED_SCALE = 1.5;
 const LAYER_KEYS: readonly LayerKey[] = ["contours", "heights", "boundary", "setbacks"];
+/** Map key: always the house, roof, paving, terrace, trees and the boundary; the pool, gates, pillar and tank when the plot has them. */
+type LegendKey = "house" | "roof" | "paving" | "terrace" | "pool" | "tree" | "fence" | "gates" | "pillar" | "tank" | "buildable";
 
 export function PlotTool({ view, facts }: { view: PlotView; facts: ReactNode }) {
   const t = useT(), f = useFormat();
-  const svg = useRef<SVGSVGElement>(null);
+  const svg = useRef<SVGSVGElement>(null), stage = useRef<HTMLDivElement>(null), measure = useRef<HTMLElement>(null);
   const [north, setNorth] = useState<North>("true");
   const [layers, setLayers] = useState<Layers>({ contours: true, heights: false, boundary: true, setbacks: true });
   const [pick, setPick] = useState<XY[]>([]);
   const [hover, setHover] = useState<XY | null>(null);
 
-  const terrain = useMemo(() => createTerrain(view.terrain, view.bearingDeg), [view.terrain, view.bearingDeg]);
+  // the ground graded with the house's slabs (drive and path ramps), the same as the 3D scene and the renders
+  const terrain = useMemo(() => createTerrain(view.terrain, view.bearingDeg, view.slabs), [view.terrain, view.bearingDeg, view.slabs]);
+  // the phone chip after the second point: shown while the map is on screen and the result below it is not
+  const [seen, setSeen] = useState({ stage: true, measure: false });
+  useEffect(() => {
+    const st = stage.current, me = measure.current;
+    if (!st || !me || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver((entries) => setSeen((old) => {
+      const next = { ...old };
+      for (const e of entries) {
+        if (e.target === st) next.stage = e.isIntersecting;
+        else next.measure = e.intersectionRatio >= 0.3 || e.intersectionRect.height >= window.innerHeight * 0.3;
+      }
+      return next.stage === old.stage && next.measure === old.measure ? old : next;
+    }), { threshold: [0, 0.3, 0.6, 1] });
+    io.observe(st); io.observe(me);
+    return () => io.disconnect();
+  }, []);
+  const toMeasure = () => measure.current?.scrollIntoView({ block: "start", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
   const contours = useMemo(() => buildContours(terrain, view.plot, 18, (rel) => signed(f, rel, 1)), [terrain, view.plot, f]);
 
   const rot = north === "true" ? view.bearingDeg : 0;
   const c = useMemo(() => toUnits(view.center), [view.center]);
-  const frame = useMemo(() => frameFor(view.plot, rot, c, PAD), [view.plot, rot, c]);
   const size = useSize(svg);
+  const pad = size && size.w < NARROW_PX ? PAD_NARROW : PAD;
+  const frame = useMemo(() => frameFor(view.plot, rot, c, pad), [view.plot, rot, c, pad]);
   // pixels per drawing unit: the SVG is letterboxed when its height is capped, so both directions count
-  const s = Math.round((size ? Math.min(size.w / frame.w, size.h / frame.h) : ASSUMED_SCALE) * 50) / 50;
+  const measured = size ? Math.min(size.w / frame.w, size.h / frame.h) : NaN;
+  // a box measured mid-layout can be a few pixels tall: keep the assumed scale until the measure is plausible
+  const s = Math.round((Number.isFinite(measured) && measured > 0.1 ? measured : ASSUMED_SCALE) * 50) / 50;
 
   const toHouse = (e: { clientX: number; clientY: number }): XY => {
     const p = new DOMPoint(e.clientX, e.clientY).matrixTransform(svg.current!.getScreenCTM()!.inverse());
@@ -65,6 +90,10 @@ export function PlotTool({ view, facts }: { view: PlotView; facts: ReactNode }) 
   const bar = scaleLength(frame.w / K), px = (v: number) => v / s;
   const corner = cornerWidgets(frame, s, bar);
 
+  const legend: LegendKey[] = [
+    "house", "roof", "paving", "terrace", ...(view.outdoor.some((o) => o.water) ? ["pool" as const] : []), "tree", "fence",
+    ...(view.gates.length ? ["gates" as const] : []), ...(view.pillars.length ? ["pillar" as const] : []), ...(view.tank ? ["tank" as const] : []), "buildable",
+  ];
   const layerOptions = LAYER_KEYS.map((k) => ({ value: k, label: t(`plot.layer.${k}`) }));
   const on = LAYER_KEYS.filter((k) => layers[k]);
   const readout = hover
@@ -79,7 +108,7 @@ export function PlotTool({ view, facts }: { view: PlotView; facts: ReactNode }) 
         <Chips ariaLabel={t("plot.map.layers")} options={layerOptions} selected={on} onToggle={(k) => setLayers((l) => ({ ...l, [k]: !l[k] }))} />
       </div>
       <div className="pt-layout">
-        <div className="pt-stage panel">
+        <div ref={stage} className="pt-stage panel">
           <svg ref={svg} className="pt-svg" viewBox={`${frame.x} ${frame.y} ${frame.w} ${frame.h}`} role="img"
             aria-label={t("plot.map.aria", { setbacks: f.list(mapLabel) })}
             onPointerMove={onMove} onPointerLeave={() => setHover(null)} onClick={onClick}>
@@ -121,16 +150,19 @@ export function PlotTool({ view, facts }: { view: PlotView; facts: ReactNode }) 
           </svg>
           <p className={hover ? "pt-readout mono" : "pt-readout"}>{readout}</p>
           <ul className="legend pt-legend" aria-label={t("plot.legend.title")}>
-            {(["house", "roof", "paving", "terrace", "tree", "hedge", "fence", "buildable"] as const).map((k) => (
-              <li key={k}><i className={`pt-sw pt-sw-${k}`} aria-hidden="true" />{t(`plot.legend.${k}`)}</li>
-            ))}
+            {legend.map((k) => <li key={k}><i className={`pt-sw pt-sw-${k}`} aria-hidden="true" />{t(`plot.legend.${k}`)}</li>)}
           </ul>
         </div>
         <aside className="pt-side stack">
-          <MeasurePanel view={view} terrain={terrain} pick={pick} onPick={onPick} onClear={() => { setPick([]); setHover(null); }} />
           {facts}
+          <MeasurePanel ref={measure} view={view} terrain={terrain} pick={pick} onPick={onPick} onClear={() => { setPick([]); setHover(null); }} />
         </aside>
       </div>
+      {pick.length === 2 && tag && seen.stage && !seen.measure && (
+        <button type="button" className="pt-jump" onClick={toMeasure} aria-controls="pt-measure">
+          <span className="mono">{tag.text}</span><span>{t("plot.measure.jump")}</span><span className="pt-jump-arrow" aria-hidden="true" />
+        </button>
+      )}
     </div>
   );
 }

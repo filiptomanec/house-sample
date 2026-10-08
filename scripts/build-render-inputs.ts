@@ -10,9 +10,11 @@
 // Exit codes: 0 ok, 1 stale (--check) or inconsistent inputs, 2 input/IO problem.
 import fs from "node:fs";
 import path from "node:path";
-import { analyzeHouse, hashModelFiles, isHashedModelFile, sha256Hex, type Derived, type House } from "../src/lib/model";
-import { createSite, exportSiteDerived } from "../src/lib/model/site";
+import { analyzeHouse, derivedFile, hashModelFiles, isHashedModelFile, sha256Hex, type Derived, type House } from "../src/lib/model";
+import { createSite, exportSiteDerived, parseSite } from "../src/lib/model/site";
 import { buildBlinds, buildPv, buildScreens } from "./lib/render-equipment";
+import { resolveFeature } from "./lib/render-features";
+import { houseShape, houseSilhouette } from "./lib/render-framing";
 import { buildLights, type FurnitureReport } from "./lib/render-lights";
 import { parseRenderConfig, type RenderConfig } from "./lib/render-schema";
 import { buildCompare, buildDay, buildOg, buildOrbit, buildStills, type ShotContext, type SunProvider } from "./lib/render-shots";
@@ -119,7 +121,10 @@ export function buildRenderInputs(opts: BuildOptions): BuildResult {
   const modelHash = hashModelFiles(opts.renderJson === undefined ? files : files.map((f) => (f.name === "render.json" ? { name: f.name, content: JSON.stringify(opts.renderJson) } : f)));
   const text = (name: string): string => files.find((f) => f.name === name)?.content ?? "";
   const cfg = parseRenderConfig(opts.renderJson ?? JSON.parse(text("render.json")));
-  const { house, derived } = analyzeHouse(JSON.parse(text("house.json")));
+  const siteRaw = JSON.parse(text("site.json")) as unknown;
+  const siteModel = parseSite(siteRaw);
+  // derive with the plot: graded slabs, cameras with aboveGround resolved, the resolved site (gates, pillars, fences)
+  const { house, derived } = analyzeHouse(JSON.parse(text("house.json")), { site: siteModel });
 
   // the Blender scene reads generated/derived.json: it must be the same geometry as the kernel produces now
   const derivedPath = path.join(root, "generated", "derived.json");
@@ -128,11 +133,12 @@ export function buildRenderInputs(opts: BuildOptions): BuildResult {
     const committed = readJson(derivedPath) as Record<string, unknown>;
     derivedHash = typeof committed.inputHash === "string" ? committed.inputHash : null;
     const a = { ...committed, inputHash: null };
-    const b = { ...derived, inputHash: null };
+    const b = { ...derivedFile(house, siteModel), inputHash: null };
     if (stableForCompare(a) !== stableForCompare(b)) throw new Error("generated/derived.json is stale: run `npx tsx scripts/build-derived.ts`");
   } else warnings.push("generated/derived.json is missing: the Blender scene cannot be built without it");
 
-  const site = createSite(JSON.parse(text("site.json")), house.location.houseAxisBearingDeg);
+  // the terrain graded with the house's slabs (drive and path ramps, nothing buried): the same ground as the web and walk mode
+  const site = createSite(siteRaw, house.location.houseAxisBearingDeg, house.outdoor);
   const siteDerived = exportSiteDerived(site, house.outdoor, { gridStep: 10 });
   const ctx: WorldContext = { house, derived, site, siteDerived, cfg };
 
@@ -155,6 +161,7 @@ export function buildRenderInputs(opts: BuildOptions): BuildResult {
   }
 
   const blinds = buildBlinds(ctx);
+  const screens = buildScreens(ctx);
   const sun = opts.sun ?? solarProvider;
   const shotCtx: ShotContext = {
     cfg,
@@ -164,9 +171,13 @@ export function buildRenderInputs(opts: BuildOptions): BuildResult {
     bearingDeg: house.location.houseAxisBearingDeg,
     sun,
     blinds: { rule: blinds.rule, details: blinds.details, items: blinds.items },
+    screens,
     camera: { sensorWidthMm: cfg.sensorWidthMm, near: CAMERA_NEAR, far: CAMERA_FAR },
     bbox: { x0: derived.bbox.x0, y0: derived.bbox.y0, x1: derived.bbox.x1, y1: derived.bbox.y1, z0: derived.bbox.z0, z1: derived.bbox.z1 },
     roofs: derived.roofs.map((r) => ({ eaveRect: r.eaveRect as [number, number, number, number], eaveHeight: r.eaveHeight })),
+    silhouette: houseSilhouette(houseShape(derived)),
+    groundAt: site.terrain.groundAt,
+    feature: (word) => resolveFeature(word, derived, siteDerived),
   };
   const events = dayEvents(cfg.date, house.location.tz, house.location.lat, house.location.lon, (t, la, lo) => sun.position(t, la, lo).elevationGeomDeg);
 
@@ -210,7 +221,7 @@ export function buildRenderInputs(opts: BuildOptions): BuildResult {
     neighbours: buildNeighbours(ctx),
     pv: buildPv(ctx),
     blinds,
-    screens: buildScreens(ctx),
+    screens,
     lights: buildLights(ctx, report),
     stills: buildStills(shotCtx),
     day: buildDay(shotCtx),
@@ -243,7 +254,7 @@ function summary(res: BuildResult): string {
     blinds: { items: unknown[] };
     lights: { items: { group: string }[]; sources: unknown };
     stills: { id: string; time: { local: string }; sun: { azimuthHouseDeg: number; elevationDeg: number }; lights: { interior: number; exterior: number }; sunScreen: { visible: boolean } | null }[];
-    day: { frames: { time: { local: string }; sun: { azimuthTrueDeg: number; elevationDeg: number }; lights: { interior: number }; blinds: { drop: number }[]; sunScreen: { visible: boolean } | null }[]; portrait: { crop: unknown } };
+    day: { frames: { time: { local: string }; sun: { azimuthTrueDeg: number; elevationDeg: number }; lights: { interior: number }; blinds: { drop: number }[]; sunScreen: { visible: boolean } | null }[]; camera: { position: number[]; aboveGround: number; focalMm: number }; portrait: { size: number[]; camera: { position: number[]; aboveGround: number; focalMm: number } } };
     orbit: { variants: { id: string; radiusMin: number; radiusMax: number; frames: unknown[] }[]; sun: { elevationDeg: number; azimuthTrueDeg: number } };
   };
   const out: string[] = [];
@@ -254,7 +265,8 @@ function summary(res: BuildResult): string {
   for (const s of d.stills) out.push(`  ${s.id.padEnd(18)} ${s.time.local}  sun az(house) ${s.sun.azimuthHouseDeg.toFixed(0).padStart(3)} el ${s.sun.elevationDeg.toFixed(1).padStart(5)}  lamps ${s.lights.interior.toFixed(2)}/${s.lights.exterior.toFixed(2)}  sun visible: ${s.sunScreen?.visible ? "yes" : "no"}`);
   out.push("day frames:");
   for (const f of d.day.frames) out.push(`  ${f.time.local}  az(true) ${f.sun.azimuthTrueDeg.toFixed(1).padStart(5)} el ${f.sun.elevationDeg.toFixed(1).padStart(5)}  lamps ${f.lights.interior.toFixed(2)}  blinds down ${f.blinds.filter((b) => b.drop > 0).length}/${f.blinds.length}  sun visible: ${f.sunScreen?.visible ? "yes" : "no"}`);
-  out.push(`day portrait crop: ${JSON.stringify(d.day.portrait.crop)}`);
+  const cam = (c: { position: number[]; aboveGround: number; focalMm: number }): string => `[${c.position.map((v) => v.toFixed(2)).join(", ")}] (${c.aboveGround.toFixed(2)} m above the ground), ${c.focalMm} mm`;
+  out.push(`day camera ${cam(d.day.camera)}; portrait ${d.day.portrait.size.join(" x ")} ${cam(d.day.portrait.camera)}`);
   out.push(`orbit sun: az ${d.orbit.sun.azimuthTrueDeg.toFixed(1)} el ${d.orbit.sun.elevationDeg.toFixed(1)}; ` + d.orbit.variants.map((v) => `${v.id}: radius ${v.radiusMin}..${v.radiusMax} m, ${v.frames.length} frames`).join("; "));
   return out.join("\n");
 }

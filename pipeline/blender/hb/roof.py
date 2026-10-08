@@ -147,12 +147,9 @@ class RoofModel:
         return self.underside_on(pl, x, y)
 
     def underside_on(self, pl, x, y):
-        t0 = self.cfg.slab
-        t1 = self.cfg.p["eave_depth"]
-        u = pl.u(x, y)
-        d = max(0.0, -u)
-        frac = min(1.0, d / pl.ov) if pl.ov > 1e-9 else 0.0
-        return pl.z(x, y) - t0 + (t0 - t1) * frac
+        """Soffit under the overhang: flat at the soffit level (the clear height, so it continues the ceiling of covered
+        outdoor areas), never closer than `eave_depth` to the covering (a shallow roof gets a sloped soffit near its eave)."""
+        return min(self.cfg.soffit_z, pl.z(x, y) - self.cfg.p["eave_depth"])
 
     def _merge_faces(self):
         """Pieces of one plane joined into (possibly concave) polygons: [(plane, polygon)]."""

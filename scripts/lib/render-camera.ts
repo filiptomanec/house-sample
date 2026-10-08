@@ -40,10 +40,16 @@ export interface ResolvedCamera {
   roll: number;
   focalMm: number;
   sensorWidthMm: number;
+  /** Blender lens shift (fractions of the longer image side); a level camera includes the shift that keeps its target in place. */
   shift: Vec2;
   near: number;
   far: number;
   fov: Fov;
+  /** True when the viewing axis is horizontal (verticals stay vertical). */
+  level: boolean;
+  /** Ground height under the camera (graded terrain), and the eye height above it. */
+  groundZ: number;
+  aboveGround: number;
 }
 
 export interface CameraDefaults {
@@ -52,10 +58,43 @@ export interface CameraDefaults {
   far: number;
 }
 
-/** Resolves a camera spec of render.json into the object written to the output (forward vector, fov, defaults). */
-export function resolveCamera(spec: CameraSpec, size: readonly [number, number], d: CameraDefaults): ResolvedCamera {
-  const forward = norm(sub(spec.target, spec.position));
-  if (len(forward) === 0) throw new Error("camera position equals its target");
+/** A camera of render.json with an absolute position (aboveGround resolved) and the level decision made. */
+export interface AbsoluteCamera {
+  position: Vec3;
+  target: Vec3;
+  focalMm: number;
+  shift?: Vec2;
+  roll?: number;
+  level?: boolean;
+}
+
+/**
+ * Resolves `aboveGround` with the graded terrain and decides `level` (default: true below `levelBelowM` above the ground).
+ * Pure: `groundAt` is the kernel's terrain function.
+ */
+export function absoluteCamera(spec: CameraSpec, groundAt: (x: number, y: number) => number, levelBelowM: number): AbsoluteCamera & { level: boolean } {
+  const [x, y] = spec.position;
+  const ground = groundAt(x, y);
+  const z = spec.aboveGround !== undefined ? ground + spec.aboveGround : (spec.position as Vec3)[2];
+  const level = spec.level ?? z - ground < levelBelowM;
+  return { position: [x, y, Math.round(z * 1e4) / 1e4], target: spec.target, focalMm: spec.focalMm, shift: spec.shift, roll: spec.roll, level };
+}
+
+/** Vertical lens shift that puts `target` where an aimed camera would put it while the axis stays horizontal. */
+export function levelShift(position: Vec3, target: Vec3, focalMm: number, sensorWidthMm: number): number {
+  const d = Math.hypot(target[0] - position[0], target[1] - position[1]);
+  if (d < 1e-6) throw new Error("a level camera needs a target away from the vertical");
+  return ((target[2] - position[2]) / d) * (focalMm / sensorWidthMm);
+}
+
+/** Resolves a camera into the object written to the output (forward vector, fov, shift of a level camera, defaults). */
+export function resolveCamera(spec: AbsoluteCamera, size: readonly [number, number], d: CameraDefaults, groundZ = 0): ResolvedCamera {
+  const level = spec.level ?? false;
+  const aim = norm(sub(spec.target, spec.position));
+  if (len(aim) === 0) throw new Error("camera position equals its target");
+  const extra = spec.shift ?? [0, 0];
+  const forward: Vec3 = level ? norm([aim[0], aim[1], 0]) : aim;
+  const shiftY = level ? levelShift(spec.position, spec.target, spec.focalMm, d.sensorWidthMm) + extra[1] : extra[1];
   return {
     position: spec.position,
     target: spec.target,
@@ -64,10 +103,13 @@ export function resolveCamera(spec: CameraSpec, size: readonly [number, number],
     roll: spec.roll ?? 0,
     focalMm: spec.focalMm,
     sensorWidthMm: d.sensorWidthMm,
-    shift: spec.shift ?? [0, 0],
+    shift: [extra[0], Math.round(shiftY * 1e6) / 1e6],
     near: d.near,
     far: d.far,
     fov: fieldOfView(spec.focalMm, d.sensorWidthMm, size),
+    level,
+    groundZ: Math.round(groundZ * 1e4) / 1e4,
+    aboveGround: Math.round((spec.position[2] - groundZ) * 1e4) / 1e4,
   };
 }
 

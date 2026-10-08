@@ -11,7 +11,10 @@ import type { SceneExtent } from "./views";
 export interface HouseContext {
   readonly house: House;
   readonly derived: Derived;
-  /** The plot: terrain, boundary, zones, trees, hedges (model/site.json, processed by src/lib/model/site). */
+  /**
+   * The plot: boundary, zones, trees, hedges (model/site.json, processed by src/lib/model/site) and the terrain graded with the
+   * house's slabs (`createSite(raw, bearing, house.outdoor)`): the ground follows the drive and path ramps and never covers a slab.
+   */
   readonly site: Site;
   /** Driveway, walkway, fences with gate openings, analytic occluders: need the outdoor areas of the house. */
   readonly layout: ReturnType<Site["withHouse"]>;
@@ -32,7 +35,8 @@ export interface HouseContextParts {
 /** Builds a context from explicit parts (tests with a changed model use this). */
 export function createHouseContext(parts: HouseContextParts): HouseContext {
   const bearingDeg = parts.derived.houseAxisBearingDeg;
-  const site = createSite(parts.site, bearingDeg);
+  // with the outdoor areas the terrain is graded (drive and path ramps, slabs cut in); the layout below is the same cached object
+  const site = createSite(parts.site, bearingDeg, parts.house.outdoor);
   return {
     house: parts.house,
     derived: parts.derived,

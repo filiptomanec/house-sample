@@ -22,6 +22,35 @@ def _fronts(pc, x0, x1, y_front, z0, z1, mats, n, drawers=False, handle=True):
                 pc.box(a + 0.015 if i % 2 == 0 else b - 0.021, y_front - 0.026, z1 - 0.20, a + 0.021 if i % 2 == 0 else b - 0.015, y_front - 0.02, z1 - 0.06, 'f_anthracite')
 
 
+SINK_W, SINK_D, SINK_DEPTH = 0.50, 0.40, 0.18        # undermount bowl: cut-out size and depth
+
+
+def _worktop_with_cutout(pc, x0, y0, x1, y1, z0, z1, hole):
+    """Stone worktop around a rectangular cut-out: four slabs meeting at the hole (no shared visible planes)."""
+    hx0, hy0, hx1, hy1 = hole
+    pc.box(x0, y0, z0, hx0, y1, z1, 'f_stone')
+    pc.box(hx1, y0, z0, x1, y1, z1, 'f_stone')
+    pc.box(hx0, y0, z0, hx1, hy0, z1, 'f_stone')
+    pc.box(hx0, hy1, z0, hx1, y1, z1, 'f_stone')
+
+
+def _undermount_bowl(pc, hole, z_under):
+    """Steel bowl hung under the worktop, its walls 2 mm outside the cut-out (the stone edge overhangs them), a dark
+    drain in the floor."""
+    t = 0.0015
+    x0, y0, x1, y1 = hole[0] - 0.002, hole[1] - 0.002, hole[2] + 0.002, hole[3] + 0.002
+    zt = z_under - 0.001
+    zb = zt - SINK_DEPTH
+    pc.box(x0 - t, y0 - t, zb - t, x1 + t, y0, zt, 'f_steel')            # front wall (full width)
+    pc.box(x0 - t, y1, zb - t, x1 + t, y1 + t, zt, 'f_steel')            # back wall
+    pc.box(x0 - t, y0, zb - t, x0, y1, zt, 'f_steel')                    # side walls between them
+    pc.box(x1, y0, zb - t, x1 + t, y1, zt, 'f_steel')
+    pc.box(x0, y0, zb - t, x1, y1, zb, 'f_steel')                        # floor
+    cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
+    pc.cyl(cx, cy, zb, zb + 0.003, 0.045, 'f_black_metal', seg=pc.n(20, 10))
+    pc.cyl(cx, cy, zb + 0.003, zb + 0.004, 0.03, 'f_steel', seg=pc.n(16, 8))
+
+
 def _tap(pc, x, y, z):
     ch = pc.m('f_chrome')
     pc.tube((x, y, z), (x, y, z + 0.20), 0.011, ch, seg=pc.n(10, 6))
@@ -37,15 +66,23 @@ def kitchen_line(pc, w, d, variant):
     hi_cols = ['f_white'] if oak_front else ['f_oak']
     zt = 0.90
     pc.box(-hw, -hd + 0.04, 0.0, hw, hd - 0.0, 0.09, 'f_anthracite')                              # plinth
-    pc.box(-hw, -hd + 0.02, 0.09, hw, hd, zt - 0.03, 'f_white', r=0.004)                           # carcass
+    sx = -hw + w * 0.28                                                                          # sink (left third)
+    sink = (sx - SINK_W / 2, -0.02 - SINK_D / 2, sx + SINK_W / 2, -0.02 + SINK_D / 2)
+    if pc.hi:
+        # undermount basin: the worktop and the carcass leave room for the bowl
+        zb = zt - 0.03 - SINK_DEPTH - 0.006
+        pc.box(-hw, -hd + 0.02, 0.09, sink[0] - 0.05, hd, zt - 0.03, 'f_white', r=0.004)          # carcass left
+        pc.box(sink[2] + 0.05, -hd + 0.02, 0.09, hw, hd, zt - 0.03, 'f_white', r=0.004)           # carcass right
+        pc.box(sink[0] - 0.05 + 0.003, -hd + 0.02, 0.09, sink[2] + 0.05 - 0.003, hd, zb, 'f_white')  # under the bowl
+        _worktop_with_cutout(pc, -hw, -hd, hw, hd, zt - 0.03, zt, sink)
+        _undermount_bowl(pc, sink, zt - 0.03)
+    else:
+        pc.box(-hw, -hd + 0.02, 0.09, hw, hd, zt - 0.03, 'f_white', r=0.004)                      # carcass
+        pc.box(-hw, -hd, zt - 0.03, hw, hd, zt, 'f_stone', r=0.006)                                # worktop
+        pc.box(sink[0], sink[1], zt - 0.002, sink[2], sink[3], zt + 0.002, 'f_steel', r=0.0)      # flat sink (phones)
     n = max(2, int(round(w / 0.6)))
     _fronts(pc, -hw, hw, -hd + 0.02, 0.09, zt - 0.03, low, n, drawers=True)
-    pc.box(-hw, -hd, zt - 0.03, hw, hd, zt, 'f_stone', r=0.006)                                    # worktop
     pc.box(-hw, hd - 0.012, zt, hw, hd, zt + 0.10, 'f_stone', r=0.003)                              # upstand
-    # sink (left third) and hob (right third)
-    sx = -hw + w * 0.28
-    pc.box(sx - 0.30, -0.18, zt - 0.002, sx + 0.30, 0.18, zt + 0.002, 'f_steel', r=0.0)
-    pc.box(sx - 0.26, -0.14, zt, sx + 0.26, 0.14, zt + 0.003, 'f_black_metal')
     _tap(pc, sx, hd - 0.10, zt)
     hx = hw - w * 0.27
     pc.box(hx - 0.30, -0.24, zt, hx + 0.30, 0.24, zt + 0.006, 'f_screen', r=0.002)
@@ -93,11 +130,9 @@ def island(pc, w, d, variant):
         x = -hw + 0.03 + (i + 0.5) * (w - 0.06) / nb
         pc.box(x - 0.022, yb - 0.02, 0.09, x + 0.022, yb, zt - 0.045, 'f_oak')
     pc.box(-hw, -hd, zt - 0.045, hw, hd, zt, 'f_stone', r=0.01, s=1, keep=True)
-    if pc.hi:                                                            # a sink in the island half of the run
-        pc.box(-hw * 0.5 - 0.3, yb + 0.10, zt - 0.002, -hw * 0.5 + 0.3, yb + 0.46, zt + 0.002, 'f_steel')
-        _tap(pc, -hw * 0.5, hd - 0.10, zt)
+    # the sink is in the run along the wall; the island top stays free for preparing and sitting
     pc.anchor('top', rect=(-hw, -hd, hw, hd), z=zt)
-    pc.anchor('free', rect=(-hw * 0.5 + 0.4, -hd + 0.08, hw - 0.15, hd - 0.1), z=zt)
+    pc.anchor('free', rect=(-hw + 0.15, -hd + 0.08, hw - 0.15, hd - 0.1), z=zt)
     pc.footprint([(-hw, -hd, hw, hd, 0.94)])
 
 

@@ -13,17 +13,22 @@ import { planeZ, type GroundSlab, type SlabPlane } from "./terrain";
 export const RAMP_GATE_RISE = 0.03;
 /** Steepest allowed ramp (rise / run); steeper ramps are an error of validateSiteWithHouse (E-RAMP). */
 export const RAMP_MAX_SLOPE = 0.08;
+/**
+ * Least fall of a ramp away from the house (m per m) that still drains the paving towards the gate; a flatter ramp, or one
+ * that falls towards the house, is a warning of validateSiteWithHouse (W-RAMP-FALL). Rule of thumb for block paving.
+ */
+export const RAMP_MIN_FALL = 0.01;
 
 export interface RampGrade {
   access: AccessKind;
-  /** The ramp rises along +y (towards the street): from the house end of the strip to the gate. */
+  /** The ramp runs along +y (towards the street): from the house end of the strip to the gate. */
   axis: "y";
   from: number;
   to: number;
   /** Slab top at the house end (= `outdoor[].top`) and at the gate (= ground at the gate + RAMP_GATE_RISE), m. */
   z0: number;
   z1: number;
-  /** dz / dy (positive: rising towards the street). */
+  /** dz / dy (positive: rising towards the street; a ramp that drains away from the house has at most -RAMP_MIN_FALL). */
   slope: number;
   /** Centre of the crossing on the plot boundary and the graded ground there (before the slabs are cut in). */
   gate: XY;

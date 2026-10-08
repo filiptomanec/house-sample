@@ -16,32 +16,44 @@ normal (`*_nor_gl_2k.jpg`), 2k JPG. To restore the cache, download these two map
 
 | id | used for (GLB role) | processing in `pipeline/blender/hb/textures.py` |
 |---|---|---|
-| `painted_plaster_wall` | facade plaster (`plaster`) | resized to 1024 / 512 px, recoloured to a neutral mean, contrast 0.45 |
-| `japanese_cedar_planks` | timber cladding and screen slats (`wood_cladding`, `screen_slats`) | resized, recoloured to a neutral mean, saturation 0.45 (the style colour tints it) |
-| `concrete_floor_02` | plinth and garage floor (`slab`, `floor_concrete`) | resized, neutral mean, contrast 0.7 |
-| `concrete_pavers_02` | terrace, driveway and path paving (`terrace_paving`, `drive_paving`, `path`) | resized, neutral mean, contrast 0.55, scaled up to large-format slabs |
+| `painted_plaster_wall` | facade plaster (`plaster`); the neighbour walls in the renders (`pipeline/render`) | resized to 1024 / 512 px, recoloured to a neutral mean, contrast 0.45 |
+| `japanese_cedar_planks` | timber cladding, screen slats, the garage door and the slatted screen of the heat-pump unit (`wood_cladding`, `screen_slats`, `garage_door`) | resized, recoloured to a neutral mean, saturation 0.45 (the style colour tints it) |
+| `wood_floor_deck` | timber decks of the terrace and the pool deck (`deck`) | resized to 1024 / 512 px, recoloured to a neutral mean (contrast 0.75, saturation 0.2); one board of the texture per 145 mm deck board (the role colour of `style.json` tints it) |
+| `concrete_floor_02` | plinth, garage floor and the pool coping (`slab`, `floor_concrete`, `pool_coping`) | resized, neutral mean, contrast 0.7 (coping 0.35) |
+| `concrete_pavers_02` | terrace, driveway and path paving (`terrace_paving`, `drive_paving`, `path`); the street pavement in the renders | resized, neutral mean, contrast 0.55, scaled up to large-format slabs |
 | `gravel_floor_02` | gravel border (`gravel`) | resized, neutral mean |
-| `asphalt_02` | street surface in the renders (`pipeline/render`, not in the GLB) | used as it is (diffuse, roughness, normal), darkened in the shader |
+| `asphalt_02` | street surface in the renders (`pipeline/render`, not in the GLB) | diffuse, roughness, normal; desaturated and tinted to the style `carriageway` colour in the shader |
 | `farm_soil` | mulch beds in the renders (`pipeline/render`, not in the GLB) | diffuse, roughness, normal, tinted brown in the shader |
+| `grass_ground` | the ground under the lawn blades in the renders (`pipeline/render`, not in the GLB) | desaturated and tinted to the root colour of `style.json` `lawnColors`, darkened |
+| `leafy_grass` | the neighbour gardens and the meadow around the plot in the renders (`pipeline/render`, not in the GLB) | desaturated and tinted to the style colours `neighbour` and `verge` |
 
 The textures in the GLB are *neutral* (their mean colour is a light grey); the colour of a role comes from `model/style.json`
 and is applied as the glTF `baseColorFactor`, so the web can recolour a role (the "looks") without new textures. For the
 USDZ the tint is baked into the image because USD readers drop the factor.
 
-## CC0 models (Poly Haven), renders only
+## CC0 models (Poly Haven)
 
-Source: [Poly Haven](https://polyhaven.com), licence **CC0 1.0**, 1k glTF with textures (`grass_bermuda_01` 2k). Copied to
-`assets/models/<id>/` (the whole glTF folder, as downloaded). They are used by `pipeline/render` only (never by the web GLB) and are
-not committed.
+Source: [Poly Haven](https://polyhaven.com), licence **CC0 1.0**, 1k glTF with textures. Copied to `assets/models/<id>/` (the
+whole glTF folder, as downloaded, with the separate `*_alpha_*.png` cut-out maps of the foliage atlases). They are not committed.
+Only `tree_small_02` reaches the web (as the baked `public/models/tree.glb`); everything else is used by `pipeline/render` only.
 
 | id | used for | processing |
 |---|---|---|
-| `tree_small_02` | all trees (plot trees, neighbour gardens, tree line on the horizon), in four leaf tones (conifer, dark, mid, light) | imported at render time; the leaves are thinned (a seeded share of the leaf pieces is kept and scaled up, `pipeline/render/rn/tree_lod.py`), tinted, instanced with rotation and scale |
-| `grass_bermuda_01` | the lawn blades | 380 blades joined into 0.35 m patches, scattered with Geometry Nodes, recoloured in the shader (the atlas is very dark) |
-| `grass_medium_02` | the ornamental grass (miscanthus) | tufts scaled to the height of the data, recoloured |
+| `tree_small_02` | renders: all trees (plot trees, neighbour gardens, hedgerows, woodlots, the village edge) in four leaf tones, and the bark texture of the trunks and limbs that `pipeline/render` builds for the big trees; web: `public/models/tree.glb` / `tree-lite.glb` | renders: imported at render time, the leaves thinned (a seeded share of the leaf pieces is kept and scaled up, `pipeline/render/rn/tree_lod.py`), tinted, instanced with rotation and scale; leaves-only copies fill the crowns. Web: baked by `pipeline/blender/vegetation_bake.py`: trunk and branches decimated (about 1 600 / 500 triangles), the leaves replaced by about 2 000 / 650 leaf cards with a 2 x 2 atlas of leaf clusters rendered from the asset (512 / 256 px WebP, stored neutral grey), normalised to height 1 and crown diameter 1 |
+| `shrub_01`, `shrub_03`, `shrub_04`, `periwinkle_plant`, `celandine_01`, `grass_medium_01` | renders: the planting mix scattered over the mulch beds (perennials, ground cover, grasses) | rows of plants split into single plants, tinted to the style `foliage_shrub` colour, cut out with the atlas alpha (or its luminance), scattered with Geometry Nodes |
+| `shrub_02` | renders: the field shrubs of the hedgerows around the plot | scaled to 2.2-3.4 m, tinted, cut out with its alpha map |
 
-Everything else in the render (hedges, shrubs, topiary, lavender, neighbour houses, fences, PV modules, blinds, lamps) is procedural
-geometry written for this project. No HDRI is used: the sky is the physical Sky Texture of Blender.
+Everything else in the render is procedural geometry written for this project: the lawn blades, the lavender, the hydrangeas and
+the ornamental grass (`pipeline/render/rn/lawn.py`, `herbs.py`), hedges, topiary, the trunks and limbs of the big trees, the
+neighbour houses and the village edge, the fence, gates and pillar, the pool water, PV modules, blinds, louvres and lamps.
+
+## CC0 HDRI (Poly Haven), renders only
+
+| id | used for | processing |
+|---|---|---|
+| `kloofendal_38d_partly_cloudy_puresky` (4k EXR, `assets/hdri/`) | the clouds of the render sky (`pipeline/render/rn/sky.py`), seen by camera and glossy rays only | not used as a picture or as light: its cloud layer is extracted once (a mask and a relative brightness, cached in `assets/cache`) and drawn over the physical Sky Texture of Blender, which still lights the scene; the clouds take the colour of the physical sky of the shot |
+
+`qwantani_late_afternoon_puresky` (CC0, same source) is in the cache too but is not used.
 
 ## Procedural textures (own code, no third-party content)
 

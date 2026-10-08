@@ -1,18 +1,24 @@
 // Verifies a house GLB against the GLB contract of docs/ARCHITECTURE.md (section 3) and against generated/derived.json.
-// Node only, no dependencies: parses the GLB container and its JSON chunk (geometry stays Draco compressed, accessor
-// counts and min/max are in the JSON, so triangle counts and bounding boxes need no decoding).
+// Node only, no dependencies: parses the GLB container and its JSON chunk (accessor counts and min/max are in the JSON, so
+// triangle counts and bounding boxes need no decoding). The geometry checks (slab tops on the derived grade, louvre blades
+// on their pivots at the rest angle) decode the Draco geometry with the decoder shipped for the web (public/draco).
 //
-//   npx tsx scripts/verify-glb.ts public/models/house.glb [--lite] [--derived generated/derived.json]
+//   npx tsx scripts/verify-glb.ts public/models/house.glb [--lite] [--derived generated/derived.json] [--no-geometry]
 //
 // Exit codes: 0 ok (warnings are fine), 1 the model violates the contract, 2 input problem.
 import fs from "node:fs";
+import { createRequire } from "node:module";
 import path from "node:path";
 
 export const HOUSE_ROLES = [
   "plaster", "wood_cladding", "frame", "glass", "sill", "soffit", "fascia", "gutter", "roof_tile", "ridge_cap", "ceiling",
   "plaster_in", "door_leaf", "slab", "floor_oak", "floor_tile", "floor_stone", "floor_concrete", "terrace_paving",
   "drive_paving", "path", "gravel", "post", "screen_slats",
+  // since R2 (docs/ARCHITECTURE.md section 3, contract C2)
+  "deck", "pool_coping", "pool_liner", "water", "garage_door", "screen_rail", "equipment",
 ] as const;
+/** Legacy mapping of an outdoor type to its slab role, for derived data without `outdoor[].role`. */
+const LEGACY_OUTDOOR_ROLE: Record<string, string> = { drive: "drive_paving", path: "path", deck: "deck", pool: "pool_coping" };
 /** Roles that the web "Roof" switch hides (toggle "roof"). */
 export const ROOF_TOGGLE_ROLES = ["roof_tile", "ridge_cap", "fascia", "gutter", "soffit", "ceiling"] as const;
 /** Roles that must carry toggle "roof" in every node (the contract names them explicitly). */
@@ -171,8 +177,24 @@ export interface DerivedLike {
   netRooms?: { id: string; floor?: string }[];
   openings?: { id: string; kind: string; exterior?: boolean }[];
   accents?: unknown[];
-  outdoor?: { type: string; posts?: unknown[] }[];
-  screens?: unknown[];
+  outdoor?: {
+    id?: string;
+    type: string;
+    role?: string;
+    posts?: unknown[];
+    grade?: { corners?: number[]; plane?: { z0: number; ox: number; oy: number; gx: number; gy: number } } | null;
+    pool?: { waterZ: number; floorZ: number; copingTop: number } | null;
+  }[];
+  screens?: {
+    id?: string;
+    orient?: "h" | "v";
+    at?: number;
+    z0?: number;
+    z1?: number;
+    restDeg?: number;
+    blades?: { count: number; chord: number; thickness: number; positions: number[] } | null;
+  }[];
+  outdoorUnit?: unknown;
   lightpipes?: unknown[];
   roofs?: { overhang?: number; ridgeHeight?: number }[];
 }
@@ -187,6 +209,11 @@ export interface VerifyResult { errors: string[]; warnings: string[]; analysis: 
 /** Openings that get a glass node: exterior openings except garage doors (they have glazing or a side light). */
 export function glazedOpenings(d: DerivedLike): string[] {
   return (d.openings ?? []).filter((o) => o.exterior && o.kind !== "garage").map((o) => o.id);
+}
+
+/** GLB role of the slab of an outdoor area: `derived.outdoor[].role`, or the legacy mapping of its type. */
+export function slabRole(o: { type: string; role?: string }): string {
+  return o.role ?? LEGACY_OUTDOOR_ROLE[o.type] ?? "terrace_paving";
 }
 
 export function verifyGlb(buf: Buffer, opts: VerifyOptions = {}): VerifyResult {
@@ -263,14 +290,49 @@ export function verifyGlb(buf: Buffer, opts: VerifyOptions = {}): VerifyResult {
     for (const f of floors) need.push(`floor_${f}`);
     // interior doors are "door_leaf" (light); the entrance leaf is built in the dark "frame" role (always required above)
     if ((d.openings ?? []).some((o) => o.kind === "door")) need.push("door_leaf");
-    if ((d.openings ?? []).some((o) => o.kind === "garage")) need.push("frame");
+    const garages = (d.openings ?? []).filter((o) => o.kind === "garage");
+    if (garages.length) need.push("frame", "garage_door");
     if ((d.accents ?? []).length) need.push("wood_cladding");
-    if ((d.screens ?? []).length) need.push("screen_slats");
+    if ((d.screens ?? []).length) need.push("screen_slats", "screen_rail");
+    if (d.outdoorUnit) need.push("equipment");
     for (const o of d.outdoor ?? []) {
-      need.push(o.type === "drive" ? "drive_paving" : o.type === "path" ? "path" : "terrace_paving");
+      need.push(slabRole(o));
       if (o.posts?.length) need.push("post");
+      if (o.pool) need.push("pool_coping", "pool_liner", "water");
     }
     for (const r of new Set(need)) if (!have(r)) err(`no node with role ${r}`);
+
+    // node ids: the garage door leaf per garage opening (the web opens it), one slab node per outdoor area
+    const byName = new Map(an.nodes.map((n) => [n.name, n]));
+    for (const g of garages) if (!byName.has(`garage_door_${g.id}`)) err(`no garage_door node for opening ${g.id}`);
+    for (const o of d.outdoor ?? []) {
+      if (!o.id) continue;
+      const node = byName.get(`${slabRole(o)}_${o.id}`);
+      if (!node) {
+        err(`no ${slabRole(o)} node for outdoor area ${o.id}`);
+        continue;
+      }
+      // slab tops come from the derived grade (never a constant of the builder): the highest point is the highest corner
+      if (o.pool) {
+        const water = byName.get(`water_${o.id}`);
+        const liner = byName.get(`pool_liner_${o.id}`);
+        if (Math.abs(node.box.max[2] - o.pool.copingTop) > tol) err(`coping of ${o.id} tops out at ${node.box.max[2].toFixed(3)}, derived copingTop ${o.pool.copingTop}`);
+        if (!water || Math.abs(water.box.min[2] - o.pool.waterZ) > tol || Math.abs(water.box.max[2] - o.pool.waterZ) > tol) err(`water of ${o.id} is not at waterZ ${o.pool.waterZ}`);
+        if (!liner || Math.abs(liner.box.min[2] - o.pool.floorZ) > tol) err(`pool floor of ${o.id} is not at floorZ ${o.pool.floorZ}`);
+      } else if (o.grade?.corners?.length) {
+        const top = Math.max(...o.grade.corners);
+        if (Math.abs(node.box.max[2] - top) > tol) err(`slab ${o.id} tops out at ${node.box.max[2].toFixed(3)}, its derived grade at ${top}`);
+      }
+    }
+    for (const sc of d.screens ?? []) {
+      const rail = sc.id ? byName.get(`screen_rail_${sc.id}`) : undefined;
+      if (!rail) {
+        err(`no screen_rail node for screen ${sc.id ?? "?"}`);
+        continue;
+      }
+      if (sc.z0 !== undefined && Math.abs(rail.box.min[2] - sc.z0) > tol) err(`louvre rails of ${sc.id} start at ${rail.box.min[2].toFixed(3)}, derived z0 ${sc.z0}`);
+      if (sc.z1 !== undefined && Math.abs(rail.box.max[2] - sc.z1) > tol) err(`louvre rails of ${sc.id} end at ${rail.box.max[2].toFixed(3)}, derived z1 ${sc.z1}`);
+    }
     for (const r of Object.keys(an.roles)) if (r.startsWith("floor_") && !floors.has(r.slice(6))) err(`floor role ${r} is not used by any room`);
 
     // glazing: one glass node per glazed opening
@@ -312,7 +374,142 @@ export function verifyGlb(buf: Buffer, opts: VerifyOptions = {}): VerifyResult {
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
-function main(): number {
+// Decoded geometry
+interface DracoArray { GetValue(i: number): number }
+interface DracoMesh { num_points(): number }
+interface DracoDecoder {
+  DecodeBufferToMesh(buf: unknown, mesh: DracoMesh): { ok(): boolean; error_msg(): string };
+  GetAttributeByUniqueId(mesh: DracoMesh, id: number): unknown;
+  GetAttributeFloatForAllPoints(mesh: DracoMesh, att: unknown, out: DracoArray): boolean;
+}
+export interface DracoModule {
+  Decoder: new () => DracoDecoder;
+  DecoderBuffer: new () => { Init(data: Int8Array, size: number): void };
+  Mesh: new () => DracoMesh;
+  DracoFloat32Array: new () => DracoArray;
+  destroy(o: unknown): void;
+}
+const dracoCache = new Map<string, Promise<DracoModule>>();
+
+/** The Draco decoder of the web (`public/draco/draco_decoder.js`, the plain JS build), loaded once per path. */
+export function loadDraco(decoderPath: string): Promise<DracoModule> {
+  let hit = dracoCache.get(decoderPath);
+  if (!hit) {
+    const factory = createRequire(decoderPath)(decoderPath) as (o: object) => Promise<DracoModule>;
+    hit = factory({});
+    dracoCache.set(decoderPath, hit);
+  }
+  return hit;
+}
+
+/** Vertex positions of a mesh node in the house frame (x east, y north, z up), over all its primitives. */
+export function nodePositions(draco: DracoModule, glb: Glb, nodeIndex: number): Vec3[] {
+  const j = glb.json;
+  const node = j.nodes?.[nodeIndex];
+  const mesh = node?.mesh === undefined ? undefined : j.meshes?.[node.mesh];
+  const out: Vec3[] = [];
+  for (const p of mesh?.primitives ?? []) {
+    const ext = p.extensions?.KHR_draco_mesh_compression as { bufferView: number; attributes: Record<string, number> } | undefined;
+    if (!ext || !glb.bin) throw new Error(`node ${nodeIndex}: not a Draco primitive`);
+    const bv = j.bufferViews?.[ext.bufferView];
+    if (!bv) throw new Error(`node ${nodeIndex}: missing buffer view`);
+    const data = glb.bin.subarray(bv.byteOffset ?? 0, (bv.byteOffset ?? 0) + bv.byteLength);
+    const dec = new draco.Decoder();
+    const buf = new draco.DecoderBuffer();
+    const dm = new draco.Mesh();
+    const arr = new draco.DracoFloat32Array();
+    try {
+      buf.Init(new Int8Array(data.buffer, data.byteOffset, data.byteLength), data.byteLength);
+      const st = dec.DecodeBufferToMesh(buf, dm);
+      if (!st.ok()) throw new Error(`node ${nodeIndex}: ${st.error_msg()}`);
+      dec.GetAttributeFloatForAllPoints(dm, dec.GetAttributeByUniqueId(dm, ext.attributes.POSITION), arr);
+      const n = dm.num_points();
+      for (let i = 0; i < n; i++) out.push([arr.GetValue(3 * i), 0 - arr.GetValue(3 * i + 2), arr.GetValue(3 * i + 1)]);
+    } finally {
+      for (const o of [arr, dm, buf, dec]) draco.destroy(o);
+    }
+  }
+  return out;
+}
+
+type OutdoorLike = NonNullable<DerivedLike["outdoor"]>[number];
+/** Height of the derived slab top of an outdoor area at a plan point (the coping top for a pool). */
+export function slabTopAt(o: OutdoorLike, x: number, y: number): number {
+  if (o.pool) return o.pool.copingTop;
+  const pl = o.grade?.plane;
+  if (!pl) return Math.max(...(o.grade?.corners ?? [0]));
+  return pl.z0 + pl.gx * (x - pl.ox) + pl.gy * (y - pl.oy);
+}
+
+/** The decoded slab node of every outdoor area: all its vertices and the ones on the derived top. */
+export function slabVertices(draco: DracoModule, glb: Glb, d: DerivedLike, tol = 0.003): { id: string; role: string; all: Vec3[]; top: Vec3[] }[] {
+  const index = new Map((glb.json.nodes ?? []).map((n, i) => [n.name ?? "", i]));
+  const out: { id: string; role: string; all: Vec3[]; top: Vec3[] }[] = [];
+  for (const o of d.outdoor ?? []) {
+    if (!o.id) continue;
+    const i = index.get(`${slabRole(o)}_${o.id}`);
+    if (i === undefined) continue;
+    const all = nodePositions(draco, glb, i);
+    out.push({ id: o.id, role: slabRole(o), all, top: all.filter((v) => Math.abs(v[2] - slabTopAt(o, v[0], v[1])) <= tol) });
+  }
+  return out;
+}
+
+/** Plan extent of a blade across its wall at a rotation `deg` from the wall plane. */
+export function bladeDepth(chord: number, thickness: number, deg: number): number {
+  const a = (deg * Math.PI) / 180;
+  return chord * Math.abs(Math.sin(a)) + thickness * Math.abs(Math.cos(a));
+}
+
+/**
+ * Checks of the decoded geometry against derived.json: every slab top lies on its derived grade (nothing of the slab
+ * node rises above it), and the louvre blades stand on their pivots (`screens[].blades.positions`, `at`) at the rest angle.
+ */
+export function verifyGeometry(glb: Glb, d: DerivedLike, draco: DracoModule, tol = 0.003): string[] {
+  const errors: string[] = [];
+  for (const s of slabVertices(draco, glb, d, tol)) {
+    const o = (d.outdoor ?? []).find((q) => q.id === s.id)!;
+    const above = s.all.filter((v) => v[2] > slabTopAt(o, v[0], v[1]) + tol);
+    if (above.length) errors.push(`slab ${s.id}: ${above.length} vertices above its derived top`);
+    if (s.top.length < 3) errors.push(`slab ${s.id}: no face on its derived top`);
+  }
+  const index = new Map((glb.json.nodes ?? []).map((n, i) => [n.name ?? "", i]));
+  for (const sc of d.screens ?? []) {
+    const bl = sc.blades;
+    const i = sc.id ? index.get(`screen_slats_${sc.id}`) : undefined;
+    if (!bl || i === undefined || sc.at === undefined || sc.restDeg === undefined) continue;
+    const v = nodePositions(draco, glb, i);
+    const along = (p: Vec3): number => (sc.orient === "v" ? p[1] : p[0]);
+    const across = (p: Vec3): number => (sc.orient === "v" ? p[0] : p[1]);
+    const groups = new Map<number, Vec3[]>();
+    for (const p of v) {
+      let best = 0;
+      for (let k = 1; k < bl.positions.length; k++) if (Math.abs(along(p) - bl.positions[k]) < Math.abs(along(p) - bl.positions[best])) best = k;
+      const g = groups.get(best) ?? [];
+      g.push(p);
+      groups.set(best, g);
+    }
+    if (groups.size !== bl.positions.length) errors.push(`louvres ${sc.id}: ${groups.size} blades for ${bl.positions.length} pivots`);
+    const depth = bladeDepth(bl.chord, bl.thickness, sc.restDeg);
+    for (const [k, g] of groups) {
+      const lo = Math.min(...g.map(across)), hi = Math.max(...g.map(across));
+      const ca = g.reduce((s, p) => s + along(p), 0) / g.length;
+      const cx = (lo + hi) / 2;
+      if (Math.abs(ca - bl.positions[k]) > tol || Math.abs(cx - sc.at) > tol) {
+        errors.push(`louvres ${sc.id}: blade ${k} is not on its pivot (${bl.positions[k]}, ${sc.at})`);
+        break;
+      }
+      if (Math.abs(hi - lo - depth) > tol) {
+        errors.push(`louvres ${sc.id}: blade ${k} is ${(hi - lo).toFixed(3)} m deep across the wall, ${depth.toFixed(3)} at the rest angle ${sc.restDeg} deg`);
+        break;
+      }
+    }
+  }
+  return errors;
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+async function main(): Promise<number> {
   const args = process.argv.slice(2);
   const file = args.find((a) => !a.startsWith("--") && args[args.indexOf(a) - 1] !== "--derived");
   if (!file) {
@@ -338,6 +535,14 @@ function main(): number {
     console.error(`${file}: ${(e as Error).message}`);
     return 1;
   }
+  if (derived && !args.includes("--no-geometry")) {
+    try {
+      const draco = await loadDraco(path.join(root, "public", "draco", "draco_decoder.js"));
+      res.errors.push(...verifyGeometry(parseGlb(buf), derived, draco));
+    } catch (e) {
+      res.errors.push(`geometry checks failed: ${(e as Error).message}`);
+    }
+  }
   const a = res.analysis;
   console.log(`${path.basename(file)} (${variant}): ${a.size} B, ${a.nodes.length} nodes, ${a.triangles} triangles`);
   for (const w of res.warnings) console.log(`  warning: ${w}`);
@@ -346,4 +551,4 @@ function main(): number {
   return res.errors.length ? 1 : 0;
 }
 
-if (process.argv[1] && /verify-glb\.[cm]?[jt]s$/.test(process.argv[1])) process.exit(main());
+if (process.argv[1] && /verify-glb\.[cm]?[jt]s$/.test(process.argv[1])) void main().then((code) => process.exit(code));

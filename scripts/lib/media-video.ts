@@ -1,4 +1,5 @@
-// The orbit video: the ffmpeg command line and the search for the CRF that lands the file in the wanted size range.
+// The orbit video: the ffmpeg command line and the CRF control. Each rendition is encoded at a constant quality (SPEC.video:
+// CRF 21 at 1600 px, CRF 24 for the 960 px phone copy); a file above its size ceiling is encoded again with a higher CRF.
 // The frames go in 1:1 (24 fps, no interpolation); H.264 High, yuv420p, BT.709, fast start, no audio, no metadata.
 import { SPEC } from "./media-plan";
 import type { Mp4Info } from "./media-probe";
@@ -22,9 +23,10 @@ export interface CrfSearchResult {
 }
 
 /**
- * Finds a CRF whose file size is in [minBytes, maxBytes]. The size roughly doubles every 6 CRF steps downwards, so the next
- * try jumps by 6 * log2(size / target); once a too big and a too small CRF are known the search bisects between them. When no
- * CRF fits (the content is too simple or too busy for the range) the one closest to the target size wins.
+ * Finds a CRF whose file size is in [minBytes, maxBytes] (the media build uses minBytes 0: the configured CRF unless the file
+ * is too big). The size roughly doubles every 6 CRF steps downwards, so the next try jumps by 6 * log2(size / target); once a too
+ * big and a too small CRF are known the search bisects between them. When no CRF fits (the content is too simple or too busy
+ * for the range) the one closest to the target size wins.
  */
 export async function searchCrf(measure: (crf: number) => Promise<number>, o: CrfSearchOptions): Promise<CrfSearchResult> {
   let big = o.minCrf - 1; // CRFs known to give a file above the range
@@ -73,8 +75,8 @@ export interface FfmpegVideoArgs {
  * runs bit-exact and the metadata is dropped so that the same frames give the same file.
  */
 export function ffmpegVideoArgs(a: FfmpegVideoArgs): string[] {
-  const w = a.width ?? SPEC.video.w;
-  const h = a.height ?? SPEC.video.h;
+  const w = a.width ?? SPEC.video.variants[0].w;
+  const h = a.height ?? SPEC.video.variants[0].h;
   const scale = `scale=${w}:${h}:flags=lanczos+accurate_rnd+full_chroma_int+bitexact:out_color_matrix=bt709:out_range=tv`;
   return [
     "-hide_banner", "-loglevel", "error", "-nostdin", "-y",

@@ -1,6 +1,7 @@
 // Reads what the media checks need straight from the bytes (no ImageMagick, no ffprobe): the size, subsampling and metadata
-// segments of a JPEG, the size of a PNG, and the structure of an MP4 (codec profile, chroma format, frame count, frame rate,
-// audio tracks, metadata boxes, position of the index for fast start). Used by scripts/check-media.ts and the build.
+// segments of a JPEG, the size and metadata chunks of a WebP, the size and metadata items of an AVIF, the size of a PNG, and the
+// structure of an MP4 (codec profile, chroma format, frame count, frame rate, audio tracks, metadata boxes, position of the index
+// for fast start). Used by scripts/check-media.ts and the build.
 
 export interface JpegInfo {
   width: number;
@@ -58,20 +59,146 @@ export function probeJpeg(buf: Buffer): JpegInfo {
   throw new Error("JPEG without a frame header");
 }
 
-/** Width and height of a PNG or JPEG file; null for anything else. */
+/** Width and height of a PNG, JPEG, WebP or AVIF file; null for anything else. */
 export function imageSize(buf: Buffer): { width: number; height: number } | null {
   if (buf.length > 24 && buf.readUInt32BE(0) === 0x89504e47 && buf.toString("latin1", 12, 16) === "IHDR") {
     return { width: buf.readUInt32BE(16), height: buf.readUInt32BE(20) };
   }
-  if (buf[0] === 0xff && buf[1] === 0xd8) {
-    try {
+  try {
+    if (buf[0] === 0xff && buf[1] === 0xd8) {
       const { width, height } = probeJpeg(buf);
       return { width, height };
-    } catch {
-      return null;
     }
+    if (isWebp(buf)) {
+      const { width, height } = probeWebp(buf);
+      return { width, height };
+    }
+    if (isAvif(buf)) {
+      const { width, height } = probeAvif(buf);
+      return { width, height };
+    }
+  } catch {
+    return null;
   }
   return null;
+}
+
+// ------------------------------------------------------------------------------------------------ WebP
+
+export interface WebpInfo {
+  width: number;
+  height: number;
+  /** "lossy" (VP8), "lossless" (VP8L). */
+  kind: "lossy" | "lossless";
+  alpha: boolean;
+  /** Metadata chunks: EXIF, XMP, ICCP (a clean file has none). */
+  metadata: string[];
+  /** The RIFF size field covers exactly the file. */
+  complete: boolean;
+}
+
+export const isWebp = (buf: Buffer): boolean => buf.length >= 16 && buf.toString("latin1", 0, 4) === "RIFF" && buf.toString("latin1", 8, 12) === "WEBP";
+
+/** Parses the chunks of a WebP file; throws when the bytes are not one. */
+export function probeWebp(buf: Buffer): WebpInfo {
+  if (!isWebp(buf)) throw new Error("not a WebP (no RIFF/WEBP header)");
+  const riffEnd = 8 + buf.readUInt32LE(4);
+  const end = Math.min(riffEnd, buf.length);
+  const metadata: string[] = [];
+  let width = 0;
+  let height = 0;
+  let kind: WebpInfo["kind"] | null = null;
+  let alpha = false;
+  for (let pos = 12; pos + 8 <= end; ) {
+    const id = buf.toString("latin1", pos, pos + 4);
+    const size = buf.readUInt32LE(pos + 4);
+    const data = pos + 8;
+    if (data + size > buf.length) throw new Error(`WebP chunk "${id}" runs past the end of the file`);
+    if (id === "VP8 ") {
+      kind ??= "lossy";
+      // frame tag (3 bytes), start code 9d 01 2a, then 14-bit width and height
+      if (buf[data + 3] !== 0x9d || buf[data + 4] !== 0x01 || buf[data + 5] !== 0x2a) throw new Error("bad VP8 start code");
+      if (!width) {
+        width = buf.readUInt16LE(data + 6) & 0x3fff;
+        height = buf.readUInt16LE(data + 8) & 0x3fff;
+      }
+    } else if (id === "VP8L") {
+      kind ??= "lossless";
+      if (buf[data] !== 0x2f) throw new Error("bad VP8L signature");
+      const bits = buf.readUInt32LE(data + 1);
+      if (!width) {
+        width = (bits & 0x3fff) + 1;
+        height = ((bits >>> 14) & 0x3fff) + 1;
+      }
+      alpha ||= ((bits >>> 28) & 1) === 1;
+    } else if (id === "VP8X") {
+      const flags = buf[data];
+      alpha ||= (flags & 0x10) !== 0;
+      width = buf.readUIntLE(data + 4, 3) + 1;
+      height = buf.readUIntLE(data + 7, 3) + 1;
+    } else if (id === "ALPH") alpha = true;
+    else if (id === "EXIF" || id === "XMP " || id === "ICCP") metadata.push(id.trim());
+    pos = data + size + (size & 1);
+  }
+  if (!kind || !width || !height) throw new Error("WebP without an image chunk");
+  return { width, height, kind, alpha, metadata, complete: riffEnd === buf.length };
+}
+
+// ------------------------------------------------------------------------------------------------ AVIF
+
+export interface AvifInfo {
+  width: number;
+  height: number;
+  /** Metadata items and properties: Exif, XMP (mime), an ICC profile (a clean file has none; nclx colour info is fine). */
+  metadata: string[];
+  /** All boxes fit the file and there is image data. */
+  complete: boolean;
+}
+
+export const isAvif = (buf: Buffer): boolean =>
+  buf.length >= 16 && buf.toString("latin1", 4, 8) === "ftyp" && ["avif", "avis"].includes(buf.toString("latin1", 8, 12));
+
+/** Parses the item structure of an AVIF file (HEIF/ISOBMFF); throws when the bytes are not one. */
+export function probeAvif(buf: Buffer): AvifInfo {
+  if (!isAvif(buf)) throw new Error("not an AVIF (no ftyp avif)");
+  const metadata: string[] = [];
+  let width = 0;
+  let height = 0;
+  let mdat = false;
+  for (const top of boxes(buf, 0, buf.length)) {
+    if (top.type === "mdat") mdat = true;
+    if (top.type !== "meta") continue;
+    for (const b of boxes(buf, top.start + 4, top.end)) {
+      if (b.type === "iinf") {
+        const v = buf[b.start];
+        const first = b.start + 4 + (v === 0 ? 2 : 4);
+        for (const e of boxes(buf, first, b.end)) {
+          if (e.type !== "infe") continue;
+          const ev = buf[e.start];
+          if (ev < 2) continue;
+          const typeAt = e.start + 4 + (ev === 2 ? 2 : 4) + 2;
+          const itemType = buf.toString("latin1", typeAt, typeAt + 4);
+          if (itemType === "Exif") metadata.push("Exif");
+          else if (itemType === "mime") metadata.push("XMP (mime item)");
+        }
+      } else if (b.type === "iprp") {
+        for (const c of boxes(buf, b.start, b.end)) {
+          if (c.type !== "ipco") continue;
+          for (const p of boxes(buf, c.start, c.end)) {
+            if (p.type === "ispe" && !width) {
+              width = buf.readUInt32BE(p.start + 4);
+              height = buf.readUInt32BE(p.start + 8);
+            } else if (p.type === "colr") {
+              const kind = buf.toString("latin1", p.start, p.start + 4);
+              if (kind === "prof" || kind === "rICC") metadata.push("ICC profile");
+            }
+          }
+        }
+      }
+    }
+  }
+  if (!width || !height) throw new Error("AVIF without an image size (ispe)");
+  return { width, height, metadata, complete: mdat };
 }
 
 // ------------------------------------------------------------------------------------------------ MP4

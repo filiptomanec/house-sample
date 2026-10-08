@@ -5,7 +5,7 @@ import math
 
 from . import geom as G
 from .roof_cover import _seam
-from .exterior import slab_top_at
+from .exterior import slab_top_at, area_at
 
 TOGGLE = "roof"
 
@@ -61,12 +61,19 @@ def sweep(ms, role, loop, profile, closed, skip=(), two_sided=False, toggle=TOGG
             ms.poly(role, pts, normal, toggle=toggle, two_sided=two_sided, id=id)
 
 
+def eave_soffit(cfg, model, v):
+    """Soffit height at a point of the eave line (v = (x, y, z of the covering there))."""
+    z, pl = model.height(v[0], v[1], tol=1e-4)
+    return min(cfg.soffit_z, v[2] - cfg.p["eave_depth"]) if pl is None else model.underside_on(pl, v[0], v[1])
+
+
 def build_eaves(cfg, ms, model):
     p = cfg.p
-    ft, up, depth = p["fascia_t"], p["fascia_up"], p["eave_depth"]
+    ft, up = p["fascia_t"], p["fascia_up"]
     r = p["gutter_r"]
     for loop in model.loops:
-        # fascia board (closed profile, back face against the roof edge left out)
+        # fascia board (closed profile, back face against the roof edge left out), from the covering down to the soffit
+        depth = max(p["eave_depth"], max(v[2] - eave_soffit(cfg, model, v) for v in loop))
         sweep(ms, "fascia", loop, [(0.0, up), (0.0, -depth), (ft, -depth), (ft, up)], True, skip=(0,))
         # gutter: lower half of a circle hung on the fascia
         seg = max(2, p["gutter_arc"])
@@ -90,36 +97,121 @@ def build_steps(cfg, ms, model):
         ms.poly("fascia", pts, (n[0], n[1], 0), toggle=TOGGLE)
 
 
+def pipe(ms, role, path, rad, sides, toggle=TOGGLE):
+    """Round pipe along a polyline that lies in one vertical plane, with mitred joints (open ends)."""
+    pts = [tuple(q) for q in path]
+    segs = [G.norm(G.sub(pts[i + 1], pts[i])) for i in range(len(pts) - 1)]
+    horiz = None
+    for d in segs:
+        if abs(d[0]) + abs(d[1]) > 1e-6:
+            horiz = (d[0], d[1], 0.0)
+            break
+    e1 = G.norm(G.cross(horiz, (0, 0, 1))) if horiz else (1.0, 0.0, 0.0)   # common to every segment of the plane
+
+    def ring(i, d):
+        """Ring of segment direction d at point i, on the mitre plane of the joint."""
+        e2 = G.norm(G.cross(d, e1))
+        if 0 < i < len(pts) - 1:
+            m = G.norm(G.add(segs[i - 1], segs[i]))
+        else:
+            m = d
+        out = []
+        for k in range(sides):
+            a = 2 * math.pi * k / sides
+            q = G.add(pts[i], G.add(G.mul(e1, rad * math.cos(a)), G.mul(e2, rad * math.sin(a))))
+            t = -G.dot(G.sub(q, pts[i]), m) / G.dot(d, m)
+            out.append(G.add(q, G.mul(d, t)))
+        return out, e2
+
+    for j, d in enumerate(segs):
+        ra, e2 = ring(j, d)
+        rb, _ = ring(j + 1, d)
+        for k in range(sides):
+            k2 = (k + 1) % sides
+            am = 2 * math.pi * (k + 0.5) / sides
+            nrm = G.add(G.mul(e1, math.cos(am)), G.mul(e2, math.sin(am)))
+            ms.poly(role, [ra[k], ra[k2], rb[k2], rb[k]], nrm, toggle=toggle)
+
+
+def downpipe_target(cfg, x, y, rad):
+    """Where the pipe runs down the facade: at a wall corner when the outlet sits on the eave mitre of that corner (within
+    overhang * sqrt 2), else on the nearest wall face; `downpipe_wall_gap` off the wall."""
+    off = cfg.p["downpipe_wall_gap"] + rad
+    ov = max([r["overhang"] for r in cfg.roofs] or [0.0])
+    best = None
+    for poly in footprint_polygons_ccw(cfg):
+        n = len(poly)
+        for k in range(n):
+            v = poly[k]
+            dv = math.hypot(v[0] - x, v[1] - y)
+            if dv <= ov * math.sqrt(2.0) + 0.1:
+                n1 = _edge_normal(poly[k - 1], v)
+                n2 = _edge_normal(v, poly[(k + 1) % n])
+                cand = (dv - 1e3, (v[0] + (n1[0] + n2[0]) * off, v[1] + (n1[1] + n2[1]) * off))
+                best = cand if best is None or cand[0] < best[0] else best
+        for k in range(n):
+            a, b = poly[k], poly[(k + 1) % n]
+            t = max(0.0, min(1.0, G.seg_param((x, y), a, b)))
+            q = (a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t)
+            d = math.hypot(q[0] - x, q[1] - y)
+            nn = _edge_normal(a, b)
+            cand = (d, (q[0] + nn[0] * off, q[1] + nn[1] * off))
+            best = cand if best is None or cand[0] < best[0] else best
+    return best[1] if best else (x, y)
+
+
+def _edge_normal(a, b):
+    dx, dy = b[0] - a[0], b[1] - a[1]
+    l = math.hypot(dx, dy) or 1.0
+    return (dy / l, -dx / l)                      # outward for a counter-clockwise polygon
+
+
+def footprint_polygons_ccw(cfg):
+    from .walls import footprint_polygons
+    out = []
+    for poly in footprint_polygons(cfg):
+        out.append(poly if G.area2(poly) > 0 else poly[::-1])
+    return out
+
+
 def build_downpipes(cfg, ms, model):
+    """Downpipes from the gutter outlets: a swan neck back under the soffit to the wall (`swan_deg` below the horizontal),
+    then down the facade into the ground or the slab. A pipe inside a post is hidden."""
     p = cfg.p
     ft, r = p["fascia_t"], p["gutter_r"]
-    ps = p["post"]
-    posts = [(px, py) for o in cfg.outdoor for (px, py) in o.get("posts", [])]
+    posts = [(px, py, float(o.get("postSize") or 0.0)) for o in cfg.outdoor for (px, py) in o.get("posts", [])]
+    tan = math.tan(math.radians(p["swan_deg"]))
+    cos = math.cos(math.radians(p["swan_deg"]))
     for dp in cfg.downpipes:
         x, y = dp["x"], dp["y"]
         rad = dp.get("diameter", 0.1) / 2.0
-        if any(abs(x - px) <= ps / 2.0 + 1e-6 and abs(y - py) <= ps / 2.0 + 1e-6 for (px, py) in posts):
+        if any(abs(x - px) <= ps / 2.0 + 1e-6 and abs(y - py) <= ps / 2.0 + 1e-6 for (px, py, ps) in posts):
             continue                                  # hidden inside a post
         ze, _ = model.height(x, y, tol=1e-4)
         if ze is None:
             continue
-        # move the pipe under the gutter: offset along the mitre of the nearest loop vertex
-        pos = (x, y)
+        # the outlet sits under the gutter: offset along the mitre of the nearest loop vertex
+        pos, eave = (x, y), (x, y, ze)
         for loop in model.loops:
             en, mv = loop_geometry(loop)
             for i, v in enumerate(loop):
                 if math.hypot(v[0] - x, v[1] - y) < 0.05:
                     pos = (v[0] + mv[i][0] * (ft + r), v[1] + mv[i][1] * (ft + r))
-        z_top = ze - p["gutter_drop"] - r
-        zs = slab_top_at(cfg, x, y)
-        z_bot = zs - 0.02 if zs > p["ground_z"] + 1e-9 else p["ground_z"] - 0.05
-        n = p["downpipe_sides"]
-        for k in range(n):
-            a0, a1 = 2 * math.pi * k / n, 2 * math.pi * (k + 1) / n
-            P = lambda a, z: (pos[0] + rad * math.cos(a), pos[1] + rad * math.sin(a), z)
-            am = (a0 + a1) / 2.0
-            ms.poly("gutter", [P(a0, z_bot), P(a1, z_bot), P(a1, z_top), P(a0, z_top)],
-                    (math.cos(am), math.sin(am), 0), toggle=TOGGLE)
+                    eave = v
+        z_top = ze - p["gutter_drop"] - r * 0.5        # a little into the gutter
+        tgt = downpipe_target(cfg, x, y, rad)
+        zs = slab_top_at(cfg, *tgt)
+        z_bot = zs - 0.02 if area_at(cfg, *tgt) is not None else cfg.ground_z - 0.05
+        L = math.hypot(tgt[0] - pos[0], tgt[1] - pos[1])
+        if L < 0.02:
+            path = [(pos[0], pos[1], z_top), (pos[0], pos[1], z_bot)]
+        else:
+            # leave the gutter vertically until the pipe clears the fascia, then slope back to the wall
+            zfb = eave_soffit(cfg, model, eave)
+            z1 = min(z_top - 0.05, zfb - 0.01 - rad / cos + r * tan)
+            z2 = z1 - L * tan
+            path = [(pos[0], pos[1], z_top), (pos[0], pos[1], z1), (tgt[0], tgt[1], z2), (tgt[0], tgt[1], z_bot)]
+        pipe(ms, "gutter", path, rad, p["downpipe_sides"])
 
 
 # ------------------------------------------------------------------ soffits
@@ -141,10 +233,13 @@ def build_soffit(cfg, ms, model):
         pl = pc.plane
         polys = _subtract_rects([pc.poly], cut)
         out = []
+        # the soffit is flat where the covering is high enough above it and follows the slope near a shallow eave: split
+        # the piece on the line where the two meet (u = uc) so every polygon stays planar
+        uc = (cfg.soffit_z + cfg.p["eave_depth"] - pl.wt) / pl.tan if pl.tan > 1e-9 else -1e9
         for pp in polys:
-            neg = G.clip_halfplane(pp, -pl.ix, -pl.iy, -pl.k)       # u <= 0 (tapering part)
-            pos = G.clip_halfplane(pp, pl.ix, pl.iy, pl.k)          # u >= 0
-            out.extend([q for q in (neg, pos) if q])
+            lo = G.clip_halfplane(pp, -pl.ix, -pl.iy, -(pl.k - uc))    # u <= uc (sloped part)
+            hi = G.clip_halfplane(pp, pl.ix, pl.iy, pl.k - uc)         # u >= uc (flat part)
+            out.extend([q for q in (lo, hi) if q])
         for q in out:
             if abs(G.area2(q)) < 1e-5:
                 continue
@@ -154,7 +249,7 @@ def build_soffit(cfg, ms, model):
 
 def build_covered(cfg, ms, model):
     """Flat white soffit over covered outdoor areas, with a beam face along their open sides if the roof is deeper."""
-    zc = cfg.clear_height
+    zc = cfg.soffit_z
     fp = footprint_rects(cfg)
     for o in cfg.outdoor:
         if not o.get("covered"):

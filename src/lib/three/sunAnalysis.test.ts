@@ -7,7 +7,8 @@ import { addDays, localToUtc, placeOf, sunDirection, sunHoursOnSurface, sunPosit
 import { boxOf, rayTransmittance, rayChord, type Occluder } from "@/lib/model/site";
 import { getHouseContext } from "./context";
 import { toScene } from "./frame";
-import { Caster, GLASS_DEPTH, WINDOW_GRID, cullOccluders, makeSunAnalyzer, occluderBound, sampleAreas, sampleWindows, type SunDayResult, type SunPositionFn } from "./sunAnalysis";
+import { SUN_SAMPLED_OUTDOOR } from "@/lib/model";
+import { Caster, GLASS_DEPTH, WINDOW_GRID, WINDOW_SUN, cullOccluders, makeSunAnalyzer, occluderBound, sampleAreas, sampleWindows, type SunDayResult, type SunPositionFn } from "./sunAnalysis";
 
 const ctx = getHouseContext();
 const place = placeOf(ctx.house);
@@ -84,19 +85,26 @@ describe("sample points", () => {
       }
     }
   });
-  it("outdoor areas: terraces and covered areas, 5 x 3 points inside the rectangle, 0.45 m above the floor", () => {
-    const expected = ctx.derived.outdoor.filter((a) => a.type === "terrace" || a.covered);
+  it("outdoor areas: the sampled types (terraces, the pool) and covered areas, 5 x 3 points over the slab top or just above the water", () => {
+    const expected = ctx.derived.outdoor.filter((a) => (SUN_SAMPLED_OUTDOOR as readonly string[]).includes(a.type) || a.covered);
     expect(areas.map((a) => a.area).sort()).toEqual(expected.map((a) => a.id).sort());
+    expect(expected.some((a) => a.pool)).toBe(true);
     for (const a of areas) {
       const o = ctx.derived.outdoor.find((x) => x.id === a.area)!;
+      const r = o.pool ? o.pool.water : o.rect;
       expect(a.points).toHaveLength(15);
-      const floor = ctx.site.terrain.groundAt((o.rect[0] + o.rect[2]) / 2, (o.rect[1] + o.rect[3]) / 2);
       for (const p of a.points) {
-        expect(p.house[0]).toBeGreaterThan(o.rect[0]);
-        expect(p.house[0]).toBeLessThan(o.rect[2]);
-        expect(p.house[1]).toBeGreaterThan(o.rect[1]);
-        expect(p.house[1]).toBeLessThan(o.rect[3]);
-        expect(p.house[2]).toBeCloseTo(floor + 0.45, 12);
+        expect(p.house[0]).toBeGreaterThan(r[0]);
+        expect(p.house[0]).toBeLessThan(r[2]);
+        expect(p.house[1]).toBeGreaterThan(r[1]);
+        expect(p.house[1]).toBeLessThan(r[3]);
+        if (o.pool) {
+          expect(p.house[2]).toBeGreaterThan(o.pool.waterZ);
+          expect(p.house[2]).toBeLessThan(o.pool.copingTop);
+        } else {
+          const pl = o.grade.plane;
+          expect(p.house[2]).toBeCloseTo(pl.z0 + pl.gx * (p.house[0] - pl.ox) + pl.gy * (p.house[1] - pl.oy) + 0.45, 12);
+        }
       }
     }
   });
@@ -141,6 +149,30 @@ describe("open scene against the analytic oracle", () => {
         expect(res.rooms[room].hours).toBeGreaterThanOrEqual(best[room] - 1e-9);
         expect(res.rooms[room].hours).toBeLessThanOrEqual(sum[room] + 1e-9);
         expect(sumFractions(res.rooms[room], step)).toBeCloseTo(res.rooms[room].hours, 9);
+      }
+    }
+  });
+  it("sun on the window: in an open scene, the hours the sun is at least WINDOW_SUN.minAltitude high and in front of any window of the room", () => {
+    const step = 10;
+    const an = analyzer([]);
+    for (const date of DAYS) {
+      const res = an.day(date, step);
+      const t0 = localToUtc(place.tz, date), t1 = localToUtc(place.tz, addDays(date, 1));
+      const oracle: Record<string, number> = Object.fromEntries(Object.keys(res.rooms).map((r) => [r, 0]));
+      for (let k = 0; ; k++) {
+        const ms = t0 + (k + 0.5) * step * 60_000;
+        if (ms >= t1) break;
+        const sun = sunPosition(ms, place);
+        if (sun.altitude < WINDOW_SUN.minAltitude) continue;
+        const d = sunDirection(sun.azimuth, sun.altitude, bearing);
+        for (const r of new Set(sampleWindows(ctx).filter((w) => d[0] * w.normalHouse[0] + d[1] * w.normalHouse[1] > 0).map((w) => w.room))) oracle[r] += step / 60;
+      }
+      expect(Object.keys(res.windowSun).sort()).toEqual(Object.keys(res.rooms).sort());
+      for (const room of Object.keys(oracle)) {
+        expect(res.windowSun[room].hours, room).toBeCloseTo(oracle[room], 9);
+        expect(res.windowSun[room].fraction.every((f) => f === 0 || f === 1)).toBe(true);
+        // where the glass-weighted value is complete at a high enough sun, the window has sun too
+        res.rooms[room].fraction.forEach((f, i) => { if (f >= 1 && res.altitude[i] >= WINDOW_SUN.minAltitude) expect(res.windowSun[room].fraction[i]).toBe(1); });
       }
     }
   });
@@ -210,7 +242,7 @@ describe("a roof overhang over a window", () => {
 describe("obstacles", () => {
   it("a ring of slabs around the house leaves no sun in any room or area", () => {
     const res = analyzer(ring()).day(SUMMER, 10);
-    for (const s of [...Object.values(res.rooms), ...Object.values(res.outdoors), ...Object.values(res.outdoorsOpen)]) expect(s.hours).toBe(0);
+    for (const s of [...Object.values(res.rooms), ...Object.values(res.windowSun), ...Object.values(res.outdoors), ...Object.values(res.outdoorsOpen)]) expect(s.hours).toBe(0);
   });
   it("a screen on one side removes the sun that comes from that side and never adds any", () => {
     const open = analyzer([]).day(SUMMER, 10), screened = analyzer([southScreen()]).day(SUMMER, 10);

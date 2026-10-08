@@ -50,7 +50,7 @@ export const AssumptionsSchema = z
     thermal: z.strictObject({
       /** Allowance for thermal bridges, W/(m2 K), added to the area of the envelope that borders the outside air. */
       thermalBridgeDeltaU: z.number().min(0),
-      /** Internal heat capacity per m2 of heated floor, kJ/(m2 K) (EN ISO 13790, 12.3.1: light 80, medium 165, heavy 260...). */
+      /** Internal heat capacity per m2 of heated floor, kJ/(m2 K) (EN ISO 13790, 12.3.1: light 80, medium 165, heavy 260...; masonry with a concrete ceiling and screed is heavy). */
       internalHeatCapacityKjPerM2K: positive,
       /** Reference time constant a0 of the utilisation factor, hours (15 for the monthly method). */
       utilisationReferenceTimeH: positive,
@@ -62,11 +62,18 @@ export const AssumptionsSchema = z
       verticalBeamShare: share,
       /** Temperature reduction factor b (EN ISO 13789) of a heated room's wall to an unheated room of that type. */
       unheatedB: z.partialRecord(z.enum(ROOM_TYPES), share),
+      /**
+       * Temperature reduction factor b of the ceiling under a cold, ventilated roof space (`roof.attic === "cold"`; EN ISO 13789:
+       * about 0.9 for a ventilated roof space with a membrane under the covering).
+       */
+      atticB: share,
+      /** U-value of a door between a heated and an unheated room (a fire-rated door to the garage), W/(m2 K). */
+      doorToUnheatedU: positive,
     }),
     ground: z.strictObject({
-      /** Thermal conductivity of the soil, W/(m K) (EN ISO 13370: 2.0 for clay or silt). */
+      /** Thermal conductivity of the soil, W/(m K) (EN ISO 13370: 2.0 for sand or gravel, the default for unknown soil; clay or silt 1.5). */
       soilLambda: positive,
-      /** Periodic penetration depth, m (3.2 for clay or silt). */
+      /** Periodic penetration depth, m (3.2 for sand or gravel; clay or silt 2.2). */
       periodicDepthM: positive,
       /** Correction for the annual outdoor temperature variation in the design load (EN 12831 f_g1, about 1.45). */
       fg1: positive,
@@ -88,6 +95,19 @@ export const AssumptionsSchema = z
       kwhPerKm: positive,
       chargingLossShare: z.number().min(0).max(0.5),
     }),
+    /**
+     * Electricity of a pool of the model (an outdoor area of type `pool`): its own row, never part of the house's heat demand.
+     * In the months of the season the filtration pump runs `filtrationHoursPerDay` at `filtrationKw` (per pool), and the pool heat
+     * pump uses `heatPumpKwhPerM2Season` per m2 of water surface over the season, spread by days. Both run at `hours` (local).
+     */
+    pool: z.strictObject({
+      /** 0-based months of the swimming season. */
+      seasonMonths: z.array(z.int().min(0).max(11)).min(1),
+      filtrationKw: z.number().min(0),
+      filtrationHoursPerDay: z.number().min(0).max(24),
+      heatPumpKwhPerM2Season: z.number().min(0),
+      hours: z.array(hour).min(1),
+    }),
     heating: z.strictObject({
       /** Losses of distribution and storage as a share of the heat need. */
       distributionLossShare: z.number().min(0).max(0.5),
@@ -97,6 +117,11 @@ export const AssumptionsSchema = z
        * the SCOP input exactly.
        */
       copCurve: z.strictObject({ sinkApproachK: z.number().min(0), sourceApproachK: z.number().min(0) }),
+      /**
+       * Output of the heat pump at the design outdoor temperature (A-12/W35) as a share of its nominal rating
+       * (`equipment.heating.ratedPowerKw`, A7/W35); the coverage of the design load uses this output.
+       */
+      designCapacityShare: z.number().positive().max(1.5),
     }),
     dhw: z.strictObject({
       coldWaterC: z.number(),
@@ -139,6 +164,13 @@ export const AssumptionsSchema = z
        * keep the bill of a big PV system from falling below what a connected household always pays.
        */
       fixedChargesPerYear: z.number().min(0),
+      /** Life of the PV system (modules, mounting) and of the battery, years: a payback beyond it has the status "beyondLife". */
+      pvLifeYears: positive,
+      batteryLifeYears: positive,
+      /** Yearly loss of PV output (0.005 = 0.5 % a year); the savings of later years shrink with it. */
+      pvDegradationPerYear: z.number().min(0).max(0.05),
+      /** One replacement of the inverter in `year` (1-based), costing `shareOfPvInvestment` of the gross PV price. */
+      inverterReplacement: z.strictObject({ year: z.int().min(1), shareOfPvInvestment: share }),
     }),
   })
   .superRefine((a, ctx) => {

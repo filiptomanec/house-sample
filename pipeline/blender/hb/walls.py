@@ -252,9 +252,9 @@ def build_floors_and_ceilings(cfg, ms, st):
         for (i0, j0, i1, j1) in rects:
             x0, x1, y0, y1 = st.xs[i0], st.xs[i1 + 1], st.ys[j0], st.ys[j1 + 1]
             ms.poly(role, [(x0, y0, 0.0), (x1, y0, 0.0), (x1, y1, 0.0), (x0, y1, 0.0)], (0, 0, 1), id=rid)
-        # ceiling: top of the walls above the room minus the slab (= the clear height)
-        cx, cy = st.cell_center(*sorted(cells[rid])[0])
-        zc = cfg.roof_top_at(cx, cy) - cfg.slab
+        # ceiling at the room's clear height (derived rooms[].height); under a cold attic the walls carrying the roof go on
+        # above it
+        zc = cfg.room_ceiling(rid)
         for (i0, j0, i1, j1) in rects:
             x0, x1, y0, y1 = st.xs[i0], st.xs[i1 + 1], st.ys[j0], st.ys[j1 + 1]
             ms.poly("ceiling", [(x0, y0, zc), (x1, y0, zc), (x1, y1, zc), (x0, y1, zc)], (0, 0, -1), toggle="roof")

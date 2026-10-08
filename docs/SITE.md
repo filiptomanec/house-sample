@@ -63,10 +63,11 @@ A slightly irregular quadrilateral of about 1,200 m2. The street is on the north
 south-west corner), the open field adjoins the south, neighbours with pitched roofs on the west and east. One boundary
 system closes the plot: a slat fence on a graphite plinth on every edge, with a sliding drive gate that parks behind the
 street fence, an inward-opening walk gate and a technical pillar beside it. The garden carries an old walnut and fruit
-trees, a pool in a timber deck in front of the terrace, beds and a bin pad. The ground is nearly level and falls gently to
-the south-west; the lawn around the house lies below the finished floor (the graphite plinth shows) and the street lies
-below it too, so the driveway and the front path fall gently from the house to their gates and water runs away from the
-garage and the entrance. The numbers (set-backs, built-up, paved, water and green shares, slopes, earthworks) are computed
+trees, a pool in a timber deck in front of the terrace, beds and a bin pad. The house stands on a slightly raised, levelled
+platform: the lawn around it lies below the finished floor (the graphite plinth shows), and from the platform the ground falls
+away on every side, gently to the south-west across the garden and down to the street, which lies about a third of a metre
+below the floor. So the driveway and the front path fall from the house to their gates steeply enough to drain (`W-RAMP-FALL`
+guards it) and water runs away from the garage, the entrance and the terrace; the earthworks are mostly fill. The numbers (set-backs, built-up, paved, water and green shares, slopes, earthworks) are computed
 by `analyzeSite` and shown on the Plot page; they are not repeated here.
 
 ## 3. Terrain
@@ -103,7 +104,9 @@ Every outdoor area of the house is a slab with a planar top (`gradeOutdoor(outdo
 * **flat** at `outdoor[].top` (default −0.02): terrace, paving, deck, pool coping, porch;
 * **ramp** for the driveway and the walkway (the strips of `access.*.outdoorType` reaching furthest to the street): linear
   along +y from `top` at the house end of the strip to `base(gate) + RAMP_GATE_RISE` (0.03 m) at the centre of its crossing
-  on the boundary; the apron to the boundary lies on the same plane. Steeper than `RAMP_MAX_SLOPE` (8 %) is `E-RAMP`.
+  on the boundary; the apron to the boundary lies on the same plane. Steeper than `RAMP_MAX_SLOPE` (8 %) is `E-RAMP`; a ramp
+  that falls from the house to its gate by less than `RAMP_MIN_FALL` (1 %), or rises towards the gate, is the warning
+  `W-RAMP-FALL` (the paving would not drain away from the house).
 
 `createTerrain(params, bearing, slabs)` then cuts the ground under the slabs: inside a slab the ground is
 `min(base, top - SLAB_GROUND_GAP)` (0.03 m), and beside it the cut fades out over `SLAB_SIDE_BLEND` (0.6 m, smoothstep of
@@ -230,6 +233,7 @@ slabs (`gradedTerrain`).
 |---|---|
 | `E-BRANA` | a gate that no fence with gates crosses; a paved strip wider than its leaf; a fence opening that is not leaf to leaf + 0.25 m; the open sliding leaf running past the end of its fence or across another opening (gate or pillar); a tree trunk (0.25 m) or a shrub within 0.1 m of where a leaf moves (park band or swing sector). `validateSite` adds: more than one gate per access |
 | `E-RAMP` | a drive or path ramp steeper than 8 % |
+| `W-RAMP-FALL` (warning) | a drive or path ramp that falls from the house to its gate by less than 1 % or rises towards it: the paving does not drain away from the house |
 | `E-TANK` | the rainwater tank under a paved area or outdoor slab (`validateSite`: outside the plot) |
 | `E-ACCESS` | no outdoor area of the access types |
 
@@ -261,7 +265,7 @@ areas of `model/house.json`, plus the real `model/house.json` where noted):
   is closed except the openings, each gate opening is leaf + 2 posts and centred on its access, posts at most `postSpacing`
   apart and none at an end that touches an opening, a sliding leaf parks on its `side` behind the fence and is leaf + tail
   long, a swing leaf opens into the plot by a quarter turn, the pillar stands inside the plot beside the gate; `E-BRANA`,
-  `E-RAMP`, `E-TANK` provoked by mutations; pavement + green = verge; dropped kerbs on the kerb strip across each crossing;
+  `E-RAMP`, `E-TANK` and the warning `W-RAMP-FALL` provoked by mutations; pavement + green = verge; dropped kerbs on the kerb strip across each crossing;
 * site data (invariants of any valid plot, no counts of the content): schema strictness, semantic validation, plot is a
   simple counter-clockwise quadrilateral of 1,100 to 1,300 m2, street north, field south, trees inside the plot, away from
   the house and from each other, hedges at their inset, openings exactly where the accesses cross fences, neighbour houses

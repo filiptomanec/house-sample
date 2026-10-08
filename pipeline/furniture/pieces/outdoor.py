@@ -22,17 +22,18 @@ def lounger(pc, w, d, variant):
     # teak slats
     n = 9
     for i in range(n):
-        y0 = -hd + 0.03 + i * (y_hinge + hd - 0.03) / n
-        pc.box(-hw + 0.03, y0, zf - 0.01, hw - 0.03, y0 + (y_hinge + hd - 0.03) / n - 0.012, zf + 0.016, teak, r=0.004)
+        y0 = -hd + 0.034 + i * (y_hinge + hd - 0.034) / n         # clear of the rail ends (no shared plane)
+        pc.box(-hw + 0.03, y0, zf - 0.01, hw - 0.03, y0 + (y_hinge + hd - 0.034) / n - 0.012, zf + 0.016, teak, r=0.004)
     with pc.at(0, y_hinge, zf, rx=ang):
         m = 8
         for i in range(m):
             y0 = 0.012 + i * L_back / m
-            pc.box(-hw + 0.03, y0, -0.01, hw - 0.03, y0 + L_back / m - 0.012, 0.016, teak, r=0.004)
+            ex = 0.003 * (i % 2)                 # neighbouring slats never share their end planes
+            pc.box(-hw + 0.03 + ex, y0, -0.01, hw - 0.03 - ex, y0 + L_back / m - 0.012, 0.016, teak, r=0.004)
     # cushions
     pc.softbox(-hw + 0.045, -hd + 0.03, zf + 0.016, hw - 0.045, y_hinge, zf + 0.086, fab, r=0.025, wr=0.003, puff=0.01, seed=1.0)
     with pc.at(0, y_hinge, zf, rx=ang):
-        pc.softbox(-hw + 0.045, 0.0, 0.016, hw - 0.045, L_back - 0.02, 0.086, fab, r=0.025, wr=0.003, puff=0.01, seed=2.0)
+        pc.softbox(-hw + 0.049, 0.0, 0.016, hw - 0.049, L_back - 0.02, 0.086, fab, r=0.025, wr=0.003, puff=0.01, seed=2.0)
         pc.softbox(-hw * 0.7, L_back - 0.30, 0.086, hw * 0.7, L_back - 0.04, 0.17, 't_sage', r=0.04, wr=0.004, puff=0.02, seed=3.0)
     pc.anchor('top', rect=(-hw, -hd, hw, y_hinge), z=zf + 0.09)
     pc.footprint([(-hw, -hd, hw, hd, 0.8)])

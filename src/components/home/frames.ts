@@ -23,6 +23,8 @@ export interface FrameStoreOptions {
   retryDelayMs?: number;
   /** Called after a frame has been decoded (so the owner can redraw). */
   onDecoded?: (index: number) => void;
+  /** Called whenever a download has finished for good (arrived, or given up after the retries): `settled` of `total`. */
+  onProgress?: (settled: number, total: number) => void;
 }
 
 export class FrameStore<B extends Bitmap> {
@@ -34,12 +36,15 @@ export class FrameStore<B extends Bitmap> {
   private readonly timers = new Set<ReturnType<typeof setTimeout>>();
   private next = 0;
   private inflight = 0;
+  /** Downloads that have finished for good (arrived or given up). */
+  private settled = 0;
+  /** How many entries of the load order may be fetched (raised by start()). */
+  private limit = 0;
   private current = 0;
   /** Bumped by release(): a decode that finishes for an older epoch is closed at once. */
   private epoch = 0;
-  private started = false;
   private alive = true;
-  private readonly opts: Required<Omit<FrameStoreOptions, "onDecoded">> & Pick<FrameStoreOptions, "onDecoded">;
+  private readonly opts: Required<Omit<FrameStoreOptions, "onDecoded" | "onProgress">> & Pick<FrameStoreOptions, "onDecoded" | "onProgress">;
 
   constructor(private readonly urls: readonly string[], private readonly deps: FrameDeps<B>, opts: FrameStoreOptions) {
     this.blobs = new Array<Blob | null>(urls.length).fill(null);
@@ -49,12 +54,18 @@ export class FrameStore<B extends Bitmap> {
 
   get count(): number { return this.urls.length; }
 
-  /** Starts downloading (once). */
-  start(): void {
-    if (this.started || !this.alive) return;
-    this.started = true;
+  /**
+   * Starts downloading, or lets it go further: only the first `limit` frames of the load order (coarse to fine; see
+   * `coarseCount`), or all of them. Calling it again with the same or a smaller limit does nothing.
+   */
+  start(limit = Infinity): void {
+    if (!this.alive || limit <= this.limit) return;
+    this.limit = limit;
     this.pump();
   }
+
+  /** Has start() been called? */
+  get started(): boolean { return this.limit > 0; }
 
   /** The frame the viewer is at: decoded frames far from it may be dropped, and frames near it are decoded when available. */
   setCurrent(index: number, window: readonly number[] = [-1, 0, 1, 2]): void {
@@ -89,7 +100,7 @@ export class FrameStore<B extends Bitmap> {
   }
 
   private pump(): void {
-    while (this.alive && this.inflight < this.opts.concurrency && this.next < this.order.length) {
+    while (this.alive && this.inflight < this.opts.concurrency && this.next < this.order.length && this.next < this.limit) {
       const i = this.order[this.next++];
       this.inflight++;
       void this.download(i, 0);
@@ -110,10 +121,12 @@ export class FrameStore<B extends Bitmap> {
       return; // the slot stays taken until the retry finishes
     }
     this.inflight--;
+    this.settled++;
     if (blob) {
       this.blobs[i] = blob;
       if (Math.abs(i - this.current) <= 2) this.decodeFrame(i);
     }
+    this.opts.onProgress?.(this.settled, this.urls.length);
     this.pump();
   }
 

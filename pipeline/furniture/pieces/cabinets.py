@@ -15,22 +15,24 @@ def wardrobe(pc, w, d, variant):
     H = 2.30 if v != 'utility' else 2.10
     if v == 'walkin':
         return _walkin(pc, w, d, H)
-    pc.box(-hw, -hd + 0.03, 0.0, hw, hd, 0.07, 'f_anthracite')                               # plinth
-    pc.box(-hw, -hd + 0.03, 0.07, hw, hd, H, 'f_white', r=0.004)                             # carcass
     n = max(1, int(round(w / 0.5)))
     cw = w / n
     open_bay = (v in ('closed', 'hall') and n >= 4 and pc.seed % 3 == 0)
+    pc.box(-hw, -hd + 0.03, 0.0, hw, hd, 0.07, 'f_anthracite')                               # plinth
+    # carcass; an open bay (the first one) is a recess, so the carcass leaves it out
+    pc.box(-hw + (cw if open_bay else 0.0), -hd + 0.03, 0.07, hw, hd, H, 'f_white', r=0.004)
     for i in range(n):
         a, b = -hw + i * cw + 0.002, -hw + (i + 1) * cw - 0.002
         if open_bay and i == 0:
-            # an open oak niche: frame boards, white back, three shelves with folded stacks
-            pc.box(a, -hd + 0.02, 0.09, a + 0.02, hd - 0.03, H - 0.03, 'f_oak', r=0.003)
-            pc.box(b - 0.02, -hd + 0.02, 0.09, b, hd - 0.03, H - 0.03, 'f_oak', r=0.003)
-            pc.box(a, -hd + 0.02, H - 0.05, b, hd - 0.03, H - 0.03, 'f_oak', r=0.003)
-            pc.box(a + 0.02, hd - 0.034, 0.09, b - 0.02, hd - 0.03, H - 0.05, 'f_white')
+            # an open oak niche: side boards, top and bottom between them, white back, shelves with folded stacks
+            pc.box(a, -hd + 0.02, 0.07, a + 0.02, hd - 0.03, H, 'f_oak', r=0.003)
+            pc.box(b - 0.02, -hd + 0.02, 0.07, b, hd - 0.03, H, 'f_oak', r=0.003)
+            pc.box(a + 0.02, -hd + 0.023, H - 0.03, b - 0.02, hd - 0.03, H - 0.004, 'f_oak', r=0.003)
+            pc.box(a + 0.02, -hd + 0.023, 0.07, b - 0.02, hd - 0.03, 0.09, 'f_oak', r=0.003)
+            pc.box(a + 0.02, hd - 0.034, 0.09, b - 0.02, hd - 0.004, H - 0.03, 'f_white')
             for k in range(4):
                 z = 0.11 + (k + 1) * (H - 0.17) / 5
-                pc.box(a + 0.02, -hd + 0.03, z, b - 0.02, hd - 0.034, z + 0.022, 'f_oak', r=0.003)
+                pc.box(a + 0.02, -hd + 0.033, z, b - 0.02, hd - 0.034, z + 0.022, 'f_oak', r=0.003)
                 stuff.folded_stack(pc, (a + b) / 2, 0.0, z + 0.022, w=cw * 0.7, d=d * 0.6, n=3 + k % 2)
             continue
         pc.box(a, -hd, 0.08, b, -hd + 0.02, H - 0.005, 'f_white' if v != 'hall' else pc.pick(['f_white', 'f_greige']), r=0.004)
@@ -65,16 +67,16 @@ def _walkin(pc, w, d, H):
             for z in (1.85, 1.02):
                 pc.tube((a, 0.0, z), (b, 0.0, z), 0.007, 'f_chrome', seg=pc.n(8, 6))
                 stuff.garment_row(pc, a, b, 0.0, z, kinds=['shirt', 'shirt', 'trousers'], max_h=0.74)
-            pc.box(a, -hd + 0.03, 0.22, b, hd - 0.012, 0.242, 'f_oak', r=0.003)
+            pc.box(a, -hd + 0.03, 0.22, b, hd - 0.015, 0.242, 'f_oak', r=0.003)
         elif mode == 1:                                # long hanging
             z = 1.84
             pc.tube((a, 0.0, z), (b, 0.0, z), 0.007, 'f_chrome', seg=pc.n(8, 6))
             stuff.garment_row(pc, a, b, 0.0, z, kinds=['dress', 'dress', 'coat', 'jacket'])
-            pc.box(a, -hd + 0.03, 0.12, b, hd - 0.012, 0.142, 'f_oak', r=0.003)
+            pc.box(a, -hd + 0.03, 0.12, b, hd - 0.015, 0.142, 'f_oak', r=0.003)
         else:                                          # shelves
             zs = [0.30, 0.62, 0.94, 1.26, 1.58, 1.90]
             for k, z in enumerate(zs):
-                pc.box(a, -hd + 0.03, z, b, hd - 0.012, z + 0.022, 'f_oak', r=0.003)
+                pc.box(a, -hd + 0.03, z, b, hd - 0.015, z + 0.022, 'f_oak', r=0.003)
                 cx = (a + b) / 2
                 if k % 2 == 0:
                     stuff.folded_stack(pc, cx - 0.12, 0.0, z + 0.022, w=0.30, d=0.30, n=3 + k % 3)
@@ -171,7 +173,7 @@ def _storage(pc, w, d):
                 stuff.jar(pc, x + 0.06, -0.04, zt, r=0.045, h=min(0.18, gap - 0.04), content=pc.pick(['f_sand', 'f_linen', 'f_sage']))
                 stuff.jar(pc, x + 0.17, 0.02, zt, r=0.04, h=min(0.14, gap - 0.04), content=pc.pick(['f_sand', 'f_clay']))
             else:
-                stuff.crate(pc, x + sw / 2, 0.0, zt, w=sw + 0.06, d=min(0.28, d - 0.06), h=min(0.2, gap - 0.04), mat=pc.pick(['f_sand', 'f_linen']))
+                stuff.crate(pc, x + sw / 2, 0.0, zt, w=sw - 0.01, d=min(0.28, d - 0.06), h=min(0.2, gap - 0.04), mat=pc.pick(['f_sand', 'f_linen']))
             x += sw + pc.rand(0.04, 0.10)
     pc.footprint([(-hw, -hd, hw, hd, H)])
 

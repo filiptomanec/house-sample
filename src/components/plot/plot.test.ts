@@ -7,7 +7,7 @@ import { I18nProvider } from "@/lib/i18n/client";
 import type { Locale } from "@/lib/i18n/config";
 import { getFormatter } from "@/lib/i18n/format";
 import { messagesFor } from "@/lib/i18n/messages";
-import { derived, house } from "@/lib/model/instance";
+import { derived, house, metrics } from "@/lib/model/instance";
 import { createTerrain } from "@/lib/model/site/terrain";
 import { polygonArea, pointInPolygon, type XY } from "@/lib/model/site/geometry";
 import siteJson from "@model/site.json";
@@ -26,7 +26,7 @@ import { buildPlotView, cornerOf } from "./view";
 vi.mock("next/navigation", () => ({ usePathname: () => "/", notFound: () => { throw new Error("NEXT_NOT_FOUND"); } }));
 
 const view = buildPlotView(house, derived, siteJson);
-const terrain = createTerrain(view.terrain, view.bearingDeg);
+const terrain = createTerrain(view.terrain, view.bearingDeg, view.slabs);
 const c = toUnits(view.center);
 const html = (el: ReactElement) => renderToStaticMarkup(el);
 const provide = (locale: Locale, child: ReactElement) => h(I18nProvider, { locale, messages: messagesFor(locale, ["common", "plot"]), children: child });
@@ -37,12 +37,26 @@ describe("view model", () => {
     expect(JSON.parse(JSON.stringify(view))).toEqual(view);
   });
 
-  it("areas add up: built-up + paved + green = plot, and the plot area is the shoelace area", () => {
+  it("areas add up: built-up + paved + water + green = plot, and the plot area is the shoelace area", () => {
     const s = view.stats;
-    expect(s.builtUpArea + s.pavedArea + s.greenArea).toBeCloseTo(s.plotArea, 6);
-    expect(s.builtUpRatio + s.pavedRatio + s.greenRatio).toBeCloseTo(1, 9);
+    expect(s.builtUpArea + s.pavedArea + s.waterArea + s.greenArea).toBeCloseTo(s.plotArea, 6);
+    expect(s.builtUpRatio + s.pavedRatio + s.waterRatio + s.greenRatio).toBeCloseTo(1, 9);
     expect(s.plotArea).toBeCloseTo(polygonArea(view.plot), 2);
     expect(s.footprintArea).toBeLessThanOrEqual(s.builtUpArea + 1e-9);
+  });
+
+  it("the built-up area and the footprint are the shared metrics of the house (the floor plan note shows the same numbers)", () => {
+    // metrics are rounded to 0.01 m2
+    expect(view.stats.builtUpArea).toBeCloseTo(metrics.builtUpArea, 1);
+    expect(view.stats.footprintArea).toBeCloseTo(metrics.footprintArea, 1);
+  });
+
+  it("draws posts at the size the model gives them", () => {
+    for (const o of view.outdoor) {
+      const d = derived.outdoor.find((q) => q.type === o.type && q.role === o.role && q.posts.length === o.posts.length)!;
+      expect(o.postSize).toBe(d.postSize);
+      if (o.posts.length) expect(o.postSize).toBeGreaterThan(0);
+    }
   });
 
   it("set-backs are real distances between a point of the house outline and a point of the boundary", () => {
@@ -75,7 +89,7 @@ describe("view model", () => {
     expect(polygonArea(view.buildable)).toBeLessThan(polygonArea(view.plot));
   });
 
-  it("measuring presets are corners of the house outline and of the plot (no ids needed)", () => {
+  it("measuring presets are corners of the house outline and of the plot, numbered within their group (no ids parsed)", () => {
     const on = (pts: readonly XY[], p: XY) => pts.some((q) => Math.abs(q[0] - p[0]) < 0.011 && Math.abs(q[1] - p[1]) < 0.011);
     for (const p of view.presets) {
       if (p.group === "house") expect(on(view.house.outline, p.p)).toBe(true);
@@ -83,16 +97,63 @@ describe("view model", () => {
     }
     expect(view.presets.filter((p) => p.group === "house")).toHaveLength(4);
     expect(new Set(view.presets.map((p) => p.id)).size).toBe(view.presets.length);
+    for (const g of ["house", "garage", "plot"] as const) {
+      expect(view.presets.filter((p) => p.group === g).map((p) => p.index)).toEqual(view.presets.filter((p) => p.group === g).map((_, i) => i));
+    }
   });
 
-  it("the ground statistics are consistent with the terrain function", () => {
+  it("draws the boundary as built: the gates stand in the fence openings, a sliding leaf parks along the fence, a swing leaf sweeps into the plot", () => {
+    expect(view.fences.length).toBeGreaterThan(0);
+    expect(view.gates.length).toBe(derived.site?.gates.length ?? 0);
+    const fencePts = view.fences.flatMap((f) => f.parts.flat());
+    const near = (p: XY, pts: readonly XY[], d: number) => pts.some((q) => Math.hypot(q[0] - p[0], q[1] - p[1]) < d);
+    for (const g of view.gates) {
+      // the posts of a gate stand where a fence part ends (the opening) or against the pillar beside it
+      const pillarPts = view.pillars.flatMap((q) => q.footprint);
+      for (const p of g.posts) expect(near(p, fencePts, g.postSize + 0.05) || near(p, pillarPts, g.postSize + 0.05)).toBe(true);
+      expect(g.posts.some((p) => near(p, fencePts, g.postSize + 0.05))).toBe(true);
+      if (g.kind === "sliding") {
+        expect(g.park).not.toBeNull();
+        expect(polygonArea(g.park!)).toBeCloseTo(polygonArea(g.leaf), 1); // the same leaf, moved (points rounded to 1 cm)
+        // the parked leaf as a line: as long as the moving part, and the map draws it towards the inside of the plot
+        const [p0, p1] = g.parkLine!;
+        const long = Math.max(...g.park!.map((p, i, a) => Math.hypot(a[(i + 1) % a.length][0] - p[0], a[(i + 1) % a.length][1] - p[1])));
+        expect(Math.hypot(p1[0] - p0[0], p1[1] - p0[1])).toBeCloseTo(long, 1);
+        const mid: XY = [(p0[0] + p1[0]) / 2 + g.inward[0], (p0[1] + p1[1]) / 2 + g.inward[1]];
+        expect(pointInPolygon(mid, view.plot)).toBe(true);
+      } else {
+        expect(g.swing).not.toBeNull();
+        const r = Math.hypot(g.swing!.open[0] - g.swing!.hinge[0], g.swing!.open[1] - g.swing!.hinge[1]);
+        for (const p of g.swing!.arc) expect(Math.hypot(p[0] - g.swing!.hinge[0], p[1] - g.swing!.hinge[1])).toBeCloseTo(r, 1);
+        expect(pointInPolygon(g.swing!.open, view.plot)).toBe(true); // it opens into the plot
+      }
+    }
+    expect(view.pillars.length).toBe(derived.site?.pillars.length ?? 0);
+  });
+
+  it("names the tallest tree on the map and keeps the pool, the tank and the roof lines of the house", () => {
+    const tallest = Math.max(...siteJson.trees.map((t) => t.height));
+    expect(view.trees.filter((t) => t.feature).length).toBe(siteJson.trees.filter((t) => t.height === tallest).length);
+    for (const t of view.trees.filter((q) => q.feature)) expect(t.name.cs.length).toBeGreaterThan(0);
+    expect(view.outdoor.some((o) => o.water)).toBe(derived.outdoor.some((o) => o.pool));
+    expect(view.tank !== null).toBe(Boolean(derived.site?.rainwater));
+    expect(view.house.roofLines.length).toBeGreaterThan(0);
+    // roof lines lie inside the eaves
+    const eaves = view.house.roofs;
+    for (const [a, b] of view.house.roofLines) for (const p of [a, b]) expect(eaves.some((e) => pointInPolygon(p, e) || near1(p, e))).toBe(true);
+  });
+
+  it("the ground statistics are consistent with the graded terrain function", () => {
     const zs: number[] = [];
     for (let x = -5; x < 28; x += 1) for (let y = -16; y < 21; y += 1) if (pointInPolygon([x, y], view.plot)) zs.push(terrain.groundAt(x, y));
     expect(Math.min(...zs)).toBeGreaterThanOrEqual(view.ground.zMin - 0.05);
     expect(Math.max(...zs)).toBeLessThanOrEqual(view.ground.zMax + 0.05);
-    // the levelled plateau is exactly +-0.000 under the house
+    // the levelled plateau is at its level under the house (below the finished floor: the plinth shows)
     const [lx, ly] = view.house.label;
-    expect(terrain.groundAt(lx, ly)).toBeCloseTo(0, 9);
+    expect(terrain.groundAt(lx, ly)).toBeCloseTo(view.terrain.plateau.level, 9);
+    expect(view.terrain.plateau.level).toBeLessThanOrEqual(0);
+    // the slabs the client grades with are the house's outdoor areas: the ground never stands above a slab top
+    expect(view.slabs.length).toBeGreaterThan(0);
   });
 });
 
@@ -263,29 +324,49 @@ describe.each(["cs", "en"] as const)("page parts (%s)", (locale) => {
     for (const sb of view.setbacks) expect(tool).toContain(escaped(f.length(sb.d, 1)));
   });
 
-  it("has a segmented control for the orientation, four layer chips and two lists for measuring", () => {
+  it("has a segmented control for the orientation, four layer chips and, in the collapsed measuring panel, two lists", () => {
     expect((tool.match(/aria-pressed=/g) ?? []).length).toBe(2 + 4);
     expect((tool.match(/<select/g) ?? []).length).toBe(2);
     expect(tool).toContain('aria-live="polite"');
+    // the rail: the facts first, measuring second and closed until it is used
+    expect(tool.indexOf('class="panel panel-pad stack pt-facts"')).toBeLessThan(tool.indexOf("pt-measure-panel"));
+    expect(tool).toMatch(/<details class="pt-measure-box"(?![^>]*open)/);
   });
 
-  it("shows the numbers of the plot from the model", () => {
+  it("draws the fence, the gates, the pillar, the pool, the tank and the feature tree on the map", () => {
+    expect((tool.match(/class="pt-gate"/g) ?? []).length).toBe(view.gates.length);
+    expect((tool.match(/class="pt-gate-park"/g) ?? []).length).toBe(view.gates.filter((g) => g.park).length);
+    expect((tool.match(/class="pt-gate-arc"/g) ?? []).length).toBe(view.gates.filter((g) => g.swing).length);
+    expect((tool.match(/class="pt-pillar"/g) ?? []).length).toBe(view.pillars.length);
+    expect((tool.match(/class="pt-water"/g) ?? []).length).toBe(view.outdoor.filter((o) => o.water).length);
+    expect((tool.match(/class="pt-tank"/g) ?? []).length).toBe(view.tank ? 1 : 0);
+    expect((tool.match(/data-feature="true"/g) ?? []).length).toBe(view.trees.filter((t) => t.feature).length);
+    expect(tool).not.toContain("pt-sw-hedge");
+  });
+
+  it("shows the numbers of the plot from the model, each with its unit, and the planting in words", () => {
     for (const v of [f.area(view.stats.plotArea, 0), f.area(view.stats.builtUpArea, 0), f.percent(view.stats.builtUpRatio * 100, 1), f.degrees(view.bearingDeg, 0)]) {
       expect(tool).toContain(escaped(v));
     }
+    if (view.stats.waterArea > 0) expect(tool).toContain(escaped(f.area(view.stats.waterArea, 0)));
+    const trees = locale === "cs" ? /\d+[\s\u00a0]strom(ů|y)?/ : /\d+[\s\u00a0]trees?/;
+    expect(tool).toMatch(trees);
+    expect(tool).toContain(escaped(f.unit(view.zeroLevelAsl, locale === "cs" ? "m n.\u00a0m." : "m a.s.l.", 2)).slice(0, 4));
   });
 
-  it("the rules section states every check and its result in words", () => {
+  it("the rules section is one card: every check with its result in words, a meter in the rows of a share", () => {
     const out = html(h(PlotRules, { view, locale }));
     expect((out.match(/class="pt-status"/g) ?? []).length).toBe(view.checks.length);
-    expect(out).toContain("pt-limit-bar");
+    expect((out.match(/class="panel /g) ?? []).length).toBe(1);
+    expect((out.match(/class="pt-limit-bar"/g) ?? []).length).toBe(view.checks.filter((c) => c.unit === "ratio").length);
     for (const ch of view.checks) if (ch.unit === "m") expect(out).toContain(escaped(f.length(ch.actual, 1)));
   });
-
-  it("says that the plot is fictional", () => {
-    expect(tool).toMatch(locale === "cs" ? /smyšlen/ : /invented/);
-  });
 });
+
+/** Is a point on the outline of a polygon (within 2 cm)? */
+function near1(p: XY, poly: readonly XY[]): boolean {
+  return poly.some((a, i) => segDist(p, a, poly[(i + 1) % poly.length]) < 0.02);
+}
 
 function segDist(p: XY, a: XY, b: XY): number {
   const dx = b[0] - a[0], dy = b[1] - a[1], l2 = dx * dx + dy * dy;

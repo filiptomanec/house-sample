@@ -1,6 +1,7 @@
 // Lamps for the renders: a ceiling grid in the rooms, downlights of covered outdoor areas, wall lights at the entrance and the
-// garage door, bollards along paths, and (optional) the lamps of the furniture decor from the furniture report.
-// Positions come from the derived model; the numbers (spacing, lumens, colour) are data in model/render.json.
+// garage door, bollards along paths, the garden lights of the site (tree uplights, deck step lights, underwater pool lights,
+// the pillar light) and (optional) the lamps of the furniture decor from the furniture report.
+// Positions come from the derived model and the resolved site; the numbers (spacing, lumens, colour) are data in model/render.json.
 import type { RenderConfig, Vec3 } from "./render-schema";
 import { facadeVectors, type WorldContext } from "./render-world";
 
@@ -26,6 +27,27 @@ export interface FurnitureReport {
 
 const DOWN: Vec3 = [0, 0, -1];
 const wattsOf = (lumens: number): number => Math.round(lumens / 10);
+const r3 = (v: number): number => Math.round(v * 1000) / 1000 + 0;
+const unit = (v: Vec3): Vec3 => {
+  const l = Math.hypot(v[0], v[1], v[2]) || 1;
+  return [Math.round((v[0] / l) * 1e6) / 1e6 + 0, Math.round((v[1] / l) * 1e6) / 1e6 + 0, Math.round((v[2] / l) * 1e6) / 1e6 + 0];
+};
+/** Point in polygon, or within `margin` of it (house outline: `margin` keeps lamps off the walls). */
+function inPolygon(x: number, y: number, poly: readonly (readonly number[])[], margin = 0): boolean {
+  let inside = false;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const [xi, yi] = poly[i], [xj, yj] = poly[j];
+    if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) inside = !inside;
+  }
+  if (inside || margin <= 0) return inside;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const [ax, ay] = poly[j], [bx, by] = poly[i];
+    const l2 = (bx - ax) ** 2 + (by - ay) ** 2 || 1;
+    const t = Math.max(0, Math.min(1, ((x - ax) * (bx - ax) + (y - ay) * (by - ay)) / l2));
+    if (Math.hypot(x - ax - t * (bx - ax), y - ay - t * (by - ay)) < margin) return true;
+  }
+  return false;
+}
 
 /** Cell-centred points over a rectangle: n = round(extent / spacing) (at least 1) per axis. */
 export function gridPoints([x0, y0, x1, y1]: readonly number[], spacing: number): [number, number][] {
@@ -109,7 +131,75 @@ export function buildLights(ctx: WorldContext, report: FurnitureReport | null) {
     }
   }
 
-  // 5. lamps of the furniture decor (pendants, floor / table / desk lamps, lanterns), when the report belongs to this model
+  // 5. garden: uplights beside the trees marked `uplight`, on the side that faces the house, aimed into the crown
+  const centre: [number, number] = [(derived.bbox.x0 + derived.bbox.x1) / 2, (derived.bbox.y0 + derived.bbox.y1) / 2];
+  for (const t of ctx.siteDerived.trees) {
+    if (!t.uplight) continue;
+    const dx = centre[0] - t.x, dy = centre[1] - t.y, dl = Math.hypot(dx, dy) || 1;
+    const pos: Vec3 = [r3(t.x + (dx / dl) * L.uplight.offsetM), r3(t.y + (dy / dl) * L.uplight.offsetM), r3(t.z + 0.05)];
+    const aim: Vec3 = [t.x, t.y, t.z + t.crownBase + (t.height - t.crownBase) * L.uplight.aimHeightFraction];
+    push({
+      kind: "garden", group: "exterior", pos, room: null, space: "tree_uplight", lumens: L.uplight.lumens, kelvin: L.uplight.kelvin, radius: L.uplight.radiusM,
+      spot: { direction: unit([aim[0] - pos[0], aim[1] - pos[1], aim[2] - pos[2]]), coneDeg: L.uplight.coneDeg, blend: L.uplight.blend },
+    });
+  }
+
+  // 6. step lights in the edges of raised deck areas where they meet the ground (not along the house or another slab)
+  const others = derived.outdoor.map((o) => o.rect);
+  const outline = derived.outline.polygons[0]?.pts ?? [];
+  const onSlabOrHouse = (x: number, y: number, self: readonly number[]): boolean =>
+    others.some((r) => r !== self && x > r[0] - 0.05 && x < r[2] + 0.05 && y > r[1] - 0.05 && y < r[3] + 0.05) || inPolygon(x, y, outline, 0.3);
+  for (const o of derived.outdoor) {
+    if (!L.step.outdoorTypes.includes(o.type) || o.covered) continue;
+    const [x0, y0, x1, y1] = o.rect;
+    const edges: { a: [number, number]; b: [number, number]; out: [number, number] }[] = [
+      { a: [x0, y0], b: [x1, y0], out: [0, -1] },
+      { a: [x1, y0], b: [x1, y1], out: [1, 0] },
+      { a: [x1, y1], b: [x0, y1], out: [0, 1] },
+      { a: [x0, y1], b: [x0, y0], out: [-1, 0] },
+    ];
+    for (const e of edges) {
+      const len = Math.hypot(e.b[0] - e.a[0], e.b[1] - e.a[1]);
+      const n = Math.max(1, Math.round(len / L.step.spacingM));
+      for (let k = 0; k < n; k++) {
+        const f = (k + 0.5) / n;
+        const x = e.a[0] + (e.b[0] - e.a[0]) * f, y = e.a[1] + (e.b[1] - e.a[1]) * f;
+        if (onSlabOrHouse(x + e.out[0] * 0.2, y + e.out[1] * 0.2, o.rect)) continue;
+        push({
+          kind: "garden", group: "exterior", pos: [r3(x + e.out[0] * 0.01), r3(y + e.out[1] * 0.01), r3(o.top - L.step.height)], room: null, space: "deck_step",
+          lumens: L.step.lumens, kelvin: L.step.kelvin, radius: L.step.radiusM, spot: { direction: unit([e.out[0], e.out[1], -0.6]), coneDeg: 110, blend: 0.8 },
+        });
+      }
+    }
+  }
+
+  // 7. underwater lights in the long walls of every pool, aimed across the basin
+  for (const o of derived.outdoor) {
+    if (!o.pool) continue;
+    const [x0, y0, x1, y1] = o.pool.water;
+    const alongX = x1 - x0 >= y1 - y0;
+    const len = alongX ? x1 - x0 : y1 - y0;
+    const n = Math.max(1, Math.round(len / L.pool.spacingM));
+    const z = r3(o.pool.waterZ - L.pool.depthM);
+    for (const side of [-1, 1]) {
+      for (let k = 0; k < n; k++) {
+        const s = ((k + 0.5) / n) * len;
+        const pos: Vec3 = alongX ? [r3(x0 + s), side < 0 ? y0 : y1, z] : [side < 0 ? x0 : x1, r3(y0 + s), z];
+        const dir: Vec3 = alongX ? [0, -side, 0] : [-side, 0, 0];
+        push({ kind: "pool", group: "exterior", pos, room: null, space: o.type, lumens: L.pool.lumens, kelvin: L.pool.kelvin, radius: L.pool.radiusM, spot: { direction: dir, coneDeg: L.pool.coneDeg, blend: L.pool.blend } });
+      }
+    }
+  }
+
+  // 8. the light of a technical pillar (site pillars with the item "light"), on the street face near the top
+  for (const p of ctx.siteDerived.pillars) {
+    if (!p.items.includes("light")) continue;
+    const out: [number, number] = [-p.inward[0], -p.inward[1]];
+    const pos: Vec3 = [r3(p.center[0] + out[0] * (p.size[1] / 2 + 0.01)), r3(p.center[1] + out[1] * (p.size[1] / 2 + 0.01)), r3(p.z + p.size[2] - L.pillar.insetM)];
+    push({ kind: "pillar", group: "exterior", pos, room: null, space: "pillar", lumens: L.pillar.lumens, kelvin: L.pillar.kelvin, radius: L.pillar.radiusM, spot: null });
+  }
+
+  // 9. lamps of the furniture decor (pendants, floor / table / desk lamps, lanterns), when the report belongs to this model
   let usedReport = false;
   if (report?.decor?.placed) {
     for (const d of report.decor.placed) {

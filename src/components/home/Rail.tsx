@@ -1,12 +1,27 @@
 "use client";
 // A horizontal strip of renders. Touch and trackpads scroll it natively (scroll-snap); the previous and next buttons exist for
-// a mouse only (they are hidden without hover and a fine pointer). Every card is a real link to the gallery.
+// a mouse only (they are hidden without hover and a fine pointer). Every card is a real link to the gallery. Pictures are
+// responsive (<picture> with the formats and widths of the manifest, `sizes` of the card) and load lazily.
 
 import Link from "next/link";
 import { useEffect, useId, useRef, useState } from "react";
 import { MQ } from "@/styles/breakpoints";
+import type { Picture } from "./mediaExtras";
 
-export interface RailItem { id: string; src: string; title: string; caption: string; width: number; height: number }
+export interface RailItem {
+  id: string;
+  /** The single file (the fallback of `picture`). */
+  src: string;
+  title: string;
+  caption: string;
+  width: number;
+  height: number;
+  picture?: Picture;
+}
+
+/** Rendered width of a card: 78 % of a phone, at most 720 px; the first card (the strongest frame) is wider. Keep in step with `.rail > li` in home.css. */
+export const RAIL_SIZES = "(max-width: 640px) 78vw, 720px";
+export const RAIL_LEAD_SIZES = "(max-width: 640px) 86vw, (max-width: 1180px) 72vw, 1040px";
 
 /** Tolerance when deciding that the strip is at its start or end (px). */
 const EDGE = 4;
@@ -49,15 +64,23 @@ export default function Rail({ items, label, href, linkLabel, prevLabel, nextLab
   return (
     <>
       <ul ref={list} id={id} className="rail" role="list" aria-label={label}>
-        {items.map((r) => (
-          <li key={r.id}>
-            <Link href={href} className="rail-item">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={r.src} alt="" loading="lazy" decoding="async" width={r.width} height={r.height} />
-              <span className="rail-cap"><b>{r.title}</b> <span className="mono">{r.caption}</span></span>
-            </Link>
-          </li>
-        ))}
+        {items.map((r, i) => {
+          const sizes = i === 0 ? RAIL_LEAD_SIZES : RAIL_SIZES;
+          return (
+            <li key={r.id}>
+              <Link href={href} className="rail-item">
+                <span className="rail-ph">
+                  <picture>
+                    {r.picture?.sources.map((s) => <source key={s.type} type={s.type} srcSet={s.srcSet} sizes={sizes} />)}
+                    <img src={r.picture?.src ?? r.src} srcSet={r.picture?.srcSet} sizes={r.picture?.srcSet ? sizes : undefined}
+                      alt="" loading="lazy" decoding="async" width={r.width} height={r.height} />
+                  </picture>
+                </span>
+                <span className="rail-cap"><b>{r.title}</b> <span className="mono">{r.caption}</span></span>
+              </Link>
+            </li>
+          );
+        })}
       </ul>
       <div className="shell rail-foot">
         <Link className="link-arrow" href={href}>{linkLabel}</Link>

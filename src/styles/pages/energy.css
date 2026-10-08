@@ -1,119 +1,199 @@
-/* Energy page: settings on the left, results on the right; the roof drawing, charts and tables. Tokens and layout classes only. */
+/* Energy page: the figure strip, the settings rail beside the results (roof, money, charts, tables). Tokens and layout classes
+   only; every font size is a --fs-* token. Charts are drawn at their measured width, so their SVG units are CSS pixels. */
 
-.energy { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-5); padding-bottom: var(--section-y); }
-.energy-disclaimer { margin: 0; }
+.energy { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-5); }
 
 /* an empty live region takes no room: it cancels the grid gap that it would add */
 .energy-notes:empty { margin-top: calc(-1 * var(--sp-5)); }
 .energy-warnings { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--sp-2); }
-.energy-warnings li { padding: 10px 14px; border-radius: var(--r-sm); background: var(--bg-2); border-left: 3px solid var(--info); font-size: var(--fs-sm); line-height: 1.45; }
+.energy-warnings li { padding: 10px 14px; border-radius: var(--r-sm); background: var(--bg-2); border-left: 2px solid var(--ink-2); font-size: var(--fs-sm); line-height: 1.45; }
 
-.energy-grid { display: grid; grid-template-columns: minmax(300px, 360px) minmax(0, 1fr); gap: clamp(20px, 3vw, 40px); align-items: start; }
-.energy-controls { position: sticky; top: calc(var(--nav-h) + env(safe-area-inset-top) + var(--sp-4)); max-height: calc(100dvh - var(--nav-h) - env(safe-area-inset-top) - var(--sp-8)); overflow-y: auto; overscroll-behavior: contain; }
+/* ---------------------------------------------------------------- the rail | the results */
+.energy-grid { display: grid; grid-template-columns: minmax(300px, 360px) minmax(0, 1fr); gap: var(--grid-gap); align-items: start; }
+.energy-results { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-5); min-width: 0; }
+.energy .section-head { display: grid; gap: 6px; margin-bottom: var(--sp-4); }
+.energy .section-head .small { color: var(--ink-2); max-width: 62ch; }
 /* values of the key-value lists never break inside a number */
 .energy .kv { grid-template-columns: minmax(0, 1fr) auto; }
 .energy .kv > :nth-child(even) { white-space: nowrap; overflow-wrap: normal; }
+
+.energy-controls {
+  position: sticky; top: calc(var(--nav-h) + env(safe-area-inset-top) + var(--sp-4));
+  max-height: calc(100dvh - var(--nav-h) - env(safe-area-inset-top) - var(--sp-6));
+  overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-gutter: stable;
+}
+/* more below the fold of the rail: fade its lower edge (useRailMask sets data-more) */
+.energy-controls[data-more] { mask-image: linear-gradient(to bottom, currentColor calc(100% - 48px), transparent); }
 .energy-reset { margin-top: var(--sp-4); }
-.energy-heat > h2, .energy-electricity > h2 { margin-bottom: var(--sp-3); }
-.energy-results { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-5); min-width: 0; }
-.energy .section-head { display: grid; gap: 6px; margin-bottom: var(--sp-4); }
-.energy-subhead { margin: var(--sp-6) 0 var(--sp-2); font-size: var(--fs-base); font-weight: var(--weight-strong); letter-spacing: -0.02em; }
 
-/* the figures: the money row sits in the narrower results column, so its numbers are a little smaller */
-.energy-money .stat .v { font-size: clamp(1.5rem, 2.5vw, 2.25rem); }
+/* a settings group: the label, and while closed one line that says what it holds */
+.energy-grp > summary { align-items: flex-start; gap: var(--sp-3); padding-block: 2px; }
+.energy-grp > summary::after { margin-top: 6px; flex: none; }
+.grp-head { display: grid; gap: 4px; min-width: 0; }
+.grp-sum { font-size: var(--fs-sm); color: var(--ink-2); line-height: 1.4; text-wrap: pretty; }
+.energy-grp[open] .grp-sum { display: none; }
+/* before hydration a wide screen shows the household open (useOpenWhenWide opens it right after) */
+@media (min-width: 1181px) {
+  .energy-controls:not([data-ready]) .energy-grp[data-wide-open]::details-content { content-visibility: visible; display: block; }
+  .energy-controls:not([data-ready]) .energy-grp[data-wide-open] .grp-sum { display: none; }
+}
 
-/* ---------------------------------------------------------------- series colours (fill for charts, --dot for legends and bars) */
-.s-heat { fill: var(--series-heat); --dot: var(--series-heat); }
-.s-dhw { fill: color-mix(in srgb, var(--series-heat) 50%, var(--surface)); --dot: color-mix(in srgb, var(--series-heat) 50%, var(--surface)); }
+/* ---------------------------------------------------------------- series colours: fill for charts, --dot for legends and bars */
 .s-household, .s-vent { fill: var(--series-load); --dot: var(--series-load); }
-.s-ev { fill: var(--cat-3); --dot: var(--cat-3); }
+.s-heat { fill: var(--series-heat); --dot: var(--series-heat); }
+.s-dhw { fill: var(--series-export); --dot: var(--series-export); }
+.s-pool { fill: var(--series-grid); --dot: var(--series-grid); }
+.s-ev { fill: var(--ink-3); --dot: var(--ink-3); }
 .s-pv { fill: var(--series-pv); --dot: var(--series-pv); }
 .s-battery { fill: var(--series-battery); --dot: var(--series-battery); }
 .s-grid { fill: var(--series-grid); --dot: var(--series-grid); }
+/* production beside consumption: a light mint body with a mint cap, so mint stays a line rather than a block */
+.s-pv-area { fill: color-mix(in srgb, var(--series-pv) 26%, var(--surface)); }
+.s-pv-cap { stroke: var(--series-pv); stroke-width: 2; }
+.legend .dot { width: 10px; height: 10px; border-radius: 2px; background-color: var(--dot); flex: none; }
+.chart-hatch { fill: var(--surface); opacity: 0.6; }
+
+/* ---------------------------------------------------------------- charts */
+.chart { margin: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-3); min-width: 0; }
+.chart svg { display: block; width: 100%; overflow: visible; }
+.chart-monthly svg { height: 300px; }
+.chart-day svg { height: 270px; }
+.chart-grid { stroke: var(--rule); }
+.chart-base { stroke: var(--rule-2); }
+.chart-axis { fill: var(--ink-3); font-family: var(--font-mono); font-size: var(--fs-2xs); font-variant-numeric: tabular-nums; }
+.chart-month { cursor: pointer; }
+.chart-pick { fill: transparent; transition: fill var(--dur-1) var(--ease); }
+.chart-month:hover .chart-pick { fill: color-mix(in srgb, var(--bg-2) 45%, transparent); }
+.chart-month.on .chart-pick { fill: color-mix(in srgb, var(--bg-2) 80%, transparent); }
+.chart-month.on .chart-axis-x { fill: var(--ink); font-weight: var(--weight-strong); }
+.chart-line { fill: none; stroke: var(--ink); stroke-width: 1.5; stroke-linejoin: round; stroke-linecap: round; }
+.chart-area { fill: color-mix(in srgb, var(--ink) 5%, transparent); }
+.swatch-line { display: inline-block; width: 16px; height: 1.5px; background: var(--ink); flex: none; }
+.chart .legend .num, .chart-readout .num { font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--ink); white-space: nowrap; }
+.chart-readout { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px var(--sp-5); margin: 0; color: var(--ink-2); }
+.chart-readout b { color: var(--ink); font-weight: var(--weight-strong); }
+.chart-readout .dot { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 6px; background: var(--dot); }
+.day-chart { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-4); }
+.month-pick { margin-bottom: var(--sp-3); }
+.month-pick .seg, .day-kind .seg { width: 100%; }
 
 /* ---------------------------------------------------------------- roof drawing */
 .roof-card { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-4); }
 .roof-card-head { display: grid; gap: 6px; }
-.roof-card-body { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: clamp(20px, 3vw, 36px); align-items: start; }
+.roof-card-head .small { color: var(--ink-2); }
+.roof-card-body { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: clamp(20px, 3vw, 40px); align-items: start; }
 .roof-card-plan { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-3); min-width: 0; }
-.roof-plan { width: 100%; height: auto; display: block; touch-action: manipulation; }
+.roof-plan-wrap { min-width: 0; }
+.roof-plan { display: block; width: 100%; height: auto; overflow: visible; touch-action: manipulation; }
 .roof-outline { fill: none; stroke: var(--ink-3); stroke-width: 1; stroke-dasharray: 4 3; }
-.roof-face { fill: var(--bg-2); stroke: var(--ink-3); stroke-width: 0.8; stroke-linejoin: round; }
-.roof-hatch { stroke: var(--rule); stroke-width: 0.8; }
-.roof-pv { fill: var(--series-pv); stroke: var(--surface); stroke-width: 0.6; }
+.roof-face { fill: var(--bg-2); stroke: var(--ink-3); stroke-width: 0.75; stroke-linejoin: round; transition: fill var(--dur-1) var(--ease); }
+.roof-plane.has-pv .roof-face { stroke: var(--accent); stroke-width: 1.5; }
+.roof-hatch { stroke: var(--rule-2); stroke-width: 0.8; }
+.roof-pv { fill: var(--ink); stroke: var(--surface); stroke-width: 0.6; }
 .roof-plane.can { cursor: pointer; }
 .roof-plane.can:hover .roof-face { fill: var(--surface-2); }
 .roof-plane:focus { outline: none; }
 .roof-plane:focus-visible .roof-face { stroke: var(--focus); stroke-width: 2.4; }
-.roof-label { font: var(--weight-medium) 8px var(--font-mono); fill: var(--ink); stroke: var(--surface); stroke-width: 2.4px; paint-order: stroke; stroke-linejoin: round; pointer-events: none; }
-.roof-north path { fill: var(--ink); }
-.roof-north text { font: var(--weight-medium) 9px var(--font-mono); fill: var(--ink-2); }
+/* a plane's label: a small pill, light on the dark panels as on the bare roof */
+.roof-tag { pointer-events: none; }
+.roof-tag rect { fill: var(--surface); stroke: var(--rule-2); stroke-width: 0.75; }
+.roof-tag text { font-family: var(--font-mono); font-size: var(--fs-2xs); font-weight: var(--weight-medium); fill: var(--ink); }
+.roof-plane.off .roof-tag rect { fill: var(--bg); }
+.roof-plane.off .roof-tag text { fill: var(--ink-3); }
+.roof-north-ring { fill: var(--surface); stroke: var(--ink-3); stroke-width: 0.75; }
+.roof-north-ink { fill: var(--ink); }
+.roof-north-paper { fill: var(--surface); stroke: var(--ink); stroke-width: 0.75; stroke-linejoin: round; }
+.roof-north-letter { font-family: var(--font-mono); font-size: var(--fs-2xs); font-weight: var(--weight-medium); fill: var(--ink-2); }
+.chip-count { margin-left: 6px; font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--ink-3); }
+.chip[aria-pressed="true"] .chip-count { color: inherit; }
 
-/* ---------------------------------------------------------------- charts */
-.chart { margin: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
-.chart svg { width: 100%; height: auto; overflow: visible; display: block; }
-.chart-grid { stroke: var(--rule); }
-.chart-axis { fill: var(--ink-3); font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
-.chart-axis.on { fill: var(--ink); font-weight: var(--weight-strong); }
-.chart-pick { fill: transparent; }
-.chart-pick.on { fill: var(--accent-soft); }
-.chart-month { cursor: pointer; }
-.chart-line { fill: none; stroke: var(--ink); stroke-width: 1.8; stroke-linejoin: round; }
-.swatch-line { display: inline-block; width: 14px; height: 2px; background: var(--ink); }
-.day-chart { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-4); }
+/* ---------------------------------------------------------------- money: four figures | the bill */
+.energy-money-card { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); }
+.energy-money { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-5) var(--sp-5); padding: clamp(16px, 2vw, 24px); }
+.bill { display: grid; align-content: start; gap: var(--sp-3); padding: clamp(16px, 2vw, 24px); border-left: 1px solid var(--rule); background: color-mix(in srgb, var(--bg-2) 45%, var(--surface)); border-radius: 0 var(--r-md) var(--r-md) 0; }
+.bill-rows { margin: 0; display: grid; }
+.bill-row { display: grid; grid-template-columns: 1.1em minmax(0, 1fr) auto; align-items: baseline; gap: 0 var(--sp-2); padding: 8px 0; border-bottom: 1px solid var(--rule); font-size: var(--fs-ui); }
+.bill-row::before { content: ""; color: var(--ink-3); font-family: var(--font-mono); font-size: var(--fs-xs); }
+.bill-row[data-sign="minus"]::before { content: "\2212"; }
+.bill-row[data-sign="plus"]:not(:first-child)::before { content: "+"; }
+.bill-row dt { color: var(--ink-2); }
+.bill-row dd { margin: 0; font-family: var(--font-mono); font-variant-numeric: tabular-nums; white-space: nowrap; text-align: right; }
+.bill-net { border-bottom: 0; border-top: 1px solid var(--ink); margin-top: -1px; }
+.bill-net::before { content: "="; }
+.bill-net dt, .bill-net dd { color: var(--ink); font-weight: var(--weight-strong); }
 
-.month-pick { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 4px; margin-bottom: var(--sp-4); }
-.month-pick button { min-height: 36px; padding: 0 2px; border-radius: var(--r-sm); border: 1px solid var(--rule); background: transparent; color: var(--ink-2); font: var(--weight-medium) 0.8125rem / 1 var(--font-sans); }
-.month-pick button[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--bg); }
-
-/* ---------------------------------------------------------------- tables and lists */
-.env-table td:first-child { min-width: 9em; }
-.loss { display: grid; gap: var(--sp-3); margin: var(--sp-4) 0; }
-.loss-bar { display: flex; height: 14px; gap: 2px; border-radius: 7px; overflow: hidden; }
-.loss-bar i { display: block; min-width: 2px; background: var(--dot); }
-.lc-wall { --dot: var(--cat-2); }
-.lc-openings { --dot: var(--cat-5); }
-.lc-roof { --dot: var(--cat-4); }
-.lc-floor { --dot: var(--cat-6); }
-.lc-bridge { --dot: var(--cat-7); }
-.lc-partition { --dot: var(--cat-3); }
-.lc-ventilation { --dot: var(--cat-1); }
-.loss .legend { list-style: none; margin: 0; padding: 0; }
-.env-table th .u { display: block; font-size: 0.625rem; letter-spacing: 0.03em; text-transform: none; color: var(--ink-3); }
-.share-bar { display: block; height: 3px; margin-top: 6px; border-radius: 2px; background: var(--bg-2); overflow: hidden; }
-.share-bar i { display: block; height: 100%; width: var(--w, 0%); background: var(--dot, var(--series-heat)); }
-.el-list { list-style: none; margin: 0 0 var(--sp-3); padding: 0; display: grid; gap: var(--sp-3); }
-.el-row { display: flex; justify-content: space-between; align-items: baseline; gap: var(--sp-3); font-size: 0.9375rem; }
-.el-row span { color: var(--ink-2); }
-.el-row b { font: var(--weight-medium) 0.9375rem var(--font-mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
-/* the layout class collapses to 1fr on small screens, whose minimum is the content: let the panels (and the scrolling table inside) shrink */
-.energy-tables { align-items: start; }
+/* ---------------------------------------------------------------- where the heat goes | electricity, design load, summer */
+.energy-tables { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: var(--sp-5); align-items: start; }
 .energy-tables > * { min-width: 0; }
+.energy-side-cards { display: grid; gap: var(--sp-5); min-width: 0; }
+.energy-heat > h2, .energy-electricity > h2, .energy-design > h2, .energy-summer > h2 { margin-bottom: var(--sp-4); }
 
-.method > summary { list-style: none; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: var(--sp-3); min-height: 32px; }
-.method > summary::-webkit-details-marker { display: none; }
-.method > summary::after { content: ""; flex: none; width: 8px; height: 8px; margin: 0 4px 4px 0; border-right: 1.5px solid var(--ink-3); border-bottom: 1.5px solid var(--ink-3); transform: rotate(45deg); transition: transform var(--dur-2) var(--ease); }
-.method[open] > summary::after { transform: translateY(3px) rotate(-135deg); }
-.method-body { display: grid; gap: var(--sp-3); margin-top: var(--sp-4); max-width: 75ch; }
-.method-body p { margin: 0; }
+/* row headers read as text, not as the mono column heads of data.css */
+table.data.env-table th[scope="row"] { font: var(--weight-body) var(--fs-ui) / 1.35 var(--font-sans); letter-spacing: 0; text-transform: none; color: var(--ink); white-space: normal; padding-right: var(--sp-4); min-width: 9em; }
+table.data.env-table thead th .u { display: block; margin-top: 2px; }
+table.data.env-table tbody :is(th, td) { vertical-align: baseline; }
+table.data.env-table tfoot :is(th, td) { border-bottom: 0; border-top: 1px solid var(--rule-2); }
+.env-table td.share { color: var(--ink-3); }
+.env-table .c-share { width: 4.5em; }
+.heat-toggle { display: inline-flex; align-items: center; gap: 8px; padding: 0; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.heat-toggle:hover span { text-decoration: underline; text-decoration-color: var(--rule-2); text-underline-offset: 3px; }
+.heat-toggle .chev { flex: none; width: 6px; height: 6px; margin-bottom: 3px; border-right: 1.5px solid var(--ink-3); border-bottom: 1.5px solid var(--ink-3); transform: rotate(45deg); transition: transform var(--dur-2) var(--ease); }
+.heat-toggle[aria-expanded="true"] .chev { transform: translateY(2px) rotate(-135deg); }
+/* the loss bar under each label: graphite, the largest loss in mint */
+.heat-bar { display: block; height: 4px; margin-top: 7px; border-radius: 2px; background: var(--bg-2); overflow: hidden; max-width: 14rem; }
+.heat-bar i { display: block; height: 100%; width: var(--w, 0%); border-radius: 2px; background: var(--ink-2); transition: width 0.5s var(--ease); }
+.heat-group.largest .heat-bar i { background: var(--accent); }
+table.data.env-table .heat-part th[scope="row"] { padding-left: var(--sp-5); color: var(--ink-2); font-size: var(--fs-sm); }
+.heat-part th[scope="row"]::first-letter { text-transform: uppercase; }
+table.data.env-table .heat-part td { font-size: var(--fs-xs); color: var(--ink-2); }
+table.data.env-table .heat-part > * { border-bottom-style: dashed; }
+table.data.env-table tfoot th[scope="row"] { font-weight: var(--weight-strong); }
+
+.share-bar { display: block; height: 4px; margin-top: 6px; border-radius: 2px; background: var(--bg-2); overflow: hidden; }
+.share-bar i { display: block; height: 100%; width: var(--w, 0%); background: var(--dot, var(--ink-2)); transition: width 0.5s var(--ease); }
+.el-list { list-style: none; margin: 0 0 var(--sp-3); padding: 0; display: grid; gap: var(--sp-3); }
+.el-row { display: flex; justify-content: space-between; align-items: baseline; gap: var(--sp-3); font-size: var(--fs-ui); }
+.el-row span { color: var(--ink-2); }
+.el-row b { font-family: var(--font-mono); font-size: var(--fs-ui); font-weight: var(--weight-medium); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.energy-design .cover { margin-top: var(--sp-3); }
+.energy-summer .small { color: var(--ink-2); margin-bottom: var(--sp-4); }
+.summer-bars .bar i { width: var(--w, 0%); }
+.summer-blinds .bar i { background: var(--accent); }
+
+/* ---------------------------------------------------------------- the method's list of assumptions */
+.method-kv h3 { margin-bottom: var(--sp-2); }
 
 @media (pointer: coarse) {
-  .month-pick button { min-height: var(--touch); }
-  .method > summary { min-height: var(--touch); }
+  .heat-toggle { min-height: var(--touch); }
 }
 
+/* up to 1180 px: one column, roof and money first, then the settings, then the charts and tables */
 @media (max-width: 1180px) {
-  .energy-grid { grid-template-columns: minmax(0, 1fr); }
-  .energy-controls { position: static; max-height: none; overflow: visible; }
+  .energy-grid { grid-template-columns: minmax(0, 1fr); gap: var(--sp-5); }
+  .energy-results { display: contents; }
+  .energy-results > .roof-card { order: 1; }
+  .energy-results > .energy-money-card { order: 2; }
+  .energy-controls { order: 3; position: static; max-height: none; overflow: visible; mask-image: none; }
+  .energy-results > .energy-chart { order: 4; }
+  .energy-results > .energy-tables { order: 5; }
 }
 @media (max-width: 900px) {
   .roof-card-body { grid-template-columns: minmax(0, 1fr); }
+  .energy-money-card { grid-template-columns: minmax(0, 1fr); }
+  .bill { border-left: 0; border-top: 1px solid var(--rule); border-radius: 0 0 var(--r-md) var(--r-md); }
+  .energy-tables { grid-template-columns: minmax(0, 1fr); }
 }
 @media (max-width: 640px) {
-  .env-table td:first-child { min-width: 0; }
-  table.env-table th, table.env-table td { padding-right: 4px; }
-  table.env-table th { font-size: 0.5625rem; letter-spacing: 0.02em; }
-  .env-table td.n { font-size: 0.8125rem; }
-  .month-pick { grid-template-columns: repeat(4, minmax(0, 1fr)); } /* four a row: every button at least 44 px wide, even on a 320 px screen */
-  .energy-money .stat .v { font-size: 1.75rem; }
+  .chart-monthly svg { height: 240px; }
+  .chart-day svg { height: 220px; }
+  .energy-money { gap: var(--sp-4); }
+  table.data.env-table th[scope="row"] { min-width: 0; font-size: var(--fs-sm); padding-right: var(--sp-2); }
+  table.data.env-table th, table.data.env-table td { padding-right: 6px; }
+  table.data.env-table td.n { font-size: var(--fs-xs); }
+  table.data.env-table .heat-part th[scope="row"] { padding-left: var(--sp-3); }
+  /* the share is the bar under each label; its column gives way on a phone */
+  .env-table :is(td, th):nth-child(5), .env-table col.c-share { display: none; }
+  /* the day types: the average on its own row, the four kinds of day in two columns */
+  .day-kind .seg.fit[data-fit="stack"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .day-kind .seg.fit[data-fit="stack"] > :first-child { grid-column: 1 / -1; }
 }

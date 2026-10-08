@@ -26,7 +26,11 @@ automatically mapped to the `t_*` set (`palette.OUTDOOR`).
 * Tables: oak tops, trestle or four tapered legs. Chairs: oak with a linen pad. Kitchen: white or oak fronts, stone
   worktop, black induction hob, steel sink, floating oak shelves.
 * Bathrooms: wall-hung toilet, oak vanity with vessel basins, round or wide mirror, glass screens with thin black profiles.
-* Cars (garage): two neutral models, silver-white estate and graphite hatchback.
+* Cars (garage): two neutral models, silver-white estate and graphite hatchback, built to read as cars from 8 m (wheel
+  arches, glasshouse, lights), never shown in close-up.
+* Outdoor room: a lounge set (sofa, two armchairs, a low table) against the garage wall, a dining table for eight under the
+  roof, the grill out on the open paving beyond the eave, loungers on the pool deck; teak, light aluminium and linen-grey
+  fabric (`t_*`), no hanging furniture.
 
 ## Composition (decor rules)
 

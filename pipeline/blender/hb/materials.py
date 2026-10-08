@@ -45,10 +45,24 @@ DEFAULTS = {
                  contrast=0.55, sat=0.2),
     "gravel": dict(color="#CDC8BC", rough=0.95, tex=("ph", "gravel_floor_02"), tile=(1.2, 1.2), normal=1.0,
                    contrast=0.8, sat=0.4),
-    "post": dict(color="#F1F0EC", rough=0.7),
+    "post": dict(color="#2B2E31", rough=0.45, metal=0.3),
     "screen_slats": dict(color="#D8C6A4", rough=0.6, tex=("ph", "japanese_cedar_planks"), tile=(1.8, 1.8), normal=0.8,
                          contrast=0.9, sat=0.25),
+    # since R2 (docs/ARCHITECTURE.md section 3)
+    "screen_rail": dict(color="#2B2E31", rough=0.45, metal=0.3),
+    "deck": dict(color="#C8BEA8", rough=0.75, tex=("ph", "wood_floor_deck"), tile="deck", normal=0.7, contrast=0.75,
+                 sat=0.2),
+    "pool_coping": dict(color="#D9D6CC", rough=0.8, tex=("ph", "concrete_floor_02"), tile=(1.2, 1.2), normal=0.5,
+                        contrast=0.35, sat=0.15),
+    "pool_liner": dict(color="#C5D3D1", rough=0.6),
+    "water": dict(color="#7FCFC4", rough=0.03, alpha=0.55),
+    "garage_door": dict(color="#CFC2A4", rough=0.6, tex=("ph", "japanese_cedar_planks"), tile=(1.8, 1.8), normal=0.8,
+                        contrast=0.9, sat=0.25),
+    "equipment": dict(color="#34383C", rough=0.5, metal=0.2),
 }
+
+# roles whose roughness and normal come from the standing-seam stripe (one seam per `seam_pitch` repeat)
+SEAM_ROLES = ("roof_tile",)
 
 
 NEUTRAL = "#E4E4E4"       # mean colour of the neutral textures; the role colour multiplies it
@@ -82,14 +96,43 @@ def resolve_specs(style):
     return specs
 
 
-def uv_tiles(specs):
+def uv_tiles(specs, cfg=None):
     out = {}
     for role, s in specs.items():
         if s.get("tex") and s["tex"][0] == "proc":
             out[role] = FT.TILE[s["tex"][1]]
+        elif s.get("tile") == "deck":
+            from .exterior import deck_tile
+            t = deck_tile(cfg) if cfg is not None else 1.8
+            out[role] = (t, t)
         else:
             out[role] = tuple(s.get("tile", (1.0, 1.0)))
+    if cfg is not None:
+        for role in SEAM_ROLES:
+            out[role] = (cfg.p["seam_pitch"], cfg.p["seam_pitch"])
     return out
+
+
+def _seam_maps(bpy, cfg, spec, nodes, links, bsdf):
+    """Roughness/metallic map (Separate Color: G -> roughness, B -> metallic, which the glTF exporter writes as the
+    metallicRoughness texture) and, with normal maps, the seam normal map."""
+    p = cfg.p
+    n = 256 if p["texture_px"] <= 512 else 512
+    nor, mr = FT.seam_maps(cfg.tex_dir, n, p["seam_w"] / p["seam_pitch"], float(spec.get("rough", 0.5)),
+                           float(spec.get("metal", 0.0)))
+    mimg = nodes.new("ShaderNodeTexImage")
+    mimg.image = _image(bpy, mr, noncolor=True)
+    sep = nodes.new("ShaderNodeSeparateColor")
+    links.new(mimg.outputs["Color"], sep.inputs["Color"])
+    links.new(sep.outputs["Green"], bsdf.inputs["Roughness"])
+    links.new(sep.outputs["Blue"], bsdf.inputs["Metallic"])
+    if p["normal_maps"]:
+        nimg = nodes.new("ShaderNodeTexImage")
+        nimg.image = _image(bpy, nor, noncolor=True)
+        nm = nodes.new("ShaderNodeNormalMap")
+        nm.inputs["Strength"].default_value = 1.0
+        links.new(nimg.outputs["Color"], nm.inputs["Color"])
+        links.new(nm.outputs["Normal"], bsdf.inputs["Normal"])
 
 
 def _image(bpy, path, noncolor=False):
@@ -142,6 +185,8 @@ def make_material(bpy, cfg, role, spec, mode="export"):
             tex.image.alpha_mode = "STRAIGHT"
             tex.interpolation = "Closest"
             links.new(tex.outputs["Alpha"], bsdf.inputs["Alpha"])
+    if role in SEAM_ROLES and mode != "usd":
+        _seam_maps(bpy, cfg, spec, nodes, links, bsdf)
     tex = spec.get("tex")
     if tex:
         size = lod["texture_px"]
@@ -191,4 +236,4 @@ def make_materials(cfg, roles, mode="export"):
         if role not in specs:
             raise KeyError("no material defined for role %r" % role)
         mats[role] = make_material(bpy, cfg, role, specs[role], mode)
-    return mats, uv_tiles(specs)
+    return mats, uv_tiles(specs, cfg)

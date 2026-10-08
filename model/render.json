@@ -7,7 +7,16 @@
     "model": "MULTIPLE_SCATTERING",
     "airDensity": 1.0,
     "aerosolDensity": 0.7,
-    "ozoneDensity": 1.0
+    "ozoneDensity": 1.0,
+    "clouds": {
+      "hdri": "assets/hdri/kloofendal_38d_partly_cloudy_puresky_4k.exr",
+      "strength": 1.0,
+      "rotationDeg": 0,
+      "visibleTo": [
+        "camera",
+        "glossy"
+      ]
+    }
   },
   "terrain": {
     "extentM": 90,
@@ -67,6 +76,40 @@
       "kelvin": 2700,
       "radiusM": 0.04
     },
+    "uplight": {
+      "lumens": 900,
+      "kelvin": 3000,
+      "radiusM": 0.04,
+      "coneDeg": 40,
+      "blend": 0.5,
+      "offsetM": 0.8,
+      "aimHeightFraction": 0.5
+    },
+    "step": {
+      "outdoorTypes": [
+        "deck"
+      ],
+      "spacingM": 1.8,
+      "height": 0.06,
+      "lumens": 60,
+      "kelvin": 2700,
+      "radiusM": 0.02
+    },
+    "pool": {
+      "lumens": 1200,
+      "kelvin": 4000,
+      "radiusM": 0.08,
+      "coneDeg": 90,
+      "blend": 0.7,
+      "spacingM": 3.0,
+      "depthM": 0.4
+    },
+    "pillar": {
+      "lumens": 150,
+      "kelvin": 2700,
+      "radiusM": 0.03,
+      "insetM": 0.25
+    },
     "decor": {
       "pendant": {
         "group": "interior",
@@ -105,15 +148,9 @@
     }
   },
   "blinds": {
-    "boxDepth": 0.14,
-    "railWidth": 0.03,
-    "railDepth": 0.045,
-    "slatPitch": 0.06,
-    "slatWidth": 0.06,
-    "slatThickness": 0.0025,
-    "standoff": 0.05,
+    "autoDrop": 0.6,
     "maxDrop": 1.0,
-    "cutoffMarginDeg": 8,
+    "cutoffMarginDeg": 5,
     "closedSlatAngleDeg": 80
   },
   "pv": {
@@ -165,14 +202,57 @@
   },
   "stills": [
     {
-      "id": "street-sunset",
+      "id": "garden-walnut",
       "label": {
-        "cs": "Vstup od ulice při západu slunce",
-        "en": "Entrance from the street at sunset"
+        "cs": "Zahrada pod ořechem",
+        "en": "Garden under the walnut"
       },
       "alt": {
-        "cs": "Severní fasáda s vraty garáže a vstupem v zlatém večerním světle, v oknech se rozsvěcí světlo.",
-        "en": "The north facade with the garage door and the entrance in golden evening light, the windows starting to glow."
+        "cs": "Bazén, krytá terasa a jižní strana domu v odpoledním slunci, pohled zpod koruny starého ořechu.",
+        "en": "The pool, the covered terrace and the south side of the house in afternoon sun, seen from under the crown of the old walnut."
+      },
+      "category": "exterior",
+      "time": "16:30",
+      "size": [
+        1920,
+        1080
+      ],
+      "camera": {
+        "position": [
+          21.0,
+          -10.1
+        ],
+        "aboveGround": 1.6,
+        "target": [
+          5.5,
+          -2.0,
+          1.6
+        ],
+        "focalMm": 26,
+        "shift": [
+          0,
+          0.07
+        ]
+      },
+      "lights": "off",
+      "blinds": "auto",
+      "subjects": [
+        "pool",
+        "terrace-corner",
+        "slider",
+        "walnut"
+      ],
+      "notes": "Late afternoon sun from the south-west rakes the south facade; the walnut trunk stands at the right edge and its crown closes the top of the frame, the crabapple frames the left."
+    },
+    {
+      "id": "street-approach",
+      "label": {
+        "cs": "Příjezd od ulice",
+        "en": "Approach from the street"
+      },
+      "alt": {
+        "cs": "Uliční strana při západu slunce: pootevřená brána, příjezd k otevřené garáži s auty a vstup pod závětřím.",
+        "en": "The street side at sunset: the drive gate half open, the drive to the open garage with the cars and the entrance under the porch."
       },
       "category": "exterior",
       "time": "20:15",
@@ -182,291 +262,295 @@
       ],
       "camera": {
         "position": [
-          11.5,
-          29.0,
-          13.0
+          1.0,
+          23.3
         ],
+        "aboveGround": 1.6,
         "target": [
-          11.5,
-          7.0,
-          1.2
+          10.0,
+          12.5,
+          1.75
         ],
-        "focalMm": 19.9
+        "focalMm": 20
       },
       "lights": {
-        "interior": 0.55,
-        "exterior": 0.5
+        "interior": 0.45,
+        "exterior": 0.45
       },
       "blinds": "open",
-      "notes": "Low sun from the north-west rakes across the facade and the drive. Keep the street side of the plot calm: plinth fence, gates, a little verge."
+      "gates": {
+        "driveway": 0.5
+      },
+      "garageDoor": 1,
+      "subjects": [
+        "gate-drive",
+        "drive",
+        "garage",
+        "entry"
+      ],
+      "notes": "Low sun from the north-west grazes the north facade. The drive gate is slid half open; the camera stands on the pavement in front of the gate opening."
     },
     {
-      "id": "garden-afternoon",
+      "id": "terrace-louvres",
       "label": {
-        "cs": "Zahrada a terasa odpoledne",
-        "en": "Garden and terrace in the afternoon"
+        "cs": "Lamely terasy",
+        "en": "Terrace louvres"
       },
       "alt": {
-        "cs": "Krytá terasa s jídelním stolem a lehátkem, za ní zahrada a jižní fasáda domu v odpoledním slunci.",
-        "en": "The covered terrace with the dining table and the lounger, the garden and the south facade of the house in afternoon sun."
+        "cs": "Natočené dřevěné lamely na západní straně terasy kreslí na dřevěnou podlahu pruhy světla, vpravo posezení u stěny garáže.",
+        "en": "Angled timber louvres on the west side of the terrace draw stripes of light on the deck, with the lounge set against the garage wall on the right."
       },
       "category": "exterior",
-      "time": "16:40",
+      "time": "17:00",
       "size": [
         1920,
         1080
       ],
       "camera": {
         "position": [
-          -2.4,
-          -2.6,
-          1.65
-        ],
-        "target": [
-          8.0,
-          1.8,
-          1.6
-        ],
-        "focalMm": 22
-      },
-      "lights": "off",
-      "blinds": "auto",
-      "notes": "Sun from the west-south-west behind the camera, soft long shadows on the lawn. Show the terrace furniture and the long hipped roof."
-    },
-    {
-      "id": "terrace-evening",
-      "label": {
-        "cs": "Osvětlená terasa za soumraku",
-        "en": "The lit terrace at dusk"
-      },
-      "alt": {
-        "cs": "Osvětlená terasa a okna obýváku po západu slunce, na obloze doznívá oranžová záře.",
-        "en": "The lit terrace and the living room windows after sunset, an orange glow fading in the sky."
-      },
-      "category": "evening",
-      "time": "21:15",
-      "size": [
-        1920,
-        1080
-      ],
-      "camera": {
-        "position": [
-          12.5,
-          -9.5,
-          1.5
-        ],
-        "target": [
-          4.0,
-          2.0,
-          1.6
-        ],
-        "focalMm": 24,
-        "shift": [
-          0,
-          0.04
-        ]
-      },
-      "lights": "on",
-      "blinds": "open",
-      "notes": "Blue hour. Terrace downlights, lanterns, lit interior; sky glow in the north-west (right of the terrace)."
-    },
-    {
-      "id": "aerial",
-      "label": {
-        "cs": "Dům z ptačí perspektivy",
-        "en": "The house from above"
-      },
-      "alt": {
-        "cs": "Pohled shora od jihozápadu: dlouhá valbová střecha s fotovoltaikou, zahrada, sousední domy a ulice.",
-        "en": "A view from above from the south-west: the long hip roof with solar panels, the garden, the neighbouring houses and the street."
-      },
-      "category": "aerial",
-      "time": "18:30",
-      "size": [
-        1920,
-        1080
-      ],
-      "camera": {
-        "position": [
-          -22.0,
-          -30.0,
-          30.0
-        ],
-        "target": [
-          11.5,
-          3.5,
-          1.5
-        ],
-        "focalMm": 42
-      },
-      "lights": "off",
-      "blinds": "auto",
-      "notes": "Whole plot visible with the house at the centre of attention. Keep the horizon out or very high."
-    },
-    {
-      "id": "terrace-detail",
-      "label": {
-        "cs": "Detail terasy",
-        "en": "Terrace detail"
-      },
-      "alt": {
-        "cs": "Dřevěné svislé lamely stíní západní stranu terasy, závěsné lehátko a stolek s lucernou.",
-        "en": "Vertical timber slats shade the west side of the terrace, with a hanging daybed and a side table with a lantern."
-      },
-      "category": "exterior",
-      "time": "17:45",
-      "size": [
-        1920,
-        1080
-      ],
-      "camera": {
-        "position": [
-          5.2,
-          2.2,
-          1.35
-        ],
-        "target": [
-          -0.1,
-          4.0,
-          1.1
-        ],
-        "focalMm": 26
-      },
-      "lights": "off",
-      "blinds": "auto",
-      "notes": "The low west sun shines through the slats and draws stripes on the floor."
-    },
-    {
-      "id": "living-garden",
-      "label": {
-        "cs": "Obývací pokoj s kuchyní a výhledem do zahrady",
-        "en": "Living room and kitchen looking to the garden"
-      },
-      "alt": {
-        "cs": "Světlý otevřený prostor s kuchyňským ostrovem, jídelním stolem a pohovkou, prosklená stěna otevřená do zahrady.",
-        "en": "A bright open-plan space with a kitchen island, a dining table and a sofa, a glass wall opening to the garden."
-      },
-      "category": "interior",
-      "time": "11:00",
-      "size": [
-        1920,
-        1080
-      ],
-      "camera": {
-        "position": [
-          13.1,
-          7.9,
-          1.4
-        ],
-        "target": [
-          8.8,
-          0.8,
-          1.15
-        ],
-        "focalMm": 18
-      },
-      "lights": "off",
-      "blinds": "open",
-      "notes": "Daylight only. Blinds raised so the garden shows through the slider."
-    },
-    {
-      "id": "bedroom",
-      "label": {
-        "cs": "Hlavní ložnice ráno",
-        "en": "Primary bedroom in the morning"
-      },
-      "alt": {
-        "cs": "Ložnice s dvoulůžkem a křeslem, ranní slunce proniká východním oknem a jižním oknem do zahrady.",
-        "en": "The bedroom with a double bed and an armchair, morning sun entering through the east window, the south window facing the garden."
-      },
-      "category": "interior",
-      "time": "08:30",
-      "size": [
-        1920,
-        1080
-      ],
-      "camera": {
-        "position": [
-          19.0,
-          0.6,
+          4.6,
+          1.4,
           1.3
         ],
         "target": [
-          21.4,
-          3.2,
-          0.95
+          0.3,
+          4.2,
+          1.35
+        ],
+        "focalMm": 30
+      },
+      "lights": "off",
+      "blinds": "open",
+      "screens": {
+        "angleDeg": 35
+      },
+      "subjects": [
+        "louvres",
+        "sofa3"
+      ],
+      "notes": "The low west sun shines through the louvres and draws stripes on the deck."
+    },
+    {
+      "id": "entrance",
+      "label": {
+        "cs": "Vstup za soumraku",
+        "en": "Entrance at dusk"
+      },
+      "alt": {
+        "cs": "Chodník mezi trávami vede k rozsvícenému závětří se vstupními dveřmi, podél něj svítí sloupková světla.",
+        "en": "The path between the grasses leads to the lit porch and the front door, with bollard lights along it."
+      },
+      "category": "evening",
+      "time": "21:10",
+      "size": [
+        1920,
+        1080
+      ],
+      "camera": {
+        "position": [
+          17.5,
+          20.6
+        ],
+        "aboveGround": 1.6,
+        "target": [
+          17.5,
+          12.0,
+          1.6
+        ],
+        "focalMm": 24
+      },
+      "lights": "on",
+      "blinds": "open",
+      "subjects": [
+        "path",
+        "entry"
+      ],
+      "notes": "Blue hour on the path axis, just inside the walk gate; porch downlights, the wall light and the bollards on."
+    },
+    {
+      "id": "living",
+      "label": {
+        "cs": "Obývací pokoj",
+        "en": "Living room"
+      },
+      "alt": {
+        "cs": "Pohovka a jídelní stůl u dvou prosklených stěn do terasy a zahrady, odpolední slunce na dubové podlaze.",
+        "en": "The sofa and the dining table by the two sliding glass walls to the terrace and the garden, afternoon sun on the oak floor."
+      },
+      "category": "interior",
+      "time": "15:30",
+      "size": [
+        1920,
+        1080
+      ],
+      "camera": {
+        "position": [
+          13.0,
+          6.0,
+          1.3
+        ],
+        "target": [
+          7.2,
+          1.6,
+          1.2
         ],
         "focalMm": 20
       },
       "lights": "off",
-      "blinds": "auto",
-      "notes": "Warm low sun from the east. Do not let the window glass go white."
+      "blinds": "open",
+      "subjects": [
+        "sofaL",
+        "table6"
+      ]
     },
     {
-      "id": "garage",
+      "id": "kitchen",
       "label": {
-        "cs": "Garáž pro dvě auta",
-        "en": "The two-car garage"
+        "cs": "Kuchyně s ostrůvkem",
+        "en": "Kitchen with island"
       },
       "alt": {
-        "cs": "Garáž se dvěma zaparkovanými auty, policemi a vraty, osvětlená stropními světly.",
-        "en": "The garage with two parked cars, shelving and the garage door, lit by ceiling lights."
+        "cs": "Kuchyňský ostrůvek ze světlého dřeva s barovými židlemi a kuchyňská linka v dopoledním světle.",
+        "en": "The light-wood kitchen island with bar stools and the kitchen run in morning light."
       },
       "category": "interior",
-      "time": "11:00",
+      "time": "10:30",
       "size": [
         1920,
         1080
       ],
       "camera": {
         "position": [
-          6.2,
-          11.2,
-          1.45
+          7.6,
+          1.0,
+          1.4
         ],
         "target": [
-          1.2,
-          6.4,
-          0.8
+          12.0,
+          7.4,
+          1.15
         ],
-        "focalMm": 16
+        "focalMm": 22
       },
-      "lights": "on",
-      "blinds": "auto",
-      "notes": "Interior lights on, daylight only from the small west window and the door seams."
+      "lights": "off",
+      "blinds": "open",
+      "subjects": [
+        "island",
+        "kitchenLine"
+      ]
     },
     {
-      "id": "south-facade",
+      "id": "bedroom-morning",
       "label": {
-        "cs": "Jižní fasáda s fotovoltaikou a žaluziemi",
-        "en": "South facade with solar panels and blinds"
+        "cs": "Ložnice ráno",
+        "en": "Bedroom in the morning"
       },
       "alt": {
-        "cs": "Jižní strana domu v poledním slunci: 36 fotovoltaických panelů na střeše a spuštěné venkovní žaluzie.",
-        "en": "The south side of the house in midday sun: 36 solar panels on the roof and the external blinds lowered."
+        "cs": "Ložnice s manželskou postelí a křeslem, ranní slunce prochází napůl staženými žaluziemi východního okna.",
+        "en": "The main bedroom with the double bed and the armchair, morning sun coming through the half-lowered blinds of the east window."
       },
-      "category": "exterior",
-      "time": "13:30",
+      "category": "interior",
+      "time": "07:30",
       "size": [
         1920,
         1080
       ],
       "camera": {
         "position": [
-          11.5,
-          -12.2,
-          1.2
+          18.9,
+          8.0,
+          1.3
         ],
         "target": [
-          10.0,
-          2.0,
-          1.8
+          22.4,
+          5.4,
+          0.9
         ],
-        "focalMm": 21.7
+        "focalMm": 20
+      },
+      "lights": "off",
+      "blinds": {
+        "drop": 0.5,
+        "slatAngleDeg": 40
+      },
+      "subjects": [
+        "bed180",
+        "armchair"
+      ]
+    },
+    {
+      "id": "bathroom",
+      "label": {
+        "cs": "Koupelna u ložnice",
+        "en": "En-suite bathroom"
+      },
+      "alt": {
+        "cs": "Koupelna u ložnice se sprchovým koutem a dvojitým umyvadlem, ranní slunce z východního okna.",
+        "en": "The en-suite bathroom with the walk-in shower and the double basin, morning sun from the east window."
+      },
+      "category": "interior",
+      "time": "08:00",
+      "size": [
+        1920,
+        1080
+      ],
+      "camera": {
+        "position": [
+          22.45,
+          8.75,
+          1.5
+        ],
+        "target": [
+          21.3,
+          11.4,
+          1.05
+        ],
+        "focalMm": 20
+      },
+      "lights": "off",
+      "blinds": "open",
+      "subjects": [
+        "shower",
+        "sink2"
+      ]
+    },
+    {
+      "id": "aerial",
+      "label": {
+        "cs": "Dům na pozemku",
+        "en": "The house on its plot"
+      },
+      "alt": {
+        "cs": "Pohled z výšky od jihozápadu: valbová střecha s fotovoltaikou, terasa, bazén a zahrada uvnitř dřevěného plotu.",
+        "en": "A view from above from the south-west: the hipped roof with solar panels, the terrace, the pool and the garden inside the timber fence."
+      },
+      "category": "aerial",
+      "time": "17:30",
+      "size": [
+        1920,
+        1080
+      ],
+      "camera": {
+        "position": [
+          -16.0,
+          -26.0,
+          14.0
+        ],
+        "target": [
+          11.5,
+          4.5,
+          0.8
+        ],
+        "focalMm": 35
       },
       "lights": "off",
       "blinds": "auto",
-      "notes": "The blinds on the sunny glazing are lowered by the rule. The PV field fills the south roof plane."
+      "subjects": [
+        "pv",
+        "pool",
+        "terrace-corner"
+      ],
+      "notes": "The only aerial. The whole plot inside the fence, the house at the centre of attention."
     }
   ],
   "day": {
@@ -482,8 +566,8 @@
         "stepMin": 20
       },
       {
-        "from": "20:00",
-        "to": "21:30",
+        "from": "19:50",
+        "to": "21:40",
         "stepMin": 10
       }
     ],
@@ -493,53 +577,89 @@
     ],
     "camera": {
       "position": [
-        3.2,
-        0.5,
-        1.5
+        -2.6,
+        -13.6
       ],
+      "aboveGround": 1.65,
       "target": [
-        13.5,
-        -13.0,
-        2.2
+        7.5,
+        1.5,
+        1.7
       ],
-      "focalMm": 18,
-      "shift": [
-        0,
-        0.05
-      ]
+      "focalMm": 20
     },
     "portrait": {
-      "aspect": [
-        2,
-        3
+      "size": [
+        1080,
+        1620
       ],
-      "centerX": 0.5
+      "camera": {
+        "position": [
+          -2.2,
+          -13.4
+        ],
+        "aboveGround": 1.6,
+        "target": [
+          4.8,
+          -0.5,
+          1.7
+        ],
+        "focalMm": 24,
+        "shift": [
+          0,
+          -0.07
+        ]
+      }
     },
-    "stillTime": "13:00",
+    "stillTime": "19:20",
     "lights": "auto",
-    "blinds": "auto"
+    "blinds": "auto",
+    "subjects": [
+      "terrace-corner",
+      "slider",
+      "pool"
+    ]
   },
   "orbit": {
-    "time": "19:55",
-    "frameCount": 300,
+    "time": "17:00",
+    "frameCount": 240,
     "fps": 24,
-    "scrollStep": 5,
+    "scrollStep": 4,
     "targetZ": 1.8,
-    "startAzimuthDeg": 215,
+    "startAzimuthDeg": 225,
     "direction": "counterclockwise",
-    "elevationDeg": 38,
-    "focalMm": 28,
-    "fitMargin": 0.1,
+    "elevationDeg": 18,
+    "focalMm": 29,
+    "fitMargin": 0.04,
     "radiusSlack": 1.0,
     "breathing": {
-      "heightM": 0.9,
-      "radiusFraction": 0.0
+      "heightM": 0,
+      "radiusFraction": 0
     },
-    "lights": {
-      "interior": 0.35,
-      "exterior": 0.25
+    "lifts": [
+      {
+        "azimuthDeg": 158,
+        "halfWidthDeg": 60,
+        "elevationDeg": 32
+      },
+      {
+        "azimuthDeg": 45,
+        "halfWidthDeg": 30,
+        "elevationDeg": 24
+      }
+    ],
+    "lights": "off",
+    "blinds": "open",
+    "captions": {
+      "halfWindowDeg": 30,
+      "features": [
+        "terrace",
+        "pv",
+        "entry",
+        "garage",
+        "pool"
+      ]
     },
-    "blinds": "auto",
     "variants": [
       {
         "id": "landscape",
@@ -556,52 +676,79 @@
           1620
         ],
         "frameSelection": "scroll",
-        "focalMm": 24,
-        "fitMargin": -0.12
+        "elevationDeg": 24,
+        "focalMm": 26,
+        "fitMargin": -0.1
       }
     ]
   },
   "compare": {
-    "id": "day-night",
+    "id": "pool-terrace",
     "size": [
       1920,
       1080
     ],
     "camera": {
       "position": [
-        13.1,
-        7.9,
-        1.4
+        12.6,
+        -11.0
       ],
+      "aboveGround": 1.6,
       "target": [
-        8.8,
-        0.8,
-        1.15
+        3.5,
+        1.0,
+        1.6
       ],
-      "focalMm": 18
+      "focalMm": 24,
+      "shift": [
+        0,
+        0.04
+      ]
     },
     "alt": {
-      "cs": "Obývací pokoj s kuchyní ve dne a večer: stejný pohled, večer svítí závěsná světla a venku se stmívá.",
-      "en": "The living room and kitchen by day and in the evening: the same view, with the pendant lights on and dusk outside."
+      "cs": "Terasa a obývací pokoj přes bazén ze stejného místa: odpoledne v bočním slunci a po západu slunce s rozsvíceným interiérem.",
+      "en": "The terrace and the living room across the pool from the same spot: in raking afternoon sun and after sunset with the interior lit."
     },
     "before": {
-      "time": "14:00",
+      "time": "17:45",
       "lights": "off",
-      "blinds": "open",
+      "blinds": "auto",
       "label": {
         "cs": "Odpoledne",
         "en": "Afternoon"
-      }
+      },
+      "title": {
+        "cs": "Terasa odpoledne",
+        "en": "The terrace in the afternoon"
+      },
+      "alt": {
+        "cs": "Krytá terasa a prosklená stěna obývacího pokoje za bazénem v bočním odpoledním slunci.",
+        "en": "The covered terrace and the glass wall of the living room beyond the pool in raking afternoon sun."
+      },
+      "gallery": false
     },
     "after": {
-      "time": "21:20",
+      "time": "21:15",
       "lights": "on",
       "blinds": "open",
       "label": {
-        "cs": "Večer",
-        "en": "Evening"
+        "cs": "Po západu slunce",
+        "en": "After sunset"
+      },
+      "title": {
+        "cs": "Terasa po západu slunce",
+        "en": "The terrace after sunset"
+      },
+      "alt": {
+        "cs": "Rozsvícená terasa a obývací pokoj se zrcadlí v bazénu, nad valbovou střechou modrá obloha po západu slunce.",
+        "en": "The lit terrace and living room reflected in the pool, a blue sky after sunset above the hipped roof."
       }
-    }
+    },
+    "subjects": [
+      "pool",
+      "terrace-corner",
+      "slider"
+    ]
   },
   "og": {
     "id": "og",
@@ -609,28 +756,30 @@
       1200,
       630
     ],
-    "time": "19:50",
+    "time": "21:10",
     "camera": {
       "position": [
-        -14.0,
-        -17.0,
-        32.0
+        -2.6,
+        -13.6
       ],
+      "aboveGround": 1.65,
       "target": [
-        11.5,
-        5.5,
-        1.5
+        7.5,
+        1.5,
+        1.7
       ],
-      "focalMm": 31.9
+      "focalMm": 22
     },
-    "lights": {
-      "interior": 0.4,
-      "exterior": 0.3
-    },
+    "lights": "auto",
     "blinds": "open",
     "alt": {
-      "cs": "Dům pod ořechem ve zlatém večerním světle.",
-      "en": "Walnut House in golden evening light."
-    }
+      "cs": "Dům pod ořechem za soumraku: rozsvícená terasa a okna obývacího pokoje za bazénem, vpravo starý ořech.",
+      "en": "Walnut House at dusk: the lit terrace and living-room windows beyond the pool, the old walnut on the right."
+    },
+    "subjects": [
+      "terrace-corner",
+      "slider",
+      "pool"
+    ]
   }
 }

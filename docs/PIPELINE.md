@@ -9,6 +9,7 @@ generated/derived.json ─┐
 model/house.json       ─┼─► pipeline/blender/build_house.py ─► public/models/house.glb       (desktop, Draco + WebP 1k)
 model/style.json       ─┘        (Blender 5.1, Python)       ├─► public/models/house-lite.glb  (phones, 512 px)
                                                               └─► public/models/house.usdz      (AR Quick Look)
+assets/models/tree_small_02 ─► pipeline/blender/vegetation_bake.py ─► public/models/tree.glb, tree-lite.glb (web trees)
 scripts/verify-glb.ts ◄── checks the contract                 public/models/manifest.json ◄── scripts/build-models-manifest.ts
 ```
 
@@ -20,9 +21,11 @@ pipeline/build_model.sh --lite-only    # only the phone variant (fast check)
 BLENDER=/path/to/Blender pipeline/build_model.sh
 ```
 
-The script runs Blender three times (`high`, `lite`, `lite --usdz`), then `scripts/verify-glb.ts` on both GLBs, the 6 MB check of
-the USDZ and `scripts/build-models-manifest.ts`. It stops on the first failure. The build takes about 10 seconds; textures
-are cached in `pipeline/out/tex` (git-ignored). The GLB files are deterministic (the same inputs give byte-identical files, also with a
+The script runs Blender for the house (`high`, `lite`, `lite --usdz`), the furniture (`high`, `lite`, `PIPELINE-FURNITURE.md`) and
+the web trees (section 9, only when the asset, the style or the bake script changed), then `scripts/verify-glb.ts` on both house
+GLBs, the 6 MB check of the USDZ, `scripts/verify-furniture.ts` and `scripts/build-models-manifest.ts`. A failing Blender run stops
+it; a failing check makes it exit 1 after the manifest is written. The house builds take a few seconds; textures are cached in
+`pipeline/out/tex` (git-ignored). Options: `--lite-only`, `--no-usdz`, `--no-furniture`, `--no-trees`. The GLB files are deterministic (the same inputs give byte-identical files, also with a
 cold texture cache). Blender's USD exporter is **not** byte-reproducible (the token table of the `.usdc` is ordered by pointer
 hash, textures and geometry are the same), so the script rebuilds `house.usdz` only when an input changed (derived data without its
 model hash, `house.json`, `style.json`, the builder code, the list of texture files); the key of the last build is kept in
@@ -46,14 +49,17 @@ Nothing about the house is written in the Python code: coordinates, sizes, mater
 | data | used for |
 |---|---|
 | `derived.walls` (axis, thickness `t`, rooms on both sides, `height`) | wall rectangles; exterior side = the side without a room |
-| `derived.rooms[].rects`, `.floor` | which grid cells are floor of which room; floor material `floor_<kind>` |
-| `derived.openings` (`kind`, `wallId`, `from/to`, `sill`, `head`, `swing/hinge`) | holes in the wall faces, frames, glazing, doors |
+| `derived.rooms[].rects`, `.floor`, `.height` | which grid cells are floor of which room; floor material `floor_<kind>`; ceiling height |
+| `derived.openings` (`kind`, `wallId`, `from/to`, `sill`, `head`, `swing/hinge`) | holes in the wall faces, frames, glazing, doors, the garage door |
 | `derived.outline` (rects, polygon) | plinth, gravel border, what is "outside the house" |
 | `derived.roofs` (`rect`, `pitch`, `overhang`, `wallTop`) | the roof surface (section 4); cross-checked against `derived.roofPlanes` |
-| `derived.outdoor`, `.accents`, `.screens`, `.lightpipes` | slabs, posts, cladding, slat screens, light pipes |
+| `derived.outdoor[]` (`role`, `rect`, `holes`, `grade.plane` / `grade.corners`, `posts`, `postSize`, `pool`) | slab tops (flat or a ramp), the slab role, holes cut out of a deck, posts, the pool (section 4a) |
+| `derived.screens[]` (`at`, `from/to`, `z0/z1`, `blades.positions/chord/thickness`, `restDeg`) | louvre blades on their pivots at the rest angle, head and sill rails |
+| `derived.outdoorUnit` (`footprint`, `size`, `z`) | the heat-pump outdoor unit and its slatted screen |
+| `derived.site.terrain.plateau.level`, `derived.site.paved` | the finished ground around the house (gravel strip, slab edges, downpipe feet); site paving next to a slab (no free edge there) |
+| `derived.accents`, `.lightpipes` | cladding, light pipes |
 | `house.clearHeight`, `house.slab` | ceiling height, roof structure depth |
 | `house.roof` (`covering.type`, `downpipes`, `snowGuards`, `lightpipes`) | roof covering style, downpipes, snow guards, dome size |
-| `house.shading.slats` | slat pitch, width and depth of the screens |
 | `style.materials[role]` | colour, roughness, metallic, alpha of every role |
 | `style.construction` (optional) | overrides of the build details in `hb/params.py` |
 
@@ -73,11 +79,12 @@ and so on) are in `pipeline/blender/hb/params.py`, one dictionary with a `high` 
 | `hb/roof.py` | roof model: planes, visible convex pieces, edges (ridges, hips, valleys, eaves) |
 | `hb/roof_cover.py` | standing seams or tile courses, ridge and hip caps, valley flashings |
 | `hb/roof_eaves.py` | fascia, gutter, downpipes, soffits, snow guards, light pipes |
-| `hb/exterior.py` | outdoor slabs, posts, gravel border, timber cladding, slat screens |
+| `hb/exterior.py` | outdoor slabs (paving and ramps with edges and edging, timber decks, pools), posts, gravel border, timber cladding, louvre wall, heat-pump unit |
 | `hb/materials.py`, `hb/textures.py`, `hb/floor_textures.py` | one material per role, texture preparation, procedural floors |
 | `hb/export.py` | GLB (Draco, WebP, extras) and USDZ |
 | `hb/selfcheck.py` | polygon sanity checks (non-finite, non-planar, duplicated faces) that run on every build |
 | `preview.py` | quick Cycles / Workbench previews for visual checks (see section 7) |
+| `vegetation_bake.py` | the web trees `tree.glb` / `tree-lite.glb` from the CC0 tree asset (section 9) |
 
 ### Walls
 
@@ -114,24 +121,59 @@ exactly the ceiling height there) and `eave_depth` at the eave, so the soffit co
 * Doors: the **entrance door leaf** is built in the dark `frame` role (graphite like the window frames, handle bar in `sill`);
   the role `door_leaf` is only the **interior doors** (lining and leaf, warm white in `style.json`). The web recolours both through
   the roles, so no extra role is needed; `scripts/verify-glb.ts` requires `door_leaf` only when the data has interior doors.
-* `post` (the terrace and porch posts) is white like the plaster and follows the façade look (`style.json` sets it with `plaster`).
+* `post` (the single terrace column and the porch posts, `postSize` from the model) is graphite in every look; the downpipe
+  of the terrace corner runs inside the column (a downpipe inside a post is not drawn).
+* Since R2 (contract C2): `deck`, `pool_coping`, `pool_liner`, `water`, `garage_door`, `screen_rail`, `equipment` (section 4a).
 * `toggle: "roof"`: `roof_tile`, `ridge_cap`, `fascia`, `gutter`, `soffit` (overhang undersides, flat terrace ceilings, light pipe
   domes) and `ceiling`. Downpipes, snow guards and light pipe collars are in the `gutter` / `ridge_cap` nodes, so they hide too.
 * Glass: one node per glazed opening (every exterior opening except garage doors), two opposite quads per pane.
 * UVs: plaster, plinth and paving by box projection in metres (the role's tile size is a property of the material); wood
   vertical; roof along the eave and the slope; floors in metres with the planks along x.
-* Not in the GLB (generated in JS): terrain, trees, blinds, PV, labels. Furniture is a separate file.
-* Heights: the terrain plateau around the house is at z = 0, so outdoor slabs stand a few millimetres above it
-  (`outdoor_top` in `params.py`); the plinth and the foundation slab reach down to -0.45.
+* Not in the GLB (generated in JS): terrain, trees, blinds, PV, labels, fences, gates and the pillar. Furniture is a separate file.
+* Heights: every level comes from the data. Slab tops are the derived grade (`outdoor[].top`, default -0.02, and the ramps of
+  the drive and the path); the ground around the house is the plateau level of the site (-0.15 for the sample house), so the
+  exterior walls show a 0.30 m graphite plinth band (`slab` role: 0.15 m of the slab below the floor plus `plinth_h` above it).
+  The plinth and the foundation slab reach down to `plinth_depth` (-0.45). The builder never computes a level itself; the
+  kernel cuts the terrain under every slab (`docs/SITE.md`, section 3).
+
+## 4a. Outdoor areas, pool, louvres, garage door, unit (since R2)
+
+* **Paving and ramps** (`terrace_paving`, `drive_paving`, `path`): one planar top per area from `grade.plane`
+  (`z = z0 + gx (x - ox) + gy (y - oy)`), so the drive and the path are sloped slabs that run from the house down to their gate.
+  Edges that border open ground get a `slab_edge` (0.15 m) side and a 5 x 80 mm graphite steel edging (role `frame`); an edge
+  against the house, another slab, a hole or a paved surface of the site (aprons, service path) gets neither.
+* **Timber decks** (`deck`, areas with `role: "deck"`): the area minus its `holes` (the pool cut out of the pool deck). High:
+  145 mm boards running along x with 6 mm joints and staggered end joints, a dark substructure (`slab`) one board thickness
+  below, a timber fascia on free edges; each board maps onto one board of the `wood_floor_deck` texture. Lite: one textured
+  quad per piece (same texture, same tile).
+* **Pool** (`pool_coping`, `pool_liner`, `water`, from `outdoor[].pool`): a coping ring from `outer` to `water` at `copingTop`,
+  `coping_t` thick, overhanging the basin wall by `coping_overhang` (30 mm); the basin (walls and floor, `pool_liner`) from
+  `floorZ` up to the coping; the water plane at `waterZ` (= copingTop - waterBelowTop) over the whole basin. The terrain has a
+  hole there (`derived.groundVoids`, drawn by the web and the renders). The USDZ leaves the pool and its deck out (AR Quick
+  Look stands a model on its lowest point).
+* **Louvre wall** (`screen_slats`, `screen_rail`): one blade per `blades.positions` entry, `chord` x `thickness`, turned by
+  `restDeg` about its own vertical pivot on the screen axis `at` (0 = in the wall plane, 90 = square to it; the web turns the
+  blades between `closedDeg` and 90). Graphite head and sill rails (U-channels, `rail_h` x `rail_d`) at `z0` and `z1`; the web
+  hides only `screen_slats`.
+* **Garage door** (`garage_door`, node id = the opening id): 0.5 m sections with 20 mm V-grooves, timber look (the wood looks
+  set it); the web lifts the node to open it. Lining and head in `frame`.
+* **Downpipes**: from the gutter outlet a swan neck slopes back under the soffit (`swan_deg`) to `downpipe_wall_gap` off the
+  wall (at a corner when the outlet sits on the eave mitre), then down the facade into the slab or the ground.
+* **Heat-pump outdoor unit** (`equipment`, from `derived.outdoorUnit`): the unit on a small pad with a recessed fan ring on
+  the side away from the house, inside a slatted timber screen (`wood_cladding`, id `unit`) on every side but the back.
+* **Roof seam stripe**: the `roof_tile` material carries a seam normal map and a metallic-roughness stripe, one seam per
+  `seam_pitch` repeat, aligned with the modelled seams, so the seam rhythm stays even where the geometry is thinner than a pixel.
 
 ## 5. Levels of detail and budgets
 
 | | `house.glb` (high) | `house-lite.glb` (lite) | `house.usdz` |
 |---|---|---|---|
 | textures | 1024 px WebP, normal maps | 512 px, no normal maps | 1024 px JPEG, tints baked in |
-| geometry | timber boards, skirting, seams, fine gutters | cladding as panels, no skirting, coarser arcs | the lite geometry without drive, path, gravel |
+| geometry | timber boards, deck boards, skirting, seams, fine gutters | cladding as panels, deck as a textured quad, no skirting, coarser arcs | the lite geometry without drive, path, gravel, pool, pool deck, unit |
 | budget | 7 MB | 2.5 MB, 70 000 triangles | 6 MB |
-| current | about 2.1 MB, 7 000 triangles, 54 nodes | about 0.3 MB, 5 200 triangles | about 0.85 MB |
+| current | about 2.8 MB, 10 400 triangles, 65 nodes | about 0.43 MB, 6 400 triangles | about 1.0 MB |
+
+The web trees: `tree.glb` about 165 kB / 5 600 triangles, `tree-lite.glb` about 69 kB / 2 400 triangles.
 
 The lite variant is built with a lower detail parameter, not by decimation. USDZ: 1 unit = 1 m, Y-up, the centre of the
 footprint at the origin, UV set `st`; the constant glass opacity is carried by a 4 x 4 px opacity texture (the USD exporter
@@ -139,12 +181,18 @@ drops constant alpha), the style tints are baked into the textures.
 
 ## 6. Verification
 
-* `scripts/verify-glb.ts` (Node, no dependencies; `npx tsx scripts/verify-glb.ts public/models/house.glb [--lite]`) parses the
-  GLB container and checks: Draco and WebP extensions, roles, extras on every mesh node, no transforms, material = role without
-  numeric suffixes, roof toggles, one glass node per glazed opening, the roles the data requires (floors per room kind,
-  cladding, screens, posts), the bounding box of the exterior walls against the outline and of the roof covering against the
-  eave rectangle and ridge height (+-2 cm), triangle and size budgets, texture sizes.
-* `scripts/__tests__/glb.test.ts` (vitest) runs those rules on synthetic files and, when the GLBs exist, on the real files,
+* `scripts/verify-glb.ts` (Node, no dependencies; `npx tsx scripts/verify-glb.ts public/models/house.glb [--lite] [--no-geometry]`)
+  parses the GLB container and checks: Draco and WebP extensions, roles, extras on every mesh node, no transforms, material =
+  role without numeric suffixes, roof toggles, one glass node per glazed opening, the roles the data requires (floors per room
+  kind, cladding, louvres and rails, posts, deck, pool, garage door, unit), one slab node per outdoor area topping out at its
+  derived grade, the pool levels (coping top, water, floor), the rail levels of the louvres, the bounding box of the exterior
+  walls against the outline and of the roof covering against the eave rectangle and ridge height (+-2 cm), triangle and size
+  budgets, texture sizes. With derived data it also decodes the geometry (the web's Draco decoder in `public/draco`): every
+  vertex of a slab node lies on or below its derived top and the top face exists; every louvre blade stands on its pivot and
+  is as deep across the wall as the rest angle gives.
+* `scripts/__tests__/glb.test.ts` (vitest) runs those rules on synthetic files and, when the GLBs exist, on the real files:
+  the contract, the decoded geometry (slab tops on the grade and never below the kernel's graded terrain, the ramps falling
+  as derived, no deck board over the water, blades at the rest angle), the web trees (triangles, roles, atlas size, unit size),
   the manifest (hashes match the files) and the USDZ size. `npm test` skips the file tests when `public/models` is empty.
 * `scripts/build-models-manifest.ts` writes `public/models/manifest.json` (SHA-256, size, triangles, bounding box in the house
   frame, `inputHash` of `derived.json`, one content hash of all files); `--check` fails when it is stale. The web busts the cache
@@ -160,11 +208,17 @@ drops constant alpha), the style tints are baked into the textures.
 
 ```bash
 BLENDER -b --factory-startup --python pipeline/blender/preview.py -- --derived D --house H --style S --out DIR \
-   --views sw,se,ne,nw,top,topr,section,living,street,garden,aerial,room:R04 [--lod lite] [--wb 1] [--cut 5.0]
+   --views sw,se,ne,nw,top,topr,section,living,street,garden,aerial,room:R04,cam:<camera id> [--lod lite] [--wb 1] [--cut 5.0] \
+   [--terrain grid.json] [--site 1] [--gate 0.6] [--garage 1] [--furniture public/models/furniture.glb] [--exposure -2] [--device cpu]
 ```
 
 Cycles previews with a sky (about 4 s per view); `--wb 1` renders Workbench with back-face culling, which shows missing or
-flipped faces. Custom cameras: `--views "c:x,y,z:tx,ty,tz:lens|c:..."`. `top` hides the roof (plan), `section` cuts at `--cut`.
+flipped faces. Custom cameras: `--views "c:x,y,z:tx,ty,tz:lens|c:..."`, `cam:<id>` uses a camera of `derived.cameras`. `top`
+hides the roof (plan), `section` cuts at `--cut`. The ground is flat at the plateau level with the pool voids cut out, or a
+height grid (`--terrain`, `{x0, y0, step, nx, ny, h[]}` sampled from the kernel's `groundAt`; the pipeline never computes the
+terrain). `--site 1` adds plain stand-ins for the fence, gates and pillar from `derived.site` (they are not in the GLB),
+`--gate` slides the drive gate open (0..1), `--garage 1` hides the garage door leaf (open door), `--furniture` imports a
+furniture GLB, `--device cpu` renders on the CPU (leaves the GPU to a render that is running).
 
 ## 8. Using the builder from other tools (renders)
 
@@ -183,7 +237,31 @@ res["geometry"], res["info"]   # the MeshSet and the roof model (height(x, y), l
 The render details (blinds, PV, vegetation, terrain) are added by their own modules into these collections; the web GLB never
 contains them.
 
-## 9. Known limits
+## 9. Web trees (`vegetation_bake.py`)
+
+```bash
+BLENDER -b --factory-startup --python pipeline/blender/vegetation_bake.py -- \
+  --asset assets/models/tree_small_02/tree_small_02_1k.gltf --out public/models --style model/style.json
+```
+
+Bakes the CC0 tree (`ASSETS.md`) into an instancing-friendly tree for the 3D viewer: `tree.glb` (desktop, at most 6 000
+triangles, 512 px WebP leaf atlas) and `tree-lite.glb` (phones, fewer cards, 256 px), both Draco. The trunk and branches are
+decimated; the leaves become cards, one per occupied voxel of the crown, centred on its leaves and turned towards their mean
+normal and the outside of the crown, with normals pointing out of the crown (it shades as one soft volume). The atlas is
+2 x 2 leaf clusters rendered from the asset itself (unlit, transparent; transparent texels carry the mean leaf colour so the
+mipmaps keep it), stored **neutral** (luminance, mean 0.8); the colour is the material's base colour factor
+(`generated.foliage_tree` and `generated.bark` of `style.json`), so the web can tint each species.
+
+Contract: two nodes `tree_bark` (role `bark`, single sided) and `tree_foliage` (role `foliage`, double sided, `alphaMode`
+MASK), materials named the same; **normalised** geometry: trunk base at the origin, height 1, crown diameter 1 in both plan
+directions (each axis scaled by the crown's own extent; the leaf cards are scaled uniformly and stay square), so an instance
+is scaled by (crown, height, crown) of `site.trees[]`. Scene extras: `crownBase` (lowest leaf as a fraction of the height),
+`crownCentre` (the crown centre in plan relative to the trunk, normalised, house frame x / y: shift an instance by
+-crownCentre x crown to centre the crown instead of the trunk on the site position), `sourceHeight` / `sourceCrown` (the
+asset's metres), `source`. Deterministic (seeded). `build_model.sh` rebakes only when
+the asset, `style.json` or the script changed (key in `pipeline/out/tree.key`); without the asset it keeps the committed files.
+
+## 10. Known limits
 
 Axis-parallel rectangles only (rooms, walls, roofs); hip roofs only; openings only in straight wall segments between
 junctions; windows have one frame (no separate sash). The standing-seam covering is built when `roof.covering.type` contains

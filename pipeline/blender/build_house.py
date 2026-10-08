@@ -40,6 +40,7 @@ def build_geometry(cfg):
     X.build_gravel(cfg, ms)
     X.build_cladding(cfg, ms)
     X.build_screens(cfg, ms)
+    X.build_outdoor_unit(cfg, ms)
     model = R.RoofModel(cfg)
     RE.build_roof(cfg, ms, model)
     warnings = R.check_against_derived(cfg, model) + W.check_floor_areas(cfg, st, cells)

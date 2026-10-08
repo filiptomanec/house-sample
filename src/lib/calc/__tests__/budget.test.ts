@@ -3,7 +3,7 @@
 import { describe, expect, it } from "vitest";
 import {
   computeBudget, defaultBudgetSettings, defaultPricebook, estimateBand, parsePricebook, ruleQuantity, sanitizeBudgetSettings, toCsv, QUANTITY_DEFS, UNIT_KEYS,
-  type BudgetSettings, type CsvLabels, type Quantities,
+  type BudgetSettings, type CsvLabels, type PriceGroup, type Quantities, type QuantityKey,
 } from "../budget";
 import { modelQuantities, prng, readCsv, syntheticBook, syntheticQuantities } from "./budgetFixtures";
 
@@ -304,9 +304,45 @@ describe("the project's price book against the model", () => {
   const model = modelQuantities();
   const result = computeBudget(real, model);
 
-  it("has five groups that are always on and five options", () => {
-    expect(real.groups.filter((g) => !g.optional)).toHaveLength(5);
-    expect(real.groups.filter((g) => g.optional)).toHaveLength(5);
+  const refs = (g: PriceGroup): QuantityKey[] => g.lines.flatMap((l) => ("ref" in l.quantity ? [l.quantity.ref] : []));
+  const groupOf = (ref: QuantityKey) => real.groups.find((g) => refs(g).includes(ref));
+
+  it("prices the house as the other pages show it: groups that are always on, and every option on by default", () => {
+    expect(real.groups.filter((g) => !g.optional).length).toBeGreaterThan(0);
+    for (const g of real.groups) expect(g.defaultOn, g.id).toBe(true);
+    const settings = defaultBudgetSettings(real);
+    for (const g of real.groups.filter((x) => x.optional)) expect(settings.groups[g.id], g.id).toBe(true);
+    // the PV and the pool are options the visitor can switch off, and both are on for the model's own house
+    for (const ref of ["pv.kwp", "pool.count"] as const) {
+      expect(groupOf(ref)?.optional, ref).toBe(true);
+      expect(result.groups.find((g) => g.id === groupOf(ref)?.id)?.on, ref).toBe(true);
+    }
+  });
+
+  it("every line with an amount is either a quantity of the model or a lump sum that says so", () => {
+    for (const g of result.groups) {
+      const def = real.groups.find((x) => x.id === g.id)!;
+      for (const l of g.lines) {
+        if (!(l.amount > 0) || l.overhead) continue;
+        if (l.quantityRef) expect(model[l.quantityRef], `${g.id}/${l.id}`).toBeGreaterThan(0);
+        else expect(def.lines.find((x) => x.id === l.id)?.note, `${g.id}/${l.id} is a lump sum without a note`).toBeDefined();
+      }
+    }
+  });
+
+  it("every element the model has beyond the bare shell is priced", () => {
+    const priced = new Set(real.groups.flatMap(refs));
+    const elements: QuantityKey[] = [
+      "pool.count", "pool.waterArea", "pool.perimeter", "pool.volume", "pool.deckArea", "gate.drive.width", "gate.walk.count", "pillar.count",
+      "rainTank.count", "fence.street.length", "fence.boundary.length", "site.gravelArea", "site.pavedArea", "driveArea", "pathArea",
+      "pavingAreaUncovered", "coveredOutdoorArea", "coveredBeamLength", "postCount", "screenArea", "soffitArea", "ceilingAreaHeated",
+      "roofInsulationArea", "unheatedPartitionArea", "linearDrainLength", "blind.count", "blind.area", "door.inside.count",
+      "door.toUnheated.count", "heatPump.count", "kitchen.count", "treeCount", "treeUplight.count", "shrubCount", "lightpipe.count",
+      "downpipe.count", "earthworkFillVolume", "woodCladdingArea",
+    ];
+    for (const k of elements) if (model[k] > 0) expect(priced.has(k), k).toBe(true);
+    // nothing priced that the plan does not have any more: no line refers to the hedges of the old plot
+    expect(priced.has("hedgeLength")).toBe(false);
   });
 
   it("only uses quantities of its own unit, and all its quantities exist", () => {
@@ -339,11 +375,26 @@ describe("the project's price book against the model", () => {
     expect(result.coreWithVat).toBeLessThan(band.high);
   });
 
-  it("the kitchen carries the standard VAT, everything else the reduced rate", () => {
-    const standard = real.groups.filter((g) => g.vat !== real.vat.default).map((g) => g.id);
-    expect(standard).toEqual(["kitchen"]);
+  it("the house takes the reduced VAT; kitchen furniture, stand-alone outdoor structures and the pool the standard rate", () => {
     expect(real.vat.classes.residential).toBe(0.12);
     expect(real.vat.classes.standard).toBe(0.21);
+    for (const g of real.groups.filter((x) => !x.optional)) expect(g.vat, g.id).toBe("residential");
+    const standalone = (k: QuantityKey) => /^(fence\.|gate\.|pillar\.|pool\.|site\.)/.test(k) || k === "earthworkFillVolume" || k === "greenArea";
+    for (const g of real.groups) {
+      if (refs(g).some(standalone)) expect(g.vat, g.id).toBe("standard");
+    }
+    expect(groupOf("kitchenRunLength")?.vat).toBe("standard");
+    expect(groupOf("pv.kwp")?.vat).toBe("residential");
+  });
+
+  it("names its lines with the words of the glossary (docs/COPY.md)", () => {
+    const cs: RegExp[] = [/lamelov\p{L}* (?:stěny|stěn\b|zástěn)|zástěn/iu, /obvodov\p{L}* zd/iu, /nosn\p{L}* příč/iu, /posuvn\p{L}* stěn|zasklen\p{L}* stěn/iu, /živ\p{L}* plot/iu, /anhydrit/iu];
+    const en: RegExp[] = [/\bexterior (?:walls?|blinds?|doors?)\b/i, /\bhip roof/i, /\bslat(?:ted)? screens?\b/i, /\bphotovoltaics\b/i, /\bterraces\b/i, /façade/i, /anhydrite/i, /\bhedge/i];
+    const names = [...real.groups.map((g) => g.name), ...real.groups.flatMap((g) => g.lines.map((l) => l.name)), ...(real.siteOverhead ? [real.siteOverhead.name] : [])];
+    for (const n of names) {
+      for (const re of cs) expect(re.test(n.cs), `${n.cs} ~ ${re.source}`).toBe(false);
+      for (const re of en) expect(re.test(n.en), `${n.en} ~ ${re.source}`).toBe(false);
+    }
   });
 
   it("scales with the model: a house twice the footprint costs more in the shell and the same in the kitchen", () => {

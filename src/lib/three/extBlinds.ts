@@ -2,7 +2,10 @@
 // `house.shading.blinds`, docs/HOUSE-FORMAT.md section 4.4). Aluminium slats in guide rails; raised, the slats disappear into
 // the head box (`boxHeight` high) above the opening and only the box and the rails stay visible.
 //
-//  * Sections: one per opening, split into equal parts when wider than `EXT_BLIND_SPEC.maxSectionWidth`. Position and
+//  * The product (slat width, pitch and thickness, rails, box, reveal, widest section) is the one blind of the model,
+//    `house.shading.blinds.product` (`blindProduct(ctx)`), read by the renders too; `EXT_BLIND_SPEC` holds only drawing details
+//    and the defaults of a model without a product.
+//  * Sections: one per opening, split into equal parts when wider than the product's `maxSectionWidth`. Position and
 //    direction come from the opening (`wallId`, `orient`, `cx`/`cy`, `w`, `sill`, `head`, `azimuth`) and the thickness of its
 //    wall (`derived.walls`), nothing is typed in per opening. A section is *located* on the outer face of the wall
 //    (`origin`); the curtain, the rails and the head box are drawn in the reveal, `EXT_BLIND_SPEC.reveal` behind that face,
@@ -22,7 +25,7 @@ import { outwardNormalHouse } from "./frame";
 import { generatedMaterial } from "./style";
 import type { Viewer } from "./viewer";
 
-/** Dimensions of the blind product, metres (equipment specification, not the house). */
+/** Defaults of the blind product (a model without `shading.blinds.product`) and drawing details, metres. */
 export const EXT_BLIND_SPEC = {
   slatPitch: 0.072,
   slatWidth: 0.08,
@@ -45,6 +48,18 @@ export const EXT_BLIND_SPEC = {
   curtainStripes: 35,
 } as const;
 
+/** The blind product of the model (`house.shading.blinds.product`), with the defaults for fields it does not give. */
+export type BlindProduct = { -readonly [K in keyof typeof EXT_BLIND_SPEC]: number };
+export function blindProduct(ctx: Pick<HouseContext, "house">): BlindProduct {
+  const product = (ctx.house.shading.blinds as { product?: Partial<BlindProduct> }).product ?? {};
+  const out = { ...EXT_BLIND_SPEC } as BlindProduct;
+  for (const k of Object.keys(out) as (keyof BlindProduct)[]) {
+    const v = product[k];
+    if (typeof v === "number" && Number.isFinite(v) && v > 0) out[k] = v;
+  }
+  return out;
+}
+
 export interface BlindSection {
   /** `derived.openings[].id` this section belongs to (a join key, never a condition). */
   opening: string;
@@ -66,6 +81,7 @@ export interface BlindSection {
  */
 export function blindSections(ctx: HouseContext): BlindSection[] {
   const { derived, house } = ctx;
+  const spec = blindProduct(ctx);
   const out: BlindSection[] = [];
   for (const o of derived.openings) {
     if (!o.blind || o.azimuth === null) continue;
@@ -80,7 +96,7 @@ export function blindSections(ctx: HouseContext): BlindSection[] {
     const s0 = forward ? o.from : o.to;
     const base: [number, number] = o.orient === "h" ? [s0, o.axis] : [o.axis, s0];
     const face: [number, number] = [base[0] + n[0] * (wall.t / 2), base[1] + n[1] * (wall.t / 2)];
-    const parts = Math.max(1, Math.ceil(o.w / EXT_BLIND_SPEC.maxSectionWidth - 1e-9));
+    const parts = Math.max(1, Math.ceil(o.w / spec.maxSectionWidth - 1e-9));
     const width = o.w / parts;
     for (let k = 0; k < parts; k++) {
       out.push({
@@ -107,8 +123,8 @@ export interface ExtBlinds {
 }
 
 /** The centre of a slat and its extents in the reveal, for one section (scene frame). Pure, used by the layout and the tests. */
-export function slatHeights(section: Pick<BlindSection, "sill" | "head">, drop: number): number[] {
-  const { slatPitch } = EXT_BLIND_SPEC;
+export function slatHeights(section: Pick<BlindSection, "sill" | "head">, drop: number, spec: Pick<BlindProduct, "slatPitch"> = EXT_BLIND_SPEC): number[] {
+  const { slatPitch } = spec;
   const travel = Math.max(0, drop * (section.head - section.sill - 0.1));
   const zs: number[] = [];
   for (let z = section.head - 0.1 - slatPitch / 2; z >= section.head - 0.1 - travel; z -= slatPitch) zs.push(z);
@@ -121,7 +137,7 @@ export function slatHeights(section: Pick<BlindSection, "sill" | "head">, drop: 
  */
 export function buildExtBlinds(viewer: Viewer, house: HouseScene): ExtBlinds {
   const ctx = house.ctx;
-  const spec = EXT_BLIND_SPEC;
+  const spec = blindProduct(ctx);
   const sections = blindSections(ctx);
   const group = new THREE.Group();
   group.name = "ext_blinds";
@@ -213,7 +229,7 @@ export function buildExtBlinds(viewer: Viewer, house: HouseScene): ExtBlinds {
       // the far curtain covers the same lowered part, in the plane of the slats
       P.copy(g.centre); P.y = s.head - 0.1 - len / 2;
       curtains.setMatrixAt(i, M.compose(P, basis(g.dir, up, g.out), S.set(len > 0.01 ? innerWidth : 1e-4, Math.max(len, 1e-4), 1)));
-      for (const z of slatHeights(s, drop)) {
+      for (const z of slatHeights(s, drop, spec)) {
         if (n >= maxSlats) break;
         P.copy(g.centre); P.y = z;
         slats.setMatrixAt(n++, M.compose(P, slatBasis(g.dir, g.out, t), S.set(innerWidth, spec.slatThickness, spec.slatWidth)));

@@ -1,7 +1,8 @@
 // Energy balance of the house: transmission and ventilation losses from the real constructions and the derived envelope
-// (EN ISO 13789, 13370), monthly heating demand with solar and internal gains (EN ISO 13790 monthly method), design heat
-// load (EN 12831), heat pump (SCOP, COP by month), domestic hot water, household and EV electricity, PV yield per roof plane
-// from PVGIS, hourly balance of typical days with a battery, and the payback of the PV system.
+// (EN ISO 13789, 13370), monthly heating demand with solar and internal gains (EN ISO 13790 monthly method; the blinds are
+// raised in the heating season), the summer solar load through the glazing with and without the blinds, design heat load
+// (EN 12831), heat pump (SCOP, COP by month), domestic hot water, household, EV and pool electricity, PV yield per roof plane
+// from PVGIS, hourly balance of typical days with a battery, the electricity bill and the payback of the PV system over its life.
 //
 // Contract: docs/CALC-API.md, section 7. Pure functions, no DOM, no text (results carry numbers and keys; the page translates
 // the keys), deterministic. The result is indicative, not an energy performance certificate.
@@ -18,13 +19,13 @@ import climateJson from "@/lib/data/pvgis.json";
 import { DAYS_IN_MONTH } from "@/lib/calendar";
 import { DIRS, DIR_AZIMUTH } from "@/lib/model/catalog";
 import type { Dir, OpeningKind } from "@/lib/model/catalog";
-import { expandRect, unionOf, type Rect } from "@/lib/model/geom";
 import { house as projectHouse, derived as projectDerived, metrics as projectMetrics } from "@/lib/model/instance";
 import { computeMetrics } from "@/lib/model/metrics";
 import type { Obstacle } from "@/lib/model/pv";
 import { clipRingToRect } from "@/lib/model/roofs";
 import type { Derived, DerivedOpening, House, Metrics } from "@/lib/model/types";
 import type { Assumptions } from "./energySchema";
+import { heatedRegion } from "./heatedRegion";
 import { groupRoofPlanes, layoutPanels, lightpipeObstacles, defaultPvSelection, resolvePvSelection, type PanelLayout, type PvSelection, type RoofPlane } from "./roofLayout";
 import { parseStoredPv } from "./storageKeys";
 import { monthOffsetMix, overhangDailyShading, placeOf, sunHoursOnSurface, TYPICAL_DAY, type CalendarDate } from "./sun";
@@ -195,6 +196,11 @@ export interface EnergyInputs {
   scopDhw: number;
   /** Heat the water in the PV hours (`assumptions.dhw.daytimeHours`) instead of morning and evening. */
   dhwDaytime: boolean;
+  /**
+   * Run the pool of the model (filtration and pool heat pump, `assumptions.pool`) in its season. Defaults to true when the model has
+   * a pool; without a pool it changes nothing.
+   */
+  pool: boolean;
   /** The PV choice, shared with Model, Home and Budget (`resolvePvSelection`). */
   pv: PvSelection;
   /** Tariffs and investment, CZK. */
@@ -243,6 +249,7 @@ export function defaultInputs(ctx: EnergyContext): EnergyInputs {
     scop: num("scop"),
     scopDhw: num("scopDhw"),
     dhwDaytime: ctx.assumptions.inputs.flags.dhwDaytime,
+    pool: poolsOf(ctx.derived).length > 0,
     pv: defaultPvSelection(ctx.house, ctx.planes, ctx.derived),
     priceBuy: num("priceBuy"),
     priceSell: num("priceSell"),
@@ -267,7 +274,7 @@ export function sanitizeInputs(raw: unknown, ctx: EnergyContext): EnergyInputs {
     const sp = spec[k];
     out[k] = typeof v === "number" && Number.isFinite(v) ? Math.min(sp.max, Math.max(sp.min, roundToStep(v, sp.step))) : sp.default;
   }
-  for (const k of ["evChargeDaytime", "heatRecovery", "dhwDaytime"] as const) {
+  for (const k of ["evChargeDaytime", "heatRecovery", "dhwDaytime", "pool"] as const) {
     if (typeof given[k] === "boolean") out[k] = given[k];
   }
   out.pv = resolvePvSelection(parseStoredPv({ pv: given.pv }), defaults.pv, ctx.planes, ctx.house.equipment.battery.options.map((o) => o.id));
@@ -301,8 +308,12 @@ interface Prep {
   yearMeanC: number;
   /** UTC offsets of the time zone per month with their shares (`monthOffsetMix`). */
   offsets: { offset: number; share: number }[][];
-  /** Solar gains through the glazing per month, kWh (shading by the roof edge, blinds, frame, g, correction). */
+  /**
+   * Solar gains through the glazing per month, kWh (shading by the roof edge, frame, g, correction), with the blinds raised: what
+   * the heating balance uses. `withBlinds` adds the blinds' closing rule (the summer indicator).
+   */
   solarGainKwh: number[];
+  solarWithBlindsKwh: number[];
   /** Yield of 1 kWp per roof plane. */
   yields: Map<string, PlaneYield>;
 }
@@ -317,6 +328,7 @@ function prepare(ctx: EnergyContext): Prep {
   const monthMeanC = ctx.climate.tempUTC.map((row) => row.reduce((s, v) => s + v, 0) / row.length);
   const totalDays = DAYS_IN_MONTH.reduce((s, d) => s + d, 0);
   const yearMeanC = monthMeanC.reduce((s, t, m) => s + t * DAYS_IN_MONTH[m], 0) / totalDays;
+  const solar = solarGains(ctx);
   const prep: Prep = {
     envelope: envelopeData.envelope,
     hFloor: envelopeData.hFloor,
@@ -325,10 +337,10 @@ function prepare(ctx: EnergyContext): Prep {
     monthMeanC,
     yearMeanC,
     offsets: monthOffsetMix(ctx.house.location.tz, ctx.assumptions.climate.referenceYear),
-    solarGainKwh: new Array<number>(12).fill(0),
+    solarGainKwh: solar.open,
+    solarWithBlindsKwh: solar.withBlinds,
     yields: new Map(),
   };
-  prep.solarGainKwh = solarGains(ctx);
   for (const plane of ctx.planes) prep.yields.set(plane.key, planeYield(plane, ctx));
   prepCache.set(ctx, prep);
   return prep;
@@ -337,6 +349,11 @@ function prepare(ctx: EnergyContext): Prep {
 /** Heated rooms of the model; the garage and other rooms of an unheated type are not part of the thermal envelope. */
 function heatedRoomIds(derived: Derived): Set<string> {
   return new Set(derived.rooms.filter((r) => r.heated).map((r) => r.id));
+}
+
+/** The pools of the model: outdoor areas that carry pool data (type `pool`), with their water surface, m2. */
+function poolsOf(derived: Derived): { waterArea: number }[] {
+  return derived.outdoor.flatMap((o) => (o.pool ? [{ waterArea: o.pool.waterArea }] : []));
 }
 
 /** Direction (house frame) of an outward normal given by its house-frame azimuth: 0 N, 90 E, 180 S, 270 W. */
@@ -359,9 +376,12 @@ function heatedExteriorOpenings(derived: Derived): (DerivedOpening & { dir: Dir 
 }
 
 /**
- * Builds the envelope table from the derived model. Dimensions are to the wall axes (gross wall area = axis length x wall
- * height, as `metrics.heated`); the roof and the floor are taken over the heated plan region, which is the heated rooms grown
- * by half an exterior wall to the outer face. The roof is the sloped area of the roof faces over that region.
+ * Builds the envelope table from the derived model. Wall areas are to the wall axes (gross wall area = axis length x wall height,
+ * as `metrics.heated`); under a cold attic (`derived.topEnvelope === "ceiling"`) a wall counts only up to the top of the ceiling
+ * (`clearHeight + slab`): the knee wall above it stands in the unheated roof space. The top of the heated volume is the ceiling
+ * under the attic (factor `thermal.atticB`) or, with a warm roof, the sloped roof faces over the heated rooms. Floor and ceiling
+ * cover the heated region to the outer face (`heatedRegion`, the area of `metrics.heatedAreaGross`); the floor is EN ISO 13370
+ * with the region's whole perimeter exposed (outside walls and the walls to unheated rooms).
  */
 function buildEnvelope(ctx: EnergyContext): { envelope: Envelope; hFloor: number; floor: FloorOnGround } {
   const { house, derived, assumptions: a } = ctx;
@@ -372,6 +392,8 @@ function buildEnvelope(ctx: EnergyContext): { envelope: Envelope; hFloor: number
     if (!(area > 0)) return;
     rows.push({ key: `${kind}:${dir ?? "-"}`, kind, dir, area, u, b, h: area * u * b, assembly });
   };
+  const coldAttic = derived.topEnvelope === "ceiling";
+  const ceilingTop = house.clearHeight + house.slab;
 
   // exterior walls and openings by direction
   const openings = heatedExteriorOpenings(derived);
@@ -379,7 +401,8 @@ function buildEnvelope(ctx: EnergyContext): { envelope: Envelope; hFloor: number
   const grossByDir: Record<Dir, number> = { N: 0, E: 0, S: 0, W: 0 };
   for (const w of derived.walls) {
     if (!w.ext || w.azimuth === undefined || !w.room || !heated.has(w.room)) continue;
-    grossByDir[dirOfAzimuth(w.azimuth)] += w.len * (w.height ?? derived.defaultWallTop);
+    const height = w.height ?? derived.defaultWallTop;
+    grossByDir[dirOfAzimuth(w.azimuth)] += w.len * (coldAttic ? Math.min(height, ceilingTop) : height);
   }
   for (const dir of DIRS) {
     const openingArea = openings.filter((o) => o.dir === dir).reduce((s, o) => s + o.area, 0);
@@ -395,39 +418,40 @@ function buildEnvelope(ctx: EnergyContext): { envelope: Envelope; hFloor: number
     }
   }
 
-  // plan region of the heated part (rooms grown to the outer face) and the roof above it
-  const half = house.wall.ext / 2;
-  const heatedRects: Rect[] = derived.rooms.filter((r) => r.heated).flatMap((r) => r.rects);
-  const unheatedRects: Rect[] = derived.rooms.filter((r) => !r.heated).flatMap((r) => r.rects);
-  const region = unionOf(heatedRects.map((r) => expandRect(r, half)));
-  let roofArea = 0;
-  for (const f of derived.roofPlanes) {
-    const cos = Math.cos((f.pitch * Math.PI) / 180);
-    for (const rect of region.rects) {
-      const ring = clipRingToRect(f.pts, rect);
-      if (ring) roofArea += ringAreaAbs(ring) / cos;
+  // the top of the heated volume: the ceiling under a cold attic, or the sloped roof faces over the heated region
+  const region = heatedRegion(derived);
+  const grossArea = region.area;
+  if (coldAttic) {
+    push("ceiling", null, grossArea, uValue(house.assemblies.ceiling), a.thermal.atticB, "ceiling");
+  } else {
+    let roofArea = 0;
+    for (const f of derived.roofPlanes) {
+      const cos = Math.cos((f.pitch * Math.PI) / 180);
+      for (const rect of region.rects) {
+        const ring = clipRingToRect(f.pts, rect);
+        if (ring) roofArea += ringAreaAbs(ring) / cos;
+      }
     }
+    push("roof", null, roofArea, uValue(house.assemblies.roof), 1, "roof");
   }
-  push("roof", null, roofArea, uValue(house.assemblies.roof), 1, "roof");
 
-  // floor on the ground (EN ISO 13370): the perimeter that borders the outside, not an unheated room
-  const shared = unheatedRects.length
-    ? Math.max(0, (unionOf(heatedRects).perimeter + unionOf(unheatedRects).perimeter - unionOf([...heatedRects, ...unheatedRects]).perimeter) / 2)
-    : 0;
+  // floor on the ground (EN ISO 13370): the exposed perimeter includes the walls to unheated rooms (the garage edge)
   const groundFloor = house.assemblies.groundFloor;
   const floor = floorOnGround({
-    area: region.area,
-    exposedPerimeter: Math.max(0, region.perimeter - shared),
+    area: grossArea,
+    exposedPerimeter: region.perimeter,
     wallThickness: house.wall.ext,
     floorResistance: assemblyBreakdown(groundFloor).rLayers,
     rsi: groundFloor.rsi,
-    rse: groundFloor.rse,
+    rse: GROUND_RSE,
     soilLambda: a.ground.soilLambda,
     periodicDepthM: a.ground.periodicDepthM,
   });
-  push("floor", null, region.area, floor.u, 1, "groundFloor");
+  push("floor", null, grossArea, floor.u, 1, "groundFloor");
 
-  // walls and doors between a heated and an unheated room, with the temperature reduction factor of the unheated room
+  // walls and doors between a heated and an unheated room, with the temperature reduction factor of the unheated room; the wall
+  // takes the model's insulated `wallToUnheated` assembly when it has one, the door the U of a fire-rated door
+  const toUnheated = house.assemblies.wallToUnheated;
   let pArea = 0, pAU = 0, pAUb = 0;
   const kinds = new Set<string>();
   for (const w of derived.walls) {
@@ -436,20 +460,24 @@ function buildEnvelope(ctx: EnergyContext): { envelope: Envelope; hFloor: number
     if (!lo || !hi || lo.heated === hi.heated) continue;
     const inside = lo.heated ? lo : hi, outside = lo.heated ? hi : lo;
     const b = a.thermal.unheatedB[outside.type] ?? DEFAULT_UNHEATED_B;
-    const assemblyKey = w.kind === "bearing" ? "bearingWall" : "partitionWall";
+    const plain = w.kind === "bearing" ? "bearingWall" : "partitionWall";
+    const insulated = toUnheated !== undefined && w.toUnheated === true;
+    const assemblyKey = insulated ? "wallToUnheated" : plain;
+    const assembly = insulated ? toUnheated : house.assemblies[plain];
     const doors = derived.openings.filter((o) => o.wallId === w.id && o.exterior !== true);
     const doorArea = doors.reduce((s, o) => s + o.area, 0);
     const wallArea = Math.max(0, w.len * inside.height - doorArea);
-    const uw = uValue(house.assemblies[assemblyKey]);
+    const uw = uValue(assembly);
+    const ud = a.thermal.doorToUnheatedU;
     kinds.add(assemblyKey);
     pArea += wallArea + doorArea;
-    pAU += wallArea * uw + doorArea * house.windows.Ud;
-    pAUb += (wallArea * uw + doorArea * house.windows.Ud) * b;
+    pAU += wallArea * uw + doorArea * ud;
+    pAUb += (wallArea * uw + doorArea * ud) * b;
   }
   if (pArea > 0 && pAU > 0) push("partition", null, pArea, pAU / pArea, pAUb / pAU, kinds.size === 1 ? [...kinds][0] : null);
 
-  // thermal bridges: an allowance on everything that borders the outside air
-  const outside = rows.filter((r) => r.kind === "wall" || r.kind === "window" || r.kind === "slider" || r.kind === "door" || r.kind === "roof");
+  // thermal bridges: an allowance on everything that borders the outside air or the ventilated roof space
+  const outside = rows.filter((r) => r.kind === "wall" || r.kind === "window" || r.kind === "slider" || r.kind === "door" || r.kind === "roof" || r.kind === "ceiling");
   push("bridge", null, outside.reduce((s, r) => s + r.area, 0), a.thermal.thermalBridgeDeltaU, 1, null);
 
   const hTransmission = rows.reduce((s, r) => s + r.h, 0);
@@ -462,6 +490,9 @@ function buildEnvelope(ctx: EnergyContext): { envelope: Envelope; hFloor: number
       area: lossArea,
       uMean: lossArea > 0 ? hTransmission / lossArea : 0,
       heatedFloorArea: sum(derived.rooms.filter((r) => r.heated).map((r) => r.area)),
+      heatedFloorAreaGross: grossArea,
+      exposedPerimeter: region.perimeter,
+      top: coldAttic ? "ceiling" : "roof",
       heatedVolume: sum(derived.rooms.filter((r) => r.heated).map((r) => r.volume)),
     },
     hFloor: floorRow?.h ?? 0,
@@ -469,8 +500,10 @@ function buildEnvelope(ctx: EnergyContext): { envelope: Envelope; hFloor: number
   };
 }
 
-/** b factor of a wall to an unheated room whose type is not in `assumptions.thermal.unheatedB` (EN ISO 13789, a room with one outside wall). */
+/** b factor of a wall to an unheated room whose type is not in `assumptions.thermal.unheatedB` (EN ISO 13789, an unheated room with insulated outside walls). */
 const DEFAULT_UNHEATED_B = 0.5;
+/** External surface resistance in the equivalent thickness of a floor on the ground, m2 K/W (EN ISO 13370, 9.1: R_se = 0.04). */
+const GROUND_RSE = 0.04;
 
 const ringAreaAbs = (ring: readonly (readonly [number, number])[]): number => {
   let s = 0;
@@ -483,17 +516,20 @@ const ringAreaAbs = (ring: readonly (readonly [number, number])[]): number => {
 
 /**
  * Solar gains per month, kWh: for every glazed exterior opening of a heated room,
- *   A_glazing (1 - frame share) g F_w F_overhang F_blind H_vertical(facing, month),
- * with the correction F_w for non-perpendicular incidence and dirt, the roof edge shading only the direct share of the
- * irradiation (F_overhang = 1 - b s, s from `overhangDailyShading` on the typical day of the month), and the external blind
- * of the opening (if it has one) closed for the share of the facade's irradiation that arrives above the closing threshold.
+ *   A_glazing (1 - frame share) g F_w F_overhang H_vertical(facing, month),
+ * with the correction F_w for non-perpendicular incidence and dirt and the roof edge shading only the direct share of the
+ * irradiation (F_overhang = 1 - b s, s from `overhangDailyShading` on the typical day of the month). `open` is this sum with
+ * every blind raised: in the heating season nobody closes the external blinds against the sun, so the heating balance uses it.
+ * `withBlinds` multiplies the openings that have a blind by F_blind: the blind is closed for the share of the facade's
+ * irradiation that arrives above `closeAboveIrradiance` and then lets `closedFactor` through (the summer solar load).
  */
-function solarGains(ctx: EnergyContext): number[] {
+function solarGains(ctx: EnergyContext): { open: number[]; withBlinds: number[] } {
   const { house, derived, climate, assumptions: a } = ctx;
   const place = placeOf(house);
   const year = a.climate.referenceYear;
   const blinds = house.shading.blinds;
-  const gains = new Array<number>(12).fill(0);
+  const open = new Array<number>(12).fill(0);
+  const withBlinds = new Array<number>(12).fill(0);
   const hoursCache = new Map<string, number>();
   for (const o of heatedExteriorOpenings(derived)) {
     if (!(o.glazingArea > 0)) continue;
@@ -516,10 +552,12 @@ function solarGains(ctx: EnergyContext): number[] {
         const closed = closedShare(climate.vertical[o.dir][m] / DAYS_IN_MONTH[m], hours, blinds.closeAboveIrradiance);
         blind = 1 - closed * (1 - blinds.closedFactor);
       }
-      gains[m] += base * (1 - a.thermal.verticalBeamShare * shade) * blind * climate.vertical[o.dir][m];
+      const gain = base * (1 - a.thermal.verticalBeamShare * shade) * climate.vertical[o.dir][m];
+      open[m] += gain;
+      withBlinds[m] += gain * blind;
     }
   }
-  return gains;
+  return { open, withBlinds };
 }
 
 /**
@@ -538,14 +576,15 @@ export function closedShare(dailyKwhM2: number, sunHours: number, thresholdWm2: 
 
 // ================================================================================================ envelope and ventilation
 
-export type EnvelopeKind = "wall" | "window" | "slider" | "door" | "roof" | "floor" | "partition" | "bridge";
+/** Kinds of envelope rows. `ceiling` (the ceiling under a cold attic) and `roof` (a warm roof) exclude each other. */
+export type EnvelopeKind = "wall" | "window" | "slider" | "door" | "roof" | "ceiling" | "floor" | "partition" | "bridge";
 
 /** One line of the envelope table. */
 export interface EnvelopeRow {
   /** `${kind}:${dir ?? "-"}`; unique, stable, safe as a React key and a translation key suffix. */
   key: string;
   kind: EnvelopeKind;
-  /** House-frame direction of walls, windows, sliders and doors; null for roof, floor and the bridge allowance. */
+  /** House-frame direction of walls, windows, sliders and doors; null for roof, ceiling, floor, partition and the bridge allowance. */
   dir: Dir | null;
   /** Area, m2. */
   area: number;
@@ -555,7 +594,7 @@ export interface EnvelopeRow {
   b: number;
   /** Heat transfer coefficient of the row, W/K: `area * u * b`. */
   h: number;
-  /** Key of the model's assembly the U-value comes from (`exteriorWall`, `roof`, `groundFloor`...), null for openings and bridges. */
+  /** Key of the model's assembly the U-value comes from (`exteriorWall`, `ceiling`, `roof`, `groundFloor`, `wallToUnheated`...), null for openings and bridges. */
   assembly: string | null;
 }
 
@@ -563,18 +602,29 @@ export interface Envelope {
   rows: EnvelopeRow[];
   /** Transmission heat transfer coefficient H_T, W/K: the sum of `h`. */
   hTransmission: number;
-  /** Heat loss area (sum of the areas of the rows that border outside air), m2, and mean U = H_T / area. */
+  /** Heat loss area (sum of the areas of the rows except partitions and the bridge allowance), m2, and mean U = H_T / area. */
   area: number;
   uMean: number;
+  /** Net floor area of the heated rooms, m2 (`metrics.heatedArea`): the basis of `totals.specificHeatNeed`. */
   heatedFloorArea: number;
+  /**
+   * Heated floor area to the outer face of the walls, m2 (`metrics.heatedAreaGross`, the energy reference area of a Czech energy
+   * certificate): the area of the floor and ceiling rows and the basis of `totals.specificHeatNeedGross`.
+   */
+  heatedFloorAreaGross: number;
+  /** Exposed perimeter of the floor on the ground (EN ISO 13370: outside walls and walls to unheated rooms), m. */
+  exposedPerimeter: number;
+  /** What closes the heated volume at the top: the ceiling under a cold attic or the roof (`derived.topEnvelope`). */
+  top: "ceiling" | "roof";
   heatedVolume: number;
 }
 
 /**
  * Transmission through the heated envelope from the derived data and the assemblies (never from typed-in areas):
- * opaque exterior walls and openings by direction (U of windows, sliders, doors from `house.windows`), the roof over heated
- * rooms (`assemblies.roof`), the ground floor (EN ISO 13370 `floorOnGround`), walls to unheated rooms with their `b`, and the
- * thermal-bridge allowance. External dimensions (EN ISO 13789).
+ * opaque exterior walls and openings by direction (U of windows, sliders, doors from `house.windows`), the ceiling under a cold
+ * attic (`assemblies.ceiling`, factor `thermal.atticB`) or the roof over heated rooms (`assemblies.roof`), the ground floor
+ * (EN ISO 13370 `floorOnGround`), walls (`assemblies.wallToUnheated` when the model has it) and doors (`thermal.doorToUnheatedU`) to
+ * unheated rooms with their `b`, and the thermal-bridge allowance. External dimensions (EN ISO 13789).
  */
 export function computeEnvelope(ctx: EnergyContext): Envelope {
   return copyEnvelope(prepare(ctx).envelope);
@@ -622,9 +672,24 @@ export interface DesignLoad {
   totalW: number;
   /** W per m2 of heated floor. */
   specificWm2: number;
-  /** Rated power of the model's heat pump, kW, and its coverage of the design load (rated / design). */
+  /** Nominal rating of the model's heat pump (A7/W35), kW. */
   ratedKw: number;
+  /** Output of the heat pump at the design outdoor temperature (A-12/W35), kW (`heatPumpDesignKw`). */
+  ratedPowerKwAtDesign: number;
+  /** Coverage of the design load by the output at the design temperature: `ratedPowerKwAtDesign / total` (the figure to show). */
   coverage: number;
+  /** The nominal rating against the design load, `ratedKw / total` (overstates the coverage on a cold day; kept for reference). */
+  coverageNominal: number;
+}
+
+/**
+ * Output of the heat pump at the design outdoor temperature, kW: the model's own figure (`equipment.heating.ratedPowerKwAtDesign`)
+ * when the model gives one, else the nominal rating times `assumptions.heating.designCapacityShare`.
+ */
+export function heatPumpDesignKw(house: House, a: Assumptions): number {
+  const heating: House["equipment"]["heating"] & { ratedPowerKwAtDesign?: number } = house.equipment.heating;
+  const own = heating.ratedPowerKwAtDesign;
+  return typeof own === "number" && own > 0 ? own : heating.ratedPowerKw * a.heating.designCapacityShare;
 }
 
 /** Design heat load by EN 12831 (no heat-up reserve): losses to the outside at the design temperature, ground via `ground.fg1`. */
@@ -640,6 +705,7 @@ export function computeDesignLoad(inputs: EnergyInputs, ctx: EnergyContext): Des
   const totalW = Math.max(0, transmissionW + groundW + ventilationW);
   const floorArea = prep.envelope.heatedFloorArea;
   const ratedKw = ctx.house.equipment.heating.ratedPowerKw;
+  const ratedPowerKwAtDesign = heatPumpDesignKw(ctx.house, ctx.assumptions);
   return {
     outdoorC: designOutdoorC,
     indoorC: inputs.indoorTempC,
@@ -649,7 +715,9 @@ export function computeDesignLoad(inputs: EnergyInputs, ctx: EnergyContext): Des
     totalW,
     specificWm2: floorArea > 0 ? totalW / floorArea : 0,
     ratedKw,
-    coverage: totalW > 0 ? (ratedKw * 1000) / totalW : 0,
+    ratedPowerKwAtDesign,
+    coverage: totalW > 0 ? (ratedPowerKwAtDesign * 1000) / totalW : 0,
+    coverageNominal: totalW > 0 ? (ratedKw * 1000) / totalW : 0,
   };
 }
 
@@ -771,6 +839,8 @@ export interface DayLoadParts {
   appliances: Hourly;
   ev: Hourly;
   ventilation: Hourly;
+  /** Filtration and heat pump of the pool (zero outside the season, without a pool or with `inputs.pool` off). */
+  pool: Hourly;
 }
 
 export interface DayTypeProfile extends DayFlows {
@@ -877,7 +947,7 @@ export interface MonthResult {
   days: number;
   /** Mean outdoor temperature, deg C (mean of `tempUTC[month]`). */
   outdoorC: number;
-  /** Heat losses (transmission + ventilation + ground) and gains, kWh. */
+  /** Heat losses (transmission + ventilation + ground) and gains, kWh; the solar gains with the blinds raised (heating balance). */
   lossKwh: number;
   solarGainKwh: number;
   internalGainKwh: number;
@@ -895,6 +965,8 @@ export interface MonthResult {
   elApplianceKwh: number;
   elEvKwh: number;
   elVentKwh: number;
+  /** Pool filtration and pool heat pump, kWh (its own row; not part of the heat demand). */
+  elPoolKwh: number;
   elTotalKwh: number;
   /** PV production, direct and battery self-use, export, import, kWh. */
   pvKwh: number;
@@ -920,15 +992,21 @@ export interface PlaneEnergy {
 }
 
 export interface EnergyTotals {
+  /** Space-heating demand of the house, kWh (blinds raised in the heating season; the pool is not part of it). */
   heatNeedKwh: number;
-  /** kWh per m2 of heated floor and year. */
+  /** kWh per m2 of NET heated floor (`envelope.heatedFloorArea`) and year. */
   specificHeatNeed: number;
+  /** kWh per m2 of GROSS heated floor (`envelope.heatedFloorAreaGross`, the energy reference area of a Czech certificate) and year. */
+  specificHeatNeedGross: number;
   dhwHeatKwh: number;
   elHeatKwh: number;
   elDhwKwh: number;
   elApplianceKwh: number;
   elEvKwh: number;
   elVentKwh: number;
+  /** Pool electricity, kWh a year (= `pool.kwh`). */
+  elPoolKwh: number;
+  /** All electricity: heat + hot water + household + EV + fans + pool. */
   elTotalKwh: number;
   /** Seasonal COP actually obtained, heat / electricity (equals the `scop` input when there is heating demand). */
   heatPumpSeasonalCop: number | null;
@@ -947,33 +1025,90 @@ export interface EnergyTotals {
   batteryCycles: number;
 }
 
-/** "ok": pays back within the cap; "never": savings <= 0 or longer than the cap; "none": nothing was invested. */
-export type PaybackStatus = "ok" | "never" | "none";
+/**
+ * "ok": pays back within its life; "beyondLife": pays back, but only after the life of the part (`lifeYears`; `paybackYears` says
+ * when); "never": savings <= 0, or not paid back within `paybackCapYears`; "none": nothing was invested.
+ */
+export type PaybackStatus = "ok" | "beyondLife" | "never" | "none";
 
 export interface PaybackPart {
+  /** Savings in the first year, CZK. */
   savings: number;
   investment: number;
+  /** Years until the cumulative cash flow turns positive for good (degradation and replacements included); null for "never"/"none". */
   paybackYears: number | null;
   status: PaybackStatus;
+  /** Life of the part, years (`economy.pvLifeYears`, `batteryLifeYears`). */
+  lifeYears: number;
+}
+
+/** One year's electricity bill split into what is bought, the fixed charges and what the surplus earns, CZK. */
+export interface Bill {
+  /** Electricity bought from the grid: import x priceBuy. */
+  buy: number;
+  /** Fixed charges of the connection (`economy.fixedChargesPerYear`), paid with and without PV. */
+  fixed: number;
+  /** Payment for the surplus: export x priceSell (0 without PV). */
+  exportIncome: number;
+  /** buy + fixed - exportIncome (negative when the surplus earns more than the purchases and charges cost). */
+  net: number;
 }
 
 export interface Economics {
   /**
    * Annual electricity bill without PV and with PV and battery, CZK: purchases minus the payment for the surplus, plus the fixed
    * charges of the connection (`assumptions.economy.fixedChargesPerYear`); their difference is the saving. Below the fixed charges
-   * (even negative) when the surplus sold earns more than the purchases cost.
+   * (even negative) when the surplus sold earns more than the purchases cost. `bill` and `billWithoutPv` show the parts.
    */
   costWithoutPv: number;
   costWithPv: number;
+  bill: Bill;
+  billWithoutPv: Bill;
+  /** Savings in the first year, CZK. */
   savings: number;
   /** Investment before and after the subsidy (>= 0), CZK; the subsidy is clipped to [0, gross]. */
   investmentGross: number;
   investment: number;
+  /**
+   * Payback of PV and battery together from the cumulative cash flow (`cashFlow`): first-year savings shrinking with the PV
+   * degradation, the battery's share only during its life, one inverter replacement; status "beyondLife" beyond the PV life.
+   */
   paybackYears: number | null;
   status: PaybackStatus;
+  /** Life of the whole system (the PV life), years. */
+  lifeYears: number;
+  /** Cumulative cash flow of PV and battery at the end of each year, CZK: index 0 is -investment, then years 1..paybackCapYears. */
+  cashFlow: number[];
   /** The same for the PV without battery, and what the battery adds (savings and investment of the battery alone). */
   pvOnly: PaybackPart;
   battery: PaybackPart;
+}
+
+/** The summer indicator: solar heat let in through the glazing with the blinds raised and with the blinds' closing rule. */
+export interface SummerSolarLoad {
+  /** The 0-based months of the indicator (June to August). */
+  months: number[];
+  /** Solar heat through the glazing of heated rooms per month (12 entries, January first), kWh: blinds raised / by the rule. */
+  open: number[];
+  withBlinds: number[];
+  /** Sums over `months`, kWh, and what the blinds keep out (`openKwh - withBlindsKwh`). */
+  openKwh: number;
+  withBlindsKwh: number;
+  savedKwh: number;
+}
+
+/** The pool of the model: its own electricity row, never part of the house's heat demand. */
+export interface PoolEnergy {
+  /** The model has a pool (an outdoor area of type `pool`) / it is counted (`inputs.pool`). */
+  present: boolean;
+  included: boolean;
+  /** Water surface of the pools, m2, and the 0-based months of the season (`assumptions.pool.seasonMonths`). */
+  waterArea: number;
+  seasonMonths: number[];
+  /** Electricity a year, kWh: filtration + pool heat pump (0 when not included). */
+  kwh: number;
+  filtrationKwh: number;
+  heatPumpKwh: number;
 }
 
 export type EnergyWarningKey =
@@ -1005,19 +1140,24 @@ export interface EnergyResult {
   days: DayProfile[];
   totals: EnergyTotals;
   economics: Economics;
+  /** June to August: solar heat through the glazing with and without the blinds (the heating balance has them raised). */
+  summerSolarLoad: SummerSolarLoad;
+  pool: PoolEnergy;
   warnings: EnergyWarning[];
 }
 
 /**
  * The whole calculation. Sanitises the inputs first (`sanitizeInputs`, so garbage cannot produce NaN), then: envelope and
  * ventilation, PV layout and per-plane yields, monthly heating demand by EN ISO 13790 (solar gains through each glazed opening
- * from `climate.vertical[opening.dir]` with frame share, g, correction, roof-overhang shading, blinds; internal gains), DHW,
- * electricity by purpose with the COP of the month, hourly dispatch of the four day types with the battery, totals and
- * economics (a second dispatch without the battery gives the split). Guarantees (tested):
+ * from `climate.vertical[opening.dir]` with frame share, g, correction and roof-overhang shading, blinds raised; internal gains),
+ * DHW, electricity by purpose with the COP of the month (plus the pool in its season), hourly dispatch of the four day types with
+ * the battery, totals, the summer solar load with and without the blinds, and economics (a second dispatch without the battery
+ * gives the split). Guarantees (tested):
  *   - Σ months = totals; import = consumption - self-use; production = self-use + export + battery losses, where
  *     self-use = direct use + discharge of the battery and the battery losses are batteryIn - batteryOut (zero without a battery);
  *   - monotone: more panels never lower the production, a bigger battery never lowers self-use, a lower set-point never raises
- *     the heating demand, better insulation (lower U) never raises it;
+ *     the heating demand, better insulation (lower U) never raises it; the blinds' closing rule never changes the heat demand;
+ *     a higher export price never lengthens the payback of PV (with or without battery) and never shortens the battery's;
  *   - with zero panels there is no production, no investment, `payback` is null and `status` is "none".
  */
 export function computeEnergy(rawInputs: EnergyInputs, ctx: EnergyContext): EnergyResult {
@@ -1079,6 +1219,7 @@ export function computeEnergy(rawInputs: EnergyInputs, ctx: EnergyContext): Ener
   const elApp = DAYS_IN_MONTH.map((d) => (inputs.appliancesKwhYear * d) / DAYS_PER_YEAR);
   const elEv = DAYS_IN_MONTH.map((d) => (inputs.evKmYear * a.ev.kwhPerKm * (1 + a.ev.chargingLossShare) * d) / DAYS_PER_YEAR);
   const elVent = DAYS_IN_MONTH.map((d) => (ventilation.fanW * 24 * d) / 1000);
+  const pool = poolEnergy(inputs, ctx);
 
   // ---- hourly balance of the typical days of each month
   const types = normalisedDayTypes(a.pv.dayTypes);
@@ -1107,8 +1248,9 @@ export function computeEnergy(rawInputs: EnergyInputs, ctx: EnergyContext): Ener
       appliances: applianceShape.map((f) => (f * elApp[m]) / n),
       ev: hoursShape(evHours).map((f) => (f * elEv[m]) / n),
       ventilation: new Array<number>(24).fill(elVent[m] / n / 24),
+      pool: hoursShape(a.pool.hours).map((f) => (f * pool.monthly[m]) / n),
     };
-    const load = parts.heat.map((v, h) => v + parts.dhw[h] + parts.appliances[h] + parts.ev[h] + parts.ventilation[h]);
+    const load = parts.heat.map((v, h) => v + parts.dhw[h] + parts.appliances[h] + parts.ev[h] + parts.ventilation[h] + parts.pool[h]);
     const pvDay = new Array<number>(24).fill(0);
     for (const pe of placed) {
       const y = prep.yields.get(pe.planeKey) as PlaneYield;
@@ -1127,7 +1269,7 @@ export function computeEnergy(rawInputs: EnergyInputs, ctx: EnergyContext): Ener
     }
     const pvKwh = n * sum(mean.pv);
     const selfUse = n * (sum(mean.direct) + sum(mean.fromBattery));
-    const elTotal = elHeat[m] + elDhw[m] + elApp[m] + elEv[m] + elVent[m];
+    const elTotal = elHeat[m] + elDhw[m] + elApp[m] + elEv[m] + elVent[m] + pool.monthly[m];
     months.push({
       month: m,
       days: n,
@@ -1145,6 +1287,7 @@ export function computeEnergy(rawInputs: EnergyInputs, ctx: EnergyContext): Ener
       elApplianceKwh: elApp[m],
       elEvKwh: elEv[m],
       elVentKwh: elVent[m],
+      elPoolKwh: pool.monthly[m],
       elTotalKwh: elTotal,
       pvKwh,
       selfUseKwh: selfUse,
@@ -1166,12 +1309,14 @@ export function computeEnergy(rawInputs: EnergyInputs, ctx: EnergyContext): Ener
   const totals: EnergyTotals = {
     heatNeedKwh: heatNeed,
     specificHeatNeed: envelope.heatedFloorArea > 0 ? heatNeed / envelope.heatedFloorArea : 0,
+    specificHeatNeedGross: envelope.heatedFloorAreaGross > 0 ? heatNeed / envelope.heatedFloorAreaGross : 0,
     dhwHeatKwh: col((m) => m.dhwHeatKwh),
     elHeatKwh: elHeatTotal,
     elDhwKwh: col((m) => m.elDhwKwh),
     elApplianceKwh: col((m) => m.elApplianceKwh),
     elEvKwh: col((m) => m.elEvKwh),
     elVentKwh: col((m) => m.elVentKwh),
+    elPoolKwh: col((m) => m.elPoolKwh),
     elTotalKwh: elTotal,
     heatPumpSeasonalCop: elHeatTotal > 0 ? sum(deliveredHeat) / elHeatTotal : null,
     kwp: layout.kwp,
@@ -1198,7 +1343,49 @@ export function computeEnergy(rawInputs: EnergyInputs, ctx: EnergyContext): Ener
   if (batteryOption.capacityKwh > 0 && layout.kwp <= 0) warnings.push({ key: "batteryWithoutPv" });
   if (NUMERIC_INPUT_KEYS.some((k) => rawInputs[k] !== inputs[k])) warnings.push({ key: "inputsClamped" });
 
-  return { inputs, envelope: copyEnvelope(envelope), ventilation, designLoad, layout, planes, months, days, totals, economics, warnings };
+  // ---- the summer indicator: what the blinds keep out in June to August (the heating balance has them raised)
+  const inSummer = (xs: readonly number[]): number => SUMMER_MONTHS.reduce((s, m) => s + xs[m], 0);
+  const summerSolarLoad: SummerSolarLoad = {
+    months: [...SUMMER_MONTHS],
+    open: [...prep.solarGainKwh],
+    withBlinds: [...prep.solarWithBlindsKwh],
+    openKwh: inSummer(prep.solarGainKwh),
+    withBlindsKwh: inSummer(prep.solarWithBlindsKwh),
+    savedKwh: inSummer(prep.solarGainKwh) - inSummer(prep.solarWithBlindsKwh),
+  };
+
+  return {
+    inputs, envelope: copyEnvelope(envelope), ventilation, designLoad, layout, planes, months, days, totals, economics, summerSolarLoad,
+    pool: { present: pool.present, included: pool.included, waterArea: pool.waterArea, seasonMonths: [...a.pool.seasonMonths], kwh: sum(pool.monthly), filtrationKwh: pool.filtrationKwh, heatPumpKwh: pool.heatPumpKwh },
+    warnings,
+  };
+}
+
+/** The months of the summer solar load (June, July, August; 0-based). */
+const SUMMER_MONTHS = [5, 6, 7] as const;
+
+/**
+ * Electricity of the model's pools per month, kWh: in the months of `assumptions.pool.seasonMonths` the filtration pump of each
+ * pool (`filtrationKw` x `filtrationHoursPerDay` x days) and the pool heat pump (`heatPumpKwhPerM2Season` x water surface, spread
+ * over the season by days). Zero without a pool or with `inputs.pool` off.
+ */
+function poolEnergy(inputs: EnergyInputs, ctx: EnergyContext): { present: boolean; included: boolean; waterArea: number; monthly: number[]; filtrationKwh: number; heatPumpKwh: number } {
+  const p = ctx.assumptions.pool;
+  const pools = poolsOf(ctx.derived);
+  const waterArea = sum(pools.map((x) => x.waterArea));
+  const included = pools.length > 0 && inputs.pool;
+  const season = new Set(p.seasonMonths);
+  const seasonDays = sum(DAYS_IN_MONTH.filter((_, m) => season.has(m)));
+  const filtration = DAYS_IN_MONTH.map((d, m) => (included && season.has(m) ? pools.length * p.filtrationKw * p.filtrationHoursPerDay * d : 0));
+  const heatPump = DAYS_IN_MONTH.map((d, m) => (included && season.has(m) && seasonDays > 0 ? (p.heatPumpKwhPerM2Season * waterArea * d) / seasonDays : 0));
+  return {
+    present: pools.length > 0,
+    included,
+    waterArea,
+    monthly: filtration.map((v, m) => v + heatPump[m]),
+    filtrationKwh: sum(filtration),
+    heatPumpKwh: sum(heatPump),
+  };
 }
 
 // ------------------------------------------------------------------------------------------------ helpers of computeEnergy
@@ -1272,7 +1459,12 @@ function weightedMean(types: readonly DayTypeProfile[]): DayFlows {
   };
 }
 
-/** Investment, savings and payback; the year without the battery (`alone`) gives the split between PV and battery. */
+/**
+ * The bill, investment, savings and payback; the year without the battery (`alone`) gives the split between PV and battery.
+ * Paybacks come from the cumulative cash flow over `paybackCapYears`: the first-year savings shrink by `pvDegradationPerYear` a
+ * year, the PV pays for one inverter replacement (`inverterReplacement`), and in the total the battery's share of the savings ends
+ * with the battery's life. No interest and no price growth (shown as a simplification).
+ */
 function computeEconomics(
   inputs: EnergyInputs,
   ctx: EnergyContext,
@@ -1281,14 +1473,20 @@ function computeEconomics(
   totals: EnergyTotals,
   alone: { importKwh: number; exportKwh: number },
 ): Economics {
-  const cap = ctx.assumptions.economy.paybackCapYears;
+  const e = ctx.assumptions.economy;
   const buy = inputs.priceBuy, sell = inputs.priceSell;
   // the fixed charges of the connection are paid either way: they raise both costs and leave the saving as it is
-  const fixed = ctx.assumptions.economy.fixedChargesPerYear;
-  const costWithoutPv = totals.elTotalKwh * buy + fixed;
-  const costWithPv = totals.importKwh * buy - totals.exportKwh * sell + fixed;
+  const fixed = e.fixedChargesPerYear;
+  const billOf = (importKwh: number, exportKwh: number): Bill => {
+    const b = { buy: importKwh * buy, fixed, exportIncome: exportKwh * sell };
+    return { ...b, net: b.buy + b.fixed - b.exportIncome };
+  };
+  const billWithoutPv = billOf(totals.elTotalKwh, 0);
+  const bill = billOf(totals.importKwh, totals.exportKwh);
+  const costWithoutPv = billWithoutPv.net;
+  const costWithPv = bill.net;
   const savings = costWithoutPv - costWithPv;
-  const savingsPvOnly = costWithoutPv - (alone.importKwh * buy - alone.exportKwh * sell + fixed);
+  const savingsPvOnly = costWithoutPv - billOf(alone.importKwh, alone.exportKwh).net;
 
   const grossPv = layout.kwp > 0 ? layout.kwp * Math.max(0, inputs.pvPricePerKwp) : 0;
   const grossBattery = layout.kwp > 0 ? batteryKwh * Math.max(0, inputs.batteryPricePerKwh) : 0;
@@ -1296,26 +1494,65 @@ function computeEconomics(
   const subsidy = Math.min(investmentGross, Math.max(0, inputs.subsidy));
   const investment = investmentGross - subsidy;
   // the subsidy is shared between PV and battery in proportion to their prices
-  const part = (gross: number, saved: number): PaybackPart => {
-    const own = investmentGross > 0 ? gross - subsidy * (gross / investmentGross) : 0;
-    return { savings: saved, investment: own, ...payback(own, saved, gross, cap) };
+  const own = (gross: number): number => (investmentGross > 0 ? gross - subsidy * (gross / investmentGross) : 0);
+
+  // yearly cash flows (year t = 1, 2, ...): the PV part pays for the inverter replacement, the battery part ends with its life
+  const savingsPv = grossBattery > 0 ? savingsPvOnly : savings;
+  const savingsBattery = grossBattery > 0 ? savings - savingsPvOnly : 0;
+  const ageing = (t: number): number => (1 - e.pvDegradationPerYear) ** (t - 1);
+  const replacement = (t: number): number => (t === e.inverterReplacement.year ? e.inverterReplacement.shareOfPvInvestment * grossPv : 0);
+  const pvFlow = (t: number): number => savingsPv * ageing(t) - replacement(t);
+  const batteryFlow = (t: number): number => savingsBattery * ageing(t);
+  const totalFlow = (t: number): number => pvFlow(t) + (t <= e.batteryLifeYears ? batteryFlow(t) : 0);
+
+  const total = cashFlowPayback(investment, investmentGross, savings, totalFlow, e.paybackCapYears, e.pvLifeYears);
+  const part = (gross: number, saved: number, flow: (t: number) => number, life: number): PaybackPart => {
+    const r = cashFlowPayback(own(gross), gross, saved, flow, e.paybackCapYears, life);
+    return { savings: saved, investment: own(gross), paybackYears: r.paybackYears, status: r.status, lifeYears: life };
   };
   return {
     costWithoutPv,
     costWithPv,
+    bill,
+    billWithoutPv,
     savings,
     investmentGross,
     investment,
-    ...payback(investment, savings, investmentGross, cap),
-    pvOnly: part(grossPv, grossBattery > 0 ? savingsPvOnly : savings),
-    battery: part(grossBattery, grossBattery > 0 ? savings - savingsPvOnly : 0),
+    paybackYears: total.paybackYears,
+    status: total.status,
+    lifeYears: e.pvLifeYears,
+    cashFlow: total.cumulative,
+    pvOnly: part(grossPv, savingsPv, pvFlow, e.pvLifeYears),
+    // the battery's own payback runs past its life on purpose: the page can then say how long it would take ("beyondLife")
+    battery: part(grossBattery, savingsBattery, batteryFlow, e.batteryLifeYears),
   };
 }
 
-/** Simple payback in years and its status: "none" when nothing is paid, "never" when savings are not positive or the payback exceeds the cap. */
-function payback(investment: number, savings: number, gross: number, capYears: number): { paybackYears: number | null; status: PaybackStatus } {
-  if (!(gross > 0) || !(investment > 0)) return { paybackYears: null, status: "none" };
-  if (!(savings > 0)) return { paybackYears: null, status: "never" };
-  const years = investment / savings;
-  return years > capYears ? { paybackYears: null, status: "never" } : { paybackYears: years, status: "ok" };
+/**
+ * Payback from a cumulative cash flow: C(0) = -investment, C(t) = C(t-1) + flow(t) for the years t = 1..ceil(capYears). The payback is
+ * the moment after which C stays >= 0 up to the cap (linear within the year), so a later replacement that pushes C below zero again
+ * moves it. Status: "none" when nothing is paid (gross or investment not positive), "never" when the first-year savings are not
+ * positive or C is still negative at the cap (or the payback lies beyond it), "beyondLife" when it lies beyond `lifeYears`, else "ok".
+ * With constant flows (no degradation, no replacement) the payback is investment / savings exactly.
+ */
+function cashFlowPayback(
+  investment: number,
+  gross: number,
+  firstYearSavings: number,
+  flow: (t: number) => number,
+  capYears: number,
+  lifeYears: number,
+): { paybackYears: number | null; status: PaybackStatus; cumulative: number[] } {
+  const years = Math.max(1, Math.ceil(capYears));
+  const cumulative = [-Math.max(0, investment)];
+  for (let t = 1; t <= years; t++) cumulative.push(cumulative[t - 1] + flow(t));
+  if (!(gross > 0) || !(investment > 0)) return { paybackYears: null, status: "none", cumulative };
+  if (!(firstYearSavings > 0)) return { paybackYears: null, status: "never", cumulative };
+  let last = 0; // the last year end with a negative balance (year 0 always is)
+  for (let t = 1; t <= years; t++) if (cumulative[t] < 0) last = t;
+  if (last === years) return { paybackYears: null, status: "never", cumulative };
+  const c0 = cumulative[last], c1 = cumulative[last + 1];
+  const paybackYears = last + -c0 / (c1 - c0);
+  if (paybackYears > capYears) return { paybackYears: null, status: "never", cumulative };
+  return { paybackYears, status: paybackYears > lifeYears ? "beyondLife" : "ok", cumulative };
 }

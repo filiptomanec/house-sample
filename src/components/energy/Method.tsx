@@ -1,50 +1,47 @@
-"use client";
-
-// "How it is calculated": the method in words, the main assumptions with their values from the data files, the limits.
+// "How it is calculated" of the Energy page: the method in words, the main assumptions with their values from the data files,
+// the limits and the disclaimer. A server component: the page renders it inside the shared MethodNote, so it ships no client code.
 
 import type { EnergyContext } from "@/lib/calc/energy";
-import { useFormat, useT } from "@/lib/i18n/client";
+import type { Formatter } from "@/lib/i18n/format";
+import type { T } from "@/lib/i18n/messages";
 
-export function Method({ ctx }: { ctx: EnergyContext }) {
-  const t = useT();
-  const f = useFormat();
+export function EnergyMethod({ ctx, t, f }: { ctx: EnergyContext; t: T; f: Formatter }) {
   const { assumptions: a, climate, house } = ctx;
   return (
-    <details className="method panel panel-pad">
-      <summary><h2 className="h3">{t("energy.method.title")}</h2></summary>
-      <div className="method-body small">
-        <p>{t("energy.method.heat", { temp: f.unit(a.climate.designOutdoorC, "°C") })}</p>
-        <p>
-          {t("energy.method.electricity", {
-            dist: f.percent(a.heating.distributionLossShare * 100),
-            dhw: f.percent(a.dhw.lossShare * 100),
-            fixed: f.unit(a.economy.fixedChargesPerYear, t("energy.units.currency")),
-          })}
-        </p>
-        <p>
-          {t("energy.method.pv", {
-            version: climate.meta.apiVersion.replace("v", "").replace("_", "."),
-            db: climate.meta.radiationDb,
-            pitch: f.degrees(climate.slope),
-            loss: f.percent(climate.loss),
-            rte: f.percent(a.battery.roundTripEfficiency * 100),
-          })}
-        </p>
-        <p>{t("energy.method.limits")}</p>
-        <h3 className="energy-subhead">{t("energy.method.assumptions")}</h3>
-        <div className="kv">
-          <span>{t("energy.method.aRoofBridge")}</span><span>{f.unit(a.thermal.thermalBridgeDeltaU, t("energy.units.u"), 2)}</span>
-          <span>{t("energy.method.aHeatCapacity")}</span><span>{f.unit(a.thermal.internalHeatCapacityKjPerM2K, "kJ/(m²·K)")}</span>
-          <span>{t("energy.method.aAir")}</span><span>{f.unit(a.ventilation.airflowPerPersonM3h, "m³/h")}</span>
-          <span>{t("energy.method.aMinAir")}</span><span>{f.unit(a.ventilation.minAirChangeRate, t("energy.units.n50"), 1)}</span>
-          <span>{t("energy.method.aSoil")}</span><span>{f.unit(a.ground.soilLambda, "W/(m·K)", 1)}</span>
-          <span>{t("energy.method.aDesign")}</span><span>{f.unit(a.climate.designOutdoorC, "°C")}</span>
-          <span>{t("energy.method.aRecovery")}</span><span>{f.percent(house.equipment.ventilation.heatRecoveryEfficiency * 100)}</span>
-          <span>{t("energy.method.aBattery")}</span><span>{f.percent(a.battery.usableShare * 100)}</span>
-          <span>{t("energy.method.aStatus")}</span><span>{t(a.meta.status === "reviewed" ? "energy.method.statusReviewed" : "energy.method.statusStarter")}</span>
-        </div>
-        <p className="note">{t("energy.method.credit", { year: String(a.meta.priceYear) })}</p>
+    <>
+      <p>{t("energy.method.heat", { temp: f.unit(a.climate.designOutdoorC, "°C") })}</p>
+      <p>
+        {t("energy.method.electricity", {
+          dist: f.percent(a.heating.distributionLossShare * 100),
+          dhw: f.percent(a.dhw.lossShare * 100),
+          fixed: f.money(a.economy.fixedChargesPerYear),
+        })}
+      </p>
+      <p>
+        {t("energy.method.pv", {
+          version: climate.meta.apiVersion.replace("v", "").replace("_", "."),
+          db: climate.meta.radiationDb,
+          pitch: f.degrees(climate.slope),
+          loss: f.percent(climate.loss),
+          rte: f.percent(a.battery.roundTripEfficiency * 100),
+        })}
+      </p>
+      <p>{t("energy.method.limits")}</p>
+      <div className="method-kv">
+        <h3>{t("energy.method.assumptions")}</h3>
+        <dl className="kv">
+          <dt>{t("energy.method.aRoofBridge")}</dt><dd>{f.unit(a.thermal.thermalBridgeDeltaU, t("energy.units.u"), 2)}</dd>
+          <dt>{t("energy.method.aHeatCapacity")}</dt><dd>{f.unit(a.thermal.internalHeatCapacityKjPerM2K, "kJ/(m²·K)")}</dd>
+          <dt>{t("energy.method.aAir")}</dt><dd>{f.unit(a.ventilation.airflowPerPersonM3h, "m³/h")}</dd>
+          <dt>{t("energy.method.aMinAir")}</dt><dd>{f.unit(a.ventilation.minAirChangeRate, t("energy.units.n50"), 1)}</dd>
+          <dt>{t("energy.method.aSoil")}</dt><dd>{f.unit(a.ground.soilLambda, "W/(m·K)", 1)}</dd>
+          <dt>{t("energy.method.aDesign")}</dt><dd>{f.unit(a.climate.designOutdoorC, "°C")}</dd>
+          <dt>{t("energy.method.aRecovery")}</dt><dd>{f.percent(house.equipment.ventilation.heatRecoveryEfficiency * 100)}</dd>
+          <dt>{t("energy.method.aBattery")}</dt><dd>{f.percent(a.battery.usableShare * 100)}</dd>
+          <dt>{t("energy.method.aStatus")}</dt><dd>{t(a.meta.status === "reviewed" ? "energy.method.statusReviewed" : "energy.method.statusStarter")}</dd>
+        </dl>
       </div>
-    </details>
+      <p className="note">{t("energy.disclaimer")} {t("energy.method.credit", { year: String(a.meta.priceYear) })}</p>
+    </>
   );
 }

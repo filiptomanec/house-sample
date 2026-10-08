@@ -1,14 +1,14 @@
 "use client";
-import { useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent, type MouseEvent, type PointerEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type MouseEvent, type PointerEvent } from "react";
 import { Chips, Segmented, type ChipOption } from "@/components/ui/controls";
-import { useLocale, useT } from "@/lib/i18n/client";
+import { useFormat, useLocale, useT } from "@/lib/i18n/client";
 import { FURNITURE } from "@/lib/model/catalog";
 import { readStored, writeStored } from "@/lib/calc/storageKeys";
 import { boxesOf, clamp, placeItemLabels } from "@/lib/plan/labels";
 import {
   SNAP, SNAP_COARSE, addItem, moveItem, newItem, parseItems, placeItem, rotateItem, serializeItems, snapPt, type ItemKind, type MyItem,
 } from "@/lib/plan/myFurniture";
-import { PLAN_FILL, type PlanPt } from "@/lib/plan/shared";
+import type { PlanPt } from "@/lib/plan/shared";
 import type { PlanView } from "@/lib/plan/view";
 import { FurniturePanel } from "./FurniturePanel";
 import { ItemsLayer } from "./ItemsLayer";
@@ -28,13 +28,15 @@ const ASSUMED_SCALE = 36;
 type LayerKey = "zones" | "furniture" | "dims" | "zoom";
 
 export function PlanTool({ view }: { view: PlanView }) {
-  const t = useT(), locale = useLocale();
-  const svg = useRef<SVGSVGElement>(null), stage = useRef<HTMLDivElement>(null);
+  const t = useT(), f = useFormat(), locale = useLocale();
+  const svg = useRef<SVGSVGElement>(null), stage = useRef<HTMLDivElement>(null), info = useRef<HTMLElement>(null);
   const [mode, setMode] = useState<PlanMode>("rooms");
   const [on, setOn] = useState<Record<LayerKey, boolean>>({ zones: true, furniture: true, dims: false, zoom: false });
   const [room, setRoom] = useState(view.initialRoom);
   const [pts, setPts] = useState<PlanPt[]>([]), [hover, setHover] = useState<PlanPt | null>(null), [cursor, setCursor] = useState<PlanPt | null>(null);
   const [items, setItems] = useState<MyItem[]>([]), [sel, setSel] = useState<number | null>(null);
+  // the phone chip: shown after the visitor picks a room while the drawing is on screen and the details are not
+  const [picked, setPicked] = useState(false), [seen, setSeen] = useState({ stage: true, info: false });
   const drag = useRef<{ off: PlanPt; moved: boolean } | null>(null), justDragged = useRef(false);
   const measured = useScale(svg, view.drawing.viewBox.w);
   const scale = measured ?? ASSUMED_SCALE;
@@ -56,13 +58,35 @@ export function PlanTool({ view }: { view: PlanView }) {
     return () => { el.removeEventListener("touchstart", block); el.removeEventListener("touchmove", block); };
   }, [mode]);
 
+  // where the drawing and the details are (the chip that jumps to the details shows only when it helps)
+  useEffect(() => {
+    const st = stage.current, inf = info.current;
+    if (!st || !inf || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver((entries) => {
+      setSeen((old) => {
+        const next = { ...old };
+        for (const e of entries) {
+          if (e.target === st) next.stage = e.isIntersecting;
+          else next.info = e.intersectionRatio >= 0.3 || e.intersectionRect.height >= window.innerHeight * 0.3;
+        }
+        return next.stage === old.stage && next.info === old.info ? old : next;
+      });
+    }, { threshold: [0, 0.3, 0.6, 1] });
+    io.observe(st); io.observe(inf);
+    return () => io.disconnect();
+  }, []);
+  const motion = (): ScrollBehavior => (window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth");
+  const toInfo = () => info.current?.scrollIntoView({ block: "start", behavior: motion() });
+  const toPlan = () => stage.current?.scrollIntoView({ block: "start", behavior: motion() });
+  const choose = (id: string) => { setRoom(id); setPicked(true); };
+
   const names = useMemo(() => items.map((it) => (it.kind === "custom" ? t("plan.furniture.customName") : FURNITURE[it.kind].name[locale])), [items, t, locale]);
   const placed = useMemo(() => placeItemLabels(items, names, scale), [items, names, scale]);
   const avoid = useMemo(() => boxesOf(placed), [placed]);
   const current = view.rooms.find((r) => r.id === room);
 
   /** Pointer position in plan space (metres, y down). */
-  const toPlan = (e: { clientX: number; clientY: number }): PlanPt => {
+  const toPlanPt = (e: { clientX: number; clientY: number }): PlanPt => {
     const p = new DOMPoint(e.clientX, e.clientY).matrixTransform(svg.current!.getScreenCTM()!.inverse());
     return [p.x, p.y];
   };
@@ -72,15 +96,15 @@ export function PlanTool({ view }: { view: PlanView }) {
     if (mode !== "furniture") return;
     const el = (e.target as Element).closest("[data-item]");
     if (!el) return;
-    const i = Number(el.getAttribute("data-item")), q = toPlan(e);
+    const i = Number(el.getAttribute("data-item")), q = toPlanPt(e);
     setSel(i);
     drag.current = { off: [q[0] - items[i].x, q[1] + items[i].y], moved: false };
     svg.current!.setPointerCapture(e.pointerId);
   };
   const onMove = (e: PointerEvent) => {
-    if (mode === "measure" && pts.length === 1 && e.pointerType === "mouse") setHover(snapPt(toPlan(e)));
+    if (mode === "measure" && pts.length === 1 && e.pointerType === "mouse") setHover(snapPt(toPlanPt(e)));
     if (drag.current && sel !== null) {
-      const q = toPlan(e), it = items[sel], next = placeItem(it, q[0] - drag.current.off[0], -(q[1] - drag.current.off[1]), bounds);
+      const q = toPlanPt(e), it = items[sel], next = placeItem(it, q[0] - drag.current.off[0], -(q[1] - drag.current.off[1]), bounds);
       if (next.x !== it.x || next.y !== it.y) { drag.current.moved = true; setItems(items.map((o, k) => (k === sel ? next : o))); }
     }
   };
@@ -89,7 +113,7 @@ export function PlanTool({ view }: { view: PlanView }) {
   const addPoint = (q: PlanPt) => { setPts((a) => (a.length >= 2 ? [q] : [...a, q])); setHover(null); };
   const onClick = (e: MouseEvent) => {
     if (justDragged.current) { justDragged.current = false; return; }
-    if (mode === "measure") { addPoint(snapPt(toPlan(e))); setCursor(null); }
+    if (mode === "measure") { addPoint(snapPt(toPlanPt(e))); setCursor(null); }
     else if (mode === "furniture" && !(e.target as Element).closest("[data-item]")) setSel(null);
   };
   /** Keyboard measuring: arrow keys move a cursor (it starts at the label of the selected room), Enter sets a point. */
@@ -123,8 +147,8 @@ export function PlanTool({ view }: { view: PlanView }) {
 
   /** From the table: select the room, show the plan (centred, below the bar) and, when the plan is wider than the window, the room. */
   const pick = (id: string) => {
-    setMode("rooms"); setRoom(id); setPts([]); setCursor(null); setSel(null);
-    const behavior = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
+    setMode("rooms"); setRoom(id); setPicked(true); setPts([]); setCursor(null); setSel(null);
+    const behavior = motion();
     // WebKit stops smooth scrolling that starts during a re-render, and svg.scrollIntoView(center) jumps to the top: compute from the frame
     requestAnimationFrame(() => requestAnimationFrame(() => {
       const st = stage.current;
@@ -160,15 +184,18 @@ export function PlanTool({ view }: { view: PlanView }) {
 
       <div className="pl-layout">
         <div ref={stage} className={`pl-stage panel${on.zoom ? " zoomed" : ""}`}>
-          <PlanSvg ref={svg} view={view} mode={mode} zones={on.zones} furniture={on.furniture} dims={on.dims} room={room} onRoom={setRoom}
+          <PlanSvg ref={svg} view={view} mode={mode} zones={on.zones} furniture={on.furniture} dims={on.dims} room={room} onRoom={choose}
             scale={scale} avoid={avoid} handlers={{ onPointerDown: onDown, onPointerMove: onMove, onPointerUp: onUp, onPointerCancel: onUp, onPointerLeave: () => setHover(null), onClick, onKeyDown: onSvgKey }}>
             {mode === "measure" && <MeasureLayer pts={measurePts} cursor={cursor} scale={scale} />}
             <ItemsLayer items={items} placed={placed} names={names} sel={sel} active={mode === "furniture"} onSelect={setSel} onKey={onItemKey} />
           </PlanSvg>
+          <ul className="pl-legend" aria-label={t("plan.legend.label")}>
+            {view.legend.map((k) => <li key={k}><i className="pl-sw" data-fill={k} aria-hidden="true" />{t.dyn(`plan.legend.${k}`)}</li>)}
+          </ul>
         </div>
 
-        <aside className="pl-info panel panel-pad" aria-live="polite">
-          {mode === "rooms" && (current ? <RoomInfo room={current} /> : <p className="small">{t("plan.room.prompt")}</p>)}
+        <aside ref={info} id="plan-info" className="pl-info panel panel-pad" aria-live="polite">
+          {mode === "rooms" && (current ? <RoomInfo room={current} onBack={toPlan} /> : <p className="small">{t("plan.room.prompt")}</p>)}
           {mode === "measure" && <MeasurePanel pts={measurePts} />}
           {mode === "furniture" && (
             <FurniturePanel items={items} sel={sel} names={names} onAdd={onAdd} onRotate={() => sel !== null && rotate(sel)} onRemove={() => sel !== null && remove(sel)}
@@ -177,11 +204,12 @@ export function PlanTool({ view }: { view: PlanView }) {
         </aside>
       </div>
 
-      <ul className="legend pl-legend" aria-label={t("plan.legend.label")}>
-        {view.legend.map((k) => (
-          <li key={k}><span className="dot" style={{ "--dot": `var(${PLAN_FILL[k]})` } as CSSProperties} aria-hidden="true" />{t.dyn(`plan.legend.${k}`)}</li>
-        ))}
-      </ul>
+      {mode === "rooms" && current && picked && seen.stage && !seen.info && (
+        <button type="button" className="pl-jump" onClick={toInfo} aria-controls="plan-info" aria-label={`${t("plan.info.jump")}: ${current.number} ${current.name}`}>
+          <span className="mono">{current.number}</span><span className="pl-jump-name">{current.shortName}</span><span className="mono">{f.area(current.area, 1)}</span>
+          <span className="pl-jump-arrow" aria-hidden="true" />
+        </button>
+      )}
 
       <RoomTable view={view} current={mode === "rooms" ? room : null} onPick={pick} />
     </div>

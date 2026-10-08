@@ -98,5 +98,11 @@ and vertical planes). Replace it by real data as soon as the service is reachabl
 
 ## 6. Other energy inputs
 
-Tariffs, prices, efficiencies and household assumptions live in `model/assumptions.json` (see `docs/ARCHITECTURE.md`); they are
+Tariffs, prices, efficiencies and household assumptions live in `model/assumptions.json` (`docs/ENERGY-ASSUMPTIONS.md`); they are
 independent of the climate data described here.
+
+The vertical irradiation (`vertical`) feeds two results of the energy balance: the solar gains of the heating balance (with the
+blinds raised) and the summer solar load with the blinds' closing rule. The spread of the daily PV production (`pv.dayTypes` in
+`model/assumptions.json`) is the same in every month. Monthly day types from an hourly PVGIS `seriescalc` series (quartiles of the
+daily yield per month) would make the winter self-sufficiency more conservative; they need one more request to the service and are
+not part of `pvgis/1` yet (an optional key `dayTypesByMonth` would be additive).

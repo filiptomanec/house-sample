@@ -8,7 +8,8 @@ implemented and tested; when a signature changes, change this document in the sa
 |---|---|---|
 | `sun.ts` | solar position, time-zone arithmetic, sunrise and sunset, arcs, the roof-overhang shadow, the analytic sun-hours oracle | Sun, Energy, Model (sun light), Home |
 | `roofLayout.ts` | roof planes with stable keys, panel layout, the visitor's PV selection | Energy, Model (3D panels), Home, Budget |
-| `uvalue.ts` | U-values (EN ISO 6946), floor on the ground (EN ISO 13370), what-if helpers | Energy, Floor plan (assembly cards) |
+| `uvalue.ts` | U-values (EN ISO 6946), floor on the ground (EN ISO 13370), what-if helpers, the ČSN 73 0540-2 requirements | Energy, Floor plan (assembly cards) |
+| `heatedRegion.ts` | the heated part of the plan to the outer face (area and exposed perimeter), shared by the floor and ceiling rows of Energy and the ceiling insulation of Budget | Energy, Budget |
 | `energy.ts`, `energySchema.ts` | the energy balance; the zod schema of `model/assumptions.json` (`AssumptionsSchema`, `parseAssumptions`), kept out of the browser bundle | Energy, Home (KPIs) |
 | `budget.ts` | barrel that re-exports the four budget files below | server code, scripts, tests |
 | `budgetCore.ts` | `QUANTITY_DEFS`, PV quantities, material take-off, the price book type and its memoised default | Budget (client), Home |
@@ -120,17 +121,18 @@ Schema: `AssumptionsSchema` in `energySchema.ts` (zod; the browser uses the JSON
 | `meta` | `status` (`starter` or `reviewed`), region, currency, price year, `sources[]` (shown in "what is calculated") |
 | `climate` | `referenceYear` (calendar year for time-zone rules), `designOutdoorC` (EN 12831) |
 | `inputs` | range (`min`, `max`, `step`) and `default` of each adjustable number: `indoorTempC persons dhwLitresPerPersonDay appliancesKwhYear evKmYear n50 scop scopDhw priceBuy priceSell pvPricePerKwp batteryPricePerKwh subsidy`; `scop`/`scopDhw` have no default (they come from `house.equipment.heating`); `flags` = defaults of the two switches |
-| `thermal` | thermal-bridge allowance `ΔU`, internal heat capacity, `τ0` of the utilisation factor, heat capacity of air, solar correction, direct share of the vertical irradiation, `unheatedB` (b-factor by room type, e.g. the garage) |
+| `thermal` | thermal-bridge allowance `ΔU`, internal heat capacity, `τ0` of the utilisation factor, heat capacity of air, solar correction, direct share of the vertical irradiation, `unheatedB` (b-factor by room type, e.g. the garage), `atticB` (b of the ceiling under a cold, ventilated attic), `doorToUnheatedU` (U of a fire-rated door to an unheated room) |
 | `ground` | soil conductivity, periodic penetration depth, EN 12831 `f_g1` |
 | `ventilation` | shielding coefficient `e`, fresh air per person, minimum air change rate |
 | `gains` | metabolic heat per person, share of household electricity that becomes heat |
 | `ev` | consumption per km and charging loss share |
-| `heating` | distribution loss share, shape of the COP curve (approach temperatures) |
+| `heating` | distribution loss share, shape of the COP curve (approach temperatures), `designCapacityShare` (output at A−12/W35 as a share of the nominal A7/W35 rating, used when the model gives no `ratedPowerKwAtDesign`) |
+| `pool` | swimming season (0-based months), filtration pump power and hours a day, pool heat pump electricity per m² of water a season, running hours |
 | `dhw` | cold-water temperature, loss share, hours of heating (daytime / default) |
 | `profiles` | household load shape (24 values), EV charging hours, base share of the heating profile |
 | `pv` | `dayTypes[4]` (`clear partly overcast dark`: production factor and weight; weights sum to 1, weighted mean factor is 1), `inverterClipping` |
 | `battery` | usable share and round-trip efficiency (capacity and power come from the model's `equipment.battery.options`) |
-| `economy` | payback cap in years; `fixedChargesPerYear`: fixed charges of the connection (CZK with VAT), added to both annual costs |
+| `economy` | payback cap in years; `fixedChargesPerYear`: fixed charges of the connection (CZK with VAT), added to both annual costs; `pvLifeYears`, `batteryLifeYears`, `pvDegradationPerYear`, `inverterReplacement {year, shareOfPvInvestment}` for the cash flow of the payback |
 
 `meta.status` is `reviewed`: every value is checked against a source listed in `meta.sources`. `docs/ENERGY-ASSUMPTIONS.md` records the
 source of each number and the places where the calculation departs from this document.
@@ -280,7 +282,7 @@ floor from the ground upwards), as in `house.assemblies`.
 * `assemblyBreakdown(a)` returns every layer with its resistance, `ignored` (outside a ventilated layer, which does not
   contribute) and its `share` of the total resistance, plus `rLayers`, effective `rsi`/`rse` (with a ventilated layer `rse` is
   replaced by `rsi`), `rTotal` and `u`. `uValue(a)` equals the kernel's `assemblyU(a).U` to 1e-4 for every assembly: a test over
-  all six assemblies and over random layer stacks.
+  every assembly of the model and over random layer stacks.
 * `layerResistance`: `r` when given, else `t/λ`; `RangeError` for a layer with neither or a non-positive thickness.
 * `withLayerThickness`, `thicknessForU`: what-if helpers (insulation thickness for a target U); `thicknessForU` returns `null`
   when the target cannot be reached or the layer has no effect (outside a ventilated layer).
@@ -288,6 +290,10 @@ floor from the ground upwards), as in `house.assemblies`.
   else `λ/(0.457 B' + d_t)`; `H_pe = 0.37 P λ ln(δ/d_t + 1)`; zero area or perimeter gives zeros. Soil `λ` and `δ` come from
   `assumptions.ground`, `w` from the model's exterior wall thickness, `R_f` from the `groundFloor` assembly.
 * `SURFACE_RESISTANCE` (EN ISO 6946 table 7) for what-if constructions that have no assembly; the model's own `rsi`/`rse` win.
+* `CSN_730540_U`: required and recommended U of ČSN 73 0540-2:2011 for the kinds of construction the model has (`CsnConstruction`:
+  `exteriorWall` 0.30/0.25, `warmRoof` 0.24/0.16, `ceilingUnderAttic` 0.30/0.20, `floorOnGround` 0.45/0.30, `wallToUnheated` 0.60/0.40,
+  `window` 1.5/1.2, `entryDoor` 1.7/1.2, `doorToUnheated` 3.5/2.3 W/(m² K)). A normative table for pages ("meets the standard") and tests;
+  the energy test checks every envelope construction of the model against the recommended value.
 
 ## 7. `energy.ts`
 
@@ -304,8 +310,9 @@ defaultEnergyContext()                                                    // the
 ```
 
 `EnergyInputs` is complete and flat: `indoorTempC persons dhwLitresPerPersonDay appliancesKwhYear evKmYear evChargeDaytime
-heatRecovery n50 scop scopDhw dhwDaytime pv {panelCount, enabledPlanes, batteryId} priceBuy priceSell pvPricePerKwp
-batteryPricePerKwh subsidy`. Ranges and defaults: `energyInputSpecs(ctx)` (from `assumptions.inputs`, with `scop`, `scopDhw` and
+heatRecovery n50 scop scopDhw dhwDaytime pool pv {panelCount, enabledPlanes, batteryId} priceBuy priceSell pvPricePerKwp
+batteryPricePerKwh subsidy`. `pool` (run the model's pool in its season) defaults to true when the model has a pool and changes
+nothing without one. Ranges and defaults: `energyInputSpecs(ctx)` (from `assumptions.inputs`, with `scop`, `scopDhw` and
 the switches defaulting to the model); sliders and number fields read their `min/max/step` from it, never from JSX.
 `defaultInputs(ctx)` and `sanitizeInputs(raw, ctx)` as in section 1; `sanitizeInputs` is idempotent and accepts a saved object
 with any subset of fields.
@@ -313,13 +320,26 @@ with any subset of fields.
 ### 7.2 Method (what the bodies implement)
 
 All geometry from `derived`/`metrics`; U-values from the assemblies (`derived.assemblies[*].U`, equal to `uvalue.ts`) and
-`house.windows` (the `slider` override applies to sliding walls, `Ud` to opaque doors). Wall areas are to the wall axes (the same as `metrics.heated`); the roof and the floor use the outer face. `docs/ENERGY-ASSUMPTIONS.md` lists where the code departs from this description.
+`house.windows` (the `slider` override applies to sliding walls, `Ud` to opaque doors). Wall areas are to the wall axes (the same as `metrics.heated`); the ceiling, the roof and the floor use the outer face (the heated region). `docs/ENERGY-ASSUMPTIONS.md` lists where the code departs from this description.
 
-1. **Envelope** (`computeEnvelope`): rows `wall:<dir>`, `window:<dir>`, `slider:<dir>`, `door:<dir>`, `roof`, `floor`, `partition`
-   (walls to unheated rooms, factor `b` from `assumptions.thermal.unheatedB` by room type), `bridge`
-   (`ΔU` × area bordering the outside air). Roof over the **heated** rooms only (the garage has none): clip the roof faces to the
-   heated rectangles (`clipRingToRect` in `src/lib/model/roofs.ts`, as `roofIntegrals` does). Floor: `floorOnGround`.
-   `H_T = Σ A·U·b`.
+1. **Envelope** (`computeEnvelope`): rows `wall:<dir>`, `window:<dir>`, `slider:<dir>`, `door:<dir>`, `ceiling` **or** `roof`, `floor`,
+   `partition`, `bridge`. `H_T = Σ A·U·b`.
+   * Walls to the wall axes. Under a **cold attic** (`derived.topEnvelope === "ceiling"`, `house.roof.attic: "cold"`) a wall counts
+     only up to the top of the ceiling (`clearHeight + slab`): the knee wall above it stands in the ventilated roof space.
+   * The top of the heated volume: the `ceiling` row (assembly `ceiling`, factor `thermal.atticB`) over the heated region under a
+     cold attic; with a warm roof the `roof` row (assembly `roof`, b 1), the sloped roof faces clipped to the heated region
+     (`clipRingToRect` in `src/lib/model/roofs.ts`). Never both.
+   * The heated region (`heatedRegion.ts`): the outline cut at every room edge, each cell given to the room it lies in or, in a
+     wall body, to the nearest room, ties to the unheated room. So the boundary to the garage runs on the axis of the wall between
+     them, the area equals `metrics.heatedAreaGross`, and the result does not depend on the order of the rooms. The floor and the
+     ceiling cover it; its perimeter is the exposed perimeter of the floor (EN ISO 13370 counts the walls to unheated rooms too).
+   * Floor: `floorOnGround` with `Rse = 0.04` in the equivalent thickness (EN ISO 13370, 9.1; the norm's value, whatever the
+     assembly's own `rse`).
+   * `partition`: walls between a heated and an unheated room with the `wallToUnheated` assembly when the model has it
+     (`derived.walls[].toUnheated`), else the plain bearing or partition assembly; doors in them at `thermal.doorToUnheatedU`
+     (a fire-rated door); `b` from `assumptions.thermal.unheatedB` by the type of the unheated room. The row's `u` is the
+     area-weighted mean of wall and door.
+   * `bridge`: `ΔU` × the area that borders the outside air or the ventilated attic (walls, openings, ceiling or roof).
 2. **Ventilation**: `n_inf = e·n50`, hygiene flow `max(airflowPerPerson·persons, minAirChangeRate·V)`, mechanical flow equals that;
    `H_V = c_air·V·(n_inf + n_mech·(1 − recovery))`, `recovery` = model efficiency when `heatRecovery`, else 0; fans run
    continuously with `specificFanPower × flow` when the system is mechanical.
@@ -327,49 +347,84 @@ All geometry from `derived`/`metrics`; U-values from the assemblies (`derived.as
    mean of `tempUTC[m]`; gains `Q_gn = Q_sol + Q_int`; `γ = Q_gn/Q_ht`, `a = 1 + τ/τ0`, `τ = C_m A_f/(H·3600)`; `η = utilisationFactor(γ, a)`;
    `Q_H,nd = max(0, Q_ht − η Q_gn)`. `Q_int = (persons·personW + applianceHeatShare·appliancesKwhYear·1000/8760)·hours`.
    `Q_sol` = Σ over **glazed exterior openings** (`glazingArea > 0`, heated room) of
-   `glazingArea·(1 − frameShare)·g·solarCorrection·F_ob(m)·F_blind(m)·vertical[opening.dir][m]`, where only the direct part
+   `glazingArea·(1 − frameShare)·g·solarCorrection·F_ob(m)·vertical[opening.dir][m]`, where only the direct part
    `b = thermal.verticalBeamShare` is shaded by the overhang: `F_ob = 1 − b·s` with `s = overhangDailyShading` on the typical day of the
-   month, and `F_blind` mixes in `shading.blinds.closedFactor` for openings with `blind` by the
-   share of hours the facade is above `closeAboveIrradiance` (estimated from the monthly vertical irradiation spread over the sun hours
-   of the typical day; the estimate is documented in the code and tested for monotonicity). Facing of an opening is `opening.dir`, never typed.
-4. **Hot water**: `persons·litres·1.163 Wh/(l K)·(setpointC − coldWaterC)·(1 + lossShare)·days`, set-point from the model.
-5. **Electricity**: heating `Q_H,nd·(1 + distributionLossShare)/COP_m`. `COP_m = η_c·COP_Carnot(m)`, Carnot between a sink at
+   month (the overhang depth and eave height are the kernel's `openings[].overhang`: under the covered terrace the depth to the roof
+   edge and the soffit height). **The blinds are raised in the heating balance**: nobody closes external blinds against the winter sun,
+   so `shading.blinds` never changes the heat demand (a test varies `closeAboveIrradiance` from 0 to 10⁹). Facing of an opening is
+   `opening.dir`, never typed.
+4. **Summer solar load** (`summerSolarLoad`): the same solar heat with the blinds raised (`open`, equal to `months[m].solarGainKwh`) and
+   with the blinds' rule (`withBlinds`): an opening with `blind` lets `F_blind = 1 − closedShare·(1 − closedFactor)` through, where
+   `closedShare(dailyKwhM2, sunHours, closeAboveIrradiance)` is the share of the facade's daily irradiation that arrives above the
+   threshold (half-sine irradiance over the sun hours of the typical day; tested monotone). Twelve months each; the sums and
+   `savedKwh` over June to August (`months`). It is an indicator of what the blinds keep out, not a cooling load.
+5. **Hot water**: `persons·litres·1.163 Wh/(l K)·(setpointC − coldWaterC)·(1 + lossShare)·days`, set-point from the model.
+6. **Electricity**: heating `Q_H,nd·(1 + distributionLossShare)/COP_m`. `COP_m = η_c·COP_Carnot(m)`, Carnot between a sink at
    `flowTemperatureC + sinkApproachK` and a source at `θe,m − sourceApproachK`; `η_c` is solved so that
    **`Σ heat / Σ electricity = scop` exactly** (a test). Hot water the same with `scopDhw`. Household: `appliancesKwhYear` by days.
-   EV: `evKmYear × ev.kwhPerKm × (1 + ev.chargingLossShare)`; fans as above.
-6. **Design load** (EN 12831, `computeDesignLoad`): `(H_T,air + H_V)(θi − θe,design) + H_floor·f_g1·(θi − θ̄e)`, no heat-up reserve;
-   compared with `equipment.heating.ratedPowerKw` (warning `heatPumpUndersized` below 100 %).
-7. **PV per plane** (`planeYield`): the climate file has the four house-frame facings at the roof pitch. A plane that equals its facing
+   EV: `evKmYear × ev.kwhPerKm × (1 + ev.chargingLossShare)`; fans as above. **Pool** (`pool`, own row `elPoolKwh`, never part of the
+   heat demand): for every outdoor area with pool data, in the months of `assumptions.pool.seasonMonths`, the filtration pump
+   `filtrationKw × filtrationHoursPerDay × days` and the pool heat pump `heatPumpKwhPerM2Season × water area`, spread over the season
+   by days, at the hours `pool.hours`; zero with `inputs.pool` off or without a pool.
+7. **Design load** (EN 12831, `computeDesignLoad`): `(H_T,air + H_V)(θi − θe,design) + H_floor·f_g1·(θi − θ̄e)`, no heat-up reserve.
+   It is compared with the heat pump's output at the design temperature, `ratedPowerKwAtDesign = heatPumpDesignKw(house, a)`: the model's
+   `equipment.heating.ratedPowerKwAtDesign` when it has one, else `ratedPowerKw × heating.designCapacityShare`. `coverage` uses it
+   (warning `heatPumpUndersized` below 100 %); `coverageNominal = ratedKw / load` is kept for reference only.
+8. **PV per plane** (`planeYield`): the climate file has the four house-frame facings at the roof pitch. A plane that equals its facing
    (azimuth and pitch within 1°, always so for the shipped model) uses the data unchanged, `factor` 1. Otherwise the true azimuth is
    transposed: the two bracketing facings are blended circularly, linearly in azimuth, and scaled by a clear-sky isotropic tilt
    ratio; yield falls monotonically as a plane turns away from south, and equal angles east and west of south give equal yields.
    Monthly energy per plane = `monthly[basis][m]·kWp`, hourly shape = `profileUTC` normalised, shifted UTC → local with
    `monthOffsetMix`. Clip at `equipment.pv.inverter.ratedKw` when `assumptions.pv.inverterClipping`.
-8. **Hourly balance** (`simulateDay`): for each month the four day types (`clear partly overcast dark`) with production factor and
+9. **Hourly balance** (`simulateDay`): for each month the four day types (`clear partly overcast dark`) with production factor and
    weight from `assumptions.pv.dayTypes` (weights sum to 1, mean factor 1, so the month total is the PVGIS value). Loads: heating shaped
    by `heatingBaseShare` + degree-hours of the hourly temperature, hot water at `dhw.daytimeHours` (`dhwDaytime`) or
-   `defaultHours`, household by `profiles.appliances`, EV by its hours, fans flat. Dispatch: PV serves load, surplus charges the
-   battery (power and free capacity limit it, `√roundTrip` each way), the rest is exported; a deficit discharges the battery, the rest is imported.
-   Each day is run twice for a steady state of charge; nothing carries over between day types or days. Battery: usable
-   capacity `usableShare × capacityKwh`, power from the option.
-9. **Economics**: `costWithoutPv = elTotal·priceBuy`; `costWithPv = import·priceBuy − export·priceSell`;
-   `investmentGross = kWp·pvPricePerKwp + batteryKwh·batteryPricePerKwh` (battery only when kWp > 0), both prices and the subsidy clipped
-   to ≥ 0, `investment = max(0, gross − subsidy)`; `payback = investment/savings` when both are positive and below
-   `paybackCapYears`, else `null` with `status` `"never"` (savings ≤ 0 or too long) or `"none"` (nothing invested). `pvOnly` and
-   `battery` split the result (a second dispatch without the battery).
+   `defaultHours`, household by `profiles.appliances`, EV by its hours, fans flat, the pool at its hours. Dispatch: PV serves load,
+   surplus charges the battery (power and free capacity limit it, `√roundTrip` each way), the rest is exported; a deficit discharges
+   the battery, the rest is imported. Each day is run twice for a steady state of charge; nothing carries over between day types or
+   days. Battery: usable capacity `usableShare × capacityKwh`, power from the option.
+10. **Economics**: the bill is split, `bill = {buy: import·priceBuy, fixed: fixedChargesPerYear, exportIncome: export·priceSell, net}`
+   (`billWithoutPv` with the whole consumption bought and no export); `costWithPv = bill.net`, `costWithoutPv = billWithoutPv.net`,
+   `savings` = their difference (the fixed charges cancel). `investmentGross = kWp·pvPricePerKwp + batteryKwh·batteryPricePerKwh`
+   (battery only when kWp > 0), prices and the subsidy clipped to ≥ 0, `investment = max(0, gross − subsidy)`, the subsidy shared in
+   proportion. **Payback from the cumulative cash flow** (`cashFlow[0] = −investment`, then year by year up to `paybackCapYears`): the
+   first-year savings shrink by `pvDegradationPerYear` a year, the PV pays `inverterReplacement.shareOfPvInvestment` of its gross price
+   in `inverterReplacement.year`, and the battery's share of the savings ends after `batteryLifeYears`. `paybackYears` is the moment after
+   which the balance stays ≥ 0 (linear within the year). `status`: `"none"` (nothing invested), `"never"` (savings ≤ 0 or no payback
+   within the cap), `"beyondLife"` (pays back, but after the life of the part: `pvLifeYears` for the system and PV alone,
+   `batteryLifeYears` for the battery), else `"ok"`. `pvOnly` and `battery` split the result (a second dispatch without the battery);
+   each has its own `paybackYears`, `status` and `lifeYears`. With no degradation, no replacement and lives beyond the cap, the payback
+   is `investment / savings` exactly (a test). No interest and no price growth.
 
 ### 7.3 Result and keys
 
 `EnergyResult` = sanitised `inputs`, `envelope`, `ventilation`, `designLoad`, `layout` (`PanelLayout`), `planes[]` (energy per plane),
-`months[12]`, `days[12]` (weighted mean day plus `types[]`), `totals`, `economics`, `warnings[]`. Keys for the dictionary:
-`EnvelopeKind`, `DayTypeKey`, `PaybackStatus`, `EnergyWarningKey` (`climateMismatch panelsClamped noPlanesEnabled heatPumpUndersized
-batteryWithoutPv inputsClamped`), `ClimateIssue`.
+`months[12]`, `days[12]` (weighted mean day plus `types[]`; `parts` has `heat dhw appliances ev ventilation pool`), `totals`, `economics`,
+`summerSolarLoad`, `pool`, `warnings[]`. Keys for the dictionary: `EnvelopeKind` (`wall window slider door roof ceiling floor partition
+bridge`), `DayTypeKey`, `PaybackStatus` (`ok beyondLife never none`), `EnergyWarningKey` (`climateMismatch panelsClamped noPlanesEnabled
+heatPumpUndersized batteryWithoutPv inputsClamped`), `ClimateIssue`.
+
+Contract C6 of the redesign, field by field (all exported types: `EnergyResult`, `EnergyTotals`, `Envelope`, `EnvelopeRow`, `DesignLoad`,
+`Economics`, `Bill`, `PaybackPart`, `PaybackStatus`, `SummerSolarLoad`, `PoolEnergy`, `MonthResult`, `DayLoadParts`):
+
+| C6 name | Field | Notes |
+|---|---|---|
+| heat demand (blinds raised) | `totals.heatNeedKwh`, `totals.specificHeatNeed` (per m² of net heated floor), `totals.specificHeatNeedGross` (per m² of the gross heated area, the energy reference area of a Czech certificate) | the pool is not in it |
+| `summerSolarLoad{open, withBlinds}` | `summerSolarLoad.{months, open[12], withBlinds[12], openKwh, withBlindsKwh, savedKwh}` | June to August |
+| `poolKwh` | `pool.kwh` (= `totals.elPoolKwh`), with `pool.{present, included, waterArea, seasonMonths, filtrationKwh, heatPumpKwh}` and `months[m].elPoolKwh` | own row |
+| `bill{buy, fixed, exportIncome}` | `economics.bill.{buy, fixed, exportIncome, net}`, `economics.billWithoutPv` | `net` = `costWithPv` |
+| `economics{payback, status}` | `economics.{paybackYears, status, lifeYears, cashFlow}`, `economics.pvOnly` and `economics.battery` (`PaybackPart`: `savings, investment, paybackYears, status, lifeYears`) | status `ok \| beyondLife \| never \| none` |
+| coverage of the design load | `designLoad.{ratedPowerKwAtDesign, coverage}` (`ratedKw`, `coverageNominal` for reference) | `coverage` changed meaning: output at A−12/W35 against the load, no longer the nominal rating |
+
+Every field that existed before the redesign is still there with its name and type; `EnvelopeKind` gained `ceiling` (a page with a
+`Record<EnvelopeKind, …>` must add the key) and `EnergyInputs` gained `pool`.
 
 ### 7.4 Known simplifications (shown to the visitor)
 
-Monthly method, no night set-back, no cooling or summer overheating, constant SCOP shape by Carnot, typical days without
-carry-over, battery without temperature or ageing effects, no tariffs by time of day, no degradation or price growth or
-discounting in the payback, shading of windows by the roof overhang only (neighbours and trees are in the Sun page, not here).
+Monthly method, no night set-back, no cooling (the summer solar load is an indicator, not a cooling demand), constant SCOP shape by
+Carnot, typical days without carry-over and with the same day types in every month, battery without temperature effects and without
+a replacement after its life, no tariffs by time of day, no price growth or discounting in the payback (degradation, the inverter
+replacement and the lives are in), shading of windows by the roof overhang only (neighbours and trees are in the Sun page, not here).
 
 ## 8. Budget (`budget.ts` and the files behind it)
 
@@ -387,13 +442,33 @@ Groups: plan and volumes (`footprintArea`, `floorAreaHeated`, `floorArea.<finish
 `snowGuardLength`), equipment (`pv.count`, `pv.kwp`, `inverter.kw`, `battery.kwh`, `heatPump.kw`), outdoor areas and the plot (from
 `analyzeSite`: `builtUpArea`, `hardSurfaceArea`, `greenArea`, `fenceLength`, `treeCount`, `earthwork*Volume`).
 
+Keys added by the redesign (contract C6), all from the model, never typed:
+
+| Key | What |
+|---|---|
+| `ceilingAreaHeated` / `roofInsulationArea` | the insulated ceiling under a cold attic (the heated region, `heatedRegion.ts`) / the insulated roof over the outline of a warm roof; one of them is 0 |
+| `unheatedPartitionArea` | walls between heated and unheated rooms (`derived.walls[].toUnheated`) × clear height minus their doors; `bearingWallArea` and `partitionWallArea` leave these walls out when the house has `assemblies.wallToUnheated` |
+| `door.inside.count`, `door.toUnheated.count` | interior doors split: `door.toUnheated.count` are the doors in those walls (the fire-rated door to the garage); they sum to `door.count` |
+| `soffitArea` | `roofAreaPlan − footprintArea`: eaves, the terrace and porch ceilings |
+| `screenArea` | louvre walls: length × height between the rails (`derived.screens[].z0..z1`) |
+| `linearDrainLength` | widths of exterior sliders, garage and entrance doors at grade that open onto an area without a roof |
+| `coveredBeamLength`, `postCount` | beams and posts of roofed outdoor areas |
+| `pool.count`, `pool.waterArea`, `pool.perimeter`, `pool.volume`, `pool.deckArea` | pools (`derived.outdoor[].pool`) and the deck round them net of water and coping |
+| `fence.street.length` + `fence.boundary.length` = `fenceLength` = `fence.plinth.length` + `fence.panel.length` | the fence by location (street edge or not) and by construction (on a plinth or not), openings for gates and pillars cut out |
+| `gate.drive.count`, `gate.drive.width`, `gate.walk.count`, `pillar.count` | gates by access (the drive gate priced by its clear width) and the utility pillars |
+| `rainTank.count`, `site.pavedArea`, `site.gravelArea`, `treeUplight.count`, `waterArea` | rainwater tank, the plot's own paving (without gravel), gravel beds and paths, trees with an uplight, water surfaces (`builtUpArea + hardSurfaceArea + waterArea + greenArea = plotArea`) |
+| `heatPump.count`, `kitchen.count` | sets: the heat pump and the built-in appliances are priced per set, not per kW or metre |
+
 Rules: heights from the model (`clearHeight`, wall heights), never constants; walls are summed from `derived.walls` and the
 interior walls count once (the walls come from `derived.walls`, not from room perimeters, which count shared walls twice and fail for plans with gaps); the outer face of exterior walls comes from the outline (`Σ outer wall length = outline perimeter`, a test); a roof
 edge shared by two faces (ridge, hip, valley) is counted once. `pv` replaces the model's own PV count and battery with the
 visitor's choice (from `energy`/`roofLayout`) so the Budget, Energy and Model pages show the same kWp.
 
-`materialTakeoff(house, quantities)`: for each layer of each assembly the covered area (exterior wall × `extWallAreaOpaque`,
-roof × `roofAreaOverFootprint`, ...) and the volume; generates the "materials" cards without typed coefficients.
+`materialTakeoff(house, quantities)`: for each layer of each assembly the covered area and the volume; generates the "materials"
+cards without typed coefficients. Areas: exterior wall × `extWallAreaOpaque`; bearing and partition walls × their areas;
+`wallToUnheated` × `unheatedPartitionArea` (when the model has it); ceiling × `ceilingArea`, under a cold attic its insulation and
+membrane × `ceilingAreaHeated`; roof × `roofAreaSloped` (it runs over the overhangs), the insulation and lining of a warm roof ×
+`roofAreaOverFootprint`; ground floor × `footprintArea`, its screed and finish × `floorAreaTotal`.
 
 `pvQuantities(house, derivedPv, choice?)` returns just the four PV keys (`PV_QUANTITY_KEYS`: `pv.count`, `pv.kwp`, `inverter.kw`, `battery.kwh`):
 the model's own choice, or the visitor's `PvChoice {panelCount, kwp, batteryKwh}`. They are the only quantities that change without the geometry
@@ -409,8 +484,15 @@ function repeats them): `works = Σ subtotal of groups with siteOverheadBasis`; 
 `round(share·works/roundTo)·roundTo` (computed from the effective amounts, edits included; it is not in its own basis);
 `core = Σ non-optional`, `extras = Σ optional and on`, `net = core + extras`, `reserve = r·net`,
 `vat = Σ over groups on of subtotal·(1 + r)·rate(g)`, `total = net + reserve + vat`,
-`coreWithVat = Σ non-optional of subtotal·(1 + r)·(1 + rate(g))`, `perM2 = coreWithVat/floorAreaHeated` (the house only: garage,
-outdoor works and equipment that are optional groups do not distort it). `vatByClass` sums to `vat`.
+`coreWithVat = Σ non-optional of subtotal·(1 + r)·(1 + rate(g))`, `perM2 = coreWithVat/floorAreaHeated`: the house price per m² of
+heated floor. The optional groups (terrace finishes, garage door and fittings, the plot, the pool, the kitchen, PV) are not in it, but
+the shell, roof and foundations of the garage are (they are part of the house), so the figure is a little higher than for a house
+without a garage. `vatByClass` sums to `vat`.
+
+The price book of the redesign: VAT `residential` (12 %) for the house groups, the terrace, the garage and the PV; `standard` (21 %) for
+the kitchen, the plot (fence, gates, pillar, paving of the plot, groundworks, planting) and the pool, which are stand-alone outdoor
+structures. Every optional group is on by default, so the default total is the house as the other pages show it. The heat pump and the
+built-in appliances are sets; the blinds have a price per blind and per m²; constants (`{value}` quantities) are lump sums with a note.
 
 An edit (`overrides[lineId] = {quantity?, price?}`) changes one line; nothing else moves except the overhang. Each `BudgetLine` keeps the
 computed (`defaultQuantity`, `defaultPrice`) and the effective values so a page can show "edited" and offer reset.
@@ -492,9 +574,9 @@ modified `house.json` (see `src/lib/model/__tests__/helpers.ts`). Each module ha
 |---|---|
 | `sun` | **Oracles**: declination and equation of time against the Spencer series (0.3° and 1 min); sunrise/sunset against the hour-angle formula `cos H0 = (sin(−0.833°) − sinφ sinδ)/(cosφ cosδ)` (2 min); noon altitude `90 − abs(φ − δ)` (refraction ≤ 0.6°); published NOAA values are not typed in. **Invariants**: azimuth ≈ 180° at solar noon in the northern and ≈ 0° in the southern hemisphere; the arc is symmetric about solar noon; `dayLength = sunset − sunrise` in elapsed time; equator ≈ 12 h; polar day/night (`polar`, 24/0, `null` times) at 69.6° N on the solstices; fractional zone (`Asia/Kolkata`); **DST** on the days of the change (`civilDayHours` 23 and 25, `localToUtc` in the gap and the overlap, `zonedParts` round trip over a whole year for 3 zones); `monthOffsetMix` shares sum to 1 and have two entries exactly in the change months; `sunDirection` is unit length, east/north/up for azimuth 90/0, bearing shifts the azimuth; `sunHoursOnSurface` of a horizontal plane equals the hours above the horizon, of a vertical south wall is symmetric about noon; `overhangShadedFraction`: hand-computed case (sun straight on, `depth·tan(alt)` against `eaveHeight − head`), 0 behind the wall, monotone in altitude and depth, 1 when fully covered. |
 | `roofLayout` | Default layout equals `derived.pv` (count, kWp, panel by panel); every panel lies inside its face (point-in-polygon in `(u,v)`), panels never overlap (rectangle intersection), setbacks respected; `Σ placed = count ≤ capacity`; `kwp = count·Wp/1000`; `count` monotone in the request and clamped with `clamped`; `"spread"` differs by at most one panel between planes of equal capacity; independence from the order of `enabledPlanes` and of the faces; keys unique and stable under reordering; `resolvePvSelection` drops unknown keys, ignores order, falls back on empty/garbage; what-if copy of `pv.layout.gap` changes capacity monotonically. |
-| `uvalue` | Hand-computed single and multi-layer cases; all six assemblies equal the kernel's `assemblyU` to 1e-4; random stacks agree with the kernel; ventilated layer ignores the outside layers and uses `rsi` for `rse`; shares add up to 1; `thicknessForU` round trip; `floorOnGround` both branches, monotone in insulation and in `B'`, zeros for zero area. |
-| `energy` | **Oracle**: `utilisationFactor` against the closed forms and the limits (`γ → 0`: 1; `γ = 1`: `a/(a+1)`; non-increasing); a one-room synthetic house whose `H_T`, `H_V`, `Q_ht` and heat demand are computed by hand in the test; the independent re-sum of the envelope from the raw model. **Invariants**: `Σ months = totals`; `import = consumption − self-use`; `production = self-use + export + battery losses` (`batteryIn − batteryOut`, zero without a battery; self-use counts what the battery gives back); hourly `pv = direct + toBattery + toGrid` and `load = direct + fromBattery + fromGrid`, `0 ≤ soc ≤ usable`, power limits; weights of the day types give the PVGIS month total; `Σ heat/Σ electricity = scop`; **monotonicity** (more panels, bigger battery, lower set-point, better U, higher recovery, tighter n50); zero panels give zero production, `payback null`, `status "none"`; `planeYield` equals the climate data for matching planes and is symmetric and monotone for rotated ones; `sanitizeInputs` idempotent, clamps, never NaN for random garbage (property test with a seeded generator); `computeEnergy` deterministic (two runs deep-equal) and does not mutate `ctx`; `checkClimate` flags a changed pitch/bearing/location. |
-| `budget` | **Oracle**: floor, wall, roof and opening quantities recomputed from the raw `house.json` rectangles with the shoelace formula, not from `derived`; the invariants listed at `deriveQuantities`; roof edge lengths from an independent walk over `roofPlanes`. `computeBudget` against a straightforward recomputation on a synthetic book with hand-checked totals (toggle a group, edit one line, reserve 0 and max, two VAT classes, overhead with and without edits); `sanitizeBudgetSettings` property test; `toCsv` parsed back with a small CSV reader reproduces the totals, has BOM and CRLF, quotes correctly, and differs by locale only in separators. Cross-module: the price book's PV and battery lines equal the Energy price inputs with VAT (`api.test.ts`). |
+| `uvalue` | Hand-computed single and multi-layer cases; every assembly of the model equals the kernel's `assemblyU` to 1e-4; random stacks agree with the kernel; ventilated layer ignores the outside layers and uses `rsi` for `rse`; shares add up to 1; `thicknessForU` round trip; `floorOnGround` both branches, monotone in insulation and in `B'`, zeros for zero area. |
+| `energy` | **Oracle**: `utilisationFactor` against the closed forms and the limits (`γ → 0`: 1; `γ = 1`: `a/(a+1)`; non-increasing); a one-room synthetic house under a cold attic whose `H_T` (walls, ceiling with `atticB`, floor with `Rse 0.04`, bridges), `H_V`, `Q_ht` and heat demand are computed by hand in the test; the same house with a warm roof (roof row, no ceiling), with a raised wall top (the knee wall is not envelope), and with an unheated garage and a door (insulated partition, fire-rated door, the garage edge in the exposed perimeter, independent of the room order); the independent re-sum of the envelope from the raw model. **Acceptance of the redesign**: the heat demand does not change with `closeAboveIrradiance`; the summer load with blinds never exceeds it raised and falls with the threshold; the pool is its own row (season only, off removes exactly its electricity, no effect on the heat demand); the bill parts add up; the cash flow starts at −investment and dips in the replacement year; paybacks are monotone in `priceSell` (PV shorter, battery longer); `beyondLife` exactly when payback > life; with no degradation or replacement payback = investment/savings; the model's constructions meet the recommended U of ČSN 73 0540-2 (`CSN_730540_U`). **Invariants**: `Σ months = totals`; `import = consumption − self-use`; `production = self-use + export + battery losses` (`batteryIn − batteryOut`, zero without a battery; self-use counts what the battery gives back); hourly `pv = direct + toBattery + toGrid` and `load = direct + fromBattery + fromGrid`, `0 ≤ soc ≤ usable`, power limits; weights of the day types give the PVGIS month total; `Σ heat/Σ electricity = scop`; **monotonicity** (more panels, bigger battery, lower set-point, better U, higher recovery, tighter n50); zero panels give zero production, `payback null`, `status "none"`; `planeYield` equals the climate data for matching planes and is symmetric and monotone for rotated ones; `sanitizeInputs` idempotent, clamps, never NaN for random garbage (property test with a seeded generator); `computeEnergy` deterministic (two runs deep-equal) and does not mutate `ctx`; `checkClimate` flags a changed pitch/bearing/location. |
+| `budget` | **Oracle**: floor, wall, roof and opening quantities recomputed from the raw `house.json` rectangles with the shoelace formula, not from `derived`; outdoor areas, the pool (water, edge, volume, deck net of water and coping) from the raw rectangles; gravel from the site polygons; fences lose exactly the openings of their gates and pillars; the walls to the garage from the rooms on both sides (and equal to the kernel's `unheatedBoundary`); a warm-roof variant moves the insulation from the ceiling to the roof; without roofed outdoor areas every opening at grade gets a drain; the invariants listed at `deriveQuantities`; roof edge lengths from an independent walk over `roofPlanes`. The real price book: every line with an amount is a model quantity or a lump sum with a note; every element the model has beyond the bare shell is priced (pool, gates, pillar, fence, blinds, louvres, soffits, ceiling insulation, wall to the garage, drains...); VAT classes by kind of structure; names follow the glossary of `docs/COPY.md`; the house price per m² lies in the orientation band. No test pins a total. `computeBudget` against a straightforward recomputation on a synthetic book with hand-checked totals (toggle a group, edit one line, reserve 0 and max, two VAT classes, overhead with and without edits); `sanitizeBudgetSettings` property test; `toCsv` parsed back with a small CSV reader reproduces the totals, has BOM and CRLF, quotes correctly, and differs by locale only in separators. Cross-module: the price book's PV and battery lines equal the Energy price inputs with VAT (`api.test.ts`). |
 | `printModel` | STL byte layout (`84 + 50·n`, header ASCII, counts); every part is a closed 2-manifold (each edge shared by exactly two triangles, consistent orientation) with positive volume; the volume of the wall block equals outline area × height (oracle from `derived.outline`); bounds of `plate` equal the bounding box plus margin; coordinates scale by `1000/scale`; scale clamped; `autoFit` picks a scale that fits; terrain top matches `site.terrain.groundAt` at the grid nodes; two builds are byte-identical. |
 | `triangulate` | Triangles cover exactly the polygon (sampled points lie in one triangle if and only if inside, random rectilinear shapes with holes), holes and several holes joined to an L-shaped ring, both ring orientations, fewer than three vertices give nothing. |
 | `storageKeys` | Envelope, versions, migration, fingerprint test vectors, never throws. |
@@ -512,3 +594,12 @@ investment minus VAT; `deriveQuantities().pv.kwp` equals `layoutPanels(...).kwp`
 5. PV yield per plane is the PVGIS yield of the matching house-frame facing (exact for this model) with a documented transposition for other azimuths and pitches, instead of a full sky model.
 6. Saved choices are keyed by geometry keys and carry a model fingerprint where numbers (not keys) are saved; old data is dropped, not migrated.
 7. `model/assumptions.json` and `model/pricebook.json` are part of the content hash of `model/*.json` (`isHashedModelFile`), like every model file. A price change therefore changes `derived.inputHash` and the committed derived data and manifests must be regenerated (`npm run model:build`, `npm run models`) although the geometry is the same. The hash is stricter than it needs to be; one rule without exceptions was preferred to a list of excluded files.
+8. The heating balance keeps the external blinds raised; their closing rule only feeds the summer indicator (`summerSolarLoad`). Applying
+   it in every month halved the January gains of the south glazing and overstated the heat demand by about a third.
+9. Floor and ceiling of the envelope and the insulated ceiling of the budget share one heated region (`heatedRegion.ts`), computed with a
+   deterministic tie-break, so Energy and Budget agree and the result does not depend on the order of the rooms.
+10. `Rse = 0.04` in the equivalent thickness of the floor is the value EN ISO 13370 prescribes, a named constant, not the assembly's `rse`.
+11. The output of the heat pump at the design temperature is the model's `ratedPowerKwAtDesign` when the schema has it, else the nominal
+    rating times `assumptions.heating.designCapacityShare` (0.75). The coverage of the design load uses it.
+12. Paybacks come from a cumulative cash flow with lifetimes, degradation and one inverter replacement; a payback after the life of
+    the part is reported with the status `beyondLife` and its number, so a page can say how long it would take.

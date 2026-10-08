@@ -12,7 +12,7 @@ slider and field limits).
 
 | Key | Value | Why |
 |---|---|---|
-| `climate.designOutdoorC` | -12 degC | EN 12831 national annex, Brno region (the site is in South Moravia). |
+| `climate.designOutdoorC` | -12 degC | EN 12831 national annex: the design outdoor temperature of the South Moravian lowlands where the fictional plot lies. |
 | `inputs.indoorTempC` | 21 (18 to 24) | Usual set-point of a living house; the model's own comfort target. |
 | `inputs.persons` | 4 (1 to 8) | A family house. |
 | `inputs.dhwLitresPerPersonDay` | 40 (20 to 100) | 35 to 50 litres per person and day at the set-point of the model (typical for Czech households). |
@@ -21,16 +21,18 @@ slider and field limits).
 | `inputs.n50` | 1.0 (0.3 to 6) | Air tightness of a careful new build; 0.3 is a passive house, 6 an old one. |
 | `inputs.scop`, `scopDhw` | from the model (2 to 6, 1.5 to 4.5) | Taken from `equipment.heating`; the ranges cover air-to-water and ground-source pumps. |
 | `inputs.priceBuy` | 4.7 CZK/kWh | Household electricity 2025 to 2026 with distribution and 21 % VAT, without fixed charges (from 2026 the state pays the renewable levy, which lowered the price). |
-| `inputs.priceSell` | 1.2 CZK/kWh | Typical supplier offer for surplus from small PV (spot price minus margin). |
+| `inputs.priceSell` | 0.9 CZK/kWh | Surplus sold at the spot price less the trader's margin, without the negative-price hours, 2025 to 2026. Midday surplus sells near or below the spot price, so the earlier 1.2 was optimistic. |
 | `inputs.pvPricePerKwp`, `batteryPricePerKwh` | 26 880, 11 200 CZK | The price book's 24 000 and 10 000 CZK without VAT with the reduced residential rate of 12 %; a test keeps the two files equal. |
 | `thermal.thermalBridgeDeltaU` | 0.02 W/(m2 K) | Well detailed constructions (ČSN 73 0540-2 allows 0.02 for a very good solution, 0.05 as the usual). |
-| `thermal.internalHeatCapacityKjPerM2K` | 165 | Medium construction, EN ISO 13790 table 12. |
+| `thermal.internalHeatCapacityKjPerM2K` | 260 | Heavy construction (EN ISO 13790, 12.3.1): masonry walls, a hollow-core concrete ceiling and a cement screed. |
 | `thermal.utilisationReferenceTimeH` | 15 | `tau0` of the monthly method. |
 | `thermal.airHeatCapacityWhPerM3K` | 0.34 | Volumetric heat capacity of air. |
 | `thermal.solarCorrection` | 0.9 | Non-perpendicular incidence and dirt on glazing. |
 | `thermal.verticalBeamShare` | 0.7 | Share of the irradiation of a vertical facade that is direct (the roof overhang shades only this part). |
-| `thermal.unheatedB.garage` | 0.5 | Temperature reduction factor of a garage with one outside wall (EN ISO 13789); other unheated types use 0.5 as well. |
-| `ground.soilLambda`, `periodicDepthM` | 2.0 W/(m K), 3.2 m | Clay or silt, EN ISO 13370. |
+| `thermal.unheatedB.garage` | 0.5 | Temperature reduction factor of the garage (EN ISO 13789). The garage has three outside walls; 0.5 holds because those walls are insulated and the door is closed. Other unheated types use 0.5 as well. |
+| `thermal.atticB` | 0.9 | Temperature reduction factor of the ceiling under a cold, ventilated roof space with a membrane under the covering (EN ISO 13789). |
+| `thermal.doorToUnheatedU` | 1.8 W/(m2 K) | A fire-rated door between the house and the garage (ČSN 73 0540-2 requires 3.5 for a door to an unheated room). |
+| `ground.soilLambda`, `periodicDepthM` | 2.0 W/(m K), 3.2 m | Sand or gravel, the default of EN ISO 13370 for unknown soil (clay or silt would be 1.5 and 2.2). |
 | `ground.fg1` | 1.45 | Correction for the yearly swing of the outdoor temperature, EN 12831. |
 | `ventilation.shielding` | 0.07 | Moderate shielding, `n_inf = e n50`. |
 | `ventilation.airflowPerPersonM3h`, `minAirChangeRate` | 25 m3/h, 0.3 /h | Hygienic fresh air (ČSN EN 16798-1), minimum air change of a dwelling. |
@@ -38,6 +40,10 @@ slider and field limits).
 | `ev.kwhPerKm`, `chargingLossShare` | 0.17, 0.1 | Mid-size electric car, charger and battery losses. |
 | `heating.distributionLossShare` | 0.06 | Losses of distribution and buffer storage. |
 | `heating.copCurve` | 5 K, 8 K | Approach temperatures for the Carnot ratio of the COP curve (flow temperature of the model plus 5 K at the condenser, outdoor air minus 8 K at the evaporator). |
+| `heating.designCapacityShare` | 0.75 | Output of an air-to-water heat pump at A-12/W35 as a share of its nominal A7/W35 rating (typical manufacturer data: an 8 kW unit gives about 6 kW at -12 degC). Used for the coverage of the design load when the model gives no `ratedPowerKwAtDesign`. |
+| `pool.seasonMonths` | May to September (4 to 8, 0-based) | The swimming season of an outdoor pool in South Moravia. |
+| `pool.filtrationKw`, `filtrationHoursPerDay` | 0.45 kW, 8 h | Filtration pump of a family pool of about 30 m3, run in the PV hours (`pool.hours` 9 to 16). |
+| `pool.heatPumpKwhPerM2Season` | 39 kWh per m2 of water | Heat need of a covered outdoor pool over the season divided by a seasonal COP of about 5: about 1 100 kWh of electricity for 28 m2 of water. |
 | `dhw.coldWaterC`, `lossShare` | 10 degC, 0.15 | Mains water; losses of tank and circulation. |
 | `dhw.daytimeHours`, `defaultHours` | 11 to 14, 6 to 7 and 19 to 21 | Hours the water is heated with "when the sun shines" on and off. |
 | `profiles.appliances` | 24 values | Household load profile of a family, normalised by the code. |
@@ -47,42 +53,66 @@ slider and field limits).
 | `pv.inverterClipping` | true | The inverter's rated power (from the model) caps the production. |
 | `battery.usableShare`, `roundTripEfficiency` | 0.9, 0.9 | Usable part of the nominal capacity; round-trip efficiency, half on each way. |
 | `economy.paybackCapYears` | 30 | A payback longer than this is reported as "does not pay back". |
+| `economy.fixedChargesPerYear` | 7 200 CZK | Supplier fee and circuit-breaker charge of a household connection (about 600 CZK a month), paid with and without PV. |
+| `economy.pvLifeYears`, `batteryLifeYears` | 25, 15 years | Usual warranty life of the modules and the calendar life of a home battery. A payback beyond the life gets the status "beyondLife". |
+| `economy.pvDegradationPerYear` | 0.5 % | Output loss of the modules a year (typical linear warranty); the savings of later years shrink with it. |
+| `economy.inverterReplacement` | year 13, 10 % of the PV price | One replacement of the inverter within the life of the modules. |
 
 ## 2. Method (what `computeEnergy` does)
 
 1. **Envelope.** Rows by direction for walls, windows, sliding walls and doors (U from `house.windows`, the `slider` override for
-   sliding walls), the roof over the heated rooms (faces clipped to the heated plan region, sloped area), the floor on the
-   ground (EN ISO 13370 from the slab area and the exposed perimeter), walls and doors to unheated rooms with their `b` factor, and
-   the thermal-bridge allowance on everything that borders the outside air. U-values come from the assemblies (`uvalue.ts`).
-   Wall areas use the model's wall axes (as `metrics.heated`); the roof and the floor use the outer face (heated rooms grown by
-   half an exterior wall).
+   sliding walls); the top of the heated volume; the floor on the ground; walls and doors to unheated rooms; the thermal-bridge
+   allowance on everything that borders the outside air or the ventilated attic. U-values come from the assemblies (`uvalue.ts`).
+   * **Cold attic** (`roof.attic: "cold"`): the ceiling row covers the heated region with the `ceiling` assembly (2 x 160 mm of mineral
+     wool on the hollow-core slab in the shipped model) and `b = thermal.atticB`. The walls count up to the top of the ceiling; the knee
+     wall above it stands in the ventilated roof space. With a warm roof the sloped roof faces over the heated region take its place.
+   * **Heated region** (`src/lib/calc/heatedRegion.ts`): the heated rooms to the outer face, with the boundary to the garage on the axis
+     of the wall between them (the area of `metrics.heatedAreaGross`). Its perimeter, the garage edge included, is the exposed
+     perimeter of the floor (EN ISO 13370).
+   * **Floor on the ground** (EN ISO 13370) from that area and perimeter, with `Rse = 0.04` in the equivalent thickness (the norm's value).
+   * **Walls and doors to the garage**: the insulated `wallToUnheated` assembly (`derived.walls[].toUnheated`), the door at
+     `thermal.doorToUnheatedU`, both with the garage's `b`.
+   * Wall areas use the model's wall axes (as `metrics.heated`).
 2. **Ventilation.** `H_V = c_air V (e n50 + n_mech (1 - recovery))`, `n_mech = max(25 persons, 0.3 V) / V`. Fans run with heat recovery
    on and a mechanical system.
 3. **Monthly heat demand** (EN ISO 13790): losses at the mean monthly outdoor temperature of the PVGIS temperature profiles, the
    ground with the annual mean and the periodic part, gains from people, appliances and the sun through each glazed opening
-   (monthly irradiation of the facade from PVGIS, frame, g, correction, shading by the roof edge from `overhangDailyShading`, the
-   blind closed for the share of irradiation above its threshold), utilisation factor, no cooling.
-4. **Hot water, heat pump, electricity.** Hot water from litres, set-point and cold-water temperature. COP by month is the Carnot
-   ratio times an efficiency solved so that the seasonal COP (heat delivered / electricity) equals the SCOP input exactly.
-5. **PV per roof plane.** Data of the matching house-frame facing; planes that differ from a facing (more than 1 degree) are
+   (monthly irradiation of the facade from PVGIS, frame, g, correction, shading by the roof edge from `overhangDailyShading` with the
+   kernel's overhang: under the covered terrace the depth to the roof edge), utilisation factor, no cooling. **The blinds stay raised in
+   the heating season**: they never change the heat demand.
+4. **Summer solar load.** The same solar heat for June to August with the blinds raised and with their rule (a blind closes for the
+   share of the facade's irradiation above `shading.blinds.closeAboveIrradiance` and then lets `closedFactor` through). The difference
+   is what the blinds keep out: an indicator, not a cooling demand.
+5. **Hot water, heat pump, electricity.** Hot water from litres, set-point and cold-water temperature. COP by month is the Carnot
+   ratio times an efficiency solved so that the seasonal COP (heat delivered / electricity) equals the SCOP input exactly. The
+   **pool** has its own row: filtration and the pool heat pump in the season (`assumptions.pool`), at their hours; it is never part
+   of the heat demand of the house, and a switch takes it out.
+6. **Design load** (EN 12831) against the heat pump's output at the design temperature (`ratedPowerKwAtDesign`, from the model when
+   it gives one, else 75 % of the nominal rating).
+7. **PV per roof plane.** Data of the matching house-frame facing; planes that differ from a facing (more than 1 degree) are
    interpolated between the two neighbouring facings (linear in azimuth) and scaled by a clear-sky tilt ratio.
-6. **Hourly balance.** Typical days of each month (four day types), loads by purpose, PV serves the load first, the battery takes
+8. **Hourly balance.** Typical days of each month (four day types), loads by purpose, PV serves the load first, the battery takes
    the surplus (power and capacity limited, steady state at midnight found by bisection), the rest is exported.
-7. **Economics.** Cost with and without PV, investment (PV and battery, subsidy shared in proportion), simple payback. A second
-   dispatch without the battery gives the split between PV and battery.
+9. **Economics.** The bill split into purchases, fixed charges and the payment for the surplus; investment (PV and battery, subsidy
+   shared in proportion). The payback is read from the cumulative cash flow: savings shrinking by the degradation, one inverter
+   replacement, the battery's savings ending with its life. A payback after the life of the part is "beyondLife". A second dispatch
+   without the battery gives the split between PV and battery.
 
 ## 3. Differences from `docs/CALC-API.md`
 
 * `production = self-use + export` holds exactly without a battery; with one it is `self-use + export + (batteryIn - batteryOut)`,
   because self-use counts what the battery gives back, not what it takes in. `import = consumption - self-use` is exact.
 * `utilisationFactor(0, a)` is 1 (the limit for no gains), not 0, so that the function is non-increasing everywhere.
-* Dimensions of walls are to the wall axes, not the outer faces (a difference of about 2 % of the wall area).
+* Dimensions of walls are to the wall axes, not the outer faces (a difference of about 2 % of the wall area); floor and ceiling are
+  to the outer faces (the heated region).
+* `designLoad.coverage` compares the output at the design temperature with the load; the nominal rating's ratio is `coverageNominal`.
 * `computeEnergy` and the page results are deterministic within one JavaScript engine. V8 (the server) and JavaScriptCore
   (Safari) may differ in the last bits of `Math.pow` and `Math.sin`; the page rounds drawing coordinates before it writes them into
   attributes, otherwise React reports a hydration mismatch.
 
 ## 4. Known simplifications (also shown on the page)
 
-Monthly method, no cooling or summer overheating, no night set-back, a Carnot-shaped COP curve, typical days without carry-over
-between them, no temperature or ageing effects of the battery, no time-of-day tariffs, no panel degradation, no price growth, no
-discounting in the payback, shading of windows by the roof overhang only (neighbours and trees are on the Sun page).
+Monthly method, no cooling (the summer solar load is an indicator only), no night set-back, a Carnot-shaped COP curve, typical days
+without carry-over between them and with the same spread of day types in every month, no temperature effects of the battery and no
+battery replacement, no time-of-day tariffs, no price growth and no discounting in the payback (degradation, one inverter replacement
+and the lives are in), shading of windows by the roof overhang only (neighbours and trees are on the Sun page).

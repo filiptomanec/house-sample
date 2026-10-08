@@ -76,6 +76,23 @@ describe("homeFacts", () => {
     expect(facts.footprint.w * facts.footprint.d).toBeGreaterThanOrEqual(metrics.footprintArea - 1e-9);
   });
 
+  it("takes the glossary's usable area, the layout code and the bedroom count from the metrics", () => {
+    expect(facts.heatedArea).toBe(metrics.heatedArea);
+    expect(facts.layoutCode).toBe(metrics.layoutCode);
+    expect(facts.bedroomCount).toBe(metrics.bedroomCount);
+    expect(facts.layoutCode).toMatch(/^\d+\+(kk|1)$/);
+  });
+
+  it("states the pool, the panels, the louvres and the drive by type and kind", () => {
+    const pool = derived.outdoor.find((o) => o.pool);
+    expect(facts.pool).toEqual(pool?.pool ? { area: pool.pool.waterArea, depth: pool.pool.depth } : null);
+    expect(facts.pv).toEqual(derived.pv.count ? { count: derived.pv.count, kwp: derived.pv.kwp } : null);
+    expect(facts.louvres).toBe(derived.screens.length > 0);
+    expect(facts.driveToGate).toBe(derived.outdoor.some((o) => o.type === "drive" && o.grade.ramp !== null));
+    const none = homeFacts(house, { ...derived, outdoor: derived.outdoor.filter((o) => !o.pool && o.type !== "drive"), screens: [], pv: { ...derived.pv, count: 0, panels: [] } }, metrics, PLOT);
+    expect([none.pool, none.pv, none.louvres, none.driveToGate]).toEqual([null, null, false, false]);
+  });
+
   it("uses design tokens that exist", () => {
     const css = readFileSync(join(__dirname, "..", "..", "..", "styles", "tokens.css"), "utf8");
     for (const token of Object.values(ZONE_TOKEN)) expect(css).toContain(`${token}:`);

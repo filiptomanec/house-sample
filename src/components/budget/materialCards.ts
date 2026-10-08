@@ -20,9 +20,17 @@ export type MaterialCards = Record<CardKey, MaterialItem[]>;
 /** A layer thinner than this is a sheet, listed by area; a thicker one is a body, listed by volume (m). */
 export const SHEET_MAX_THICKNESS = 0.03;
 
-/** The card of a layer: by the assembly (the whole roof is one card) and by the role of the layer; null = not listed. */
+/**
+ * The card of a layer; null = not listed. By role: structure to "masonry and concrete", insulation, membranes and cladding to
+ * "insulation and roof", screeds to "floors and walls"; air gaps and finishes are not listed (finishes come from the budget
+ * lines, which know their offcuts). The roof assembly is the exception: all of its material layers (with a cold roof the
+ * sheet, boarding, membrane and rafters; with a warm roof also its insulation) go to the second card, which is the roof card,
+ * so timber never lands among masonry and concrete. The ceiling under a cold attic follows the roles (its hollow-core slab is
+ * concrete, its wool and vapour layer are insulation).
+ */
 export function cardOf(row: Pick<MaterialRow, "assembly" | "role">): CardKey | null {
-  if (row.assembly === "roof") return row.role === "air" || row.role === "finish" ? null : "insulation";
+  if (row.role === "air" || row.role === "finish") return null;
+  if (row.assembly === "roof") return "insulation";
   switch (row.role) {
     case "structure":
       return "masonry";

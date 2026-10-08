@@ -168,6 +168,18 @@ describe("E-BRANA and the other checks with the house", () => {
     const out = redesigned((raw) => (raw.rainwater = { tank: { pos: [500, 500], volumeM3: 8, diameter: 2.4, overflow: "soakaway" } }));
     expect(validateSite(out).errors.map((e) => e.code)).toContain("E-TANK");
   });
+  it("W-RAMP-FALL: a ramp that does not fall away from the house by RAMP_MIN_FALL warns; one that does, does not", () => {
+    const warnings = (s: SiteModel) => validateSiteWithHouse(s, OUTDOOR, FIXTURE_BEARING_DEG).warnings.map((e) => e.code);
+    const plateau = (site.terrain as { plateau: { level: number } }).plateau.level;
+    // natural ground well above the floor: both ramps rise towards the street (water runs to the house)
+    const up = redesigned((raw) => ((raw.terrain as { plane: { z0: number } }).plane.z0 = plateau + 0.6));
+    expect(warnings(up).filter((c) => c === "W-RAMP-FALL")).toHaveLength(2);
+    // natural ground well below the plateau: both ramps fall to their gates by more than the minimum
+    const down = redesigned((raw) => ((raw.terrain as { plane: { z0: number } }).plane.z0 = plateau - 0.6));
+    const levels = validateSiteWithHouse(down, OUTDOOR, FIXTURE_BEARING_DEG);
+    expect(levels.errors).toEqual([]);
+    expect(levels.warnings.map((e) => e.code)).not.toContain("W-RAMP-FALL");
+  });
 });
 
 describe("street", () => {

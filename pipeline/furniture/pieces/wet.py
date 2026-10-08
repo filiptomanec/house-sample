@@ -91,12 +91,29 @@ def shower(pc, w, d, variant):
     open_sides = [s for s in ('front', 'left', 'right', 'back') if not wall.get(s, False)]
     if not open_sides:
         open_sides = ['front']
+    done = set()                                    # corners already taken by the glass of an earlier side
     for k, s in enumerate(open_sides):
         x0, y0, x1, y1 = sides[s]
         e = 0.0007 * k
-        pc.box(min(x0, x1) - 0.004 - e, min(y0, y1) - 0.004 - e, 0.06, max(x0, x1) + 0.004 + e, max(y0, y1) + 0.004 + e, H - 0.02, glass, r=0.0)
-        pc.box(min(x0, x1) - 0.012, min(y0, y1) - 0.012, H - 0.02 - e, max(x0, x1) + 0.012, max(y0, y1) + 0.012, H - e, frame, r=0.0)
-        pc.box(min(x0, x1) - 0.012, min(y0, y1) - 0.012, 0.045 + e, max(x0, x1) + 0.012, max(y0, y1) + 0.012, 0.06 + e, frame, r=0.0)
+        horiz = abs(y1 - y0) < 1e-9
+
+        def span(t_glass, t_frame):
+            """(lo, hi) offsets along the side: past the corner when it is free, stopping short of an earlier panel."""
+            lo = t_frame if (x0, y0) in done else -t_glass
+            hi = t_frame if (x1, y1) in done else -t_glass
+            return lo, hi
+
+        g0, g1 = span(0.004, 0.0065)
+        f0, f1 = span(0.012, 0.0125)
+        if horiz:
+            pc.box(x0 + g0, y0 - 0.004 - e, 0.06, x1 - g1, y0 + 0.004 + e, H - 0.02, glass, r=0.0)
+            pc.box(x0 + f0, y0 - 0.012, H - 0.02 - e, x1 - f1, y0 + 0.012, H - e, frame, r=0.0)
+            pc.box(x0 + f0, y0 - 0.012, 0.045 + e, x1 - f1, y0 + 0.012, 0.06 + e, frame, r=0.0)
+        else:
+            pc.box(x0 - 0.004 - e, y0 + g0, 0.06, x0 + 0.004 + e, y1 - g1, H - 0.02, glass, r=0.0)
+            pc.box(x0 - 0.012, y0 + f0, H - 0.02 - e, x0 + 0.012, y1 - f1, H - e, frame, r=0.0)
+            pc.box(x0 - 0.012, y0 + f0, 0.045 + e, x0 + 0.012, y1 - f1, 0.06 + e, frame, r=0.0)
+        done |= {(x0, y0), (x1, y1)}
     # door handle on the front glass when it is open
     if 'front' in open_sides:
         pc.box(hw * 0.5 - 0.01, -hd - 0.03, 0.9, hw * 0.5 + 0.01, -hd - 0.008, 1.3, frame, r=0.004)

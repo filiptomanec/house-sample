@@ -44,7 +44,7 @@ describe("three.js stays on the Model and Sun routes", () => {
   });
 
   it("the pure engine modules import only each other, the kernel and data (nothing that loads three.js)", () => {
-    const heavy = ["viewer", "house", "interior", "terrain", "surroundings", "vegetation", "blinds", "extBlinds", "pv", "walk", "sunAnalysis", "dispose", "furniture", "roomTags", "sky", "meshBuilder"];
+    const heavy = ["viewer", "house", "interior", "terrain", "surroundings", "vegetation", "blinds", "extBlinds", "pv", "walk", "sunAnalysis", "dispose", "furniture", "roomTags", "sky", "meshBuilder", "outdoor", "merge", "garageDoor", "sunPath"];
     for (const name of PURE) {
       const f = all.find((x) => x.file === `lib/three/${name}.ts`)!;
       for (const spec of runtimeImports(f.text, /["']\.\/[^"']+["']/)) {

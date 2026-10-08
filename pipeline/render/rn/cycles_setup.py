@@ -1,5 +1,5 @@
 """Cycles settings: GPU (Metal, CUDA, OptiX, HIP, oneAPI) with a CPU fallback, OIDN denoising with albedo and normal guides,
-fixed seed, AgX colour management, a gentle glare in the compositor (Blender 5: compositing_node_group)."""
+fixed seed, AgX colour management (white balance per shot, scene.py), a gentle glare in the compositor (Blender 5: compositing_node_group)."""
 from __future__ import annotations
 
 import os
@@ -54,10 +54,15 @@ def setup(cfg, device=None):
     cy.glossy_bounces = c["glossyBounces"]
     cy.transmission_bounces = c["transmissionBounces"]
     cy.volume_bounces = c["volumeBounces"]
+    cy.transparent_max_bounces = c.get("transparentBounces", 8)     # leaf cards with an alpha cut-out
     cy.caustics_reflective = False
     cy.caustics_refractive = False
     cy.sample_clamp_indirect = c["clampIndirect"]
     cy.sample_clamp_direct = c["clampDirect"]
+    try:
+        cy.use_light_tree = True                  # many small lamps (rooms, garden): sampled by importance
+    except Exception:
+        pass
     cy.blur_glossy = c["blurGlossy"]
     cy.use_adaptive_sampling = True
     cy.use_animated_seed = False

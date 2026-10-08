@@ -57,10 +57,11 @@ export function buildTerrain({ site, derived, cfg }: WorldContext) {
     zeroLevelAsl: site.model.terrain.zeroLevelAsl,
     grid: { x0, y0, step: stepM, nx: n, ny: n, unit: "mm" as const, heightsMm },
     plateau: { level: p.level, rects: p.rects as number[][], blend: p.blend },
+    /** Holes in the ground mesh (pool basins, `derived.groundVoids`): `[x0, y0, x1, y1]`. */
+    voids: derived.groundVoids.map((v) => [...v]) as number[][],
   };
 }
 
-const OUTDOOR_ROLE: Record<string, string> = { drive: "drive_paving", path: "path" };
 const BED_ROLE: Record<string, string> = { mulch: "mulch", gravel: "gravel" };
 
 export interface Surface {
@@ -73,8 +74,8 @@ export interface Surface {
 
 export function buildSite({ derived, site, siteDerived: sd }: WorldContext, hints: (species: string) => { form: string; leaf: string; flower?: string }) {
   const surfaces: Surface[] = [];
-  // outdoor slabs of the house model: already in house.glb (hb/exterior.py), listed for completeness
-  for (const o of derived.outdoor) surfaces.push({ kind: o.type, role: OUTDOOR_ROLE[o.type] ?? "terrace_paving", polygon: rectPoly(o.rect), inGlb: true, drape: false });
+  // outdoor slabs of the house model: already in house.glb (graded from derived.outdoor[].grade), listed for completeness
+  for (const o of derived.outdoor) surfaces.push({ kind: o.type, role: o.role, polygon: rectPoly(o.rect), inGlb: true, drape: false });
   for (const p of site.model.paved) surfaces.push({ kind: p.kind, role: p.surface, polygon: p.polygon as Poly, inGlb: false, drape: true });
   const a = sd.access;
   if (a.driveApron.length) surfaces.push({ kind: "drive_apron", role: "drive_paving", polygon: a.driveApron, inGlb: false, drape: true });
@@ -82,17 +83,32 @@ export function buildSite({ derived, site, siteDerived: sd }: WorldContext, hint
   if (a.walkApron.length) surfaces.push({ kind: "walk_apron", role: "path", polygon: a.walkApron, inGlb: false, drape: true });
   if (a.walkVerge.length) surfaces.push({ kind: "walk_verge", role: "path", polygon: a.walkVerge, inGlb: false, drape: true });
   for (const b of sd.beds) surfaces.push({ kind: `bed_${b.kind}`, role: BED_ROLE[b.kind] ?? "mulch", polygon: b.polygon, inGlb: false, drape: true });
+  const pool = derived.outdoor.filter((o) => o.pool).map((o) => ({ ...o.pool!, rect: o.rect, top: o.top }));
   return {
     plot: sd.plot,
     zones: {
+      // verge (green strip + pavement), carriageway, centre line, kerb height and width
       street: { ...sd.zones.street, kerbHeight: site.model.street.kerbHeight },
       field: sd.zones.field,
       neighbourPlots: sd.zones.neighbourPlots.map((n) => ({ polygon: n.polygon })),
     },
     surfaces,
-    fences: sd.fences.map((f) => ({ kind: f.kind, height: f.height, thickness: f.thickness, parts: f.parts })),
+    /** One entry per fence: the parts already have the gate and pillar openings cut out; posts carry the ground height. */
+    fences: sd.fences.map((f) => ({
+      kind: f.kind, height: f.height, thickness: f.thickness, parts: f.parts,
+      plinthHeight: f.plinthHeight, slat: f.slat, postSize: f.postSize, postSpacing: f.postSpacing, posts: f.posts,
+    })),
+    /** Gates with their posts, the closed leaf, the park span of a sliding leaf or the swing arc (shots give the open fraction). */
+    gates: sd.gates,
+    pillars: sd.pillars,
     hedges: sd.hedges.map((h) => ({ species: h.species, evergreen: h.evergreen, height: h.height, width: h.width, path: h.path, ...hints(h.species) })),
-    access: { driveGate: a.driveGate, walkGate: a.walkGate },
+    access: {
+      driveGate: a.driveGate, walkGate: a.walkGate,
+      driveKerb: a.driveKerb, walkKerb: a.walkKerb, droppedKerbReveal: a.droppedKerbReveal,
+    },
+    /** Pools of the house model (basin, coping and water are in house.glb; listed for the water material, lights and caustics). */
+    pools: pool,
+    rainwater: sd.rainwater,
   };
 }
 
@@ -101,7 +117,7 @@ export function buildVegetation({ siteDerived: sd }: WorldContext, hints: (speci
   return {
     trees: sd.trees.map((t) => {
       const seed = seedOf(`${t.species}:${t.x}:${t.y}`);
-      return { species: t.species, latin: t.latin, evergreen: t.evergreen, x: t.x, y: t.y, z: t.z, height: t.height, crown: t.crown, crownBase: t.crownBase, ...hints(t.species), seed, ...jitter(seed) };
+      return { species: t.species, latin: t.latin, evergreen: t.evergreen, x: t.x, y: t.y, z: t.z, height: t.height, crown: t.crown, crownBase: t.crownBase, uplight: t.uplight, ...hints(t.species), seed, ...jitter(seed) };
     }),
     shrubs: sd.shrubs.map((s) => {
       const seed = seedOf(`${s.species}:${s.x}:${s.y}`);

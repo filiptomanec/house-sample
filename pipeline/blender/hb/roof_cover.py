@@ -56,6 +56,13 @@ def _seam(ms, A, B, n, e, sw, sh, role="roof_tile", drop=0.0):
     ms.poly(to, [b_bl, b_br, b_tr, b_tl], d, toggle=T)
 
 
+def seam_origin(model, pl):
+    """Position (along the eave, plan metres) of the central seam of a plane: the middle of its own region."""
+    e = (-pl.iy, pl.ix)
+    ts = [e[0] * x + e[1] * y for (x, y) in model.own_region(pl.roof, pl)]
+    return (min(ts) + max(ts)) / 2.0
+
+
 def build_covering(cfg, ms, model):
     p = cfg.p
     steel = "steel" in str(cfg.covering) or "seam" in str(cfg.covering)
@@ -67,7 +74,10 @@ def build_covering(cfg, ms, model):
         else:
             dz = 0.0
         pts = [(x, y, pl.z(x, y) + dz) for (x, y) in poly]
-        uv = [plane_uv(pl, x, y) for (x, y, _) in pts]
+        # u is measured from the seam line of the plane (the seams are at tc + k * seam_pitch, see build_seams), so the
+        # seam stripe of the roof texture lies under the modelled seams
+        tc = seam_origin(model, pl)
+        uv = [(u - tc, v) for (u, v) in (plane_uv(pl, x, y) for (x, y, _) in pts)]
         ms.poly("roof_tile", pts, (0, 0, 1), uv=uv, toggle=TOGGLE)
     if steel and p["seams"]:
         build_seams(cfg, ms, model)
@@ -86,9 +96,7 @@ def build_seams(cfg, ms, model):
     for (pl, pcs) in by_plane.values():
         e = (-pl.iy, pl.ix)
         nin = (pl.ix, pl.iy)
-        full = model.own_region(pl.roof, pl)
-        ts = [e[0] * x + e[1] * y for (x, y) in full]
-        tc = (min(ts) + max(ts)) / 2.0
+        tc = seam_origin(model, pl)
         n3 = pl.normal()
         e3 = (e[0], e[1], 0.0)
         segs = {}

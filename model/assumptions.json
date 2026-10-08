@@ -7,21 +7,19 @@
     "priceYear": 2026,
     "sources": [
       "EN ISO 6946 (thermal resistance and U-values of building components)",
-      "EN ISO 13370 (heat transfer via the ground; soil conductivity 2.0 W/(m K) and penetration depth 3.2 m for clay or silt)",
-      "EN ISO 13789 (transmission and ventilation heat transfer coefficients)",
-      "EN ISO 13790 (monthly method for space heating; medium internal heat capacity 165 kJ/(m2 K), reference time 15 h, correction 0.9 for glazing)",
-      "EN 12831 (design heat load; design outdoor temperature of the Brno region, ground correction f_g1 = 1.45)",
-      "ČSN 73 0540-2 (thermal protection of buildings; thermal-bridge allowance 0.02 W/(m2 K) for well detailed constructions)",
+      "EN ISO 13370 (heat transfer via the ground; soil conductivity 2.0 W/(m K) and periodic penetration depth 3.2 m, the default for unknown soil, sand or gravel; external surface resistance 0.04 m2 K/W in the equivalent thickness)",
+      "EN ISO 13789 (transmission and ventilation heat transfer coefficients; temperature reduction factor 0.9 for a ventilated roof space over an insulated ceiling, 0.5 for the garage, whose own walls are insulated)",
+      "EN ISO 13790 (monthly method for space heating; heavy internal heat capacity 260 kJ/(m2 K) for masonry with a concrete ceiling and screed, reference time 15 h, correction 0.9 for glazing)",
+      "EN 12831 (design heat load; design outdoor temperature of the South Moravian lowlands, ground correction f_g1 = 1.45); output of an air-to-water heat pump at A-12/W35 about 75 % of its nominal A7/W35 rating (typical manufacturer data)",
+      "ČSN 73 0540-2 (thermal protection of buildings; thermal-bridge allowance 0.02 W/(m2 K) for well detailed constructions; a fire-rated door between the house and the garage, U about 1.8 W/(m2 K), against a requirement of 3.5)",
       "ČSN EN 16798-1 (indoor environment; 25 m3/h of fresh air per person, minimum air change 0.3 per hour)",
       "PVGIS 5.3, EU Joint Research Centre (irradiance, temperature, PV yield per facing)",
-      "Prices of household electricity in Czechia 2025 to 2026 (supplier offers, regulated components, VAT 21 %), indicative; feed-in price from supplier offers, indicative; fixed charges of a household connection (supplier fee and circuit breaker, about 600 CZK a month), indicative",
-      "Price of a residential PV system and of a battery in Czechia 2025 to 2026 (installer offers, VAT 12 %), indicative"
+      "Prices of household electricity in Czechia 2025 to 2026 (supplier offers, regulated components, VAT 21 %), indicative; surplus sold at the spot price less the trader's margin, without negative-price hours, about 0.9 CZK/kWh in 2025 to 2026, indicative; fixed charges of a household connection (supplier fee and circuit breaker, about 600 CZK a month), indicative",
+      "Price of a residential PV system and of a battery in Czechia 2025 to 2026 (installer offers, VAT 12 %), indicative; lifetimes: PV modules 25 years with 0.5 % output loss a year (typical manufacturer warranty), home battery 15 years, one inverter replacement in year 13 at about 10 % of the PV price",
+      "Outdoor family pool with an automatic cover, season May to September: filtration pump 0.45 kW for 8 hours a day, pool heat pump about 39 kWh of electricity per m2 of water a season (heat demand of a covered outdoor pool and a seasonal COP of about 5), indicative"
     ]
   },
-  "climate": {
-    "referenceYear": 2026,
-    "designOutdoorC": -12
-  },
+  "climate": { "referenceYear": 2026, "designOutdoorC": -12 },
   "inputs": {
     "indoorTempC": { "default": 21, "min": 18, "max": 24, "step": 0.5 },
     "persons": { "default": 4, "min": 1, "max": 8, "step": 1 },
@@ -32,94 +30,87 @@
     "scop": { "min": 2, "max": 6, "step": 0.1 },
     "scopDhw": { "min": 1.5, "max": 4.5, "step": 0.1 },
     "priceBuy": { "default": 4.7, "min": 2, "max": 12, "step": 0.1 },
-    "priceSell": { "default": 1.2, "min": 0, "max": 6, "step": 0.1 },
+    "priceSell": { "default": 0.9, "min": 0, "max": 6, "step": 0.1 },
     "pvPricePerKwp": { "default": 26880, "min": 10000, "max": 60000, "step": 500 },
     "batteryPricePerKwh": { "default": 11200, "min": 4000, "max": 30000, "step": 500 },
     "subsidy": { "default": 0, "min": 0, "max": 500000, "step": 5000 },
-    "flags": {
-      "evChargeDaytime": false,
-      "dhwDaytime": true
-    }
+    "flags": { "evChargeDaytime": false, "dhwDaytime": true }
   },
   "thermal": {
     "thermalBridgeDeltaU": 0.02,
-    "internalHeatCapacityKjPerM2K": 165,
+    "internalHeatCapacityKjPerM2K": 260,
     "utilisationReferenceTimeH": 15,
     "airHeatCapacityWhPerM3K": 0.34,
     "solarCorrection": 0.9,
     "verticalBeamShare": 0.7,
-    "unheatedB": {
-      "garage": 0.5
-    }
+    "unheatedB": { "garage": 0.5 },
+    "atticB": 0.9,
+    "doorToUnheatedU": 1.8
   },
-  "ground": {
-    "soilLambda": 2.0,
-    "periodicDepthM": 3.2,
-    "fg1": 1.45
-  },
-  "ventilation": {
-    "shielding": 0.07,
-    "airflowPerPersonM3h": 25,
-    "minAirChangeRate": 0.3
-  },
-  "gains": {
-    "personW": 50,
-    "applianceHeatShare": 0.7
-  },
-  "ev": {
-    "kwhPerKm": 0.17,
-    "chargingLossShare": 0.1
+  "ground": { "soilLambda": 2.0, "periodicDepthM": 3.2, "fg1": 1.45 },
+  "ventilation": { "shielding": 0.07, "airflowPerPersonM3h": 25, "minAirChangeRate": 0.3 },
+  "gains": { "personW": 50, "applianceHeatShare": 0.7 },
+  "ev": { "kwhPerKm": 0.17, "chargingLossShare": 0.1 },
+  "pool": {
+    "seasonMonths": [4, 5, 6, 7, 8],
+    "filtrationKw": 0.45,
+    "filtrationHoursPerDay": 8,
+    "heatPumpKwhPerM2Season": 39,
+    "hours": [9, 10, 11, 12, 13, 14, 15, 16]
   },
   "heating": {
     "distributionLossShare": 0.06,
-    "copCurve": {
-      "sinkApproachK": 5,
-      "sourceApproachK": 8
-    }
+    "copCurve": { "sinkApproachK": 5, "sourceApproachK": 8 },
+    "designCapacityShare": 0.75
   },
-  "dhw": {
-    "coldWaterC": 10,
-    "lossShare": 0.15,
-    "daytimeHours": [11, 12, 13, 14],
-    "defaultHours": [6, 7, 19, 20, 21]
-  },
+  "dhw": { "coldWaterC": 10, "lossShare": 0.15, "daytimeHours": [11, 12, 13, 14], "defaultHours": [6, 7, 19, 20, 21] },
   "profiles": {
-    "appliances": [2.3, 2.0, 1.9, 1.9, 2.0, 2.4, 3.4, 4.7, 4.4, 3.8, 3.7, 3.9, 4.5, 3.9, 3.5, 3.5, 4.0, 5.1, 6.5, 7.1, 6.9, 5.9, 4.3, 3.0],
+    "appliances": [
+      2.3,
+      2.0,
+      1.9,
+      1.9,
+      2.0,
+      2.4,
+      3.4,
+      4.7,
+      4.4,
+      3.8,
+      3.7,
+      3.9,
+      4.5,
+      3.9,
+      3.5,
+      3.5,
+      4.0,
+      5.1,
+      6.5,
+      7.1,
+      6.9,
+      5.9,
+      4.3,
+      3.0
+    ],
     "evDaytimeHours": [10, 11, 12, 13, 14, 15],
     "evNightHours": [18, 19, 20, 21, 22],
     "heatingBaseShare": 0.6
   },
   "pv": {
     "dayTypes": [
-      {
-        "key": "clear",
-        "factor": 1.57,
-        "weight": 0.35
-      },
-      {
-        "key": "partly",
-        "factor": 1.07,
-        "weight": 0.3
-      },
-      {
-        "key": "overcast",
-        "factor": 0.56,
-        "weight": 0.2
-      },
-      {
-        "key": "dark",
-        "factor": 0.12,
-        "weight": 0.15
-      }
+      { "key": "clear", "factor": 1.57, "weight": 0.35 },
+      { "key": "partly", "factor": 1.07, "weight": 0.3 },
+      { "key": "overcast", "factor": 0.56, "weight": 0.2 },
+      { "key": "dark", "factor": 0.12, "weight": 0.15 }
     ],
     "inverterClipping": true
   },
-  "battery": {
-    "usableShare": 0.9,
-    "roundTripEfficiency": 0.9
-  },
+  "battery": { "usableShare": 0.9, "roundTripEfficiency": 0.9 },
   "economy": {
     "paybackCapYears": 30,
-    "fixedChargesPerYear": 7200
+    "fixedChargesPerYear": 7200,
+    "pvLifeYears": 25,
+    "batteryLifeYears": 15,
+    "pvDegradationPerYear": 0.005,
+    "inverterReplacement": { "year": 13, "shareOfPvInvestment": 0.1 }
   }
 }

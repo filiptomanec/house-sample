@@ -17,10 +17,17 @@ export const clamp = (v: number, lo: number, hi: number): number => Math.min(hi,
 export function fontSizes(s: number) {
   const per = (px: number, lo: number, hi: number) => clamp(px / s, lo, hi);
   return {
-    number: per(12, 0.26, 0.6), area: per(10.5, 0.22, 0.5), dims: per(10, 0.2, 0.42), furniture: per(9.5, 0.18, 0.6),
-    furnitureMin: per(7.5, 0.14, 0.56), ui: per(10.5, 0.2, 0.56),
+    number: per(12, 0.26, 0.9), area: per(10.5, 0.22, 0.75), dims: per(10, 0.2, 0.42), furniture: per(9.5, 0.18, 0.6),
+    furnitureMin: per(7.5, 0.14, 0.56), ui: per(10.5, 0.2, 0.56), outdoor: per(9.5, 0.2, 0.42),
   };
 }
+
+/**
+ * Smallest room number on screen (px). On a phone the whole plan is about 13 px per metre, so a number that fitted its
+ * room would be 5 px tall: it keeps this size instead, centred on the room (with its halo), and a small room shows the
+ * number only (the area is in the panel and the table).
+ */
+export const MIN_LABEL_PX = 9;
 
 /** A box given by its centre and half extents (plan space), used to find labels that lie under something. */
 export interface Box { cx: number; cy: number; hw: number; hh: number }
@@ -40,32 +47,65 @@ export interface RoomLabel {
   /** "stack": number above the area, centred; "row": side by side from `x` on (text-anchor start). */
   mode: "stack" | "row";
   number: { x: number; y: number; fs: number };
-  area: { x: number; y: number; fs: number };
+  /** Null when the room is too small for the area at the smallest readable size (`MIN_LABEL_PX`). */
+  area: { x: number; y: number; fs: number } | null;
   /** The label lies under one of the `avoid` boxes and should be drawn faint. */
   dim: boolean;
 }
 
-/** Number and area of every room: stacked when the room is tall enough at that point, else in one row, and always inside the room's span. */
+/**
+ * Number and area of every room: stacked when the room is tall enough at that point, else in one row, and inside the room's
+ * span. A label that would come out smaller than `MIN_LABEL_PX` on screen keeps that size instead: the number alone,
+ * centred on the label point (it may reach over the walls of a small room; its halo keeps it readable).
+ */
 export function layoutRoomLabels(rooms: readonly RoomLabelInput[], s: number, avoid: readonly Box[] = []): RoomLabel[] {
-  const f = fontSizes(s);
-  return rooms.map((r) => {
+  const f = fontSizes(s), minN = MIN_LABEL_PX / s;
+  const labels = rooms.map((r): RoomLabel => {
     const [a, b] = r.spanX, pad = (b - a) * 0.03, free = b - a - 2 * pad, spanH = r.spanY[1] - r.spanY[0];
     const wOf = (n: number, fs: number) => (n * MONO_W + HALO) * fs;
-    let fsN = Math.min(f.number, free / (r.number.length * MONO_W + HALO)), fsA = Math.min(f.area, fsN * 0.85);
+    let fsN = Math.min(f.number, free / (r.number.length * MONO_W + HALO));
+    let fsA = Math.min(f.area, fsN * 0.85, free / (r.area.length * MONO_W + HALO));
     const [lx, y] = r.at, at = (w: number) => clamp(lx, a + pad + w / 2, b - pad - w / 2);
-    const dim = avoid.some((v) => Math.abs(lx - v.cx) < v.hw + fsN * 0.9 && y + fsA * 0.6 > v.cy - v.hh && y - fsN * 0.6 < v.cy + v.hh);
+    const dimAt = (fs: number) => avoid.some((v) => Math.abs(lx - v.cx) < v.hw + fs * 0.9 && y + fs * 0.6 > v.cy - v.hh && y - fs * 0.6 < v.cy + v.hh);
+    const small = (): RoomLabel => ({ id: r.id, mode: "stack", number: { x: lx, y: y + minN * 0.35, fs: minN }, area: null, dim: dimAt(minN) });
+    if (fsN < minN) return small();
+    // the number fits but the area would be unreadably small: the number alone
+    if (fsA < minN * AREA_FLOOR) {
+      const w = wOf(r.number.length, fsN);
+      return { id: r.id, mode: "stack", number: { x: at(w), y: y + fsN * 0.35, fs: fsN }, area: null, dim: dimAt(fsN) };
+    }
     if (fsN * 0.97 + fsA * 1.1 <= spanH * 0.9) {
       const x = at(Math.max(wOf(r.number.length, fsN), wOf(r.area.length, fsA)));
-      return { id: r.id, mode: "stack", number: { x, y: y - fsN * 0.25, fs: fsN }, area: { x, y: y + fsA * 1.1, fs: fsA }, dim };
+      return { id: r.id, mode: "stack", number: { x, y: y - fsN * 0.25, fs: fsN }, area: { x, y: y + fsA * 1.1, fs: fsA }, dim: dimAt(fsN) };
     }
     // side by side: the whole row has to fit into the free interval, otherwise both shrink
     const row = r.number.length * MONO_W * fsN + fsA * 0.5 + r.area.length * MONO_W * fsA + (HALO * (fsN + fsA)) / 2;
     if (row > free) { const k = free / row; fsN *= k; fsA *= k; }
+    if (fsN < minN || fsA < minN * AREA_FLOOR) return small();
     const wN = r.number.length * MONO_W * fsN, gap = fsA * 0.5, total = wN + gap + r.area.length * MONO_W * fsA;
     const x0 = at(total + HALO * fsN) - total / 2;
-    return { id: r.id, mode: "row", number: { x: x0, y: y + fsN * 0.35, fs: fsN }, area: { x: x0 + wN + gap, y: y + fsN * 0.35, fs: fsA }, dim };
+    return { id: r.id, mode: "row", number: { x: x0, y: y + fsN * 0.35, fs: fsN }, area: { x: x0 + wN + gap, y: y + fsN * 0.35, fs: fsA }, dim: dimAt(fsN) };
   });
+  // two neighbouring small rooms at the smallest size can meet (a narrow phone): those two shrink until they part, at most
+  // to SMALL_FLOOR of the smallest size
+  const small = labels.map((l) => l.area === null);
+  const half = (i: number) => ((rooms[i].number.length * MONO_W + HALO) * labels[i].number.fs) / 2;
+  for (let pass = 0; pass < 3; pass++) {
+    for (let i = 0; i < labels.length; i++) for (let j = i + 1; j < labels.length; j++) {
+      if (!small[i] && !small[j]) continue;
+      const a = labels[i].number, b = labels[j].number, dx = Math.abs(a.x - b.x), dy = Math.abs(a.y - b.y);
+      if (dy >= (a.fs + b.fs) * 0.55 || dx >= half(i) + half(j)) continue;
+      const k = Math.max(SMALL_FLOOR, Math.min(1, dx / (half(i) + half(j))));
+      for (const n of [i, j]) if (small[n]) labels[n].number.fs = Math.max(minN * SMALL_FLOOR, labels[n].number.fs * k);
+    }
+  }
+  return labels;
 }
+
+/** Smallest area text, as a share of the smallest number (below it the area is left out). */
+const AREA_FLOOR = 0.85;
+/** How far two colliding minimum-size room numbers may shrink (share of `MIN_LABEL_PX`). */
+const SMALL_FLOOR = 0.75;
 
 // ------------------------------------------------------------------------------------------------ window labels
 
@@ -124,6 +164,69 @@ export function layoutWindowLabels(items: readonly WindowLabelInput[], fs: numbe
       x: clamp(l.x, bounds[0] + hx, bounds[2] - hx), y: clamp(l.y, bounds[1] + hy, bounds[3] - hy),
     };
   });
+}
+
+// ------------------------------------------------------------------------------------------------ outdoor names
+
+/** Extra advance of the outdoor names (letter-spacing of the small uppercase captions), em per character. */
+export const OUTDOOR_TRACKING = 0.08;
+
+export interface OutdoorLabelInput {
+  id: string;
+  text: string;
+  /** The free cell inside the area (centre, width, height) and the drawn rect of the area: [x0, y0, x1, y1], plan space. */
+  at: PlanPt;
+  w: number;
+  h: number;
+  rect: readonly [number, number, number, number];
+}
+
+export interface OutdoorLabel {
+  id: string;
+  text: string;
+  x: number;
+  y: number;
+  /** 0: horizontal, -90: reads upwards along a tall area. */
+  rot: 0 | -90;
+  /** Length along the text and height of the box. */
+  len: number;
+  height: number;
+  /** Inside its area, or set beside it (the area is too small at this scale). */
+  inside: boolean;
+}
+
+type Rect4 = readonly [number, number, number, number];
+const hits = (a: Rect4, b: Rect4, pad = 0): boolean => a[0] < b[2] + pad && b[0] < a[2] + pad && a[1] < b[3] + pad && b[1] < a[3] + pad;
+
+/**
+ * Names of the outdoor areas at font size `fs` (m): inside the free cell of the area, written along it when the cell is
+ * taller than wide, else beside the area (below, above, right, left) where nothing is in the way. A name that fits nowhere
+ * is left out. `obstacles` (the house, furniture, corner widgets) and `bounds` ([x0, y0, x1, y1]) are plan rects.
+ */
+export function layoutOutdoorLabels(items: readonly OutdoorLabelInput[], fs: number, obstacles: readonly Rect4[], bounds: Rect4): OutdoorLabel[] {
+  const out: OutdoorLabel[] = [];
+  const taken: Rect4[] = [];
+  const pad = fs * 0.35, height = fs * 1.25;
+  const inBounds = (b: Rect4) => b[0] >= bounds[0] && b[1] >= bounds[1] && b[2] <= bounds[2] && b[3] <= bounds[3];
+  for (const it of items) {
+    const len = it.text.length * (MONO_W + OUTDOOR_TRACKING) * fs;
+    const box = (x: number, y: number, rot: 0 | -90): Rect4 => (rot === 0 ? [x - len / 2, y - height / 2, x + len / 2, y + height / 2] : [x - height / 2, y - len / 2, x + height / 2, y + len / 2]);
+    const free = (b: Rect4, inside: boolean) => inBounds(b) && !taken.some((t) => hits(b, t, pad)) && (inside || !obstacles.some((o) => hits(b, o, pad / 2)));
+    const [cx, cy] = it.at, r = it.rect, gap = pad + height / 2;
+    const cands: { x: number; y: number; rot: 0 | -90; inside: boolean; fits: boolean }[] = [
+      { x: cx, y: cy, rot: 0, inside: true, fits: len + 2 * pad <= it.w && height + pad <= it.h },
+      { x: cx, y: cy, rot: -90, inside: true, fits: len + 2 * pad <= it.h && height + pad <= it.w },
+      { x: (r[0] + r[2]) / 2, y: r[3] + gap, rot: 0, inside: false, fits: true },
+      { x: (r[0] + r[2]) / 2, y: r[1] - gap, rot: 0, inside: false, fits: true },
+      { x: r[2] + pad + len / 2, y: (r[1] + r[3]) / 2, rot: 0, inside: false, fits: true },
+      { x: r[0] - pad - len / 2, y: (r[1] + r[3]) / 2, rot: 0, inside: false, fits: true },
+    ];
+    const pick = cands.find((c) => c.fits && free(box(c.x, c.y, c.rot), c.inside));
+    if (!pick) continue;
+    taken.push(box(pick.x, pick.y, pick.rot));
+    out.push({ id: it.id, text: it.text, x: pick.x, y: pick.y, rot: pick.rot, len, height, inside: pick.inside });
+  }
+  return out;
 }
 
 // ------------------------------------------------------------------------------------------------ furniture names

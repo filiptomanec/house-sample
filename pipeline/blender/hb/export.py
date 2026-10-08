@@ -30,17 +30,28 @@ def export_glb(cfg, res, path):
     return path
 
 
-USDZ_DROP = ("drive_paving", "path", "gravel")
+USDZ_DROP = ("drive_paving", "path", "gravel", "pool_coping", "pool_liner", "water", "equipment")
+
+
+def usdz_dropped(cfg, ob):
+    """Nodes left out of the AR model: the surroundings (drive, paths, gravel, the heat-pump unit and its screen), pools
+    and the decks around them. AR Quick Look stands the model on its lowest point, so a basin 1.4 m deep would lift the
+    house off the floor; the AR model is the house with its terrace."""
+    if ob.get("role") in USDZ_DROP:
+        return True
+    pool_decks = {o["pool"].get("deck") for o in cfg.pools}
+    if ob.get("role") == "deck" and ob.get("id") in pool_decks:
+        return True
+    return ob.get("role") == "wood_cladding" and ob.get("id") not in {a.get("id") for a in cfg.accents}
 
 
 def export_usdz(cfg, res, path):
     """USDZ for AR Quick Look: 1 unit = 1 m, Y-up, house centre at the origin on the floor, UV set 'st', tints baked
     into the textures (the scene was built in 'usd' mode)."""
     import bpy
-    # surroundings (drive, paths, gravel) stay out of the AR model: it should be the house with its terrace
     keep = []
     for ob in res["objects"]:
-        if ob.get("role") in USDZ_DROP:
+        if usdz_dropped(cfg, ob):
             bpy.data.objects.remove(ob)
         else:
             keep.append(ob)

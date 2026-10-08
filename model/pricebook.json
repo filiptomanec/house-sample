@@ -7,29 +7,33 @@
     "priceYear": 2026,
     "sources": [
       "Unit prices: rounded estimates for new-build family houses in the Czech Republic in 2026 (materials and labour, CZK without VAT), set by the author from typical contractor price lists and tender price levels. Indicative, not a quotation.",
-      "VAT: the reduced rate of 12 % for the house, its accessories and the PV system, the standard rate of 21 % for kitchen furniture and appliances (Czech VAT Act 235/2004).",
+      "Outdoor works and the pool: typical 2026 offers for cantilever sliding gates with a motor (about 16 000 CZK per metre of opening), slat fences on a precast plinth, concrete block paving, polypropylene pool shells with equipment and an automatic cover, and thermo-ash decking; rounded by the author.",
+      "The heat pump is priced as a complete set (outdoor unit, indoor unit, hot-water tank, installation and commissioning): its price hardly depends on the rated output.",
+      "VAT: the reduced rate of 12 % for the house, its accessories and the PV system on its roof; the standard rate of 21 % for kitchen furniture and appliances, for stand-alone outdoor structures (fence, gates, utility pillar, paved areas of the plot, groundworks and planting) and for the pool (Czech VAT Act 235/2004, sections 48 and 48a, and the tax administration's guidance on housing), indicative.",
       "Orientation band: 45 000 to 65 000 CZK per m2 of heated floor area with VAT, a broad market range for a new turnkey single-storey house of good specification in 2026, the author's judgement."
     ]
   },
   "vat": {"default": "residential", "classes": {"residential": 0.12, "standard": 0.21}},
   "reserve": {"default": 0.08, "min": 0, "max": 0.15, "step": 0.01},
-  "siteOverhead": {"id": "site-overhead", "name": {"cs": "Zařízení staveniště a vedlejší rozpočtové náklady", "en": "Site facilities and ancillary costs"}, "groupId": "prep", "share": 0.025, "roundTo": 5000},
+  "siteOverhead": {"id": "site-overhead", "name": {"cs": "Zařízení staveniště a vedlejší náklady", "en": "Site set-up and preliminaries"}, "groupId": "prep", "share": 0.025, "roundTo": 5000},
   "benchmark": {"perM2Low": 45000, "perM2High": 65000},
   "groups": [
     {
       "id": "prep",
-      "name": {"cs": "Příprava a základy", "en": "Site preparation and foundations"},
+      "name": {"cs": "Příprava, základy a odvodnění", "en": "Site preparation, foundations and drainage"},
       "optional": false,
       "defaultOn": true,
       "vat": "residential",
       "siteOverheadBasis": true,
       "lines": [
-        {"id": "site-clearing", "name": {"cs": "Příprava staveniště a skrývka ornice", "en": "Site clearing and topsoil strip"}, "unit": "m2", "quantity": {"ref": "footprintArea", "factor": 1.6}, "price": 130, "note": {"cs": "Zahrnuje pracovní pás kolem domu.", "en": "Includes a working strip around the house."}},
-        {"id": "earthworks", "name": {"cs": "Zemní práce: výkop, zásyp a odvoz", "en": "Earthworks: excavation, backfill and haulage"}, "unit": "m2", "quantity": {"ref": "footprintArea"}, "price": 420},
+        {"id": "site-clearing", "name": {"cs": "Příprava staveniště a skrývka ornice", "en": "Site clearance and topsoil strip"}, "unit": "m2", "quantity": {"ref": "footprintArea", "factor": 1.6}, "price": 130, "note": {"cs": "Včetně pracovního pruhu kolem domu.", "en": "Includes a working strip around the house."}},
+        {"id": "earthworks", "name": {"cs": "Zemní práce pod domem: výkop, zásyp a odvoz", "en": "Groundworks under the house: excavation, backfill and removal"}, "unit": "m2", "quantity": {"ref": "footprintArea"}, "price": 420},
         {"id": "foundation-slab", "name": {"cs": "Základová deska: podkladní beton, hydroizolace, izolace a železobeton", "en": "Foundation slab: blinding, waterproofing, insulation and reinforced concrete"}, "unit": "m2", "quantity": {"ref": "footprintArea"}, "price": 2600},
-        {"id": "foundation-strips", "name": {"cs": "Základové pasy pod obvodovými zdmi", "en": "Strip footings under the exterior walls"}, "unit": "m", "quantity": {"ref": "extWallLength"}, "price": 3000},
-        {"id": "drainage", "name": {"cs": "Obvodová drenáž a dešťová kanalizace", "en": "Perimeter drainage and storm sewer"}, "unit": "m", "quantity": {"ref": "footprintPerimeter"}, "price": 1000},
-        {"id": "connections", "name": {"cs": "Přípojky vody, kanalizace a elektřiny, vsakování", "en": "Water, sewer and electricity connections, infiltration"}, "unit": "set", "quantity": {"value": 1}, "price": 240000, "note": {"cs": "Paušál podle typické délky přípojek.", "en": "Lump sum for typical connection lengths."}}
+        {"id": "foundation-strips", "name": {"cs": "Základové pasy pod obvodovými stěnami", "en": "Strip footings under the external walls"}, "unit": "m", "quantity": {"ref": "extWallLength"}, "price": 3000},
+        {"id": "drainage", "name": {"cs": "Obvodová drenáž a dešťová kanalizace", "en": "Perimeter drainage and surface-water drains"}, "unit": "m", "quantity": {"ref": "footprintPerimeter"}, "price": 1000},
+        {"id": "linear-drains", "name": {"cs": "Odvodňovací žlaby s roštem před prosklenými stěnami a vraty", "en": "Linear drains with gratings at the sliding glass walls and the garage door"}, "unit": "m", "quantity": {"ref": "linearDrainLength"}, "price": 4500, "note": {"cs": "Jen před otvory v úrovni terénu, které nejsou pod střechou.", "en": "Only at openings at ground level that are not under a roof."}},
+        {"id": "rain-tank", "name": {"cs": "Retenční nádrž na dešťovou vodu s čerpadlem a vsakem", "en": "Rainwater retention tank with pump and soakaway"}, "unit": "pcs", "quantity": {"ref": "rainTank.count"}, "price": 78000},
+        {"id": "connections", "name": {"cs": "Přípojky vody, kanalizace a elektřiny", "en": "Water, sewer and electricity connections"}, "unit": "set", "quantity": {"value": 1}, "price": 240000, "note": {"cs": "Paušál pro obvyklé délky přípojek.", "en": "Lump sum for typical connection lengths."}}
       ]
     },
     {
@@ -40,128 +44,160 @@
       "vat": "residential",
       "siteOverheadBasis": true,
       "lines": [
-        {"id": "ext-masonry", "name": {"cs": "Obvodové zdivo z keramických tepelněizolačních bloků, včetně překladů", "en": "Exterior walls of ceramic insulation blocks, with lintels"}, "unit": "m2", "quantity": {"ref": "extWallAreaOpaque"}, "price": 1900},
-        {"id": "bearing-masonry", "name": {"cs": "Vnitřní nosné zdivo", "en": "Interior bearing walls"}, "unit": "m2", "quantity": {"ref": "bearingWallArea"}, "price": 1600},
-        {"id": "partitions", "name": {"cs": "Příčky z keramických tvárnic", "en": "Ceramic block partitions"}, "unit": "m2", "quantity": {"ref": "partitionWallArea"}, "price": 950},
-        {"id": "ring-beam-ext", "name": {"cs": "Železobetonový věnec obvodových stěn", "en": "Reinforced-concrete ring beam on the exterior walls"}, "unit": "m", "quantity": {"ref": "extWallLength"}, "price": 2000},
-        {"id": "ring-beam-bearing", "name": {"cs": "Železobetonový věnec nosných příček", "en": "Reinforced-concrete ring beam on the bearing walls"}, "unit": "m", "quantity": {"ref": "bearingWallLength"}, "price": 1800},
-        {"id": "ceiling-slabs", "name": {"cs": "Strop z předpjatých dutinových panelů, včetně jeřábu a zálivky", "en": "Ceiling of pre-stressed hollow-core slabs, with crane and grouting"}, "unit": "m2", "quantity": {"ref": "ceilingArea"}, "price": 2100},
-        {"id": "etics", "name": {"cs": "Kontaktní zateplení fasády a tenkovrstvá omítka", "en": "External thermal insulation and thin render"}, "unit": "m2", "quantity": {"ref": "facadeRenderArea"}, "price": 1200},
-        {"id": "wood-cladding", "name": {"cs": "Dřevěný obklad fasády s podkladním roštem", "en": "Timber facade cladding on battens"}, "unit": "m2", "quantity": {"ref": "woodCladdingArea"}, "price": 3200},
+        {"id": "ext-masonry", "name": {"cs": "Obvodové stěny z tepelněizolačních keramických bloků, včetně překladů", "en": "External walls of insulating clay blocks, including lintels"}, "unit": "m2", "quantity": {"ref": "extWallAreaOpaque"}, "price": 1900},
+        {"id": "bearing-masonry", "name": {"cs": "Vnitřní nosné stěny", "en": "Internal load-bearing walls"}, "unit": "m2", "quantity": {"ref": "bearingWallArea"}, "price": 1600},
+        {"id": "wall-to-garage", "name": {"cs": "Stěna ke garáži: nosné zdivo s tepelnou izolací z minerální vaty", "en": "Wall to the garage: load-bearing masonry with mineral wool insulation"}, "unit": "m2", "quantity": {"ref": "unheatedPartitionArea"}, "price": 2700, "note": {"cs": "Zdivo jako u vnitřních nosných stěn, k tomu izolace a omítka ze strany garáže.", "en": "Masonry as for the internal load-bearing walls, plus insulation and render on the garage side."}},
+        {"id": "partitions", "name": {"cs": "Příčky z keramických tvárnic", "en": "Clay block partitions"}, "unit": "m2", "quantity": {"ref": "partitionWallArea"}, "price": 950},
+        {"id": "ring-beam-ext", "name": {"cs": "Železobetonový věnec obvodových stěn", "en": "Reinforced-concrete ring beam on the external walls"}, "unit": "m", "quantity": {"ref": "extWallLength"}, "price": 2000},
+        {"id": "ring-beam-bearing", "name": {"cs": "Železobetonový věnec vnitřních nosných stěn", "en": "Reinforced-concrete ring beam on the internal load-bearing walls"}, "unit": "m", "quantity": {"ref": "bearingWallLength"}, "price": 1800},
+        {"id": "ceiling-slabs", "name": {"cs": "Strop z předpjatých dutinových panelů, včetně jeřábu a zálivky", "en": "Ceiling of pre-stressed hollow-core slabs, including crane and grouting"}, "unit": "m2", "quantity": {"ref": "ceilingArea"}, "price": 2100},
+        {"id": "terrace-beams", "name": {"cs": "Ocelové průvlaky skryté ve stropu nad terasou a závětřím", "en": "Steel beams concealed in the ceiling over the terrace and the porch"}, "unit": "m", "quantity": {"ref": "coveredBeamLength"}, "price": 5500},
+        {"id": "posts", "name": {"cs": "Ocelové sloupy terasy a závětří se základy", "en": "Steel posts of the terrace and the porch, with footings"}, "unit": "pcs", "quantity": {"ref": "postCount"}, "price": 15000},
+        {"id": "etics", "name": {"cs": "Kontaktní zateplení fasády a tenkovrstvá omítka", "en": "External wall insulation and thin-coat render"}, "unit": "m2", "quantity": {"ref": "facadeRenderArea"}, "price": 1200},
+        {"id": "wood-cladding", "name": {"cs": "Dřevěný obklad fasády na roštu", "en": "Timber facade cladding on battens"}, "unit": "m2", "quantity": {"ref": "woodCladdingArea"}, "price": 3200},
         {"id": "scaffolding", "name": {"cs": "Lešení", "en": "Scaffolding"}, "unit": "m2", "quantity": {"ref": "extWallAreaGross"}, "price": 170}
       ]
     },
     {
       "id": "roof",
-      "name": {"cs": "Střecha", "en": "Roof"},
+      "name": {"cs": "Střecha a strop pod půdou", "en": "Roof and loft ceiling"},
       "optional": false,
       "defaultOn": true,
       "vat": "residential",
       "siteOverheadBasis": true,
       "lines": [
-        {"id": "roof-structure", "name": {"cs": "Krov valbové střechy: krokve, vaznice, bednění", "en": "Hip roof carpentry: rafters, purlins, decking"}, "unit": "m2", "quantity": {"ref": "roofAreaSloped"}, "price": 1350},
-        {"id": "roof-insulation", "name": {"cs": "Tepelná izolace mezi krokvemi a pod nimi, parozábrana, sádrokartonový podhled", "en": "Insulation between and under the rafters, vapour barrier, plasterboard ceiling"}, "unit": "m2", "quantity": {"ref": "roofAreaOverFootprint"}, "price": 1000},
-        {"id": "roof-covering", "name": {"cs": "Falcovaná plechová krytina včetně podkladní vrstvy", "en": "Standing-seam steel roofing with underlay"}, "unit": "m2", "quantity": {"ref": "roofAreaSloped"}, "price": 1450},
-        {"id": "ridge", "name": {"cs": "Hřeben", "en": "Ridge flashing"}, "unit": "m", "quantity": {"ref": "ridgeLength"}, "price": 850},
-        {"id": "hips", "name": {"cs": "Nároží", "en": "Hip flashing"}, "unit": "m", "quantity": {"ref": "hipLength"}, "price": 950},
-        {"id": "valleys", "name": {"cs": "Úžlabí", "en": "Valley flashing"}, "unit": "m", "quantity": {"ref": "valleyLength"}, "price": 1400},
-        {"id": "gutters", "name": {"cs": "Okapové žlaby", "en": "Gutters"}, "unit": "m", "quantity": {"ref": "gutterLength"}, "price": 780},
-        {"id": "downpipes", "name": {"cs": "Svody dešťové vody", "en": "Downpipes"}, "unit": "pcs", "quantity": {"ref": "downpipe.count"}, "price": 3600},
+        {"id": "roof-structure", "name": {"cs": "Krov valbové střechy: krokve, vaznice, bednění", "en": "Hipped roof carpentry: rafters, purlins, boarding"}, "unit": "m2", "quantity": {"ref": "roofAreaSloped"}, "price": 1350},
+        {"id": "roof-covering", "name": {"cs": "Falcovaná plechová krytina s pojistnou fólií", "en": "Standing-seam steel roofing with an underlay membrane"}, "unit": "m2", "quantity": {"ref": "roofAreaSloped"}, "price": 1450},
+        {"id": "ceiling-insulation", "name": {"cs": "Tepelná izolace stropu pod nevytápěnou půdou a parozábrana", "en": "Insulation of the ceiling under the unheated loft, with a vapour control layer"}, "unit": "m2", "quantity": {"ref": "ceilingAreaHeated"}, "price": 650},
+        {"id": "roof-insulation", "name": {"cs": "Tepelná izolace teplé střechy mezi krokvemi a pod nimi, parozábrana", "en": "Warm-roof insulation between and under the rafters, with a vapour control layer"}, "unit": "m2", "quantity": {"ref": "roofInsulationArea"}, "price": 1000, "note": {"cs": "Jen u obytného podkroví; dům s nevytápěnou půdou izoluje strop.", "en": "Only for a heated loft; a house with an unheated loft insulates the ceiling."}},
+        {"id": "soffits", "name": {"cs": "Podbití přesahů střechy a podhledy terasy a závětří", "en": "Soffits of the eaves and the ceilings of the terrace and the porch"}, "unit": "m2", "quantity": {"ref": "soffitArea"}, "price": 1300},
+        {"id": "ridge", "name": {"cs": "Oplechování hřebene", "en": "Ridge flashing"}, "unit": "m", "quantity": {"ref": "ridgeLength"}, "price": 850},
+        {"id": "hips", "name": {"cs": "Oplechování nároží", "en": "Hip flashing"}, "unit": "m", "quantity": {"ref": "hipLength"}, "price": 950},
+        {"id": "valleys", "name": {"cs": "Oplechování úžlabí", "en": "Valley flashing"}, "unit": "m", "quantity": {"ref": "valleyLength"}, "price": 1400},
+        {"id": "gutters", "name": {"cs": "Podokapní žlaby", "en": "Gutters"}, "unit": "m", "quantity": {"ref": "gutterLength"}, "price": 780},
+        {"id": "downpipes", "name": {"cs": "Dešťové svody", "en": "Downpipes"}, "unit": "pcs", "quantity": {"ref": "downpipe.count"}, "price": 3600},
         {"id": "snow-guards", "name": {"cs": "Sněhové zachytávače", "en": "Snow guards"}, "unit": "m", "quantity": {"ref": "snowGuardLength"}, "price": 1300},
         {"id": "light-pipes", "name": {"cs": "Světlovody", "en": "Light pipes"}, "unit": "pcs", "quantity": {"ref": "lightpipe.count"}, "price": 12000}
       ]
     },
     {
       "id": "openings",
-      "name": {"cs": "Okna a dveře", "en": "Windows and doors"},
+      "name": {"cs": "Okna, dveře a žaluzie", "en": "Windows, doors and blinds"},
       "optional": false,
       "defaultOn": true,
       "vat": "residential",
       "siteOverheadBasis": true,
       "lines": [
-        {"id": "windows", "name": {"cs": "Okna s trojsklem", "en": "Triple-glazed windows"}, "unit": "m2", "quantity": {"ref": "window.area"}, "price": 9000},
-        {"id": "sliders", "name": {"cs": "Posuvné zasklené stěny", "en": "Sliding glass walls"}, "unit": "m2", "quantity": {"ref": "slider.area"}, "price": 14000},
+        {"id": "windows", "name": {"cs": "Okna s izolačním trojsklem", "en": "Triple-glazed windows"}, "unit": "m2", "quantity": {"ref": "window.area"}, "price": 9000},
+        {"id": "sliders", "name": {"cs": "Posuvné prosklené stěny s trojsklem", "en": "Triple-glazed sliding glass walls"}, "unit": "m2", "quantity": {"ref": "slider.area"}, "price": 20000},
         {"id": "entry-doors", "name": {"cs": "Vstupní dveře", "en": "Entrance door"}, "unit": "m2", "quantity": {"ref": "entry.area"}, "price": 24000},
-        {"id": "interior-doors", "name": {"cs": "Interiérové dveře se zárubněmi", "en": "Interior doors with frames"}, "unit": "pcs", "quantity": {"ref": "door.count"}, "price": 11000},
-        {"id": "sills", "name": {"cs": "Vnitřní a vnější parapety", "en": "Interior and exterior window sills"}, "unit": "m", "quantity": {"ref": "windowSillLength"}, "price": 2200},
-        {"id": "blinds", "name": {"cs": "Venkovní motorizované stínění", "en": "External motorised shading"}, "unit": "m2", "quantity": {"ref": "blind.area"}, "price": 6500}
+        {"id": "interior-doors", "name": {"cs": "Vnitřní dveře se zárubněmi", "en": "Internal doors with frames"}, "unit": "pcs", "quantity": {"ref": "door.inside.count"}, "price": 11000},
+        {"id": "fire-door", "name": {"cs": "Protipožární dveře mezi domem a garáží se samozavíračem", "en": "Fire-rated door between the house and the garage, with a self-closer"}, "unit": "pcs", "quantity": {"ref": "door.toUnheated.count"}, "price": 18000},
+        {"id": "sills", "name": {"cs": "Vnitřní a venkovní parapety", "en": "Internal and external window sills"}, "unit": "m", "quantity": {"ref": "windowSillLength"}, "price": 2200},
+        {"id": "blinds-units", "name": {"cs": "Venkovní žaluzie: motor, ovládání a montáž", "en": "External blinds: motor, controls and installation"}, "unit": "pcs", "quantity": {"ref": "blind.count"}, "price": 6500},
+        {"id": "blinds", "name": {"cs": "Venkovní žaluzie s vodicími lištami a skrytou schránkou", "en": "External blinds with side guides and a concealed box"}, "unit": "m2", "quantity": {"ref": "blind.area"}, "price": 3800, "note": {"cs": "Malá okna stojí na metr čtvereční víc než velká: proto cena za kus a za plochu.", "en": "Small windows cost more per square metre than large ones, hence a price per blind and per area."}}
       ]
     },
     {
       "id": "interior",
-      "name": {"cs": "Vnitřní dokončení a technika", "en": "Interior finishing and building services"},
+      "name": {"cs": "Vnitřní dokončení a technika", "en": "Interior finishes and building services"},
       "optional": false,
       "defaultOn": true,
       "vat": "residential",
       "siteOverheadBasis": true,
       "lines": [
-        {"id": "wall-plaster", "name": {"cs": "Vnitřní omítky stěn", "en": "Interior wall plaster"}, "unit": "m2", "quantity": {"ref": "plasterArea"}, "price": 560, "waste": 0},
+        {"id": "wall-plaster", "name": {"cs": "Vnitřní omítky stěn", "en": "Internal wall plaster"}, "unit": "m2", "quantity": {"ref": "plasterArea"}, "price": 560, "waste": 0},
         {"id": "wet-plaster", "name": {"cs": "Omítka a hydroizolace pod obklady", "en": "Plaster and waterproofing under tiles"}, "unit": "m2", "quantity": {"ref": "wetWallArea"}, "price": 560},
         {"id": "ceiling-plaster", "name": {"cs": "Stropní omítky", "en": "Ceiling plaster"}, "unit": "m2", "quantity": {"ref": "ceilingArea"}, "price": 440, "waste": 0},
-        {"id": "wall-tiles", "name": {"cs": "Obklady koupelen a WC", "en": "Tiling of bathrooms and toilets"}, "unit": "m2", "quantity": {"ref": "wetWallArea", "factor": 0.8}, "price": 1900, "waste": 0.1, "note": {"cs": "Obklad do výšky asi 80 % stěny.", "en": "Tiled to about 80 % of the wall height."}},
-        {"id": "screed", "name": {"cs": "Anhydritový potěr", "en": "Anhydrite screed"}, "unit": "m2", "quantity": {"ref": "floorAreaTotal"}, "price": 380},
+        {"id": "wall-tiles", "name": {"cs": "Obklady koupelen a WC", "en": "Wall tiles in the bathrooms and the WC"}, "unit": "m2", "quantity": {"ref": "wetWallArea", "factor": 0.8}, "price": 1900, "waste": 0.1, "note": {"cs": "Obklad do výšky asi 80 % stěny.", "en": "Tiled to about 80 % of the wall height."}},
+        {"id": "screed", "name": {"cs": "Cementový potěr nad podlahovým topením", "en": "Cement screed over the underfloor heating"}, "unit": "m2", "quantity": {"ref": "floorAreaHeated"}, "price": 420},
         {"id": "underfloor-heating", "name": {"cs": "Podlahové vytápění: trubky, rozdělovače, regulace", "en": "Underfloor heating: pipes, manifolds, controls"}, "unit": "m2", "quantity": {"ref": "floorAreaHeated"}, "price": 850},
-        {"id": "floor-oak", "name": {"cs": "Dřevěná podlaha, třívrstvá dubová", "en": "Three-layer oak floor"}, "unit": "m2", "quantity": {"ref": "floorArea.oak"}, "price": 2100, "waste": 0.07},
-        {"id": "floor-tile", "name": {"cs": "Dlažba velkého formátu", "en": "Large-format floor tiles"}, "unit": "m2", "quantity": {"ref": "floorArea.tile"}, "price": 1700, "waste": 0.1},
-        {"id": "floor-stone", "name": {"cs": "Kamenná podlaha", "en": "Stone floor"}, "unit": "m2", "quantity": {"ref": "floorArea.stone"}, "price": 3200, "waste": 0.12},
-        {"id": "floor-concrete", "name": {"cs": "Betonová podlaha: vsyp a broušení", "en": "Concrete floor: hardener and grinding"}, "unit": "m2", "quantity": {"ref": "floorArea.concrete"}, "price": 520},
+        {"id": "floor-oak", "name": {"cs": "Třívrstvá dubová podlaha", "en": "Three-layer oak flooring"}, "unit": "m2", "quantity": {"ref": "floorArea.oak"}, "price": 2100, "waste": 0.07},
+        {"id": "floor-tile", "name": {"cs": "Velkoformátová dlažba", "en": "Large-format floor tiles"}, "unit": "m2", "quantity": {"ref": "floorArea.tile"}, "price": 1700, "waste": 0.1},
+        {"id": "floor-stone", "name": {"cs": "Kamenná podlaha", "en": "Stone flooring"}, "unit": "m2", "quantity": {"ref": "floorArea.stone"}, "price": 3200, "waste": 0.12},
+        {"id": "floor-concrete", "name": {"cs": "Betonová podlaha garáže: vsyp a broušení", "en": "Concrete garage floor: dry-shake hardener and grinding"}, "unit": "m2", "quantity": {"ref": "floorArea.concrete"}, "price": 520},
         {"id": "paint-walls", "name": {"cs": "Malba stěn", "en": "Wall painting"}, "unit": "m2", "quantity": {"ref": "plasterArea"}, "price": 140},
         {"id": "paint-ceilings", "name": {"cs": "Malba stropů", "en": "Ceiling painting"}, "unit": "m2", "quantity": {"ref": "ceilingArea"}, "price": 140},
-        {"id": "electrical", "name": {"cs": "Elektroinstalace: rozvaděč, vodiče, vypínače, slaboproud", "en": "Electrical installation: switchboard, wiring, switches, low voltage"}, "unit": "m2", "quantity": {"ref": "floorAreaHeated"}, "price": 2000},
+        {"id": "electrical", "name": {"cs": "Elektroinstalace: rozvaděč, vodiče, vypínače, slaboproud", "en": "Electrical installation: consumer unit, wiring, switches, low voltage"}, "unit": "m2", "quantity": {"ref": "floorAreaHeated"}, "price": 2000},
         {"id": "plumbing", "name": {"cs": "Rozvody vody a kanalizace", "en": "Water and drainage pipework"}, "unit": "m2", "quantity": {"ref": "floorAreaHeated"}, "price": 900},
-        {"id": "fixtures", "name": {"cs": "Sanitární zařízení a baterie", "en": "Sanitary fixtures and taps"}, "unit": "pcs", "quantity": {"ref": "sanitaryFixtureCount"}, "price": 16000},
-        {"id": "heat-pump", "name": {"cs": "Tepelné čerpadlo vzduch–voda se zásobníkem teplé vody", "en": "Air-to-water heat pump with hot-water tank"}, "unit": "kw", "quantity": {"ref": "heatPump.kw"}, "price": 40000},
-        {"id": "ventilation", "name": {"cs": "Řízené větrání s rekuperací: jednotka, rozvody, výustky", "en": "Heat-recovery ventilation: unit, ducts, diffusers"}, "unit": "m2", "quantity": {"ref": "floorAreaHeated"}, "price": 1000},
-        {"id": "handover", "name": {"cs": "Úklid, revize a dokumentace skutečného provedení", "en": "Cleaning, inspections and as-built documentation"}, "unit": "set", "quantity": {"value": 1}, "price": 36000}
+        {"id": "fixtures", "name": {"cs": "Zařizovací předměty a baterie", "en": "Sanitary fittings and taps"}, "unit": "pcs", "quantity": {"ref": "sanitaryFixtureCount"}, "price": 16000},
+        {"id": "heat-pump", "name": {"cs": "Tepelné čerpadlo vzduch–voda se zásobníkem teplé vody, sestava s montáží", "en": "Air-to-water heat pump with a hot-water tank, complete set installed"}, "unit": "set", "quantity": {"ref": "heatPump.count"}, "price": 280000, "note": {"cs": "Cena za sestavu: s výkonem v kW se mění jen málo.", "en": "Priced as a set: the price hardly changes with the rated output."}},
+        {"id": "ventilation", "name": {"cs": "Řízené větrání s rekuperací: jednotka, rozvody, vyústky", "en": "Heat-recovery ventilation: unit, ducts, diffusers"}, "unit": "m2", "quantity": {"ref": "floorAreaHeated"}, "price": 1000},
+        {"id": "handover", "name": {"cs": "Úklid, revize a dokumentace skutečného provedení", "en": "Cleaning, inspections and as-built documentation"}, "unit": "set", "quantity": {"value": 1}, "price": 36000, "note": {"cs": "Paušál za stavbu.", "en": "Lump sum for the build."}}
       ]
     },
     {
       "id": "terrace",
-      "name": {"cs": "Terasa a zastřešené plochy", "en": "Terrace and covered areas"},
-      "note": {"cs": "Střecha nad terasou je ve skupině Střecha.", "en": "The roof above the terrace is in the Roof group."},
+      "name": {"cs": "Terasa a závětří", "en": "Terrace and porch"},
+      "note": {"cs": "Střecha, sloupy a průvlaky nad terasou jsou v hrubé stavbě a střeše.", "en": "The roof, posts and beams over the terrace are in the shell and roof groups."},
       "optional": true,
       "defaultOn": true,
       "vat": "residential",
       "siteOverheadBasis": false,
       "lines": [
-        {"id": "covered-floor", "name": {"cs": "Podlaha zastřešených ploch: deska, izolace, dlažba nebo prkna", "en": "Floor of covered areas: slab, insulation, tiles or boards"}, "unit": "m2", "quantity": {"ref": "coveredOutdoorArea"}, "price": 4800},
-        {"id": "posts", "name": {"cs": "Sloupy zastřešených ploch se základy", "en": "Posts of covered areas with footings"}, "unit": "pcs", "quantity": {"ref": "postCount"}, "price": 15000},
-        {"id": "screens", "name": {"cs": "Lamelové zástěny", "en": "Slatted screens"}, "unit": "m", "quantity": {"ref": "screenLength"}, "price": 9500},
-        {"id": "terrace-electrics", "name": {"cs": "Osvětlení a zásuvky na terase", "en": "Terrace lighting and sockets"}, "unit": "m2", "quantity": {"ref": "coveredOutdoorArea"}, "price": 350}
+        {"id": "covered-floor", "name": {"cs": "Podlaha terasy a závětří: deska, izolace, prkna nebo dlažba", "en": "Terrace and porch floor: slab, insulation, decking or paving"}, "unit": "m2", "quantity": {"ref": "coveredOutdoorArea"}, "price": 4800},
+        {"id": "terrace-paving", "name": {"cs": "Dlážděné plochy u domu na terčích", "en": "Paved areas by the house, on pedestals"}, "unit": "m2", "quantity": {"ref": "pavingAreaUncovered"}, "price": 2600},
+        {"id": "screens", "name": {"cs": "Natáčecí dřevěné lamely terasy s ovládáním", "en": "Terrace louvres: turning timber blades with controls"}, "unit": "m2", "quantity": {"ref": "screenArea"}, "price": 12000},
+        {"id": "terrace-electrics", "name": {"cs": "Osvětlení a zásuvky na terase a v závětří", "en": "Lighting and sockets on the terrace and the porch"}, "unit": "m2", "quantity": {"ref": "coveredOutdoorArea"}, "price": 350}
       ]
     },
     {
       "id": "garage",
       "name": {"cs": "Garáž: vrata a vybavení", "en": "Garage: door and fittings"},
-      "note": {"cs": "Stavba garáže je ve hrubé stavbě domu, zde jsou jen vrata a vybavení.", "en": "The garage structure is part of the house shell; this group holds only the door and fittings."},
+      "note": {"cs": "Stavba garáže je v hrubé stavbě domu, zde jsou jen vrata a vybavení.", "en": "The garage structure is part of the house shell; this group holds only the door and fittings."},
       "optional": true,
       "defaultOn": true,
       "vat": "residential",
       "siteOverheadBasis": false,
       "lines": [
-        {"id": "garage-door", "name": {"cs": "Sekční garážová vrata s pohonem", "en": "Sectional garage door with opener"}, "unit": "m2", "quantity": {"ref": "garage.area"}, "price": 9800},
+        {"id": "garage-door", "name": {"cs": "Sekční garážová vrata v dřevodekoru s pohonem", "en": "Timber-look sectional garage door with an opener"}, "unit": "m2", "quantity": {"ref": "garage.area"}, "price": 9800},
         {"id": "garage-electrics", "name": {"cs": "Elektroinstalace a osvětlení garáže", "en": "Garage wiring and lighting"}, "unit": "m2", "quantity": {"ref": "floorAreaUnheated"}, "price": 1200},
-        {"id": "garage-floor", "name": {"cs": "Nátěr podlahy a odtoková vpusť", "en": "Floor coating and floor drain"}, "unit": "m2", "quantity": {"ref": "floorAreaUnheated"}, "price": 450},
-        {"id": "wallbox", "name": {"cs": "Nabíjecí stanice pro elektromobil", "en": "Electric-car charging point"}, "unit": "set", "quantity": {"value": 1}, "price": 38000}
+        {"id": "garage-floor", "name": {"cs": "Nátěr podlahy a podlahová vpusť", "en": "Floor coating and floor gully"}, "unit": "m2", "quantity": {"ref": "floorAreaUnheated"}, "price": 450},
+        {"id": "wallbox", "name": {"cs": "Nabíjecí stanice pro elektromobil", "en": "EV charger"}, "unit": "pcs", "quantity": {"ref": "garage.count"}, "price": 38000, "note": {"cs": "Jedna v každé garáži.", "en": "One in each garage."}}
       ]
     },
     {
       "id": "outdoor",
-      "name": {"cs": "Venkovní úpravy a pozemek", "en": "Outdoor works and plot"},
+      "name": {"cs": "Pozemek: plot, brány, příjezd a zahrada", "en": "Plot: fence, gates, drive and garden"},
+      "note": {"cs": "Samostatné venkovní stavby mají základní sazbu DPH.", "en": "Stand-alone outdoor structures take the standard VAT rate."},
       "optional": true,
       "defaultOn": true,
-      "vat": "residential",
+      "vat": "standard",
       "siteOverheadBasis": false,
       "lines": [
-        {"id": "paving", "name": {"cs": "Zpevněné plochy: vjezd, chodníky, dlažba", "en": "Hard surfaces: driveway, paths, paving"}, "unit": "m2", "quantity": {"ref": "hardSurfaceArea"}, "price": 2200},
-        {"id": "cut", "name": {"cs": "Terénní úpravy: výkop a odvoz", "en": "Grading: excavation and haulage"}, "unit": "m3", "quantity": {"ref": "earthworkCutVolume"}, "price": 420},
-        {"id": "fill", "name": {"cs": "Terénní úpravy: násyp a zhutnění", "en": "Grading: fill and compaction"}, "unit": "m3", "quantity": {"ref": "earthworkFillVolume"}, "price": 320},
-        {"id": "lawn", "name": {"cs": "Zeleň: ornice, trávník a záhony", "en": "Planting: topsoil, lawn and beds"}, "unit": "m2", "quantity": {"ref": "greenArea"}, "price": 210},
-        {"id": "fence", "name": {"cs": "Oplocení", "en": "Fencing"}, "unit": "m", "quantity": {"ref": "fenceLength"}, "price": 3400},
-        {"id": "gates", "name": {"cs": "Vjezdová brána a branka", "en": "Driveway gate and pedestrian gate"}, "unit": "pcs", "quantity": {"ref": "gateCount"}, "price": 42000},
-        {"id": "hedge", "name": {"cs": "Živý plot", "en": "Hedge"}, "unit": "m", "quantity": {"ref": "hedgeLength"}, "price": 1700},
-        {"id": "trees", "name": {"cs": "Stromy", "en": "Trees"}, "unit": "pcs", "quantity": {"ref": "treeCount"}, "price": 9500},
-        {"id": "shrubs", "name": {"cs": "Keře", "en": "Shrubs"}, "unit": "pcs", "quantity": {"ref": "shrubCount"}, "price": 1300}
+        {"id": "fence-street", "name": {"cs": "Plot do ulice: betonová podezdívka, vodorovné lamely z termojasanu, sloupky a kabely k bráně", "en": "Street fence: concrete plinth, horizontal thermo-ash slats, posts and cabling to the gates"}, "unit": "m", "quantity": {"ref": "fence.street.length"}, "price": 6800},
+        {"id": "fence-boundary", "name": {"cs": "Plot na ostatních hranicích: podezdívka, lamely a sloupky", "en": "Fence on the other boundaries: plinth, slats and posts"}, "unit": "m", "quantity": {"ref": "fence.boundary.length"}, "price": 5500},
+        {"id": "gate-drive", "name": {"cs": "Posuvná samonosná brána s pohonem", "en": "Cantilever sliding drive gate with a motor"}, "unit": "m", "quantity": {"ref": "gate.drive.width"}, "price": 16000, "note": {"cs": "Cena za metr průjezdu.", "en": "Price per metre of clear opening."}},
+        {"id": "gate-walk", "name": {"cs": "Branka s elektrickým zámkem", "en": "Walk gate with an electric lock"}, "unit": "pcs", "quantity": {"ref": "gate.walk.count"}, "price": 28000},
+        {"id": "pillar", "name": {"cs": "Technický pilíř: elektroměr, schránka, zvonek s videotelefonem, číslo domu a světlo", "en": "Utility pillar: meter box, letterbox, video intercom, house number and light"}, "unit": "pcs", "quantity": {"ref": "pillar.count"}, "price": 38000},
+        {"id": "drive", "name": {"cs": "Příjezd ke garáži: zámková dlažba 80 mm, podklad a obrubníky", "en": "Drive: 80 mm concrete block paving, sub-base and kerbs"}, "unit": "m2", "quantity": {"ref": "driveArea"}, "price": 1950},
+        {"id": "path", "name": {"cs": "Chodník ke vstupu: dlažba, podklad a obrubníky", "en": "Front path: paving, sub-base and edging"}, "unit": "m2", "quantity": {"ref": "pathArea"}, "price": 1600},
+        {"id": "site-paving", "name": {"cs": "Ostatní zpevněné plochy pozemku: chodníčky, stání pro popelnice, vjezdy u bran", "en": "Other paved areas: garden paths, bin store and gate aprons"}, "unit": "m2", "quantity": {"ref": "site.pavedArea"}, "price": 1600},
+        {"id": "gravel", "name": {"cs": "Štěrkové plochy a záhony s kačírkem", "en": "Gravel areas and gravel beds"}, "unit": "m2", "quantity": {"ref": "site.gravelArea"}, "price": 650},
+        {"id": "cut", "name": {"cs": "Terénní úpravy: výkop a odvoz zeminy", "en": "Groundworks: excavation and removal"}, "unit": "m3", "quantity": {"ref": "earthworkCutVolume"}, "price": 420},
+        {"id": "fill", "name": {"cs": "Terénní úpravy: dovoz zeminy, násyp a hutnění", "en": "Groundworks: imported fill and compaction"}, "unit": "m3", "quantity": {"ref": "earthworkFillVolume"}, "price": 480},
+        {"id": "lawn", "name": {"cs": "Zahrada: ornice, trávník a záhony", "en": "Garden: topsoil, lawn and beds"}, "unit": "m2", "quantity": {"ref": "greenArea"}, "price": 210},
+        {"id": "trees", "name": {"cs": "Vzrostlé stromy s výsadbou", "en": "Semi-mature trees, planted"}, "unit": "pcs", "quantity": {"ref": "treeCount"}, "price": 9500},
+        {"id": "tree-lights", "name": {"cs": "Zemní světla ke stromům s kabeláží", "en": "Ground uplights for the trees, with cabling"}, "unit": "pcs", "quantity": {"ref": "treeUplight.count"}, "price": 6500},
+        {"id": "shrubs", "name": {"cs": "Keře a trvalky", "en": "Shrubs and perennials"}, "unit": "pcs", "quantity": {"ref": "shrubCount"}, "price": 1300}
+      ]
+    },
+    {
+      "id": "pool",
+      "name": {"cs": "Bazén s terasou", "en": "Pool and pool deck"},
+      "note": {"cs": "Bazén je samostatná stavba se základní sazbou DPH.", "en": "The pool is a stand-alone structure at the standard VAT rate."},
+      "optional": true,
+      "defaultOn": true,
+      "vat": "standard",
+      "siteOverheadBasis": false,
+      "lines": [
+        {"id": "pool-excavation", "name": {"cs": "Výkop jámy bazénu a odvoz zeminy", "en": "Pool excavation and spoil removal"}, "unit": "m3", "quantity": {"ref": "pool.volume", "factor": 1.6}, "price": 450, "note": {"cs": "Objem vody zvětšený o pracovní prostor a desku.", "en": "The water volume plus working space and the base slab."}},
+        {"id": "pool-shell", "name": {"cs": "Polypropylenový skelet bazénu s obetonováním a základovou deskou", "en": "Polypropylene pool shell with a concrete surround and base slab"}, "unit": "m2", "quantity": {"ref": "pool.waterArea"}, "price": 14000},
+        {"id": "pool-coping", "name": {"cs": "Kamenný lem bazénu", "en": "Stone pool coping"}, "unit": "m", "quantity": {"ref": "pool.perimeter"}, "price": 2800},
+        {"id": "pool-tech", "name": {"cs": "Technologie bazénu: filtrace, čerpadlo, solinátor, světla a technická šachta", "en": "Pool equipment: filtration, pump, salt chlorinator, lights and plant pit"}, "unit": "pcs", "quantity": {"ref": "pool.count"}, "price": 120000},
+        {"id": "pool-heat-pump", "name": {"cs": "Tepelné čerpadlo pro ohřev bazénu", "en": "Pool heat pump"}, "unit": "pcs", "quantity": {"ref": "pool.count"}, "price": 75000},
+        {"id": "pool-cover", "name": {"cs": "Automatické lamelové zakrytí bazénu", "en": "Automatic slatted pool cover"}, "unit": "m2", "quantity": {"ref": "pool.waterArea"}, "price": 6500},
+        {"id": "pool-deck", "name": {"cs": "Dřevěná terasa u bazénu z termojasanu na roštu", "en": "Thermo-ash pool deck on a timber frame"}, "unit": "m2", "quantity": {"ref": "pool.deckArea"}, "price": 3200}
       ]
     },
     {
@@ -174,18 +210,18 @@
       "siteOverheadBasis": false,
       "lines": [
         {"id": "kitchen-units", "name": {"cs": "Kuchyňská linka s ostrovem na míru a pracovní deskou", "en": "Made-to-measure kitchen with island and worktop"}, "unit": "m", "quantity": {"ref": "kitchenRunLength"}, "price": 52000},
-        {"id": "appliances", "name": {"cs": "Vestavné spotřebiče: varná deska, trouby, myčka, lednice, digestoř", "en": "Built-in appliances: hob, ovens, dishwasher, fridge, hood"}, "unit": "set", "quantity": {"value": 1}, "price": 165000}
+        {"id": "appliances", "name": {"cs": "Vestavné spotřebiče: varná deska, trouby, myčka, lednice, digestoř", "en": "Built-in appliances: hob, ovens, dishwasher, fridge, cooker hood"}, "unit": "set", "quantity": {"ref": "kitchen.count"}, "price": 165000}
       ]
     },
     {
       "id": "pv",
-      "name": {"cs": "Fotovoltaika s baterií", "en": "Photovoltaics with battery"},
+      "name": {"cs": "Fotovoltaika s baterií", "en": "Solar panels with battery"},
       "optional": true,
-      "defaultOn": false,
+      "defaultOn": true,
       "vat": "residential",
       "siteOverheadBasis": false,
       "lines": [
-        {"id": "pv-system", "name": {"cs": "Fotovoltaická elektrárna s montáží", "en": "Photovoltaic system, installed"}, "unit": "kwp", "quantity": {"ref": "pv.kwp"}, "price": 24000, "note": {"cs": "Výkon podle volby na stránce Energie.", "en": "Size as chosen on the Energy page."}},
+        {"id": "pv-system", "name": {"cs": "Fotovoltaická elektrárna s montáží", "en": "Solar PV system, installed"}, "unit": "kwp", "quantity": {"ref": "pv.kwp"}, "price": 24000, "note": {"cs": "Výkon podle volby na stránce Energie.", "en": "Size as chosen on the Energy page."}},
         {"id": "battery", "name": {"cs": "Bateriové úložiště", "en": "Battery storage"}, "unit": "kwh", "quantity": {"ref": "battery.kwh"}, "price": 10000, "note": {"cs": "Kapacita podle volby na stránce Energie.", "en": "Capacity as chosen on the Energy page."}}
       ]
     }

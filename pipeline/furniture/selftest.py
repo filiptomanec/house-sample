@@ -65,6 +65,8 @@ def main():
     check(len(reg.corners()) >= 5, 'convex corners of the L found')
     z = G.door_zone_rects({'orient': 'v', 'axis': 4.1, 'from': 1.05, 'to': 1.95}, 0.2)[0]
     check(abs((z[2] - z[0]) - (0.2 + 1.1)) < 1e-9, 'door zone reaches 0.55 m on both sides of the wall')
+    z = G.door_zone_rects({'orient': 'v', 'axis': 4.1, 'from': 1.05, 'to': 1.95}, 0.2, lining=0.05)[0]
+    check(abs((z[3] - z[1]) - 0.8) < 1e-9, 'the door zone is the clear passage: the opening minus the lining on both sides')
     sw = G.swing_polygon({'orient': 'v', 'axis': 4.1, 'c': 1.5, 'w': 0.9, 'swing': '-', 'hinge': '-', 'kind': 'door'}, 0.2)
     check(sw is not None and max(p[0] for p in sw) <= 4.1 + 1e-6, 'door swing opens to the - side')
 

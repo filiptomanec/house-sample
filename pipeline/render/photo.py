@@ -1,12 +1,14 @@
 """Photoreal renders of the house (Blender 5.1, Cycles). Data driven: reads generated/render-inputs.json (docs/RENDER-INPUTS.md).
 
     BLENDER -b --factory-startup --python pipeline/render/photo.py -- --mode stills|day|orbit [--quality draft|final]
-        [--variant landscape|portrait] [--only id,id] [--range a:b] [--skip-existing] [--out DIR] [--inputs FILE]
-        [--device auto|gpu|cpu] [--list] [--missing] [--blend FILE] [--no-verify]
+        [--variant landscape|portrait] [--subset stills|compare|og|scroll|rest|all] [--only id,id] [--range a:b]
+        [--skip-existing] [--out DIR] [--inputs FILE] [--device auto|gpu|cpu] [--list] [--missing] [--blend FILE] [--no-verify]
+        [--qa]
 
-Output: <out>/<file>.jpg per shot (`file` from the inputs, for example stills/street-sunset, day/0800, orbit/landscape/0035).
+Output: <out>/<file>.jpg per shot (`file` from the inputs, for example stills/garden-walnut, day/0800, orbit/landscape/0035).
 Default <out> is pipeline/out for final and pipeline/out/draft for draft. A log with the time per frame goes to
-pipeline/out/logs. See docs/PIPELINE-RENDER.md.
+pipeline/out/logs. `--qa` measures every frame (rn/qa.py: mean grey, sky blue/red, plaster cast, lit glass) into <out>/qa.json.
+See docs/PIPELINE-RENDER.md.
 """
 from __future__ import annotations
 
@@ -26,11 +28,12 @@ from rn.util import argv_after_dashes, repo_path  # noqa: E402
 
 
 def parse(argv):
-    a = {"mode": "stills", "quality": "draft", "variant": "landscape", "only": None, "range": None, "skip": False,
-         "out": None, "inputs": None, "device": None, "list": False, "missing": False, "blend": None, "verify": True}
+    a = {"mode": "stills", "quality": "draft", "variant": "landscape", "subset": "all", "only": None, "range": None,
+         "skip": False, "out": None, "inputs": None, "device": None, "list": False, "missing": False, "blend": None,
+         "verify": True, "qa": False}
     it = iter(argv)
     for tok in it:
-        if tok in ("--mode", "--quality", "--variant", "--out", "--inputs", "--device", "--blend"):
+        if tok in ("--mode", "--quality", "--variant", "--subset", "--out", "--inputs", "--device", "--blend"):
             a[tok[2:]] = next(it)
         elif tok == "--only":
             a["only"] = [s for s in next(it).split(",") if s]
@@ -45,6 +48,8 @@ def parse(argv):
             a["missing"] = True
         elif tok == "--no-verify":
             a["verify"] = False
+        elif tok == "--qa":
+            a["qa"] = True
         else:
             raise SystemExit("unknown argument: %s" % tok)
     if a["mode"] not in ("stills", "day", "orbit"):
@@ -54,13 +59,21 @@ def parse(argv):
     return a
 
 
+def shot_list(inp, mode, variant):
+    if mode == "stills":
+        return SHOTS.stills(inp)
+    if mode == "day":
+        return SHOTS.day(inp, variant)
+    return SHOTS.orbit(inp, variant)
+
+
 def main():
     a = parse(argv_after_dashes())
     cfg = CONFIG.Config.load(a["quality"])
     inp = INPUTS.load(a["inputs"], verify=a["verify"] and not (a["list"] or a["missing"]))
     mode = a["mode"]
-    shots = {"stills": SHOTS.stills, "day": SHOTS.day}.get(mode) or (lambda i: SHOTS.orbit(i, a["variant"]))
-    shots = SHOTS.select(shots(inp), a["only"], a["range"])
+    shots = SHOTS.subset(shot_list(inp, mode, a["variant"]), a["subset"])
+    shots = SHOTS.select(shots, a["only"], a["range"])
     out = a["out"] or (repo_path("pipeline", "out") if a["quality"] == "final" else repo_path("pipeline", "out", "draft"))
     if a["list"]:
         for s in shots:

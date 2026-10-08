@@ -2,7 +2,8 @@
 // of a circle along segments, and the start pose. Pure, so it is tested in node (reachability of every room by flood fill).
 //
 // Collision is 2D: the walker is a circle of `WALK.radius` in the plan, obstacles are segments. Doors (kinds in
-// `PASSABLE_KINDS`) are gaps in the wall segments; windows and garage doors are solid. Furniture boxes come from
+// `PASSABLE_KINDS`) are gaps in the wall segments; windows and garage doors are solid; the water of a pool is solid (its
+// rectangle, `derived.outdoor[].pool.water`), so nobody walks into the basin. Furniture boxes come from
 // `public/models/furniture-footprints.json` (door clear zones already cut out by the pipeline) and collide only while the
 // furniture is shown. The floor height needs no ray: inside the building outline it is 0, outside it is the analytic
 // ground (`ctx.site.terrain.groundAt`).
@@ -35,7 +36,7 @@ export const WALK = {
 export const PASSABLE_KINDS: readonly OpeningKind[] = ["door", "entry", "slider"];
 
 export interface WalkColliders {
-  /** Outlines of the wall pieces between the passable openings, plus the outlines of non-passable openings' wall pieces. */
+  /** Outlines of the wall pieces between the passable openings, plus the outlines of non-passable openings' wall pieces, plus the pool water. */
   walls: Seg[];
   /** Furniture boxes with their outline segments. */
   furniture: { box: Box; segs: Seg[] }[];
@@ -68,6 +69,8 @@ export function buildWalkColliders(ctx: HouseContext, footprints?: FurnitureFoot
       walls.push(...(w.orient === "h" ? ring(a, by0, b, by1) : ring(bx0, a, bx1, b)));
     }
   }
+  // the water of every pool is solid: the walker stops at the coping
+  for (const o of derived.outdoor) if (o.pool) walls.push(...ring(...(o.pool.water as Box)));
   const furniture = (footprints?.items ?? []).map((f) => ({ box: f.box as Box, segs: ring(...f.box) }));
   return { walls, furniture };
 }
@@ -120,21 +123,61 @@ export interface WalkStart {
   /** House azimuth of the view direction, degrees clockwise from +y. */
   yawDeg: number;
 }
+
+/** Placing the start: share of the room depth behind the window, clearance from furniture and walls, search step (m). */
+export const WALK_START = { depthShare: 0.65, clearance: 0.12, step: 0.1 } as const;
+
+const inRect = (p: Pt, r: readonly number[], grow = 0) => p[0] > r[0] - grow && p[0] < r[2] + grow && p[1] > r[1] - grow && p[1] < r[3] + grow;
+
 /**
- * Pure: the walker starts in the room with role "entry", at the point of its label that is farthest from the walls
- * (`room.label`), looking from the entry door into the house (towards the centre of the building). Falls back to the
- * entry room of `derived.access`, then to the first room. No ids.
+ * Pure: the walker starts in the main living room (role "main-living", else the largest room of the day zone, else the entry
+ * room), looking out of its largest glazed exterior opening (towards the garden, the yaw is the opening's outward azimuth). It
+ * stands behind that opening by `WALK_START.depthShare` of the room's depth along the view, on the first point of the line back
+ * to the opening that is free of the furniture (`derived.furniture[].rect`, grown by the walker's radius) and inside the room,
+ * so the first frame is the open living space with the garden behind the glass. A room without a glazed opening falls back to
+ * its label point, looking at the centre of the building. No ids.
  */
 export function walkStart(ctx: HouseContext): WalkStart {
   const { derived } = ctx;
-  const room = derived.rooms.find((r) => r.role === "entry")
+  const day = derived.rooms.filter((r) => r.zone === "day").sort((a, b) => b.area - a.area);
+  const room = derived.rooms.find((r) => r.role === "main-living")
+    ?? day[0]
+    ?? derived.rooms.find((r) => r.role === "entry")
     ?? derived.rooms.find((r) => r.id === derived.access.entryRoom)
     ?? derived.rooms[0];
   const b = derived.bbox;
   const centre: Pt = [(b.x0 + b.x1) / 2, (b.y0 + b.y1) / 2];
-  const position: Pt = room ? [room.label.x, room.label.y] : centre;
-  const dx = centre[0] - position[0], dy = centre[1] - position[1];
-  // house azimuth: clockwise from +y
-  const yawDeg = Math.hypot(dx, dy) < 1e-6 ? 0 : ((Math.atan2(dx, dy) * 180) / Math.PI + 360) % 360;
-  return { position, yawDeg };
+  const yawTo = (from: Pt, to: Pt) => {
+    const dx = to[0] - from[0], dy = to[1] - from[1];
+    return Math.hypot(dx, dy) < 1e-6 ? 0 : ((Math.atan2(dx, dy) * 180) / Math.PI + 360) % 360;
+  };
+  if (!room) return { position: centre, yawDeg: 0 };
+  const label: Pt = [room.label.x, room.label.y];
+  const window = derived.openings
+    .filter((o) => o.room === room.id && o.exterior === true && o.glazingArea > 0 && o.azimuth !== null)
+    .sort((p, q) => q.glazingArea - p.glazingArea)[0];
+  if (!window || window.azimuth === null) return { position: label, yawDeg: yawTo(label, centre) };
+  // outward normal of the opening (house azimuth clockwise from +y) and the way into the room
+  const a = (window.azimuth * Math.PI) / 180;
+  const inward: Pt = [-Math.sin(a), -Math.cos(a)];
+  const sill: Pt = [window.cx, window.cy];
+  const inside = (p: Pt) => room.rects.some((r) => inRect(p, r, -(WALK.radius + WALK_START.clearance)));
+  // depth of the room behind the opening along the view
+  let depth = 0;
+  for (let d = WALK_START.step; d < 50; d += WALK_START.step) {
+    if (room.rects.some((r) => inRect([sill[0] + inward[0] * d, sill[1] + inward[1] * d], r))) depth = d;
+    else if (depth > 0) break;
+  }
+  const grow = WALK.radius + WALK_START.clearance;
+  const furniture = derived.furniture.filter((f) => f.rect).map((f) => f.rect as readonly number[]);
+  const free = (p: Pt) => inside(p) && !furniture.some((r) => inRect(p, r, grow));
+  const yawDeg = ((window.azimuth % 360) + 360) % 360;
+  for (let d = depth * WALK_START.depthShare; d > WALK.radius; d -= WALK_START.step) {
+    // on the axis of the opening first, then a little to either side
+    for (const side of [0, 0.5, -0.5, 1, -1]) {
+      const p: Pt = [sill[0] + inward[0] * d - inward[1] * side, sill[1] + inward[1] * d + inward[0] * side];
+      if (free(p)) return { position: p, yawDeg };
+    }
+  }
+  return { position: label, yawDeg };
 }

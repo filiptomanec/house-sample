@@ -1,5 +1,5 @@
 "use client";
-import { useMemo } from "react";
+import { useMemo, useState, type Ref } from "react";
 import { measureBetween } from "@/lib/model/site/profile";
 import { sampleProfile } from "@/lib/model/site/profile";
 import type { XY } from "@/lib/model/site/geometry";
@@ -11,15 +11,20 @@ import type { PlotView, Preset } from "./view";
 
 const same = (a: XY | undefined, b: XY) => !!a && a[0] === b[0] && a[1] === b[1];
 
-/** Measuring: two points from the map or from the lists of corners; distance, rise, slope and the elevation profile. */
-export function MeasurePanel({ view, terrain, pick, onPick, onClear }: {
-  view: PlotView; terrain: Terrain; pick: readonly XY[]; onPick: (i: 0 | 1, p: XY | null) => void; onClear: () => void;
+/**
+ * Measuring: two points from the map or from the lists of corners; distance, rise, slope and the elevation profile. The panel
+ * stays one line (title and hint) until it is opened or the first point is set on the map; the lists live inside it.
+ */
+export function MeasurePanel({ view, terrain, pick, onPick, onClear, ref }: {
+  view: PlotView; terrain: Terrain; pick: readonly XY[]; onPick: (i: 0 | 1, p: XY | null) => void; onClear: () => void; ref?: Ref<HTMLElement>;
 }) {
   const t = useT(), f = useFormat();
+  const [opened, setOpened] = useState(false);
+  const open = opened || pick.length > 0;
   const garages = view.presets.filter((p) => p.group === "garage").length;
   const nameOf = (p: Preset): string =>
     p.group === "garage"
-      ? t("plot.preset.garage") + (garages > 1 ? ` ${Number(p.id.slice(p.id.lastIndexOf("-") + 1)) + 1}` : "")
+      ? t("plot.preset.garage") + (garages > 1 ? ` ${p.index + 1}` : "")
       : t(p.group === "house" ? "plot.preset.house" : "plot.preset.plot", { corner: t(`plot.corner.${p.corner ?? "NE"}`) });
   const idOf = (p: XY | undefined) => (p ? view.presets.find((x) => same(p, x.p))?.id ?? "" : "");
   const set = (i: 0 | 1, id: string) => onPick(i, id ? view.presets.find((x) => x.id === id)?.p ?? null : null);
@@ -42,11 +47,17 @@ export function MeasurePanel({ view, terrain, pick, onPick, onClear }: {
   });
 
   return (
-    <section className="panel panel-pad stack pt-measure-panel" aria-labelledby="pt-measure-h">
-      <div className="pt-panel-head">
-        <h2 className="label" id="pt-measure-h">{t("plot.measure.title")}</h2>
-        {pick.length > 0 && <button type="button" className="btn ghost sm" onClick={onClear}>{t("plot.measure.clear")}</button>}
-      </div>
+    <section ref={ref} id="pt-measure" className="panel panel-pad pt-measure-panel" aria-labelledby="pt-measure-h">
+      <details className="pt-measure-box" open={open} onToggle={(e) => setOpened((e.currentTarget as HTMLDetailsElement).open)}>
+      <summary className="pt-panel-head">
+        <span className="pt-measure-title">
+          <h2 className="label" id="pt-measure-h">{t("plot.measure.title")}</h2>
+          {!open && <span className="small pt-measure-hint">{t("plot.map.hint")}</span>}
+        </span>
+        <span className="method-icon" aria-hidden />
+      </summary>
+      <div className="stack pt-measure-body">
+      {pick.length > 0 && <div className="pt-measure-actions"><button type="button" className="btn ghost sm" onClick={onClear}>{t("plot.measure.clear")}</button></div>}
       <div className="pt-pick">
         <label className="field"><span className="small">{t("plot.measure.from")}</span>
           <select className="numin" value={idOf(pick[0])} onChange={(e) => set(0, e.target.value)}>
@@ -78,6 +89,8 @@ export function MeasurePanel({ view, terrain, pick, onPick, onClear }: {
           </>
         ) : <p className="small">{t("plot.measure.empty")}</p>}
       </div>
+      </div>
+      </details>
     </section>
   );
 }

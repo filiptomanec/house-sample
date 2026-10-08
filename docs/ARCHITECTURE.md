@@ -40,7 +40,8 @@ the code a page is written against; `DESIGN.md` is the contract for UI code.
 * `model/house.json`, schema `house/1` (`docs/HOUSE-FORMAT.md`). Axis-based: rooms are rectangles between wall axes;
   walls, net areas, openings' walls and facings are *derived*.
 * `model/site.json`: plot polygon, neighbours, analytic terrain, trees, access, setback rules (`docs/SITE.md`).
-* `model/style.json`: materials, looks (facade/wood/roof variants) and the palette used by web and renders.
+* `model/style.json`: materials, looks (facade/wood/roof variants) and the palette used by web and renders, plus `generated`
+  (colours of what code builds: ground zones, foliage, bark, fences, neighbours) and `lawnColors` (the grass albedo of the renders).
 * `model/pricebook.json`, `model/assumptions.json`: unit prices and energy/tariff assumptions (region: Czechia, 2026), both
   `status: "reviewed"` (`docs/CALC-API.md`, `docs/ENERGY-ASSUMPTIONS.md`).
 * `model/render.json`: what to shoot (cameras, times, frame counts) for the renders (`docs/RENDER-INPUTS.md`).

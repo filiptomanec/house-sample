@@ -90,6 +90,16 @@ def furniture_from(house, derived=None):
     return out
 
 
+def _outdoor(o):
+    """Outdoor area with the derived fields (flat at `top` when the model form is given)."""
+    o = dict(o)
+    o.setdefault('top', -0.02)
+    o.setdefault('holes', [])
+    if not o.get('grade'):
+        o['grade'] = {'kind': 'flat', 'plane': {'z0': o['top'], 'ox': 0, 'oy': 0, 'gx': 0, 'gy': 0}}
+    return o
+
+
 def piece_id(f):
     """Stable id of a furniture entry: the model id if present, else type and a hash of its placement."""
     if f.get('id'):
@@ -112,7 +122,9 @@ class Model:
         self.room_by_id = {r['id']: r for r in self.rooms}
         self.openings = openings_from(derived, house)
         self.furniture = furniture_from(house, derived)
-        self.outdoor = house.get('outdoor', [])
+        # outdoor areas in the derived form (role, grade with the slab top, holes, pool); the model form is the fallback
+        self.outdoor = [_outdoor(o) for o in (derived.get('outdoor') or house.get('outdoor', []))]
+        self.water_types = set((derived.get('catalog') or {}).get('waterOutdoor') or ['pool'])
         self.ceiling = float(house.get('clearHeight', 2.75))
         self.walls = derived.get('walls', [])
 
@@ -122,11 +134,45 @@ class Model:
                 return r
         return None
 
-    def outdoor_at(self, x, y):
+    def is_water(self, o):
+        return bool(o) and (o.get('type') in self.water_types or bool(o.get('pool')))
+
+    def water_at(self, x, y):
+        """The pool whose water surface contains a point, or None."""
         for o in self.outdoor:
-            if G.contains(o['rect'], x, y):
+            if self.is_water(o) and G.contains(o['rect'], x, y):
                 return o
         return None
+
+    def outdoor_at(self, x, y):
+        """The outdoor area under a point: a pool when the point is on its water, else the area whose rect contains it
+        outside its holes (a deck around a pool has the pool in `holes`). None outside every area."""
+        w = self.water_at(x, y)
+        if w:
+            return w
+        for o in self.outdoor:
+            if self.is_water(o) or not G.contains(o['rect'], x, y):
+                continue
+            if any(G.contains(h, x, y) for h in o.get('holes') or []):
+                continue
+            return o
+        return None
+
+    def walkable_rects(self, o):
+        """Rects of an outdoor area people can stand on: its rect, minus nothing for plain areas; for areas with holes the
+        caller subtracts `o['holes']`."""
+        return [o['rect']]
+
+    def slab_top_at(self, x, y):
+        """Top of the outdoor slab under a point (the derived grade plane); 0 (the finished floor) inside the house."""
+        o = self.outdoor_at(x, y)
+        if not o or self.is_water(o):
+            return 0.0
+        g = o.get('grade') or {}
+        pl = g.get('plane') or {}
+        top = float(o.get('top', -0.02))
+        return float(pl.get('z0', top)) + float(pl.get('gx', 0.0)) * (x - float(pl.get('ox', 0.0))) + \
+            float(pl.get('gy', 0.0)) * (y - float(pl.get('oy', 0.0)))
 
     def input_hash(self):
         def rnd(v):
@@ -142,7 +188,8 @@ class Model:
             'furniture': rnd([{k: f[k] for k in ('type', 'x', 'y', 'rot', 'w', 'd', 'id')} for f in self.furniture]),
             'rooms': rnd([{'id': r['id'], 'type': r['type'], 'rects': r['region'].rects} for r in self.rooms]),
             'openings': rnd([{k: o[k] for k in ('id', 'kind', 'orient', 'axis', 'from', 'to', 'swing', 'hinge', 'head')} for o in self.openings]),
-            'outdoor': rnd(self.outdoor), 'ceiling': self.ceiling,
+            'outdoor': rnd([{k: o.get(k) for k in ('id', 'type', 'rect', 'holes', 'top', 'grade')} for o in self.outdoor]),
+            'ceiling': self.ceiling,
             'catalog': self.catalog, 'rules': self.rules,
         }
         blob = json.dumps(payload, sort_keys=True, separators=(',', ':')).encode()

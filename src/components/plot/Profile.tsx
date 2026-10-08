@@ -3,7 +3,7 @@ import { useMemo, useRef } from "react";
 import type { Profile as ProfileData } from "@/lib/model/site/profile";
 import { useFormat, useT } from "@/lib/i18n/client";
 import { signed } from "./fmt";
-import { useWidth } from "./useWidth";
+import { useWidth } from "@/components/ui/useWidth";
 
 const H = 170, M = { t: 10, r: 10, b: 26 };
 

@@ -4,8 +4,8 @@ import { localToUtc, placeOf, sunTimes } from "@/lib/calc/sun";
 import { dayDate, dayMinutes, media } from "@/lib/data/media";
 import { house } from "@/lib/model/instance";
 import {
-  canvasScale, captionIndex, coverRect, decodeBudgetBytes, evictions, frameAt, frameAtMinute, introFade, loadOrder, lruCapacity, minuteAtFrame,
-  momentWindows, nearestDecoded, sectionProgress, windowOpacity,
+  canvasScale, captionIndex, coarseCount, coverRect, decodeBudgetBytes, evictions, frameAt, frameAtMinute, heldProgress, introFade, loadOrder, lruCapacity,
+  minuteAtFrame, MOMENT_RAMP_FRAMES, momentOpacity, momentWindows, nearestDecoded, sectionProgress, smallVariantFits, windowOpacity,
 } from "../timeline";
 
 const minutes = dayMinutes();
@@ -28,6 +28,17 @@ describe("scroll to frame to time", () => {
     expect(frameAt(-1, 30)).toBe(0);
     expect(frameAt(2, 30)).toBe(29);
     expect(frameAt(0.5, 1)).toBe(0);
+  });
+
+  it("rests on the last frame for the held share at the end, and is unchanged without a hold", () => {
+    for (let k = 0; k <= 100; k++) expect(heldProgress(k / 100, 0)).toBeCloseTo(k / 100, 12);
+    expect(heldProgress(0, 0.1)).toBe(0);
+    expect(heldProgress(0.9, 0.1)).toBeCloseTo(1, 12);
+    expect(heldProgress(0.95, 0.1)).toBe(1);
+    expect(heldProgress(1, 0.1)).toBe(1);
+    let prev = -1;
+    for (let k = 0; k <= 100; k++) { const v = heldProgress(k / 100, 0.1); expect(v).toBeGreaterThanOrEqual(prev); prev = v; }
+    expect(heldProgress(0.5, 5)).toBeLessThanOrEqual(1); // an absurd hold is capped
   });
 
   it("interpolates minutes between frames, never the position of the sun", () => {
@@ -117,6 +128,66 @@ describe("caption windows", () => {
   });
 });
 
+describe("caption opacity over the scroll (momentOpacity)", () => {
+  const windows = momentWindows(sun, first, last);
+  const lastFrame = minutes.length - 1;
+  const STEP = 0.05;
+
+  it("shows at most one caption at a time and every caption fully at some frame", () => {
+    const full = new Set<string>();
+    for (let f = 0; f <= lastFrame + 1e-9; f += STEP) {
+      const os = windows.map((w) => momentOpacity(f, w, minutes));
+      expect(os.filter((o) => o > 0).length).toBeLessThanOrEqual(1);
+      windows.forEach((w, i) => { if (os[i] >= 1) full.add(w.key); });
+    }
+    expect([...full].sort()).toEqual(windows.map((w) => w.key).sort());
+  });
+
+  it("keeps the last caption (the end of the day and its link) fully visible on the last frame", () => {
+    const end = windows[windows.length - 1];
+    expect(momentOpacity(lastFrame, end, minutes)).toBe(1);
+    windows.slice(0, -1).forEach((w) => expect(momentOpacity(lastFrame, w, minutes)).toBe(0));
+  });
+
+  it("fades over the same scroll distance wherever the frames are in time, never longer than the ramp", () => {
+    for (const w of windows.slice(0, -1)) {
+      const a = frameAtMinute(minutes, w.from), b = frameAtMinute(minutes, w.to);
+      let rising = 0;
+      for (let f = a; f <= b; f += STEP) { const o = momentOpacity(f, w, minutes); if (o > 0 && o < 1 && f < (a + b) / 2) rising += STEP; }
+      expect(rising).toBeLessThanOrEqual(MOMENT_RAMP_FRAMES + STEP);
+      expect(momentOpacity((a + b) / 2, w, minutes)).toBe(1);
+    }
+  });
+
+  it("works for a sequence with other times too (hourly by day, every 10 minutes at dusk)", () => {
+    const times: number[] = [];
+    for (let m = 8 * 60; m <= 15 * 60; m += 60) times.push(m);
+    for (let m = 16 * 60; m <= 19 * 60 + 40; m += 20) times.push(m);
+    for (let m = 19 * 60 + 50; m <= 21 * 60 + 40; m += 10) times.push(m);
+    const ws = momentWindows(sun, times[0], times[times.length - 1]);
+    const full = new Set<string>();
+    for (let f = 0; f <= times.length - 1 + 1e-9; f += STEP) {
+      const os = ws.map((w) => momentOpacity(f, w, times));
+      expect(os.filter((o) => o > 0).length).toBeLessThanOrEqual(1);
+      ws.forEach((w, i) => { if (os[i] >= 1) full.add(w.key); });
+    }
+    expect(full.size).toBe(ws.length);
+    expect(momentOpacity(times.length - 1, ws[ws.length - 1], times)).toBe(1);
+  });
+
+  it("is zero outside a closed window and symmetric inside it", () => {
+    const m = [0, 60, 120, 180, 240, 300];
+    const w = { from: 60, to: 240 }; // frames 1..4
+    expect(momentOpacity(0.9, w, m)).toBe(0);
+    expect(momentOpacity(4.1, w, m)).toBe(0);
+    expect(momentOpacity(2.5, w, m)).toBe(1);
+    for (let d = 0; d <= 1; d += 0.1) expect(momentOpacity(1 + d, w, m)).toBeCloseTo(momentOpacity(4 - d, w, m), 9);
+    // an open window (reaching the last frame) never fades out
+    expect(momentOpacity(5, { from: 240, to: 400 }, m)).toBe(1);
+    expect(momentOpacity(5, { from: 300, to: 400 }, m)).toBe(1);
+  });
+});
+
 describe("intro fade", () => {
   it("only ever fades out as the scroll advances, and the low-screen title goes first", () => {
     let slow = 2, fast = 2;
@@ -128,20 +199,29 @@ describe("intro fade", () => {
       slow = f.slow;
       fast = f.fast;
     }
-    expect(introFade(0, false)).toEqual({ slow: 1, fast: 1, after: 0 });
+    expect(introFade(0, false)).toEqual({ slow: 1, fast: 1, afterSlow: 0, afterFast: 0 });
     expect(introFade(1, false).slow).toBe(0);
   });
 
-  it("lets a caption start only after the low-screen title has gone", () => {
-    expect(introFade(0.02, false).after).toBe(0);
-    expect(introFade(0.1, false).after).toBe(1);
-    const f = introFade(0.05, false);
-    expect(f.after).toBeGreaterThan(0);
-    expect(f.fast).toBe(0);
+  it("never stands a caption over the title: it starts when the title is mostly gone and is whole once it has gone", () => {
+    for (let k = 0; k <= 400; k++) {
+      const f = introFade(k / 400, false);
+      // the caption factor grows as the title fades and is zero while the title is still clearly there
+      if (f.slow >= 0.4) expect(f.afterSlow).toBe(0);
+      if (f.fast >= 0.4) expect(f.afterFast).toBe(0);
+      if (f.slow === 0) expect(f.afterSlow).toBe(1);
+      if (f.fast === 0) expect(f.afterFast).toBe(1);
+      expect(f.afterFast).toBeGreaterThanOrEqual(f.afterSlow);
+    }
+  });
+
+  it("lets the title leave within the first tenth of the sequence, so the morning caption has room", () => {
+    expect(introFade(0.1, false).slow).toBe(0);
+    expect(introFade(0.1, false).afterSlow).toBe(1);
   });
 
   it("keeps the title for the still frame", () => {
-    expect(introFade(0.9, true)).toEqual({ slow: 1, fast: 1, after: 1 });
+    expect(introFade(0.9, true)).toEqual({ slow: 1, fast: 1, afterSlow: 1, afterFast: 1 });
   });
 });
 
@@ -159,6 +239,27 @@ describe("loading and memory", () => {
     expect([...order].sort((a, b) => a - b)).toEqual(Array.from({ length: n }, (_, i) => i));
     if (n > 1) expect(order[0]).toBe(0);
     if (n > 2) expect(order[1]).toBe(n - 1); // the last frame early
+  });
+
+  it.each([1, 2, 7, 8, 9, 30, 60, 61])("counts the coarse pass of %i frames: exactly the frames before the first 4th-frame step", (n) => {
+    const order = loadOrder(n);
+    const k = coarseCount(n);
+    const coarse = order.slice(0, k);
+    expect(new Set(coarse).size).toBe(k);
+    // every 8th frame and the last one, nothing else
+    expect([...coarse].sort((a, b) => a - b)).toEqual([...new Set([...Array.from({ length: Math.ceil(n / 8) }, (_, i) => i * 8), n - 1])].sort((a, b) => a - b));
+    expect(coarseCount(0)).toBe(0);
+  });
+
+  it("uses the small variant only where it is sharp enough (cover, at most 2 device pixels per CSS pixel)", () => {
+    const full = { width: 1920, height: 1080 }, small = { width: 960 };
+    expect(smallVariantFits(1440, 900, 1, full, small)).toBe(false);
+    expect(smallVariantFits(900, 500, 1, full, small)).toBe(true);
+    expect(smallVariantFits(900, 500, 2, full, small)).toBe(false);
+    // a tall window needs the width that covers its height
+    expect(smallVariantFits(500, 900, 1, full, small)).toBe(false);
+    // a 3x phone counts as 2x
+    expect(smallVariantFits(480, 270, 3, full, small)).toBe(smallVariantFits(480, 270, 2, full, small));
   });
 
   it("starts with every 8th frame, then every 4th", () => {

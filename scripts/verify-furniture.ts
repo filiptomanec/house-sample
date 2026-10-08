@@ -22,6 +22,8 @@ const BUDGET = {
   lite: { file: 'furniture-lite.glb', triangles: 80_000, bytes: 600_000 },
 };
 const WOOD = new Set(['f_oak', 'f_oak_dark', 't_teak']);
+/** Door lining on each side of a door opening (pipeline/furniture/fx/layout.py DOOR_LINING): the clear passage is narrower. */
+const DOOR_LINING = 0.05;
 
 let errors = 0;
 let warnings = 0;
@@ -39,6 +41,15 @@ function readGlb(path: string): { json: Json; bytes: number } {
 }
 
 type Bounds = { min: number[]; max: number[]; inputHash?: string };
+
+/** Lowest top of an outdoor slab people stand on (derived grade corners; pools excluded), 0 without derived data. */
+function lowestSlabTop(): number {
+  if (!existsSync(derivedPath)) return 0;
+  const d = JSON.parse(readFileSync(derivedPath, 'utf8'));
+  const water = new Set<string>(d.catalog?.waterOutdoor ?? ['pool']);
+  const tops = (d.outdoor ?? []).filter((o: Json) => !water.has(o.type)).flatMap((o: Json) => o.grade?.corners ?? [o.top ?? 0]);
+  return tops.length ? Math.min(...tops) : 0;
+}
 
 function checkGlb(path: string, kind: 'high' | 'lite'): { zones: Set<string>; bounds: Bounds } {
   const budget = BUDGET[kind];
@@ -119,8 +130,10 @@ function checkGlb(path: string, kind: 'high' | 'lite'): { zones: Set<string>; bo
       }
     }
   }
-  if (bounds.min[1] >= -0.02) ok(`nothing below the floor (lowest y ${bounds.min[1].toFixed(3)} m)`);
-  else fail(`geometry below the floor: y ${bounds.min[1].toFixed(3)} m`);
+  // outdoor pieces stand on the slabs, whose tops (derived grade) lie a little below the finished floor
+  const floor = Math.min(-0.02, lowestSlabTop()) - 0.005;
+  if (bounds.min[1] >= floor) ok(`nothing below the floor or the outdoor slabs (lowest y ${bounds.min[1].toFixed(3)} m)`);
+  else fail(`geometry below the floor and the outdoor slabs: y ${bounds.min[1].toFixed(3)} m`);
   if (bounds.max[1] <= 3.2) ok(`highest point ${bounds.max[1].toFixed(2)} m`);
   else fail(`geometry above 3.2 m: ${bounds.max[1].toFixed(2)} m`);
   bounds.inputHash = j.scenes?.[0]?.extras?.inputHash;
@@ -198,14 +211,20 @@ function checkFootprints(path: string, zones: Set<string>, bounds?: Bounds) {
   const derived = JSON.parse(readFileSync(derivedPath, 'utf8'));
   const house = JSON.parse(readFileSync(housePath, 'utf8'));
   const rooms = roomRects(derived);
-  const outdoor: Rect[] = (house.outdoor ?? []).map((o: Json) => o.rect);
+  // outdoor pieces: on an outdoor area (derived form when present) and never over the water of a pool
+  const water = new Set<string>(derived.catalog?.waterOutdoor ?? ['pool']);
+  const areas: Json[] = derived.outdoor ?? house.outdoor ?? [];
+  const outdoor: Rect[] = areas.filter((o) => !water.has(o.type)).map((o) => o.rect);
+  const pools: Rect[] = areas.filter((o) => water.has(o.type)).map((o) => o.rect);
   let outside = 0;
   for (const it of items) {
     const b = it.box as Rect;
     const area = (b[2] - b[0]) * (b[3] - b[1]);
     const rects = it.room === 'terrace' ? outdoor : rooms.get(it.room) ?? [];
     if (!rects.length) { fail(`zone ${it.room}: no room geometry`); continue; }
-    const inside = coveredArea(b, rects) / area;
+    const wet = it.room === 'terrace' ? coveredArea(b, pools) : 0;
+    if (wet > 1e-4) (it.kind === 'furniture' ? fail : warn)(`${it.type} (${it.id}) stands over the water of a pool`);
+    const inside = (coveredArea(b, rects) - wet) / area;
     const limit = it.kind === 'furniture' ? 0.97 : 0.85;
     if (inside < limit) {
       outside++;
@@ -213,14 +232,16 @@ function checkFootprints(path: string, zones: Set<string>, bounds?: Bounds) {
     }
   }
   if (!outside) ok('all footprints lie inside their rooms');
-  // door clear zones: no box may cover the door gap (the pipeline cuts them out)
+  // door clear zones: no box may cover the clear passage of a door (the opening minus the door lining on each side,
+  // DOOR_LINING in pipeline/furniture/fx/layout.py) extended 0.55 m into both rooms; the pipeline cuts them out
   const openings: Json[] = derived.openings ?? [];
   let blocked = 0;
   for (const o of openings) {
     if (o.kind !== 'door' && o.kind !== 'entry') continue;
     const t = (derived.walls ?? []).find((w: Json) => w.id === o.wallId)?.t ?? 0.15;
     const h = t / 2 + 0.55 - 0.01;
-    const gap: Rect = o.orient === 'h' ? [o.from + 0.02, o.axis - h, o.to - 0.02, o.axis + h] : [o.axis - h, o.from + 0.02, o.axis + h, o.to - 0.02];
+    const s0 = o.from + DOOR_LINING + 0.005, s1 = o.to - DOOR_LINING - 0.005;
+    const gap: Rect = o.orient === 'h' ? [s0, o.axis - h, s1, o.axis + h] : [o.axis - h, s0, o.axis + h, s1];
     for (const it of items) if (rectInter(it.box, gap) > 1e-4) { blocked++; warn(`${it.type} (${it.id}) stands in the clear zone of door ${o.id}`); }
   }
   if (!blocked) ok('door zones are free');

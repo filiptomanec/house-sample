@@ -1,20 +1,31 @@
 "use client";
 import { useMemo, useRef, useState } from "react";
 import { flushSync } from "react-dom";
-import { Chips } from "@/components/ui/controls";
-import { useFormat, useT } from "@/lib/i18n/client";
-import { bento } from "./bento";
+import { Segmented } from "@/components/ui/controls";
+import { useT } from "@/lib/i18n/client";
+import { bento, type TileSize } from "./bento";
 import { Lightbox } from "./Lightbox";
 import { morph } from "./morph";
 import { VideoPlayer } from "./VideoPlayer";
 import { matches, type GalleryFilter, type GalleryView } from "./filter";
 
 /** The first tiles are fetched at once (they are in view or just below); the rest load as they approach the screen. */
-const EAGER = 3;
+export const EAGER = 2;
 
-/** Filter chips, the orbit video, the bento grid of stills and the lightbox. Everything comes from the manifest through `view`. */
+/**
+ * Which width of a picture the browser needs for a tile: one column on phones, two up to 900 px, then the bento grid of four
+ * columns inside the 1440 px shell.
+ */
+export const TILE_SIZES: Record<TileSize, string> = {
+  small: "(max-width: 640px) 100vw, (max-width: 900px) 50vw, (max-width: 1440px) 25vw, 360px",
+  wide: "(max-width: 900px) 100vw, (max-width: 1440px) 50vw, 720px",
+  big: "(max-width: 900px) 100vw, (max-width: 1440px) 50vw, 720px",
+  full: "(max-width: 1440px) 100vw, 1440px",
+};
+
+/** The filter control (only when there is a choice), the orbit video, the bento grid of stills and the lightbox. Everything comes from the manifest through `view`. */
 export function Gallery({ view }: { view: GalleryView }) {
-  const t = useT(), f = useFormat();
+  const t = useT();
   const [filter, setFilter] = useState<GalleryFilter["id"]>("all");
   const [open, setOpen] = useState<number | null>(null);
   const tiles = useRef<(HTMLButtonElement | null)[]>([]);
@@ -40,21 +51,29 @@ export function Gallery({ view }: { view: GalleryView }) {
   return (
     <div className="shell gal">
       {view.video && <VideoPlayer video={view.video} />}
-      <Chips ariaLabel={t("gallery.filter.label")} options={options} selected={[filter]} onToggle={(id) => { setOpen(null); setFilter(id); }} />
+      {options.length > 0 && (
+        <div className="gal-bar">
+          <Segmented ariaLabel={t("gallery.filter.label")} options={options} value={filter} onChange={(id) => { setOpen(null); setFilter(id); }} />
+        </div>
+      )}
       <p className="sr-only" aria-live="polite">{t("gallery.shown", { count: list.length })}</p>
       <div className="gal-wrap">
         <div className="gal-grid">
           {list.map((it, i) => (
             <button key={it.id} ref={(el) => { tiles.current[i] = el; }} type="button" className="gal-item" data-size={layout[i].size} data-mirror={layout[i].mirror}
               aria-label={t("gallery.open", { title: it.title, n: i + 1, total: list.length })} onClick={() => show(i)}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={it.src} alt={it.alt} width={it.width} height={it.height} loading={i < EAGER ? "eager" : "lazy"} decoding="async" draggable={false} />
-              <span className="gal-cap"><b>{it.title}</b><span className="mono">{f.clock(it.minutes)}</span></span>
+              <span className="gal-ph">
+                <picture>
+                  {it.picture.sources.map((s) => <source key={s.type} type={s.type} srcSet={s.srcSet} sizes={TILE_SIZES[layout[i].size]} />)}
+                  <img src={it.src} srcSet={it.picture.srcSet} sizes={TILE_SIZES[layout[i].size]} alt={it.alt} width={it.width} height={it.height}
+                    loading={i < EAGER ? "eager" : "lazy"} fetchPriority={i === 0 && !view.video ? "high" : undefined} decoding="async" draggable={false} />
+                </picture>
+              </span>
+              <span className="gal-cap"><b>{it.title}</b><span className="mono">{it.caption}</span></span>
             </button>
           ))}
         </div>
       </div>
-      <p className="note gal-note">{t("gallery.note")}</p>
       {open !== null && list[open] && <Lightbox items={list} index={open} onClose={close} onGo={go} />}
     </div>
   );

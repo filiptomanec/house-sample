@@ -26,7 +26,7 @@ def camera_pose(c):
     return Vector(c["position"]), quat
 
 
-def apply_camera(cam, c, size):
+def apply_camera(cam, c, size, min_far=0.0):
     import bpy
     loc, quat = camera_pose(c)
     cam.location = loc
@@ -37,7 +37,8 @@ def apply_camera(cam, c, size):
     d.lens = float(c["focalMm"])
     sh = c.get("shift") or [0.0, 0.0]
     d.shift_x, d.shift_y = float(sh[0]), float(sh[1])
-    d.clip_start, d.clip_end = float(c.get("near", 0.1)), float(c.get("far", 600))
+    # the far clip reaches the end of the far ground (the renderer's own horizon), whatever the shot asks for
+    d.clip_start, d.clip_end = float(c.get("near", 0.1)), max(float(c.get("far", 600)), float(min_far))
     sc = bpy.context.scene
     sc.render.resolution_x, sc.render.resolution_y = int(size[0]), int(size[1])
     sc.render.resolution_percentage = 100

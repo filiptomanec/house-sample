@@ -9,7 +9,6 @@ F0 = 1000          # first frame number (the animation is evaluated at F0 + inde
 
 
 def prepare(scn, shots, mode_cfg):
-    import bpy
     sc = scn.sc
     variant = shots[0]["variant"]
     v = next(x for x in scn.inputs["orbit"]["variants"] if x["id"] == variant)

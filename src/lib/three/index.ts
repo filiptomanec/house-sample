@@ -20,3 +20,8 @@ export type * from "./pv";
 export type * from "./walkCollision";
 export type * from "./walk";
 export type * from "./sunAnalysis";
+export type * from "./sunPath";
+export type * from "./garageDoor";
+export type * from "./outdoor";
+export type * from "./merge";
+export type * from "./sky";

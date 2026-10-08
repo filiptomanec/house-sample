@@ -10,6 +10,7 @@ import { baseline } from "@/lib/model/__tests__/helpers";
 import * as budget from "../budget";
 import * as energyCore from "../energy";
 import * as energySchema from "../energySchema";
+import * as heatedRegionModule from "../heatedRegion";
 import * as printModel from "../printModel";
 import * as roofLayout from "../roofLayout";
 import * as storageKeys from "../storageKeys";
@@ -31,7 +32,7 @@ const surface: Record<string, { module: Record<string, unknown>; functions: stri
   uvalue: {
     module: uvalue,
     functions: ["layerResistance", "assemblyBreakdown", "uValue", "withLayerThickness", "thicknessForU", "floorOnGround"],
-    values: ["SURFACE_RESISTANCE"],
+    values: ["SURFACE_RESISTANCE", "CSN_730540_U"],
   },
   roofLayout: {
     module: roofLayout,
@@ -45,17 +46,23 @@ const surface: Record<string, { module: Record<string, unknown>; functions: stri
     module: energy,
     functions: [
       "parseAssumptions", "createEnergyContext", "defaultEnergyContext", "checkClimate", "energyInputSpecs", "defaultInputs", "sanitizeInputs",
-      "computeEnvelope", "computeVentilation", "computeDesignLoad", "planeYield", "simulateDay", "utilisationFactor", "computeEnergy",
+      "computeEnvelope", "computeVentilation", "computeDesignLoad", "heatPumpDesignKw", "planeYield", "tiltRatio", "simulateDay", "utilisationFactor",
+      "closedShare", "computeEnergy",
     ],
     values: ["AssumptionsSchema", "InputRangeSchema", "DAY_TYPE_KEYS", "NUMERIC_INPUT_KEYS"],
+  },
+  heatedRegion: {
+    module: heatedRegionModule,
+    functions: ["heatedRegion"],
+    values: [],
   },
   budget: {
     module: budget,
     functions: [
       "deriveQuantities", "materialTakeoff", "parsePricebook", "defaultPricebook", "defaultBudgetSettings", "sanitizeBudgetSettings",
-      "computeBudget", "toCsv",
+      "computeBudget", "toCsv", "pvQuantities", "zeroQuantities", "quantityFingerprintParts", "ruleQuantity", "estimateBand",
     ],
-    values: ["UNIT_KEYS", "QUANTITY_DEFS", "QUANTITY_KEYS", "QuantityRuleSchema", "PriceLineSchema", "PriceGroupSchema", "PricebookSchema"],
+    values: ["UNIT_KEYS", "QUANTITY_DEFS", "QUANTITY_KEYS", "PV_QUANTITY_KEYS", "QuantityRuleSchema", "PriceLineSchema", "PriceGroupSchema", "PricebookSchema"],
   },
   printModel: {
     module: printModel,
@@ -138,6 +145,14 @@ describe("QUANTITY_DEFS", () => {
       expect(QUANTITY_DEFS[`${o}.count` as budget.QuantityKey].unit).toBe("pcs");
       expect(QUANTITY_DEFS[`${o}.area` as budget.QuantityKey].unit).toBe("m2");
     }
+  });
+
+  it("has the keys of the redesign (contract C6) and both splits of the fence", () => {
+    for (const k of [
+      "fence.plinth.length", "fence.panel.length", "fence.street.length", "fence.boundary.length", "gate.drive.count", "gate.drive.width",
+      "gate.walk.count", "pillar.count", "site.gravelArea", "pool.count", "pool.waterArea", "pool.perimeter", "pool.volume", "pool.deckArea",
+      "screenArea", "soffitArea", "ceilingAreaHeated", "unheatedPartitionArea", "linearDrainLength", "blind.count", "blind.area",
+    ]) expect(QUANTITY_KEYS, k).toContain(k);
   });
 
   it("has no duplicate keys and none that looks like an id of the model", () => {

@@ -17,7 +17,9 @@
  *              with clean corners and T-junctions, minus the gaps of the openings
  *   openings   per opening: the gap rectangle through the wall, the symbol segments (window glass, door leaf, sliding panes,
  *              garage door track, side light), the swing arc of doors, and for exterior openings the facade anchor
- *   outdoor    terraces, paving, drive, path (clipped to `outdoorReach` from the house unless covered), with posts
+ *   outdoor    terraces, decks, pools, paving, drive, path (clipped to `outdoorReach` from the house unless covered; with
+ *              `garden` the pools and the decks around them are drawn whole and the reach grows around them), with posts,
+ *              the pool parts (water, coping), the cut-outs and a label anchor (centre of the largest free rectangle)
  *   furniture  outlines of `derived.furniture` with a line marking the back of the item
  *   screens, lightpipes, dimensions (overall width and depth), north arrow, scale bar
  *   viewBox    the drawing frame including the margin for dimensions, north arrow and scale bar
@@ -26,7 +28,7 @@
  * sizes and furniture names for a given on-screen scale. Colours are token names (`PLAN_FILL`), never literals.
  */
 import { doorSwing, pointInRing, unionOf, wallBody, type BBox, type Pt, type Rect } from "@/lib/model/geom";
-import type { Derived, DerivedOpening, DerivedWall, Dir, Facing8, OpeningKind, OutdoorType, RoomRole, RoomType, WallKind } from "@/lib/model/types";
+import type { Derived, DerivedOpening, DerivedOutdoor, DerivedWall, Dir, Facing8, LocalizedText, OpeningKind, OutdoorRole, OutdoorType, RoomRole, RoomType, WallKind } from "@/lib/model/types";
 import { clipRect, differenceOf, ringsOf, signedArea, union2 } from "./rects";
 import { ROOM_FILL, mm, type FillKey, type PlanPt, type PlanRect, type PlanRing } from "./shared";
 
@@ -39,6 +41,12 @@ export interface PlanOptions {
   outdoorReach?: number;
   /** Free space (m) around the drawing for dimensions, north arrow and scale bar (default 1.6). */
   margin?: number;
+  /**
+   * Draw the garden rooms whole (default false): pools and the areas with a pool in them, like covered areas. The reach that
+   * clips the other uncovered areas is then measured from the house and those garden rooms together, so the paving between
+   * the house and the pool deck stays whole while the drive and the path are still cut near the house.
+   */
+  garden?: boolean;
 }
 
 export interface PlanLabelAnchor {
@@ -97,6 +105,10 @@ export interface PlanOpening {
 export interface PlanOutdoor {
   id: string;
   type: OutdoorType;
+  /** Name of the area in the model (null: the page uses the name of its type). */
+  name: LocalizedText | null;
+  /** Finish of the slab (the GLB role): the drawing hatches decks and tiles paving by it. */
+  role: OutdoorRole;
   fill: FillKey;
   covered: boolean;
   rect: PlanRect;
@@ -104,6 +116,17 @@ export interface PlanOutdoor {
   area: number;
   cut: boolean;
   posts: PlanPt[];
+  /** Side of the square posts, m (from the model), or null when the area has none. */
+  postSize: number | null;
+  /** Cut-outs inside the drawn rect (the coping outline of a pool in a deck). */
+  holes: PlanRect[];
+  /** A pool: the water surface and the outer edge of the coping around it. */
+  pool: { water: PlanRect; outer: PlanRect } | null;
+  /**
+   * Where a name fits: the centre and size of the largest free rectangle of the drawn area (holes, the house and the areas
+   * drawn over this one taken out). Plan space.
+   */
+  label: { at: PlanPt; w: number; h: number };
 }
 
 export interface PlanFurniture {
@@ -268,8 +291,49 @@ function furnitureOf(d: Derived): PlanFurniture[] {
   });
 }
 
+/** Fill of an outdoor area: decks (and the covered terrace on boards) get the deck hatch, a pool its water, the rest paving. */
+const outdoorFill = (o: Pick<DerivedOutdoor, "role" | "type" | "pool">): FillKey => (o.pool ? "pool" : o.role === "deck" || o.type === "terrace" ? "terrace" : "paving");
+/** Drawing order of the outdoor fills: paving first, then decks, pools on top. */
+const OUTDOOR_LAYER: Record<FillKey, number> = { paving: 0, terrace: 1, pool: 2, day: 3, night: 3, service: 3, circulation: 3, garage: 3 };
+
+/** Centre and size of the largest free cell of `rect` minus `cut` (largest smaller side first, then area); house frame. */
+function freeCell(rect: Rect, cut: readonly Rect[]): { at: Pt; w: number; h: number } {
+  const cells = differenceOf([rect], cut.map((c) => clipRect(c, rect)).filter((c): c is Rect => c !== null));
+  // merge cells of the compressed grid row by row into maximal rectangles along x, then pick the best one
+  let best: Rect = rect, score = -Infinity;
+  const rows = new Map<string, Rect[]>();
+  for (const c of cells) {
+    const k = `${c[1]}|${c[3]}`;
+    rows.set(k, [...(rows.get(k) ?? []), c]);
+  }
+  const runs: Rect[] = [];
+  for (const row of rows.values()) {
+    row.sort((a, b) => a[0] - b[0]);
+    let cur = row[0];
+    for (const c of row.slice(1)) cur = Math.abs(c[0] - cur[2]) < 1e-9 ? [cur[0], cur[1], c[2], cur[3]] : (runs.push(cur), c);
+    runs.push(cur);
+  }
+  // grow each run up and down while the rows above and below cover it
+  const covers = (y0: number, y1: number, x0: number, x1: number) =>
+    runs.some((q) => Math.abs(q[1] - y0) < 1e-9 && Math.abs(q[3] - y1) < 1e-9 && q[0] <= x0 + 1e-9 && q[2] >= x1 - 1e-9);
+  for (const r0 of runs) {
+    const [x0, , x1] = r0;
+    let [, y0, , y1] = r0;
+    for (let grown = true; grown;) {
+      grown = false;
+      const below = runs.find((q) => Math.abs(q[3] - y0) < 1e-9 && covers(q[1], q[3], x0, x1));
+      if (below) { y0 = below[1]; grown = true; }
+      const above = runs.find((q) => Math.abs(q[1] - y1) < 1e-9 && covers(q[1], q[3], x0, x1));
+      if (above) { y1 = above[3]; grown = true; }
+    }
+    const w = x1 - x0, h = y1 - y0, s = Math.min(w, h) * 1000 + w * h;
+    if (s > score) { score = s; best = [x0, y0, x1, y1]; }
+  }
+  return { at: [(best[0] + best[2]) / 2, (best[1] + best[3]) / 2], w: best[2] - best[0], h: best[3] - best[1] };
+}
+
 export function buildPlanDrawing(d: Derived, opts: PlanOptions = {}): PlanDrawing {
-  const { furniture = true, outdoorReach = 1.8, margin = 1.6 } = opts;
+  const { furniture = true, outdoorReach = 1.8, margin = 1.6, garden = false } = opts;
   const ob = d.outline.bbox as BBox;
   const wallOf = new Map(d.walls.map((w) => [w.id, w]));
 
@@ -278,20 +342,37 @@ export function buildPlanDrawing(d: Derived, opts: PlanOptions = {}): PlanDrawin
   const gaps = placed.map((o) => gapRect(o, wallOf.get(o.wallId!)!));
   const openings = placed.map((o) => openingOf(o, wallOf.get(o.wallId!)!));
 
-  // outdoor areas: covered ones whole, the others only near the house
-  const reach: Rect = [ob.x0 - outdoorReach, ob.y0 - outdoorReach, ob.x1 + outdoorReach, ob.y1 + outdoorReach];
-  const outdoor: PlanOutdoor[] = [];
+  // outdoor areas: covered ones (and with `garden` the pools and their decks) whole, the others only near the house
+  const whole = (o: DerivedOutdoor) => o.covered || (garden && (o.pool !== null || o.holes.length > 0));
+  const house: Rect = [ob.x0, ob.y0, ob.x1, ob.y1];
+  const core = garden ? d.outdoor.filter(whole).reduce<Rect>((b, o) => union2(b, o.pool?.outer ?? o.rect), house) : house;
+  const reach: Rect = [core[0] - outdoorReach, core[1] - outdoorReach, core[2] + outdoorReach, core[3] + outdoorReach];
+  const drawn: { o: DerivedOutdoor; r: Rect }[] = [];
   let content: Rect = [ob.x0, ob.y0, ob.x1, ob.y1];
   for (const o of d.outdoor) {
-    const r = o.covered ? o.rect : clipRect(o.rect, reach);
+    const r = whole(o) ? (o.pool?.outer ?? o.rect) : clipRect(o.rect, reach);
     if (!r) continue;
+    // a pool is drawn whole or not at all (half a basin reads as an error)
+    if (o.pool && !whole(o) && (r[0] !== o.rect[0] || r[1] !== o.rect[1] || r[2] !== o.rect[2] || r[3] !== o.rect[3])) continue;
     content = union2(content, r);
-    outdoor.push({
-      id: o.id, type: o.type, fill: o.type === "terrace" ? "terrace" : "paving", covered: o.covered, rect: planRect(r),
-      area: mm((r[2] - r[0]) * (r[3] - r[1])), cut: !o.covered && (r[0] !== o.rect[0] || r[1] !== o.rect[1] || r[2] !== o.rect[2] || r[3] !== o.rect[3]),
-      posts: o.posts.map(([x, y]) => P(x, y)),
-    });
+    drawn.push({ o, r });
   }
+  drawn.sort((a, b) => OUTDOOR_LAYER[outdoorFill(a.o)] - OUTDOOR_LAYER[outdoorFill(b.o)]);
+  const blocked = [...d.outline.rects, ...d.furniture.map((f) => f.rect)];
+  const outdoor: PlanOutdoor[] = drawn.map(({ o, r }, i) => {
+    const holes = o.holes.map((h) => clipRect(h, r)).filter((h): h is Rect => h !== null);
+    // what lies on top of this area (drawn later), the house and the furniture cannot carry its name
+    const over = drawn.slice(i + 1).map((q) => q.r);
+    const free = freeCell(o.pool ? o.pool.water : r, o.pool ? [] : [...holes, ...over, ...blocked]);
+    return {
+      id: o.id, type: o.type, name: o.name, role: o.role, fill: outdoorFill(o), covered: o.covered, rect: planRect(r),
+      area: mm((r[2] - r[0]) * (r[3] - r[1])), cut: !whole(o) && (r[0] !== o.rect[0] || r[1] !== o.rect[1] || r[2] !== o.rect[2] || r[3] !== o.rect[3]),
+      posts: o.posts.map(([x, y]) => P(x, y)), postSize: o.postSize,
+      holes: holes.map(planRect),
+      pool: o.pool ? { water: planRect(o.pool.water), outer: planRect(o.pool.outer) } : null,
+      label: { at: P(free.at[0], free.at[1]), w: mm(free.w), h: mm(free.h) },
+    };
+  });
   const frame: Rect = [content[0] - margin, content[1] - margin, content[2] + margin, content[3] + margin];
 
   // overall dimensions: width below the footprint, depth on its east side

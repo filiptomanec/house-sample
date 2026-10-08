@@ -135,6 +135,28 @@
         }
       ]
     },
+    "coffeeTable": {
+      "w": 1.1,
+      "d": 0.6,
+      "category": "table",
+      "builder": "table",
+      "label": {
+        "cs": "Konferenční stolek",
+        "en": "Coffee table"
+      },
+      "variants": [
+        {
+          "when": {
+            "outdoor": true
+          },
+          "variant": "outdoor_low"
+        },
+        {
+          "default": true,
+          "variant": "coffee"
+        }
+      ]
+    },
     "chair": {
       "w": 0.45,
       "d": 0.45,

@@ -2,7 +2,7 @@
 import { describe, expect, it } from "vitest";
 import { derived, house, metrics } from "@/lib/model/instance";
 import style from "@model/style.json";
-import { buildAssemblyCards, buildMaterialLegend, ASSEMBLY_KEYS } from "../assemblies";
+import { buildAssemblyCards, buildMaterialLegend, envelopeKeys, ASSEMBLY_KEYS } from "../assemblies";
 import { buildPlanView, roomNumbers, type StyleMaterials } from "../view";
 
 const mat = style as unknown as StyleMaterials;
@@ -27,13 +27,17 @@ describe.each(["cs", "en"] as const)("buildPlanView (%s)", (locale) => {
     expect(JSON.parse(JSON.stringify(view))).toEqual(view);
   });
 
-  it("lists every room once, in the order of its number, with its texts in the language", () => {
+  it("lists every room once, in the order of its display number, with its texts in the language", () => {
     expect(view.rooms).toHaveLength(derived.rooms.length);
     expect(new Set(view.rooms.map((r) => r.id)).size).toBe(derived.rooms.length);
-    const nums = view.rooms.map((r) => Number(r.number));
-    expect(nums).toEqual([...nums].sort((a, b) => a - b));
+    expect(new Set(view.rooms.map((r) => r.number)).size).toBe(derived.rooms.length);
+    const nums = view.rooms.map((r) => r.number);
+    expect(nums).toEqual([...nums].sort((a, b) => a.localeCompare(b, "en", { numeric: true })));
     for (const r of view.rooms) {
       const src = derived.rooms.find((q) => q.id === r.id)!;
+      // the kernel's display number, never the id
+      expect(r.number).toBe(src.displayNo);
+      expect(plain(r.shortName)).toBe(plain((src.shortName ?? src.name)[locale]));
       expect(plain(r.name)).toBe(plain(src.name[locale]));
       expect(plain(r.zone)).toBe(plain(house.zones[src.zone].label[locale]));
       expect(r.area).toBe(src.area);
@@ -42,8 +46,14 @@ describe.each(["cs", "en"] as const)("buildPlanView (%s)", (locale) => {
     }
   });
 
-  it("adds up to the metrics of the model", () => {
+  it("adds up to the metrics of the model, and the totals are the shared metrics of every page", () => {
     expect(view.totals.floorArea).toBeCloseTo(metrics.netArea + metrics.garageArea, 1); // metrics are rounded to 0.01 m2
+    expect(view.totals.heatedArea).toBe(metrics.heatedArea);
+    expect(view.totals.garageArea).toBe(metrics.garageArea);
+    expect(view.totals.builtUpArea).toBe(metrics.builtUpArea);
+    const heated = derived.rooms.filter((r) => r.heated).reduce((s, r) => s + r.area, 0);
+    expect(view.totals.heatedArea).toBeCloseTo(heated, 1);
+    expect(view.totals.largestRoom).toBe(Math.max(...view.rooms.map((r) => r.area)));
     expect(view.totals.glazing).toBeCloseTo(metrics.glazing.total, 1);
     expect(view.totals.footprint).toBe(metrics.footprintArea);
     expect(view.totals.clearHeight).toBe(house.clearHeight);
@@ -53,6 +63,8 @@ describe.each(["cs", "en"] as const)("buildPlanView (%s)", (locale) => {
   it("lists the exterior openings of the rooms, and their window area is the glazing of the room", () => {
     expect(view.rooms.reduce((s, r) => s + r.openings.length, 0)).toBe(derived.openings.filter((o) => o.exterior && o.room).length);
     for (const r of view.rooms) {
+      expect(new Set(r.facings)).toEqual(new Set(r.openings.map((o) => o.facing)));
+      expect(r.facings).toHaveLength(new Set(r.facings).size);
       const glass = r.openings.filter((o) => o.kind === "window" || o.kind === "slider").reduce((s, o) => s + o.w * o.h, 0);
       expect(glass).toBeCloseTo(r.glazing, 6);
     }
@@ -68,6 +80,14 @@ describe.each(["cs", "en"] as const)("buildPlanView (%s)", (locale) => {
     expect(view.fingerprint).toMatch(/^[0-9a-f]{8}$/);
   });
 
+  it("draws the garden (pool and its deck) and names only the outdoor areas the model names", () => {
+    expect(view.drawing.outdoor.some((o) => o.pool)).toBe(derived.outdoor.some((o) => o.pool));
+    const named = derived.outdoor.filter((o) => o.name && view.drawing.outdoor.some((q) => q.id === o.id));
+    expect(view.outdoor.map((o) => o.id).sort()).toEqual(named.map((o) => o.id).sort());
+    for (const o of view.outdoor) expect(plain(o.name)).toBe(plain(derived.outdoor.find((q) => q.id === o.id)!.name![locale]));
+    if (view.drawing.outdoor.some((o) => o.pool)) expect(view.legend).toContain("pool");
+  });
+
   it("gives every reachable room its distance from the entry", () => {
     for (const r of view.rooms) expect(r.doorsFromEntry === null).toBe(derived.access.unreachable.includes(r.id));
   });
@@ -76,20 +96,36 @@ describe.each(["cs", "en"] as const)("buildPlanView (%s)", (locale) => {
 describe("construction cards", () => {
   const cards = buildAssemblyCards(house, "en");
 
-  it("has one card per assembly with the model's name and the kernel's U-value", () => {
-    expect(cards.map((c) => c.key)).toEqual([...ASSEMBLY_KEYS]);
-    expect(new Set(Object.keys(house.assemblies))).toEqual(new Set(ASSEMBLY_KEYS));
+  it("has one card per assembly of the house with the model's name and the kernel's U-value", () => {
+    // every key of the model is known to the page, and every card is an assembly of the house
+    expect(Object.keys(house.assemblies).every((k) => (ASSEMBLY_KEYS as readonly string[]).includes(k))).toBe(true);
+    expect(new Set(cards.map((c) => c.key))).toEqual(new Set(Object.keys(house.assemblies)));
     for (const c of cards) {
-      expect(plain(c.name)).toBe(plain(house.assemblies[c.key].name.en));
+      const src = house.assemblies[c.key]!;
+      expect(plain(c.name)).toBe(plain(src.name.en));
       expect(c.u).toBeCloseTo(derived.assemblies[c.key].U, 4);
       expect(c.r).toBeCloseTo(derived.assemblies[c.key].R, 4);
       expect(c.thickness).toBeCloseTo(derived.assemblies[c.key].thickness, 9);
     }
   });
 
+  it("puts the thermal envelope first: the walls out, the floor on the ground and the top closure the model names", () => {
+    const env = envelopeKeys(house);
+    expect(cards.map((c) => c.envelope)).toEqual([...cards.map((c) => c.envelope)].sort((a, b) => Number(b) - Number(a)));
+    for (const c of cards) expect(c.envelope).toBe(env.has(c.key));
+    expect(env.has("exteriorWall")).toBe(true);
+    expect(env.has("groundFloor")).toBe(true);
+    // the top closure is the one the kernel says closes the heated volume, and only that one
+    expect(env.has(derived.topEnvelope)).toBe(true);
+    expect(env.has(derived.topEnvelope === "roof" ? "ceiling" : "roof")).toBe(false);
+    // internal walls never belong to it
+    expect(env.has("bearingWall") || env.has("partitionWall")).toBe(false);
+    expect(env.has("wallToUnheated")).toBe(Boolean(house.assemblies.wallToUnheated));
+  });
+
   it("lists every layer, with shares that add up to the resistance of the layers", () => {
     for (const c of cards) {
-      const src = house.assemblies[c.key];
+      const src = house.assemblies[c.key]!;
       expect(c.layers).toHaveLength(src.layers.length);
       expect(c.layers.map((l) => plain(l.name))).toEqual(src.layers.map((l) => plain(l.name.en)));
       expect(c.layers.reduce((s, l) => s + l.thickness, 0)).toBeCloseTo(c.thickness, 9);

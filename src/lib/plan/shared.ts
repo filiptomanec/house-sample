@@ -8,12 +8,15 @@ export type PlanRect = [number, number, number, number];
 export type PlanRing = PlanPt[];
 
 /** Fill colour keys of the plan; the CSS token of each is `PLAN_FILL[key]`. */
-export type FillKey = "day" | "night" | "service" | "circulation" | "garage" | "terrace" | "paving";
+export type FillKey = "day" | "night" | "service" | "circulation" | "garage" | "terrace" | "paving" | "pool";
 
-/** Token names (without `var()`) of the fills. */
+/**
+ * Token names (without `var()`) of the fills. The terrace (deck boards) and paving (tiles) also get a line pattern, drawn by
+ * ./svg. `--plan-water` is requested from the design system; until it exists the page stylesheet gives the water its colour.
+ */
 export const PLAN_FILL: Record<FillKey, string> = {
   day: "--zone-day", night: "--zone-night", service: "--zone-service", circulation: "--zone-circulation",
-  garage: "--zone-garage", terrace: "--zone-terrace", paving: "--map-paving",
+  garage: "--zone-garage", terrace: "--zone-terrace", paving: "--map-paving", pool: "--plan-water",
 };
 
 /** Fill of a room by its type (the zone of the model groups hall and wardrobe with other rooms; the drawing separates circulation). */
