@@ -34,7 +34,7 @@ jobs:
       - run: node scripts/privacy/scan.mjs --all
 
   e2e:
-    name: End-to-end (Playwright: desktop Chromium, iPhone and Android emulation)
+    name: "End-to-end (Playwright: desktop Chromium, iPhone and Android emulation)"
     needs: verify
     runs-on: ubuntu-latest
     steps:
