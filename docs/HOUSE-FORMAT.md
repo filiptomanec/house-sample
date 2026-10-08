@@ -10,8 +10,10 @@ zones, assemblies, windows, equipment, shading, roof details, cameras) is added 
 * Everything that can be computed is **not** stored: net room areas, walls, the footprint, openings' walls and
   orientation, roof faces, PV modules, metrics. They come from `derive()` (see `docs/KERNEL-API.md`) and are written to
   `generated/derived.json` for the Blender pipeline (part 2 of this document).
-* All user-visible text is bilingual: `{ "cs": "...", "en": "..." }` (type `LocalizedText`). Czech text uses
-  no-break spaces (` `) after single-letter prepositions and between a number and its unit; a test enforces it.
+* All user-visible text is bilingual: `{ "cs": "...", "en": "..." }` (type `LocalizedText`). The model stores plain spaces;
+  pages show model text through `localized(text, locale)` (`src/lib/model/metrics.ts`), which applies the site's typography
+  (`nb()`: no-break spaces after single-letter Czech prepositions and between a number and its unit). A test checks every
+  text of the model through `localized()`.
 * Code must never branch on an id (`R04`, `W02`, `T1`). Use `type`, `kind`, `role`, or the derived fields.
 
 ## 1. Conventions
@@ -35,8 +37,9 @@ zones, assemblies, windows, equipment, shading, roof details, cameras) is added 
 |---|---|---|
 | `schema` | `"house/1"` | format id |
 | `id` | string | model id |
-| `name` | text | name of the house |
-| `idea` | text, optional | 2-3 sentences of description (`V-IDEA` if missing) |
+| `name` | text | name of the house (the visible brand of the site) |
+| `tagline` | text, optional | one line of about 70 characters under the name: the hero lede and the meta description (`V-TAGLINE` if missing) |
+| `idea` | text, optional | 2-3 sentences of description in plain words (`V-IDEA` if missing) |
 | `fictional` | `true` | must be true |
 | `location` | object | region, coordinates, elevation, time zone, axis bearing |
 | `wall` | `{ext, bearing, part}` | wall thicknesses: exterior, internal bearing, partition (m, at most 1.5) |
@@ -67,7 +70,7 @@ Unknown keys are errors (`E-TYP`), so typos are caught.
 ### 3.1 `location`
 
 ```json
-{ "region": {"cs": "Jižní Morava (okolí Brna)", "en": "South Moravia (Brno area)"},
+{ "region": {"cs": "Jižní Morava", "en": "South Moravia"},
   "lat": 49.2, "lon": 16.6, "elevation": 240, "tz": "Europe/Prague", "houseAxisBearingDeg": 12 }
 ```
 
@@ -77,9 +80,12 @@ Unknown keys are errors (`E-TYP`), so typos are caught.
 ### 3.2 `rooms[]`
 
 ```json
-{ "id": "R04", "name": {"cs": "...", "en": "..."}, "type": "living", "role": "main-living", "floor": "oak",
-  "rects": [[6.65, 0, 13.5, 5.4], [9, 5.4, 13.5, 8.7]] }
+{ "id": "R04", "name": {"cs": "...", "en": "..."}, "shortName": {"cs": "Obývák", "en": "Living"}, "type": "living",
+  "role": "main-living", "floor": "oak", "rects": [[6.65, 0, 13.5, 5.4], [9, 5.4, 13.5, 8.7]] }
 ```
+
+* `shortName` (optional): a short label for tight places (3D room tags, chips); pages fall back to `name`.
+* Visitors never see the id: the room number is derived (`derived.rooms[].displayNo`, "1.01", section 5.3).
 
 * `rects` are rectangles **between wall axes**. Together all rooms tile the plan exactly (no overlap `E-PREKRYV`, no hole
   `E-DIRA`, one connected part `E-NESOUVISLY`). A room may have several rectangles (L shapes).
@@ -96,7 +102,7 @@ Unknown keys are errors (`E-TYP`), so typos are caught.
 
 ```json
 { "day": {"label": {...}, "types": ["living", "kitchen", "dining", "office", "guest", "hall"]},
-  "night": {...}, "service": {...}, "outdoor": {"label": {...}, "types": ["terrace", "paving", "drive", "path"]} }
+  "night": {...}, "service": {...}, "outdoor": {"label": {...}, "types": ["terrace", "paving", "drive", "path", "deck", "pool"]} }
 ```
 
 Every room type that is used belongs to exactly one of `day`, `night`, `service` (`E-ZONA`); every used outdoor type to
@@ -141,14 +147,28 @@ where a transverse hip meets the main roof (see 5.4). Every exterior wall and th
 
 ### 3.6 `outdoor[]`, `accents[]`, `furniture[]`, `screens[]`, `lightpipes`
 
-* `outdoor`: `{id, type: terrace|paving|drive|path, covered?, rect, posts?: [x, y][]}`. Covered areas need posts (`V-TERASA-SLOUPY`).
+* `outdoor`: `{id, type, name?, covered?, rect, top?, surface?, posts?: [x, y][], postSize?}` with `type`
+  `terrace | paving | drive | path | deck | pool`. Covered areas need posts (`V-TERASA-SLOUPY`).
+
+  | field | meaning |
+  |---|---|
+  | `name` | optional name for visitors ("Závětří u vstupu", "Bazén"); pages fall back to `OUTDOOR_TYPE_NAMES` |
+  | `top` | height of the slab top above ±0.000 (m, default `DEFAULT_OUTDOOR_TOP` = −0.02). The drive and the path that the site extends to the street are ramps from this top at the house end to their gate (section 5.7) |
+  | `surface` | `paving` or `deck` (timber boards). Default `deck` for type `deck`, `paving` otherwise. Gives the GLB role (`derived.outdoor[].role`) |
+  | `postSize` | side of the square posts (m); required when there are posts |
+  | `depth`, `waterBelowTop`, `coping` | **pool only, all required**: depth of the basin below the coping top, water level below the coping top, width of the coping ring (m). `rect` is the water surface. Not allowed on other types |
+
+  A pool must lie, coping included, inside an outdoor area of type `deck`, `paving` or `terrace` (`POOL_SURROUND_TYPES`) and
+  must not touch the house (`E-BAZEN`). Catalogue lists that pages and the pipeline use instead of type names:
+  `GROUND_VOID_OUTDOOR` (`pool`: the terrain has a hole there), `SUN_SAMPLED_OUTDOOR` (`terrace`, `pool`: the sun analysis
+  samples them), `WATER_OUTDOOR` (`pool`).
 * `accents`: `{id, type: "wood", orient, cx, cy, w}`: a timber cladding strip on an **exterior** wall (`E-OBKLAD`).
 * `furniture`: `{type, x, y, rot, w?, d?}`: `x, y` is the centre, `rot` is 0/90/180/270 counter-clockwise in the plan; at
   rot 0 the width `w` runs along x, the depth `d` along y and the back of the object (bed head, sofa back) faces +y. Types
   and default sizes are in `FURNITURE` (`src/lib/model/catalog.ts`): `bed160 bed180 bed90 sofaL sofa3 armchair tv table6
-  table8 chair island kitchenLine fridge wardrobe desk shelf wc sink sink2 shower bath washer car lounger swingbed grill bench`.
-* `screens`: `{id, type: "slats", orient: "v", cx, y0, y1}` or `{id, type: "slats", orient: "h", cy, x0, x1}`: a vertical
-  slat screen. Slat pitch, width and depth are in `shading.slats`.
+  table8 chair island kitchenLine fridge wardrobe desk shelf wc sink sink2 shower bath washer coffeeTable car lounger swingbed grill bench`.
+* `screens`: `{id, type: "slats", orient: "v", cx, y0, y1}` or `{id, type: "slats", orient: "h", cy, x0, x1}`: a louvre wall
+  of vertical blades that **turn** (they never slide). The blades are in `shading.slats` (section 4.4).
 * `lightpipes`: positions `[x, y]` (plan). Diameter and dome height are in `roof.lightpipes`. Derived data places each
   on its roof face with the roof height and the room below.
 
@@ -156,7 +176,10 @@ where a transverse hip meets the main roof (see 5.4). Every exterior wall and th
 
 ### 4.1 `assemblies`
 
-Six build-ups: `exteriorWall`, `bearingWall`, `partitionWall`, `ceiling`, `roof`, `groundFloor`.
+Six build-ups: `exteriorWall`, `bearingWall`, `partitionWall`, `ceiling`, `roof`, `groundFloor`, plus the optional
+`wallToUnheated` (an insulated wall between heated and unheated rooms, e.g. to the garage). The walls it applies to are
+derived: `derived.walls[].toUnheated` marks every interior wall with a heated room on one side and an unheated room on the
+other (`metrics.unheatedBoundary` gives their wall and door areas).
 
 ```json
 { "name": {...}, "rsi": 0.13, "rse": 0.04,
@@ -187,9 +210,14 @@ frame share, U-value of opaque doors; `slider` overrides the values for sliding 
         "inverter": {"ratedKw": 10} },
 "battery": { "options": [{"id": "b10", "name": {...}, "capacityKwh": 10, "powerKw": 5}, ...], "default": "b10" },
 "heating": { "type": "air-water-heat-pump", "name": {...}, "ratedPowerKw": 8, "scop": 4.3, "scopDhw": 3.0,
-             "emission": "underfloor", "flowTemperatureC": 35, "dhw": {"tankLiters": 200, "setpointC": 50} },
+             "emission": "underfloor", "flowTemperatureC": 35, "dhw": {"tankLiters": 200, "setpointC": 50},
+             "outdoorUnit": { "pos": [-0.75, 10.6], "size": [1.1, 0.45, 1.0], "rot": 90 } },
 "ventilation": { "type": "mvhr", "name": {...}, "heatRecoveryEfficiency": 0.88, "nominalAirflowM3h": 240, "specificFanPower": 0.35 }
 ```
+
+`heating.outdoorUnit` (optional): the outdoor unit of an air-source heat pump standing on the ground: plan centre, size
+`[w, d, h]` (w along x at rot 0), rotation 0/90/180/270. `derived.outdoorUnit` gives its footprint and the ground height
+(GLB role `equipment`).
 
 The PV **layout is derived**, not stored: modules go on roof faces whose `side` is in `layout.facings`, in rows parallel
 to the eave, at the given distance from edges of each kind, around light pipes (see 5.5). The count is a result
@@ -199,41 +227,77 @@ to the eave, at the given distance from edges of each kind, around light pipes (
 
 ```json
 "blinds": { "type": "external-venetian", "name": {...}, "kinds": ["window", "slider"],
-            "azimuthFrom": 135, "azimuthTo": 315, "boxHeight": 0.2, "closedFactor": 0.15, "closeAboveIrradiance": 250 },
-"slats": { "pitch": 0.10, "width": 0.04, "depth": 0.06 }
+            "azimuthFrom": 0, "azimuthTo": 360, "boxHeight": 0.2, "closedFactor": 0.15, "closeAboveIrradiance": 250,
+            "product": { "slatWidth": 0.08, "slatPitch": 0.072, "slatThickness": 0.0035, "railWidth": 0.024,
+                         "railDepth": 0.03, "boxDepth": 0.09, "reveal": 0.051, "maxSectionWidth": 2.4 } },
+"slats": { "pitch": 0.10, "width": 0.025, "depth": 0.12, "restDeg": 60 }
 ```
 
 **Rule:** an exterior opening gets a blind (`derived.openings[].blind`) when its kind is in `kinds`, it has glazing, it
-belongs to a heated room, and its **true** azimuth lies in the clockwise range `azimuthFrom → azimuthTo` (135 → 315 is
-south-east through south to north-west, i.e. the south and west sides). `closedFactor` multiplies the solar gain with
-the blind closed; the blind closes above `closeAboveIrradiance` W/m² on the facade. `slats` styles the `screens`.
+belongs to a heated room, and its **true** azimuth lies in the clockwise range `azimuthFrom → azimuthTo`. **0 → 360 (any
+range of 360° or more) means every facade**; otherwise the ends are taken modulo 360, so 350 → 10 wraps through north and
+135 → 315 is the south and west half. `closedFactor` multiplies the solar gain with the blind closed; the blind closes
+above `closeAboveIrradiance` W/m² on the facade.
+
+`blinds.product` is the **one** blind product, read by the web 3D and the renders (never two definitions): slat width,
+pitch and thickness, guide rail width and depth, the depth of the box hidden in the reveal and of the blind plane behind
+the outer wall face (`reveal`), and the widest section; a wider opening gets `derived.openings[].blindSections` sections
+with shared middle rails.
+
+`slats` are the blades of the louvre walls (`screens`): centre-to-centre `pitch`, `depth` = the **chord** (across the wall
+when open), `width` = the **thickness**, `restDeg` = the angle of the static model and the default of the controls. The
+blades turn about their centres; angles are measured from the wall plane: **90° = open** (square to the wall), and the
+closed stop is where neighbouring blades touch, `closedDeg = ceil5(asin(width / pitch))` (15° for 25 mm blades at a
+100 mm pitch), derived as `derived.screens[].closedDeg`. Validation (`E-LAMELY`): chord > pitch (the closed wall is
+opaque), `closedDeg` ≤ 30 and `closedDeg` ≤ `restDeg`.
 
 ### 4.5 `roof`
 
-`{covering: {type, name}, lightpipes: {diameter, domeHeight}, downpipes: [{x, y, diameter}], snowGuards: {aboveOpeningKinds}}`.
-`covering.type` is `standing-seam-steel | clay-tile | concrete-tile`. Downpipes should stand at the low end of every roof
-valley (`V-SVOD-UDOLI`). Snow guards run over openings of the listed kinds.
+`{attic, covering: {type, name}, lightpipes: {diameter, domeHeight}, downpipes: [{x, y, diameter}], snowGuards: {aboveOpeningKinds}}`.
+
+* `attic`: `"cold"` (a ventilated attic above the insulated ceiling: the `ceiling` assembly closes the heated volume) or
+  `"warm"` (the `roof` assembly does). `derived.topEnvelope` is `"ceiling"` or `"roof"` accordingly; `V-U-STRECHA` checks that
+  assembly.
+* `covering.type` is `standing-seam-steel | clay-tile | concrete-tile`.
+* Downpipes should stand at the low end of every roof valley (`V-SVOD-UDOLI`). The gutters follow the outer edge of the
+  roof plan (union of the eave rectangles); every downpipe within 1.5 m of it is an outlet (a pipe inside a terrace column
+  counts), and water runs to the nearer outlet, so a gutter may run at most `GUTTER_RUN_MAX` = 12.5 m to an outlet
+  (outlets at most 25 m apart along the gutter, `V-SVOD-OKAP`).
+* Snow guards run over openings of the listed kinds.
 
 ### 4.6 `cameras[]`
 
 ```json
-{ "id": "entry", "name": {...}, "kind": "perspective", "position": [17.5, 20.7, 2.1], "target": [17.5, 11.8, 1.7],
-  "fov": 42, "use": ["web", "render"] }
+{ "id": "garden", "name": {...}, "short": {"cs": "Zahrada", "en": "Garden"}, "kind": "perspective",
+  "position": [6.0, -15.0, 1.4], "aboveGround": 1.6, "target": [10.0, 1.0, 1.5], "fov": 55, "use": ["web", "render"] }
 ```
 
-House-frame metres, `z` absolute (0 = top of the finished floor, **not** height above the ground: the terrain of the plot
-lies between about -0.7 and +0.5 m, so the eye height of a camera is `groundAt(x, y) + 1.6 .. 1.8`). `fov` is the vertical
-field of view (degrees, required for perspective), `orthoHeight` the visible height (m, required for orthographic). `use`:
-`web` (viewer presets, in this order; the first one is the opening view of the 3D page), `render` (marks a view as suitable
-for stills; the stills themselves are planned in `model/render.json` with their own cameras, which follow the same rules),
-`og` (a view that shows the whole building at 1200 x 630, checked by a test).
+House-frame metres, `z` absolute (0 = top of the finished floor, **not** height above the ground). `aboveGround` (optional)
+gives the eye height above the graded ground instead: `derived.cameras[].position[2]` = `groundAt(x, y) + aboveGround`
+(the site's terrain with the slabs cut in), and `position[2]` of the model is then only a fallback for code without the
+site (keep it close). `fov` is the vertical field of view (degrees, required for perspective), `orthoHeight` the visible
+height (m, required for orthographic). Other fields:
+
+| field | meaning |
+|---|---|
+| `short` | short chip label ("Ulice", "Zahrada"); pages fall back to `name` |
+| `use` | `web` (3D page presets, in this order), `sun` (presets of the Sun page), `render` (suitable for stills; the stills are planned in `model/render.json` with their own cameras, which follow the same rules), `og` (shows the whole building at 1200 x 630, checked by a test) |
+| `default` | the opening view of the 3D pages; at most one camera, and it must have `use` `web` or `sun` (`E-KAMERA`) |
+| `defaultFor` | stage classes this camera opens on instead: `["narrow"]` = phones (read after mount) |
+
+The cameras of the model, in chip order: the aerial view from the south-west (chip "Celý pozemek" / "Whole plot": the
+default of both 3D pages and of phones), the street at eye level on the far side of the carriageway (it looks through
+the drive gate, so the gate is open in that view), the entrance on the path axis, the garden from the south-west lawn
+across the pool, the pool and terrace from the south-east, the covered terrace from the pool deck, the living room, the
+main bedroom and the top view; the aerial view from the south-east is for the renders only. Eye-level cameras give
+`aboveGround`; their stored `z` is the resolved height rounded to 1 cm.
 
 **How cameras are chosen** (checked by `scripts/__tests__/cameras.test.ts`, compare `docs/SITE.md`):
 
-* The plot is closed on every side: a solid plinth fence on the street, hedges on two sides, a timber fence on the third.
-  A camera outside the plot at eye height only sees these boundary elements. So an **eye-level camera stands on the plot**: inside
-  the plot polygon, at least 0.8 m from the boundary (hedges and fences stand 0.1 to 0.5 m inside it), 1.0 to 2.6 m above
-  the ground, not inside a tree, shrub or hedge.
+* The plot is closed on every side by one slat fence (on a plinth) with a sliding drive gate, a walk gate and a pillar on the
+  street (`docs/SITE.md`). A camera outside the plot at eye height only sees the fence. So an **eye-level camera stands on
+  the plot** (or on the street when it is meant to show the gate): inside the plot polygon, at least 0.8 m from the boundary
+  (the fence stands 0.1 m inside it), 1.0 to 2.6 m above the ground (use `aboveGround`), not inside a tree, shrub or the fence.
 * A **high camera** (8 m or more above the ground: aerial and street-side views) may stand outside the plot, over the street,
   the field or a neighbour, if its line of sight passes above the boundary: steep enough that the street fence is not in the
   frame, no hedge, fence or neighbouring building between it and the house.
@@ -266,10 +330,23 @@ independent check of the roof faces.
 An exterior opening inherits the outward normal of its wall: `azimuth` (house frame, 0/90/180/270), `azimuthTrue`
 (`+ bearing`), `facing` (8-wind name of the true azimuth), `dir` (`N|E|S|W` of the house frame).
 
-### 5.3 Access graph
+### 5.2a Overhang in front of an opening
+
+`derived.openings[].overhang` (exterior openings under a roof): start at the centre of the head on the **outer wall face** and
+march along the outward normal until the point leaves the union of the roof plan (the eave rectangles; exact, from far edge
+to far edge). `depth` is that distance, so an opening onto a covered terrace is shaded by the whole terrace roof (a slider
+onto a 6.65 m deep terrace under a roof with a 0.8 m overhang: 7.45 m). `eaveHeight` is the height of the shading edge: the
+soffit (`clearHeight`) when the strip in front of the opening lies over a covered outdoor area, otherwise the roof surface
+at the exit point (the eave). `wallTop` is that of the roof above the opening.
+
+### 5.3 Access graph and room numbers
 
 `derived.access`: the first `entry` opening defines the entry room; `edges` are the `door` openings between rooms; `depth[roomId]`
 is the number of doors to pass from the entry room; `unreachable` lists the rooms without a path (`E-DOSTUPNOST`).
+
+`derived.rooms[].displayNo` is the room number for visitors: `"<storey>.<two digits>"` ("1.01" on the ground floor), in the
+order of a breadth-first walk through the doors from the entry room (neighbours in the order of their doors in
+`openings`); rooms without a path follow in model order. Ids stay internal.
 
 ### 5.4 Roof faces
 
@@ -304,10 +381,41 @@ modules are centred. Output: `derived.pv.panels` with local rectangle `uv` and f
 roof exactly: enclosed volume = integral of the roof height over the footprint (floor to roof surface), sloped roof area =
 sum of the faces, envelope = footprint perimeter x average wall top + roof area over the footprint + footprint.
 
+Areas and counts for the pages (one definition each, used everywhere):
+
+| metric | definition |
+|---|---|
+| `netArea`, `heatedArea` | net floor area of the heated rooms (užitná plocha bez garáže) |
+| `heatedAreaGross` | gross heated area (energy reference area): the outline split between the rooms, each heated room reaching the outer face of its exterior walls and the axis of its walls to other rooms |
+| `footprintArea` | the outline of the house with its walls |
+| `builtUpArea` | zastavěná plocha: the outline plus the roofed outdoor areas outside it (covered terrace, porch); equals the plot statistics |
+| `layoutCode` | Czech layout code: rooms of `LAYOUT_ROOM_TYPES` (living, bedroom, kids, office, guest) + `kk` (no separate kitchen) or `1` ("5+kk") |
+| `bedroomCount` | rooms of `BEDROOM_TYPES` (bedroom, kids, guest) |
+| `unheatedBoundary` | `{wallArea, doorArea}` of the walls with `toUnheated` (clear height x length, doors apart) |
+
+### 5.7 Levels and pools
+
+±0.000 is the finished floor. Every outdoor area gets a planar top, `derived.outdoor[].grade`:
+
+* `kind: "flat"`: at `top` (default −0.02). `corners` (heights at the rect corners `[x0 y0, x1 y0, x1 y1, x0 y1]`) are all `top`.
+* `kind: "ramp"`: the strips that the site extends to the street (`site.access.driveway/walkway.outdoorType`, the strip
+  reaching furthest to the street) rise linearly along +y from `top` at the house end to the graded ground at their gate
+  plus 0.03 m (`ramp.z0`, `ramp.z1`, `ramp.slope`; at most 8 %, `E-RAMP` of the site validation). `plane` gives the top
+  everywhere (`z = z0 + gx (x - ox) + gy (y - oy)`); `ramp.apron` is the continuation to the plot boundary with the top at
+  its vertices.
+
+Without the site (`derive(house)`) every slab is flat. The terrain is cut under the slabs (`docs/SITE.md`, section 3).
+
+A pool (`type: "pool"`, `rect` = water) gets `derived.outdoor[].pool`: `water`, `outer` (the water grown by the coping: the
+hole in the deck and in the terrain), `copingTop` (= its top), `waterZ = top − waterBelowTop`, `floorZ = top − depth`,
+plan `polygons` (water, coping ring, the deck with its hole), the id of its `deck`, `waterArea` and `waterVolume`. The deck
+area gets the pool in `holes` and `netArea` = area − holes. `derived.groundVoids` lists the `outer` rects of all
+`GROUND_VOID_OUTDOOR` areas.
+
 ## 6. `generated/derived.json` (derived data)
 
-Written by `npx tsx scripts/build-derived.ts` from `derive(house)`; read by the Blender pipeline (which never re-derives
-geometry) and by tests. It is a **superset of the concept/1 derived format**: all keys and shapes of that format are
+Written by `npx tsx scripts/build-derived.ts` as `derivedFile(house, site)` = `derive(house, { site })` plus `metrics`;
+read by the Blender pipeline (which never re-derives geometry) and by tests. It is a **superset of the concept/1 derived format**: all keys and shapes of that format are
 kept (except that `rooms[].name` is now a bilingual object), plus new keys. All coordinates are house-frame metres.
 
 | key | content |
@@ -318,36 +426,44 @@ kept (except that `rooms[].name` is now a bilingual object), plus new keys. All 
 | `wall`, `defaultWallTop` | wall thicknesses, default wall top (`clearHeight + slab`) |
 | `grid` | `{xs, ys}`: the compressed coordinate grid |
 | `overlaps`, `holes`, `components` | diagnostics (empty in a valid model; one component) |
-| `walls[]` | `{id, orient, at, from, to, len, kind: exterior\|bearing\|partition, ext, t, lo, hi}` on wall axes; `lo`/`hi` = room ids on the low/high side (`null` = outside). Exterior walls add `room`, `azimuth`, `azimuthTrue`, `facing`, `height` |
-| `rooms[]` | `{id, name, type, role?, zone, floor?, heated, rects, cleanRects, area, axisArea, bbox, rectsClear, minWidth, mainClear, glazing: {total,N,E,S,W}, openings[], height, volume, label: {x,y,r}, outlineDistance, centroid, exteriorWallLength, exteriorWallArea}`. `cleanRects` are the net rectangles |
+| `walls[]` | `{id, orient, at, from, to, len, kind: exterior\|bearing\|partition, ext, t, lo, hi}` on wall axes; `lo`/`hi` = room ids on the low/high side (`null` = outside). Exterior walls add `room`, `azimuth`, `azimuthTrue`, `facing`, `height`; interior walls between a heated and an unheated room add `toUnheated: true` |
+| `rooms[]` | `{id, name, shortName, displayNo, type, role?, zone, floor?, heated, rects, cleanRects, area, axisArea, bbox, rectsClear, minWidth, mainClear, glazing: {total,N,E,S,W}, openings[], height, volume, label: {x,y,r}, outlineDistance, centroid, exteriorWallLength, exteriorWallArea}`. `cleanRects` are the net rectangles |
 | `netRooms[]` | pipeline view: `{id, type, floor?, heated, rects (= cleanRects), area}` |
 | `outline` | `{rects, polygons: [{pts, area}], bbox, area, perimeter}`: the footprint including walls; `outer` is its outer ring `{pts, area}` |
 | `bbox` | `{x0, y0, x1, y1, w, d, z0, z1, h}`: whole building including roof eaves and ridge |
-| `openings[]` | `{id, kind, orient, cx, cy, w, sill, head, swing, hinge, c, axis, from, to, wallId, problem, exterior, wallKind, azimuth, room, connects, swingRoom, glazingArea, clearStart, clearEnd, azimuthTrue, facing, dir, area, center: [x,y,z], blind, overhang: {depth, eaveHeight, wallTop} \| null}` |
+| `openings[]` | `{id, kind, orient, cx, cy, w, sill, head, swing, hinge, c, axis, from, to, wallId, problem, exterior, wallKind, azimuth, room, connects, swingRoom, glazingArea, clearStart, clearEnd, azimuthTrue, facing, dir, area, center: [x,y,z], blind, blindSections, overhang: {depth, eaveHeight, wallTop} \| null}` (overhang: section 5.2a) |
 | `accents[]` | the input plus `{wallId, exterior, problem, azimuth, azimuthTrue, facing}` |
 | `roofs[]` | `{id, rect, pitch, overhang, wallTop, w, d, ridgeAlong, ridgeLength, ridgeHeight, ridgeRise, ridge: [[x,y],[x,y]], eaveRect, eaveHeight, planAreaWithOverhang, slopedArea, faces[]}` |
 | `roofPlanes[]` | convex roof faces: `{id, plane, roofId, side, pitch, azimuth, azimuthTrue, aspect, facing, pts, pts3, uv, edges: [{kind, length}], area, planArea, centroid, zMin, zMax, frame: {origin, u, v, n}}` (section 5.4) |
-| `outdoor[]` | `{id, type, covered, rect, area, posts, zone: "outdoor"}` |
-| `screens[]` | `{id, type, orient, at, from, to, length, azimuth, azimuthTrue, facing}`; `azimuth` is the outward direction |
+| `outdoor[]` | `{id, type, name, covered, rect, area, netArea, holes, posts, postSize, zone: "outdoor", surface, role, top, grade, pool}` (sections 3.6, 5.7); `role` is the GLB role of the slab top (`terrace_paving`, `deck`, `drive_paving`, `path`, `pool_coping`) |
+| `screens[]` | `{id, type, orient, at, from, to, length, azimuth, azimuthTrue, facing, blades: {count, pitch, chord, thickness, positions}, closedDeg, openDeg, restDeg, z0, z1}`; `azimuth` is the outward direction; blades spread evenly (`count = floor(length / pitch)`, centres at `from + (i + 0.5) * length / count`) from the slab top `z0` to the soffit `z1` |
 | `lightpipes[]` | `{x, y, diameter, room, face, z}` |
 | `furniture[]` | `{index, type, x, y, rot, w, d, rect, room, outdoor}` |
 | `access` | `{entryOpening, entryRoom, edges: [{a, b, opening}], depth: {roomId: n}, unreachable}` |
 | `facings` | `{N, E, S, W}`: `{dir, houseAzimuthDeg, azimuthDeg, facing, wallLength, wallArea, glazingArea, doorArea, blindedGlazingArea, roofArea}` (the key names match `src/lib/data/pvgis.json`) |
 | `assemblies` | `{exteriorWall, bearingWall, partitionWall, ceiling, roof, groundFloor}`: `{thickness, R, U}` |
 | `pv` | `{moduleWp, count, kwp, area, byFace: [{face, plane, orientation, count, rows[]}], panels: [{id, plane, face, row, col, wp, uv, center, corners}]}` |
+| `attic`, `topEnvelope` | `roof.attic` and the assembly that closes the heated volume at the top (`roof` or `ceiling`) |
+| `cameras[]` | `{id, name, short, kind, position (z resolved, section 4.6), target, fov, orthoHeight, use, default, defaultFor, aboveGround, ground}` |
+| `groundVoids` | rects where the terrain has a hole (pool basins with their coping) |
+| `outdoorUnit` | `{center, size, rot, footprint, z}` of the heat-pump outdoor unit, or null |
+| `catalog` | `{groundVoidOutdoor, sunSampledOutdoor, waterOutdoor, bedroomTypes}`: the catalogue lists, so Python never copies them |
+| `site` | the plot resolved for this house (`exportSiteLayout`, `docs/SITE.md` section 4): plot, street with pavement and green strip, access aprons, verges and dropped kerbs, fences with parts, posts (with ground z) and slat spec, gates (posts, leaf, park span or swing arc), pillars, hedges, trees (with ground z and `uplight`), shrubs, beds, paved, neighbours, rainwater tank. Null without the site |
+| `metrics` | `computeMetrics(house, derived)` (section 5.6); written by `scripts/build-derived.ts`, not part of `derive()` |
 
 Numbers in the file are rounded to 9 decimals so that the output is stable. Opening `problem` is `null` in a valid model
 (otherwise `no-axis`, `off-wall`, `span`).
 
 ## 7. Validation
 
-`validateHouse(input)` / `validateHouseJson(text)` return `{valid, errors, warnings, house, derived, metrics}`; every issue has
+`validateHouse(input, { site? })` / `validateHouseJson(text, { site? })` return `{valid, errors, warnings, house, derived, metrics}`
+(with `site` the derived data include the grades, camera heights and the resolved plot); every issue has
 `code`, `severity` and a bilingual `message`. A structural error (`E-JSON`, `E-SCHEMA`, `E-TYP`, `E-ID`, `E-RECT`) stops the
 run: geometry is not derived from a broken structure. Run it from the shell:
 
 ```sh
 npx tsx scripts/model-validate.ts [model/house.json] [--lang cs|en] [--json]    # exit 0 / 1 (errors) / 2 (input)
-npx tsx scripts/build-derived.ts [--check]                                      # validate, write derived.json + house.schema.json
+npx tsx scripts/build-derived.ts [--check]                                      # validate house and site, write derived.json + house.schema.json
 ```
 
 Every code below is provoked by a mutation test (`src/lib/model/__tests__/validate.test.ts`).
@@ -381,6 +497,9 @@ Every code below is provoked by a mutation test (`src/lib/model/__tests__/valida
 | `E-VSTUP` | Chybí hlavní vstup | No main entrance |
 | `E-DOSTUPNOST` | Místnost není dosažitelná dveřmi z hlavního vstupu | Room is not reachable by doors from the main entrance |
 | `E-GARAZ-ROZMER` | Garáž je menší než 5,5 x 5,5 m | Garage is smaller than 5.5 x 5.5 m |
+| `E-BAZEN` | Bazén neleží v ploše terasy nebo dlažby, nebo zasahuje do domu | Pool does not lie inside a deck or paved area, or overlaps the house |
+| `E-LAMELY` | Lamely stěny terasy se nedají zavřít | The louvre blades cannot close |
+| `E-KAMERA` | Výchozí pohled kamer je zadán chybně | The default camera view is set wrongly |
 
 **Warnings** (the model is valid, but check it)
 
@@ -411,6 +530,8 @@ Every code below is provoked by a mutation test (`src/lib/model/__tests__/valida
 | `V-FVE-NULA` | Do střechy se nevejde žádný fotovoltaický modul | No photovoltaic module fits on the roof |
 | `V-SVOD-UDOLI` | U spodního konce údolí střechy chybí dešťový svod | No downpipe at the low end of a roof valley |
 | `V-SVETLOVOD-MIMO` | Světlovod neleží nad místností pod střechou | Light pipe is not above a room under the roof |
+| `V-SVOD-OKAP` | Voda v okapovém žlabu teče k nejbližšímu svodu dál než 12,5 m | A gutter runs more than 12.5 m to the nearest downpipe |
+| `V-TAGLINE` | Chybí podtitul "tagline" | Missing "tagline" |
 
 ## 8. Content hash of the model
 
@@ -440,9 +561,9 @@ print(hashlib.sha256(msg).hexdigest())
 | `rooms[].name` (string) | `{cs, en}`; optional `role` |
 | `rooms`, `openings`, `roofs`, `outdoor`, `accents`, `furniture`, `wall`, `clearHeight`, `slab`, `bearingAxes`, `lightpipes`, `screens` | unchanged |
 | `notes` (record of strings with Czech keys) | `notes` record of `{cs, en}` with English keys |
-| not present | `fictional`, `location`, `zones`, `assemblies`, `windows`, `equipment`, `shading`, `roof`, `cameras` |
+| not present | `fictional`, `location`, `zones`, `assemblies`, `windows`, `equipment`, `shading`, `roof`, `cameras`, `tagline` |
 
-The geometry derived from the same plan is identical to the stored oracle output (`src/lib/model/__fixtures__/oracle-*.json`); the oracle test compares them to 1e-6.
+The geometry derived from the concept plan is identical to the stored oracle output (`src/lib/model/__fixtures__/oracle-*.json`); the oracle test compares them to 1e-6. The concept plan itself is frozen as `__fixtures__/oracle-house.json`, so later re-plans of `model/house.json` (the east wing, the sliders, the cold attic) do not touch the oracle.
 
 ## 10. Changing the format
 

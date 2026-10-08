@@ -7,7 +7,12 @@ import { parseSite } from "../siteSchema";
 import { FIXTURE_BEARING_DEG } from "./fixture";
 
 const site = parseSite(siteRaw);
-const terrain = createTerrain(site.terrain, FIXTURE_BEARING_DEG);
+/**
+ * A terrain of the model's family (same waves, noise, plateau and frame) with a plane that falls a known 3 % to the south,
+ * so the algorithm is exercised on enough relief whatever the gentle fall of the content is (the model plot is nearly flat).
+ */
+const RELIEF_SLOPE_PCT = 3;
+const terrain = createTerrain({ ...site.terrain, plane: { ...site.terrain.plane, slopeSouthPct: RELIEF_SLOPE_PCT } }, FIXTURE_BEARING_DEG);
 
 function gridOf(f: (x: number, y: number) => number, x0: number, y0: number, x1: number, y1: number, step: number): HeightGrid {
   const nx = Math.round((x1 - x0) / step) + 1, ny = Math.round((y1 - y0) / step) + 1;
@@ -65,7 +70,22 @@ describe("saddles", () => {
   });
 });
 
-describe("contours of the model terrain", () => {
+describe("contours of the model terrain itself", () => {
+  const model = createTerrain(site.terrain, FIXTURE_BEARING_DEG);
+  const grid = model.grid({ x0: -40, y0: -50, x1: 60, y1: 55 }, 0.5);
+  const lines = contourLines(grid, { minor: 0.2, major: 1 });
+
+  it("has a contour for every 0.2 m level inside its height range, each closed or running border to border", () => {
+    let lo = Infinity, hi = -Infinity;
+    for (const z of grid.z) { lo = Math.min(lo, z); hi = Math.max(hi, z); }
+    const want = new Set<number>();
+    for (let k = Math.floor(lo / 0.2) + 1; k * 0.2 < hi; k++) if (k * 0.2 > lo + 1e-9) want.add(Math.round(k * 2) / 10);
+    expect(new Set(lines.map((l) => Math.round(l.level * 10) / 10))).toEqual(want);
+    for (const c of lines) if (!c.closed) expect(onBorder(grid, c.points[0]) && onBorder(grid, c.points[c.points.length - 1])).toBe(true);
+  });
+});
+
+describe("contours of a model-like terrain (the model's waves and plateau on a 3 % plane)", () => {
   const bbox = { x0: -40, y0: -50, x1: 60, y1: 55 };
   const grid = terrain.grid(bbox, 0.5);
   const lines = contourLines(grid, { minor: 0.2, major: 1 });

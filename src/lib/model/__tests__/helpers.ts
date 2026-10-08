@@ -26,6 +26,19 @@ export function baseline(): { house: House; derived: Derived } {
   return cache;
 }
 
+let oracleCache: { house: House; derived: Derived } | null = null;
+/**
+ * The frozen concept plan the oracle fixtures were produced from (`__fixtures__/oracle-house.json`) and its derived data.
+ * The oracle checks the kernel, not the current content: model/house.json moves on (re-plans), this input does not.
+ */
+export function oracleBaseline(): { house: House; derived: Derived } {
+  if (!oracleCache) {
+    const house = HouseSchema.parse(fixture<unknown>("oracle-house.json"));
+    oracleCache = { house, derived: derive(house) };
+  }
+  return oracleCache;
+}
+
 /** Deep copy of the house as a mutable object. */
 export function cloneHouse(): House {
   return loadHouse();

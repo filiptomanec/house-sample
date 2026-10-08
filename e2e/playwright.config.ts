@@ -1,5 +1,7 @@
 // End-to-end tests (docs/TESTING.md). Run with `npm run e2e` after `npm run build`: the production server is started on port 3401
-// (or reused when it already runs). BASE_URL=http://localhost:3400 points the suite at another server (e.g. `next dev`) instead.
+// (or reused when it already runs). BASE_URL=http://localhost:3400 points the suite at another server (e.g. `next dev`) instead,
+// or at a deployment (.github/workflows/deploy-check.yml); VERCEL_AUTOMATION_BYPASS_SECRET then lets the requests through
+// Vercel's deployment protection.
 //
 // Projects: desktop Chromium 1440x900, iPhone 15 and iPhone SE (WebKit), Pixel 7 (Chromium). A test title may carry a tag:
 //   @desktop  only the desktop project (hover, keyboard-heavy flows)      @mobile  only the three phone projects
@@ -11,6 +13,7 @@ const PORT = 3401;
 const external = process.env.BASE_URL;
 const baseURL = external ?? `http://localhost:${PORT}`;
 const CI = !!process.env.CI;
+const bypass = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
 
 // Headless Chromium on a Mac can use the GPU through ANGLE/Metal (a 3D page is ready in about 5 s); everywhere else (Linux CI) it draws
 // WebGL with SwiftShader, in software (25 s and more, and every frame takes seconds). helpers/stage.ts reads the same switch.
@@ -38,6 +41,9 @@ export default defineConfig({
     navigationTimeout: 30_000,
     // a fixed colour scheme and no motion preference keep the pages deterministic
     colorScheme: "light",
+    // Vercel's "Protection Bypass for Automation": the header opens a protected deployment, the cookie keeps it open for the
+    // browser's own requests (scripts, images)
+    ...(bypass ? { extraHTTPHeaders: { "x-vercel-protection-bypass": bypass, "x-vercel-set-bypass-cookie": "true" } } : {}),
   },
   projects: [
     {

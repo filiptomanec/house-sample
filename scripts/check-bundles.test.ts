@@ -3,12 +3,12 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { ROUTE_KEYS, ROUTES as APP_ROUTES } from "../src/lib/routes";
-import { LOCALES, ROUTES, THREE_ROUTES, analyzeBuild, chunkRefs, externalResources } from "./check-bundles.mjs";
+import { LOCALES, ROUTES, THREE_ROUTES, analyzeBuild, backdropPrefixProblems, chunkRefs, externalResources, modelFilesIn, modelSchemas } from "./check-bundles.mjs";
 
 const dirs: string[] = [];
 afterEach(() => { while (dirs.length) rmSync(dirs.pop()!, { recursive: true, force: true }); });
 
-type Fixture = { html?: Record<string, string[]>; extraHtml?: Record<string, string>; chunks: Record<string, string> };
+type Fixture = { html?: Record<string, string[]>; extraHtml?: Record<string, string>; chunks: Record<string, string>; css?: Record<string, string> };
 
 /** A fake .next: every page references the shared chunks plus its own list; `chunks` maps names to contents. */
 function build(f: Fixture): string {
@@ -24,6 +24,7 @@ function build(f: Fixture): string {
     }
   }
   for (const [name, text] of Object.entries(f.chunks)) put(`static/chunks/${name}.js`, text);
+  for (const [name, text] of Object.entries(f.css ?? {})) put(`static/chunks/${name}.css`, text);
   return dir;
 }
 const base = { a: "framework();", b: "layout();" };
@@ -97,12 +98,55 @@ describe("analyzeBuild", () => {
   });
 });
 
+describe("built CSS", () => {
+  it("finds rules with -webkit-backdrop-filter but no backdrop-filter, also inside @media", () => {
+    const css = ".ok{-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px)}/* .x{ */@media (min-width:1px){.bad[data-a=true]{color:red;-webkit-backdrop-filter:blur(9px)}}.off{-webkit-backdrop-filter:none}.plain{backdrop-filter:blur(1px)}";
+    expect(backdropPrefixProblems(css)).toEqual([".bad[data-a=true]", ".off"]);
+  });
+  it("fails the build check for such a rule and names the file and the selector", () => {
+    const dir = build({ chunks: base, css: { good: ".a{backdrop-filter:blur(1px);-webkit-backdrop-filter:blur(1px)}", bad: ".nav{-webkit-backdrop-filter:blur(18px)}" } });
+    const errors = analyzeBuild(dir, { modelSchemas: {} }).errors;
+    expect(errors).toHaveLength(1);
+    expect(errors[0]).toContain("bad.css");
+    expect(errors[0]).toContain(".nav");
+  });
+});
+
+describe("model data in client chunks", () => {
+  const schemas = modelSchemas();
+  const [file, id] = Object.entries(schemas)[0];
+  it("reads the schema id of every model file", () => {
+    expect(Object.keys(schemas).length).toBeGreaterThan(0);
+    for (const [f, s] of Object.entries(schemas)) {
+      expect(f).toMatch(/^model\/[^/]+\.json$/);
+      expect(f).not.toMatch(/\.schema\.json$/);
+      expect(typeof s).toBe("string");
+    }
+  });
+  it("recognises bundled JSON in both forms a bundler writes, but not the zod schema or a message", () => {
+    expect(modelFilesIn(`e.exports=JSON.parse('{"schema":"${id}","x":1}')`, schemas)).toEqual([file]);
+    expect(modelFilesIn(`e.exports={schema:"${id}",x:1}`, schemas)).toEqual([file]);
+    expect(modelFilesIn(`e.exports=JSON.parse("{\\"schema\\":\\"${id}\\"}")`, schemas)).toEqual([file]);
+    expect(modelFilesIn(`schema:a.z.literal("${id}"),m('Field "schema" is not "${id}"')`, schemas)).toEqual([]);
+  });
+  it("warns (does not fail) per page, and once for a shared chunk", () => {
+    const json = `e.exports={schema:"${id}"}`;
+    const page = analyzeBuild(build({ html: { energy: ["e"] }, chunks: { ...base, e: json } }), { modelSchemas: schemas });
+    expect(page.errors).toEqual([]);
+    expect(page.warnings.filter((w) => w.includes(file)).map((w) => w.split(":")[0]).sort()).toEqual(["cs /energie", "en /en/energy"]);
+    const shared = analyzeBuild(build({ chunks: { a: json, b: "layout();" } }), { modelSchemas: schemas });
+    expect(shared.errors).toEqual([]);
+    expect(shared.warnings.filter((w) => w.includes(file))).toHaveLength(1);
+    expect(shared.warnings.find((w) => w.includes(file))).toMatch(/^every page/);
+  });
+});
+
 describe("route table", () => {
-  it("is in step with src/lib/routes.ts", () => {
+  it("is in step with src/lib/routes.ts (keys, order, slugs)", () => {
     expect(Object.keys(ROUTES)).toEqual([...ROUTE_KEYS]);
     for (const key of ROUTE_KEYS) expect(ROUTES[key]).toEqual(APP_ROUTES[key].slugs);
   });
-  it("lets only model and sun load three.js", () => {
-    expect([...THREE_ROUTES].sort()).toEqual(["model", "sun"]);
+  it("lets exactly the heavy routes (the 3D pages) load three.js", () => {
+    expect([...THREE_ROUTES].sort()).toEqual(ROUTE_KEYS.filter((k) => APP_ROUTES[k].heavy).sort());
   });
 });

@@ -5,7 +5,7 @@ import type { TestInfo } from "@playwright/test";
 import type { Locale, RouteKey } from "./site";
 
 export interface KnownIssue {
-  id: "overflow" | "heading-skip" | "touch-select" | "touch-menu";
+  id: "heading-skip";
   /** Playwright project names; all projects when omitted. */
   projects?: readonly string[];
   locale?: Locale;
@@ -15,26 +15,9 @@ export interface KnownIssue {
 
 export const KNOWN_ISSUES: readonly KnownIssue[] = [
   {
-    id: "overflow",
-    projects: ["iphone-se"],
-    locale: "en",
-    key: "plan",
-    note: "320 px wide: the toolbar of the floor plan (.pl-bar: mode switch and layer chips with the longer English labels) is 23 px wider than the screen",
-  },
-  {
     id: "heading-skip",
     key: "sun",
     note: "the side panel headings (shading, the sun right now) are h3 straight after the h1; the sections below are h2",
-  },
-  {
-    id: "touch-select",
-    key: "plot",
-    note: "the two point selectors of the measuring panel (select.numin) are 26 px high on touch screens instead of 44 px",
-  },
-  {
-    id: "touch-menu",
-    projects: ["iphone-se"],
-    note: "on a 568 px high screen the eight entries of the menu are squeezed to 42 px each instead of 44 px",
   },
 ];
 

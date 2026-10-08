@@ -51,6 +51,8 @@ const tree = z.strictObject({
   crown: positive,
   /** Height of the crown base above the ground (m); default 0.3 x height. */
   crownBase: z.number().min(0).optional(),
+  /** Garden light: the tree gets ground uplights after dusk. */
+  uplight: z.boolean().optional(),
 });
 
 const shrub = z.strictObject({
@@ -72,23 +74,83 @@ const hedge = z.strictObject({
   inset: z.number().min(0),
 });
 
-const fence = z.strictObject({
+export const fenceKinds = ["plinth_fence", "wood_fence", "mesh_fence", "slat_fence"] as const;
+export type FenceKind = (typeof fenceKinds)[number];
+
+const fence = z
+  .strictObject({
+    id: z.string().min(1),
+    kind: z.enum(fenceKinds),
+    /** Start and end on the boundary; a fence may run over several edges (it follows the vertex order of the plot). */
+    from: boundaryRef,
+    to: boundaryRef,
+    inset: z.number().min(0),
+    /** Total height above the ground, plinth included (m), and the depth of the fence body (m). */
+    height: positive,
+    thickness: positive,
+    /** Cut openings where the driveway and walkway cross it (gates and pillars stand in them). */
+    gates: z.boolean(),
+    /** slat_fence: height of the precast plinth above the ground (m). */
+    plinthHeight: z.number().min(0).optional(),
+    /** slat_fence: boards, horizontal ("h") or vertical ("v"): board width, gap between boards, board thickness (m). */
+    slat: z.strictObject({ orient: z.enum(["h", "v"]), board: positive, gap: z.number().min(0), depth: positive }).optional(),
+    /** slat_fence: side of the square posts and their largest spacing (m). */
+    postSize: positive.optional(),
+    postSpacing: positive.optional(),
+  })
+  .superRefine((f, ctx) => {
+    if (f.kind !== "slat_fence") return;
+    for (const k of ["plinthHeight", "slat", "postSize", "postSpacing"] as const) {
+      if (f[k] === undefined) ctx.addIssue({ code: "custom", path: [k], message: 'required for kind "slat_fence"' });
+    }
+  });
+
+/** Which access a gate or pillar belongs to. */
+export const accessKinds = ["driveway", "walkway"] as const;
+export type AccessKind = (typeof accessKinds)[number];
+
+/**
+ * A gate in the fence where an access crosses it. `side` is relative to the direction of the plot edge (vertex i to i + 1):
+ * "+" towards the end of the edge, "-" towards its start. Sliding: the leaf parks on that side, behind the fence on the plot
+ * side. Swing: the hinge is on that side and the leaf opens into the plot.
+ */
+const gate = z.strictObject({
   id: z.string().min(1),
-  kind: z.enum(["plinth_fence", "wood_fence", "mesh_fence"]),
-  from: boundaryRef,
-  to: boundaryRef,
-  inset: z.number().min(0),
+  access: z.enum(accessKinds),
+  kind: z.enum(["sliding", "swing"]),
+  /** Width of the leaf = clear opening between the gate posts (m). The fence opening is leaf + 2 x postSize. */
+  leaf: positive,
   height: positive,
-  thickness: positive,
-  /** Cut openings where the driveway and walkway cross it. */
-  gates: z.boolean(),
+  /** Side of the two square gate posts (m). */
+  postSize: positive,
+  side: z.enum(["+", "-"]),
+  /** Sliding only: counterbalance tail of a self-supporting leaf, behind the post on the park side (m). Default 0. */
+  tail: z.number().min(0).optional(),
+  /** Depth of the leaf frame (m). Default 0.06. */
+  thickness: positive.optional(),
+});
+
+/** Things a technical pillar beside a gate can carry. */
+export const pillarItems = ["meter-box", "mailbox", "intercom", "house-number", "light"] as const;
+export type PillarItem = (typeof pillarItems)[number];
+
+/** A technical pillar beside a gate (meter box, mailbox, intercom, house number, light). */
+const pillar = z.strictObject({
+  id: z.string().min(1),
+  access: z.enum(accessKinds),
+  /** Side of the gate it stands on (relative to the edge direction, as for gates). */
+  side: z.enum(["+", "-"]),
+  /** Width along the fence, depth across it, height (m). */
+  size: z.tuple([positive, positive, positive]),
+  items: z.array(z.enum(pillarItems)),
 });
 
 const bed = z.strictObject({ id: z.string().min(1), kind: z.enum(["mulch", "gravel"]), polygon: z.array(xy).min(3) });
 
 const paved = z.strictObject({
   id: z.string().min(1),
-  kind: z.enum(["garden_path", "service_path", "pad"]),
+  /** `bins` is the bin pad beside the gate pillar (renderers place two bins on it). */
+  kind: z.enum(["garden_path", "service_path", "pad", "bins"]),
   /** Surface material role (matches the GLB / style roles). */
   surface: z.enum(["path", "gravel", "drive_paving", "terrace_paving"]),
   polygon: z.array(xy).min(3),
@@ -135,17 +197,30 @@ export const siteSchema = z.strictObject({
     minRoofEdgeToBoundary: z.number().min(0),
     minTreeTrunkToHouse: z.number().min(0),
     minCrownEdgeToHouse: z.number().min(0),
+    /** Tree crown edge to the water of a pool (m; leaves and nuts in the water). Checked when the house has a pool. */
+    minCrownEdgeToPool: z.number().min(0).optional(),
     note: z.string().optional(),
   }),
   terrain: terrainSchema,
-  street: z.strictObject({ edge: z.number().int().min(0), verge: positive, carriageway: positive, kerbHeight: z.number().min(0) }),
+  street: z.strictObject({
+    edge: z.number().int().min(0),
+    /** Public strip between the plot boundary and the carriageway (m): the pavement next to the kerb, the rest is green. */
+    verge: positive,
+    carriageway: positive,
+    kerbHeight: z.number().min(0),
+    /** Width of the pavement along the kerb (m, part of the verge); default 0 (all green). */
+    pavement: z.number().min(0).optional(),
+    /** Width of the kerb stones (m); default 0.15. Dropped kerbs at the drive and walk crossings have a 0.02 m reveal. */
+    kerbWidth: positive.optional(),
+  }),
   /** Open field beyond the given edge (rendered as agricultural ground). */
   field: z.strictObject({ edge: z.number().int().min(0), depth: positive }),
   access: z.strictObject({
     /** Outdoor `type` in house.json that carries the driveway / walkway; the site extends it to the street. */
     /** The gate opening is as wide as the paved strip plus a post margin on each side; `flare` widens the apron across the verge. */
-    driveway: z.strictObject({ outdoorType: z.string().min(1), gateMargin: z.number().min(0), flare: z.number().min(0) }),
-    walkway: z.strictObject({ outdoorType: z.string().min(1), gateMargin: z.number().min(0) }),
+    /** `gateWidth` (optional) fixes the opening of a crossing without a gate; else strip width + 2 x gateMargin. */
+    driveway: z.strictObject({ outdoorType: z.string().min(1), gateMargin: z.number().min(0), flare: z.number().min(0), gateWidth: positive.optional() }),
+    walkway: z.strictObject({ outdoorType: z.string().min(1), gateMargin: z.number().min(0), gateWidth: positive.optional() }),
   }),
   /** Terrain and zone polygons are generated around the plot with this margin (m). */
   domain: z.strictObject({ margin: positive }),
@@ -154,9 +229,16 @@ export const siteSchema = z.strictObject({
   shrubs: z.array(shrub),
   hedges: z.array(hedge),
   fences: z.array(fence),
+  /** Gates in the fences (at most one per access) and technical pillars beside them. */
+  gates: z.array(gate).optional(),
+  pillars: z.array(pillar).optional(),
   beds: z.array(bed),
   paved: z.array(paved),
   neighbours: z.array(neighbour),
+  /** Rainwater retention tank (underground): plan centre, volume (m3), diameter (m) and where the overflow goes. */
+  rainwater: z
+    .strictObject({ tank: z.strictObject({ pos: xy, volumeM3: positive, diameter: positive, overflow: z.enum(["soakaway", "sewer"]) }) })
+    .optional(),
 });
 
 export type SiteModel = z.infer<typeof siteSchema>;
@@ -166,6 +248,8 @@ export type TreeModel = z.infer<typeof tree>;
 export type ShrubModel = z.infer<typeof shrub>;
 export type HedgeModel = z.infer<typeof hedge>;
 export type FenceModel = z.infer<typeof fence>;
+export type GateModel = z.infer<typeof gate>;
+export type PillarModel = z.infer<typeof pillar>;
 export type BedModel = z.infer<typeof bed>;
 export type PavedModel = z.infer<typeof paved>;
 export type NeighbourModel = z.infer<typeof neighbour>;

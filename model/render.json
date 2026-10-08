@@ -127,10 +127,6 @@
         "form": "broadleaf-round",
         "leaf": "#5f7f3a"
       },
-      "pine": {
-        "form": "conifer-pine",
-        "leaf": "#2e4a35"
-      },
       "apple": {
         "form": "orchard-round",
         "leaf": "#6f9448"
@@ -139,10 +135,6 @@
         "form": "orchard-oval",
         "leaf": "#6a8f45"
       },
-      "birch": {
-        "form": "birch-airy",
-        "leaf": "#82a653"
-      },
       "crabapple": {
         "form": "orchard-round",
         "leaf": "#6c8f4a"
@@ -150,14 +142,6 @@
       "cherry": {
         "form": "broadleaf-oval",
         "leaf": "#5e8a3e"
-      },
-      "yew_hedge": {
-        "form": "hedge-dense",
-        "leaf": "#263f2f"
-      },
-      "hornbeam_hedge": {
-        "form": "hedge-dense",
-        "leaf": "#55803a"
       },
       "lavender": {
         "form": "perennial-mound",
@@ -247,7 +231,7 @@
       },
       "lights": "off",
       "blinds": "auto",
-      "notes": "Sun from the west-south-west behind the camera, soft long shadows on the lawn. Show the terrace furniture and the long roof."
+      "notes": "Sun from the west-south-west behind the camera, soft long shadows on the lawn. Show the terrace furniture and the long hipped roof."
     },
     {
       "id": "terrace-evening",
@@ -645,8 +629,8 @@
     },
     "blinds": "open",
     "alt": {
-      "cs": "Dům Dlouhá střecha v zlatém večerním světle.",
-      "en": "The Long Roof House in golden evening light."
+      "cs": "Dům pod ořechem ve zlatém večerním světle.",
+      "en": "Walnut House in golden evening light."
     }
   }
 }

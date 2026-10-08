@@ -2,13 +2,16 @@
 // (`houseJsonSchema()`); TypeScript types are inferred from it (see types.ts).
 import { z } from "zod";
 import {
+  CAMERA_DEFAULT_FOR,
   CAMERA_USES,
   DIRS,
   FLOORS,
   FURNITURE_TYPES,
   LAYER_ROLES,
   OPENING_KINDS,
+  OUTDOOR_SURFACES,
   OUTDOOR_TYPES,
+  ROOF_ATTICS,
   ROOM_ROLES,
   ROOM_TYPES,
   SCHEMA_ID,
@@ -33,6 +36,8 @@ export const RoomSchema = z.strictObject({
   id,
   name: text,
   type: z.enum(ROOM_TYPES),
+  /** Short label for tight places (3D room tags, chips): "Obývák", "Dětský 1". Optional; falls back to `name`. */
+  shortName: text.optional(),
   role: z.enum(ROOM_ROLES).optional(),
   floor: z.enum(FLOORS).optional(),
   /** Rectangles between wall axes; together they exactly tile the floor plan. */
@@ -70,13 +75,37 @@ export const RoofSchema = z.strictObject({
   wallTop: pos.optional(),
 });
 
-export const OutdoorSchema = z.strictObject({
-  id,
-  type: z.enum(OUTDOOR_TYPES),
-  covered: z.boolean().optional(),
-  rect,
-  posts: z.array(pt).optional(),
-});
+export const OutdoorSchema = z
+  .strictObject({
+    id,
+    type: z.enum(OUTDOOR_TYPES),
+    /** Name for visitors ("Závětří u vstupu", "Bazén"); optional, falls back to the type name. */
+    name: text.optional(),
+    covered: z.boolean().optional(),
+    rect,
+    /** Height of the slab top above the finished floor (m); default DEFAULT_OUTDOOR_TOP (-0.02). Drive and path are graded ramps (see derived grade). */
+    top: z.number().min(-1).max(0.5).optional(),
+    /** Finish of the slab: "paving" (tiles, pavers) or "deck" (timber boards). Default "deck" for type deck, else "paving". */
+    surface: z.enum(OUTDOOR_SURFACES).optional(),
+    posts: z.array(pt).optional(),
+    /** Side of the square posts (m); required when there are posts. */
+    postSize: z.number().min(0.05).max(0.6).optional(),
+    /** Pool only: depth of the basin below the coping top, water level below the coping top, coping width (m). */
+    depth: z.number().min(0.3).max(3).optional(),
+    waterBelowTop: z.number().min(0).max(0.5).optional(),
+    coping: z.number().min(0).max(1).optional(),
+  })
+  .superRefine((o, ctx) => {
+    const poolKeys = ["depth", "waterBelowTop", "coping"] as const;
+    for (const k of poolKeys) {
+      if (o.type === "pool" && o[k] === undefined) ctx.addIssue({ code: "custom", path: [k], message: 'required for type "pool"' });
+      if (o.type !== "pool" && o[k] !== undefined) ctx.addIssue({ code: "custom", path: [k], message: 'allowed only for type "pool"' });
+    }
+    if (o.type === "pool" && o.depth !== undefined && o.waterBelowTop !== undefined && o.waterBelowTop >= o.depth) {
+      ctx.addIssue({ code: "custom", path: ["waterBelowTop"], message: "the water level must lie above the floor of the basin" });
+    }
+    if (o.posts?.length && o.postSize === undefined) ctx.addIssue({ code: "custom", path: ["postSize"], message: "required when there are posts" });
+  });
 
 export const AccentSchema = z.strictObject({ id, type: z.literal("wood"), orient, cx: num, cy: num, w: pos });
 
@@ -148,6 +177,8 @@ export const AssembliesSchema = z.strictObject({
   ceiling: AssemblySchema,
   roof: AssemblySchema,
   groundFloor: AssemblySchema,
+  /** Optional: an insulated wall between heated and unheated rooms (the wall to the garage); its walls are `derived.walls[].toUnheated`. */
+  wallToUnheated: AssemblySchema.optional(),
 });
 
 const glazingSpec = z.strictObject({ Uw: pos, g: share, frameShare: share });
@@ -198,6 +229,10 @@ export const HeatingSchema = z.strictObject({
   emission: z.enum(["underfloor", "radiators"]),
   flowTemperatureC: pos,
   dhw: z.strictObject({ tankLiters: pos, setpointC: pos }),
+  /** Outdoor unit of an air-source heat pump on the ground: plan centre, size [w, d, h] at rot 0 (w along x), rotation (m, degrees). */
+  outdoorUnit: z
+    .strictObject({ pos: pt, size: z.tuple([pos, pos, pos]), rot: z.union([z.literal(0), z.literal(90), z.literal(180), z.literal(270)]) })
+    .optional(),
 });
 
 export const VentilationSchema = z.strictObject({
@@ -226,12 +261,31 @@ export const ShadingSchema = z.strictObject({
     closedFactor: share,
     /** The blind closes when the irradiance on the facade exceeds this, W/m2. */
     closeAboveIrradiance: pos,
+    /** The one blind product, read by the web 3D and the renders (m): slats, guide rails, the box hidden in the reveal. */
+    product: z.strictObject({
+      slatWidth: pos,
+      slatPitch: pos,
+      slatThickness: pos,
+      railWidth: pos,
+      railDepth: pos,
+      boxDepth: pos,
+      /** Depth of the blind plane behind the outer wall face (in the reveal). */
+      reveal: nonneg,
+      /** Wider openings get several sections with a shared middle rail. */
+      maxSectionWidth: pos,
+    }),
   }),
-  /** Style of the fixed `screens` of type "slats". */
-  slats: z.strictObject({ pitch: pos, width: pos, depth: pos }),
+  /**
+   * Blades of the louvre walls (`screens`): centre-to-centre `pitch`, blade `depth` (the chord, across the wall when open)
+   * and `width` (the thickness). The blades turn about their centres: 90 deg = open (square to the wall), the closed stop is
+   * derived (`derived.screens[].closedDeg`). `restDeg` is the angle of the static model and the default of the controls.
+   */
+  slats: z.strictObject({ pitch: pos, width: pos, depth: pos, restDeg: z.number().min(0).max(90) }),
 });
 
 export const RoofExtrasSchema = z.strictObject({
+  /** "cold": ventilated attic, the ceiling assembly is the thermal envelope; "warm": the roof assembly is. */
+  attic: z.enum(ROOF_ATTICS),
   covering: z.strictObject({ type: z.enum(["standing-seam-steel", "clay-tile", "concrete-tile"]), name: text }),
   /** Parameters of the light pipes listed in `lightpipes`. */
   lightpipes: z.strictObject({ diameter: pos, domeHeight: pos }),
@@ -245,14 +299,22 @@ export const CameraSchema = z
     id,
     name: text,
     kind: z.enum(["perspective", "orthographic"]),
-    /** House frame, metres. */
+    /** Short label for chips ("Ulice", "Zahrada"); optional, falls back to `name`. */
+    short: text.optional(),
+    /** House frame, metres. With `aboveGround`, the z of `position` is replaced by ground + aboveGround in derived data. */
     position: pt3,
     target: pt3,
+    /** Eye height above the (graded) ground at the camera's x, y (m); resolved to an absolute z in `derived.cameras`. */
+    aboveGround: z.number().min(0.2).max(200).optional(),
     /** Vertical field of view in degrees (perspective). */
     fov: z.number().min(5).max(120).optional(),
     /** Visible height in metres (orthographic). */
     orthoHeight: pos.optional(),
     use: z.array(z.enum(CAMERA_USES)).min(1),
+    /** The opening view of the 3D pages (at most one camera). */
+    default: z.boolean().optional(),
+    /** Stage classes this camera opens on instead of the default ("narrow" = phones). */
+    defaultFor: z.array(z.enum(CAMERA_DEFAULT_FOR)).optional(),
   })
   .superRefine((c, ctx) => {
     if (c.kind === "perspective" && c.fov === undefined) ctx.addIssue({ code: "custom", path: ["fov"], message: 'required for a perspective camera' });
@@ -264,6 +326,8 @@ export const HouseSchema = z.strictObject({
   schema: z.literal(SCHEMA_ID),
   id,
   name: text,
+  /** One line (about 70 characters) under the name: the hero lede and the meta description. */
+  tagline: text.optional(),
   idea: text.optional(),
   fictional: z.literal(true),
   location: LocationSchema,

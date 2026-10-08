@@ -3,9 +3,12 @@
 // run (geometry cannot be derived from a broken structure); everything else is collected.
 import type { ZodIssue } from "zod";
 import {
+  DOWNPIPE_REACH,
   FURNITURE,
   GARAGE_MIN_CLEAR,
+  GUTTER_RUN_MAX,
   HABITABLE,
+  LOUVRE_MAX_CLOSED_DEG,
   MIN_AREA,
   OPENING_LIMITS,
   OUTDOOR_TYPE_NAMES,
@@ -16,7 +19,7 @@ import {
   WINDOWLESS_OK,
   type LocalizedText,
 } from "./catalog";
-import { derive } from "./derive";
+import { derive, louvreClosedDeg } from "./derive";
 import {
   doorSwing,
   expandRect,
@@ -26,11 +29,14 @@ import {
   rectArea,
   rectHitsSwing,
   uncovered,
+  unionOf,
   wallBody,
+  type Pt,
   type Rect,
 } from "./geom";
 import { computeMetrics } from "./metrics";
 import { HouseSchema } from "./schema";
+import type { SiteModel } from "./site/siteSchema";
 import type { Derived, House, Issue, Severity, ValidationResult } from "./types";
 
 // ---------------------------------------------------------------- registry of codes
@@ -68,6 +74,9 @@ export const ISSUE_CODES: Record<string, IssueCodeInfo> = {
   "E-VSTUP": E("Chybí hlavní vstup", "No main entrance"),
   "E-DOSTUPNOST": E("Místnost není dosažitelná dveřmi z hlavního vstupu", "Room is not reachable by doors from the main entrance"),
   "E-GARAZ-ROZMER": E("Garáž je menší než 5,5 x 5,5 m", "Garage is smaller than 5.5 x 5.5 m"),
+  "E-BAZEN": E("Bazén neleží v ploše terasy nebo dlažby, nebo zasahuje do domu", "Pool does not lie inside a deck or paved area, or overlaps the house"),
+  "E-LAMELY": E("Lamely stěny terasy se nedají zavřít", "The louvre blades cannot close"),
+  "E-KAMERA": E("Výchozí pohled kamer je zadán chybně", "The default camera view is set wrongly"),
   "V-IDEA": V('Chybí popis "idea"', 'Missing "idea" description'),
   "V-PLOCHA": V("Čistá plocha pod doporučeným minimem", "Net area below the recommended minimum"),
   "V-ZASKLENI": V("Zasklení pod 1/8 podlahy", "Glazing below 1/8 of the floor"),
@@ -93,6 +102,8 @@ export const ISSUE_CODES: Record<string, IssueCodeInfo> = {
   "V-FVE-NULA": V("Do střechy se nevejde žádný fotovoltaický modul", "No photovoltaic module fits on the roof"),
   "V-SVOD-UDOLI": V("U spodního konce údolí střechy chybí dešťový svod", "No downpipe at the low end of a roof valley"),
   "V-SVETLOVOD-MIMO": V("Světlovod neleží nad místností pod střechou", "Light pipe is not above a room under the roof"),
+  "V-SVOD-OKAP": V("Voda v okapovém žlabu teče k nejbližšímu svodu dál než 12,5 m", "A gutter runs more than 12.5 m to the nearest downpipe"),
+  "V-TAGLINE": V('Chybí podtitul "tagline"', 'Missing "tagline"'),
 };
 
 // ---------------------------------------------------------------- helpers
@@ -118,6 +129,10 @@ const CUSTOM_CS: Record<string, string> = {
   'give exactly one of "lambda" and "r"': 'uveďte právě jedno z "lambda" a "r"',
   "required for a perspective camera": "perspektivní kamera vyžaduje pole fov",
   "required for an orthographic camera": "ortografická kamera vyžaduje pole orthoHeight",
+  'required for type "pool"': 'povinné pro typ "pool"',
+  'allowed only for type "pool"': 'povolené jen pro typ "pool"',
+  "the water level must lie above the floor of the basin": "hladina musí ležet nad dnem bazénu",
+  "required when there are posts": "povinné, když má plocha sloupy",
 };
 
 type Raw = Record<string, unknown>;
@@ -263,6 +278,84 @@ function checkRules(h: House, out: Collector): void {
     }
   }
   if (!h.idea) out.warn("V-IDEA", T('Chybí pole "idea" (2-3 věty popisu domu).', 'Missing field "idea" (2-3 sentences describing the house).'));
+  if (!h.tagline) out.warn("V-TAGLINE", T('Chybí pole "tagline" (jeden řádek pod názvem domu).', 'Missing field "tagline" (one line under the name of the house).'));
+  // louvre walls: the blades must be able to close (chord over pitch) at a sensible angle
+  if (h.screens.length) {
+    const sl = h.shading.slats;
+    const closed = louvreClosedDeg(sl.width, sl.pitch);
+    if (sl.depth <= sl.pitch) {
+      out.error("E-LAMELY", T(`Lamely ${c(sl.depth, 3)} m na rozteči ${c(sl.pitch, 3)} m se nepřekryjí, stěna se nezavře (šířka lamely musí být větší než rozteč).`, `Blades ${e(sl.depth, 3)} m wide at a ${e(sl.pitch, 3)} m pitch do not overlap, so the wall cannot close (the chord must exceed the pitch).`));
+    }
+    if (closed > LOUVRE_MAX_CLOSED_DEG) {
+      out.error("E-LAMELY", T(`Lamely tloušťky ${c(sl.width, 3)} m na rozteči ${c(sl.pitch, 3)} m se dotknou už při ${closed}° (nejvýše ${LOUVRE_MAX_CLOSED_DEG}°).`, `Blades ${e(sl.width, 3)} m thick at a ${e(sl.pitch, 3)} m pitch touch at ${closed}° already (at most ${LOUVRE_MAX_CLOSED_DEG}°).`));
+    }
+    if (sl.restDeg < closed - 1e-9) {
+      out.error("E-LAMELY", T(`Klidová poloha lamel ${sl.restDeg}° je za dorazem zavření ${closed}°.`, `The rest angle of the blades ${sl.restDeg}° is beyond the closed stop ${closed}°.`));
+    }
+  }
+  // cameras: at most one default view, and only for the web pages
+  const defaults = h.cameras.filter((cam) => cam.default);
+  if (defaults.length > 1) out.error("E-KAMERA", T(`Výchozí pohled má ${defaults.length} kamer (${defaults.map((x) => x.id).join(", ")}); smí jen jedna.`, `${defaults.length} cameras are marked default (${defaults.map((x) => x.id).join(", ")}); only one may be.`));
+  for (const cam of h.cameras) {
+    if ((cam.default || cam.defaultFor?.length) && !cam.use.some((u) => u === "web" || u === "sun")) {
+      out.error("E-KAMERA", T(`Kamera ${cam.id} je výchozí, ale nepoužívá se na webu (use "web" nebo "sun").`, `Camera ${cam.id} is a default view but not used on the web (use "web" or "sun").`));
+    }
+  }
+}
+
+/** Arc length of the point of a closed ring nearest to q, and the distance. */
+function projectToRing(q: Pt, ring: Pt[]): { s: number; d: number } {
+  let best = { s: 0, d: Infinity };
+  let acc = 0;
+  for (let i = 0; i < ring.length; i++) {
+    const a = ring[i], b = ring[(i + 1) % ring.length];
+    const dx = b[0] - a[0], dy = b[1] - a[1];
+    const l2 = dx * dx + dy * dy;
+    const t = l2 ? Math.max(0, Math.min(1, ((q[0] - a[0]) * dx + (q[1] - a[1]) * dy) / l2)) : 0;
+    const px = a[0] + t * dx, py = a[1] + t * dy;
+    const d = Math.hypot(q[0] - px, q[1] - py);
+    if (d < best.d) best = { s: acc + t * Math.sqrt(l2), d };
+    acc += Math.sqrt(l2);
+  }
+  return best;
+}
+
+/**
+ * Longest gutter runs: the gutters follow the outer edge of the roof plan (union of the eave rectangles); every downpipe within
+ * DOWNPIPE_REACH of it is an outlet; water runs to the nearer outlet, so a stretch between two outlets drains half to each.
+ * Returns the stretches whose half is longer than GUTTER_RUN_MAX (start point and length of the stretch).
+ */
+export function longGutterRuns(d: Derived, downpipes: readonly { x: number; y: number }[]): { from: Pt; length: number }[] {
+  const un = unionOf(d.roofs.map((r) => r.eaveRect));
+  const out: { from: Pt; length: number }[] = [];
+  for (const poly of un.polygons.filter((p) => p.area > 0)) {
+    const ring = poly.pts;
+    let perim = 0;
+    for (let i = 0; i < ring.length; i++) perim += Math.hypot(ring[(i + 1) % ring.length][0] - ring[i][0], ring[(i + 1) % ring.length][1] - ring[i][1]);
+    const at = downpipes.map((p) => projectToRing([p.x, p.y], ring)).filter((r) => r.d <= DOWNPIPE_REACH).map((r) => r.s).sort((a, b) => a - b);
+    if (!at.length) {
+      out.push({ from: ring[0], length: perim });
+      continue;
+    }
+    for (let i = 0; i < at.length; i++) {
+      const s0 = at[i], s1 = i + 1 < at.length ? at[i + 1] : at[0] + perim;
+      if ((s1 - s0) / 2 > GUTTER_RUN_MAX + 1e-6) {
+        // point at arc length s0
+        let rest = s0, from: Pt = ring[0];
+        for (let k = 0; k < ring.length; k++) {
+          const a = ring[k], b = ring[(k + 1) % ring.length];
+          const l = Math.hypot(b[0] - a[0], b[1] - a[1]);
+          if (rest <= l) {
+            from = [a[0] + ((b[0] - a[0]) * rest) / (l || 1), a[1] + ((b[1] - a[1]) * rest) / (l || 1)];
+            break;
+          }
+          rest -= l;
+        }
+        out.push({ from, length: s1 - s0 });
+      }
+    }
+  }
+  return out;
 }
 
 // ---------------------------------------------------------------- geometry and design rules
@@ -412,6 +505,14 @@ function checkGeometry(h: House, d: Derived, out: Collector): void {
     }
   }
 
+  // pools: inside a deck or paved area, clear of the house
+  for (const o of d.outdoor) {
+    if (!o.pool) continue;
+    if (!o.pool.deck) out.error("E-BAZEN", T(`Bazén ${o.id} (s lemem) neleží celý v žádné ploše terasy, paluby nebo dlažby.`, `Pool ${o.id} (with its coping) does not lie entirely inside a deck, terrace or paved area.`));
+    const over = d.outline.rects.reduce((s, q) => s + interArea(q, o.pool!.outer), 0);
+    if (over > 1e-3) out.error("E-BAZEN", T(`Bazén ${o.id} zasahuje do obrysu domu (${c(over)} m2).`, `Pool ${o.id} overlaps the house outline (${e(over)} m2).`));
+  }
+
   // glazing, daylight, orientation
   for (const r of d.rooms.filter((q) => (HABITABLE as readonly string[]).includes(q.type))) {
     const ratio = r.area > 0 ? r.glazing.total / r.area : 0;
@@ -505,7 +606,8 @@ function checkGeometry(h: House, d: Derived, out: Collector): void {
   // thermal envelope, PV, roof penetrations
   const uChecks: [string, string, number, number][] = [
     ["V-U-ZED", "exteriorWall", d.assemblies.exteriorWall.U, U_LIMITS.exteriorWall],
-    ["V-U-STRECHA", "roof", d.assemblies.roof.U, U_LIMITS.roof],
+    // the top of the heated volume: the roof (warm roof) or the ceiling under a cold attic
+    ["V-U-STRECHA", d.topEnvelope, d.assemblies[d.topEnvelope].U, U_LIMITS.roof],
     ["V-U-PODLAHA", "groundFloor", d.assemblies.groundFloor.U, U_LIMITS.groundFloor],
   ];
   for (const [code, key, u, limit] of uChecks) {
@@ -527,6 +629,9 @@ function checkGeometry(h: House, d: Derived, out: Collector): void {
       }
     });
   }
+  for (const run of longGutterRuns(d, h.roof.downpipes)) {
+    out.warn("V-SVOD-OKAP", T(`Okapový žlab od [${c(run.from[0])}, ${c(run.from[1])}] měří ${c(run.length, 1)} m mezi svody, voda teče až ${c(run.length / 2, 1)} m (nejvýše ${GUTTER_RUN_MAX} m); přidejte svod.`, `The gutter from [${e(run.from[0])}, ${e(run.from[1])}] runs ${e(run.length, 1)} m between downpipes, ${e(run.length / 2, 1)} m to the nearer one (at most ${GUTTER_RUN_MAX} m); add a downpipe.`));
+  }
   d.lightpipes.forEach((lp, i) => {
     if (!lp.room || !lp.face) out.warn("V-SVETLOVOD-MIMO", T(`Světlovod ${i + 1} v [${c(lp.x)}, ${c(lp.y)}] neleží nad místností pod střechou.`, `Light pipe ${i + 1} at [${e(lp.x)}, ${e(lp.y)}] is not above a room under the roof.`));
   });
@@ -536,6 +641,8 @@ function checkGeometry(h: House, d: Derived, out: Collector): void {
 export interface ValidateOptions {
   /** Stored in the derived data as `inputHash`. */
   inputHash?: string | null;
+  /** The plot (site.json, parsed): derived data then include the grades, camera heights and the resolved site (see derive). */
+  site?: SiteModel | null;
 }
 
 /** Validates a parsed JSON value. Derived data and metrics are returned when the structure is valid. */
@@ -544,7 +651,7 @@ export function validateHouse(input: unknown, options: ValidateOptions = {}): Va
   const house = checkStructure(input, out);
   if (!house) return { valid: false, errors: out.errors, warnings: out.warnings, house: null, derived: null, metrics: null };
   checkRules(house, out);
-  const derived = derive(house, { inputHash: options.inputHash ?? null });
+  const derived = derive(house, { inputHash: options.inputHash ?? null, site: options.site ?? null });
   checkGeometry(house, derived, out);
   const metrics = computeMetrics(house, derived);
   return { valid: out.errors.length === 0, errors: out.errors, warnings: out.warnings, house, derived, metrics };
@@ -585,9 +692,12 @@ export function formatReport(result: ValidationResult, locale: "cs" | "en" = "cs
   if (m && result.derived) {
     const f = (v: number, d = 1): string => (cs ? c(v, d) : e(v, d));
     L.push(cs ? "METRIKY:" : "METRICS:");
+    L.push(`  ${cs ? "Dispozice" : "Layout"}: ${m.layoutCode}, ${m.bedroomCount} ${cs ? "ložnice" : "bedrooms"}`);
     L.push(`  ${cs ? "Užitná plocha (bez garáže)" : "Net floor area (without garage)"}: ${f(m.netArea, 2)} m2`);
+    L.push(`  ${cs ? "Vytápěná plocha hrubá (vztažná)" : "Gross heated area (reference)"}: ${f(m.heatedAreaGross, 2)} m2`);
     L.push(`  ${cs ? "Plocha garáže" : "Garage area"}: ${f(m.garageArea, 2)} m2`);
-    L.push(`  ${cs ? "Zastavěná plocha" : "Footprint"}: ${f(m.footprintArea, 2)} m2`);
+    L.push(`  ${cs ? "Půdorys domu" : "Footprint"}: ${f(m.footprintArea, 2)} m2`);
+    L.push(`  ${cs ? "Zastavěná plocha (s krytými plochami)" : "Built-up area (with roofed areas)"}: ${f(m.builtUpArea, 2)} m2`);
     L.push(`  ${cs ? "Obestavěný prostor" : "Enclosed volume"}: ${f(m.volume)} m3`);
     L.push(`  ${cs ? "Plocha střech" : "Roof area"}: ${f(m.roofArea)} m2`);
     L.push(`  ${cs ? "Zasklení celkem" : "Total glazing"}: ${f(m.glazing.total, 2)} m2 (N ${f(m.glazing.N)}, E ${f(m.glazing.E)}, S ${f(m.glazing.S)}, W ${f(m.glazing.W)})`);

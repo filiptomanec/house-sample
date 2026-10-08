@@ -1,0 +1,2002 @@
+{
+ "schema": "house/1",
+ "id": "oracle-plan",
+ "name": {
+  "cs": "Koncepční půdorys",
+  "en": "Concept plan"
+ },
+ "fictional": true,
+ "location": {
+  "region": {
+   "cs": "Jižní Morava",
+   "en": "South Moravia"
+  },
+  "lat": 49.2,
+  "lon": 16.6,
+  "elevation": 240,
+  "tz": "Europe/Prague",
+  "houseAxisBearingDeg": 12
+ },
+ "wall": {
+  "ext": 0.5,
+  "bearing": 0.3,
+  "part": 0.15
+ },
+ "clearHeight": 2.75,
+ "slab": 0.3,
+ "bearingAxes": {
+  "x": [
+   6.65,
+   13.5,
+   18.45
+  ],
+  "y": []
+ },
+ "rooms": [
+  {
+   "id": "R01",
+   "name": {
+    "cs": "Garáž pro dvě auta",
+    "en": "Two-car garage"
+   },
+   "type": "garage",
+   "role": "garage",
+   "floor": "concrete",
+   "rects": [
+    [
+     0,
+     5.4,
+     6.65,
+     11.8
+    ]
+   ]
+  },
+  {
+   "id": "R02",
+   "name": {
+    "cs": "Technická místnost a prádelna",
+    "en": "Plant room and laundry"
+   },
+   "type": "utility",
+   "role": "plant",
+   "floor": "tile",
+   "rects": [
+    [
+     6.65,
+     7.2,
+     9,
+     11.8
+    ]
+   ]
+  },
+  {
+   "id": "R03",
+   "name": {
+    "cs": "Spíž",
+    "en": "Pantry"
+   },
+   "type": "pantry",
+   "role": "pantry",
+   "floor": "tile",
+   "rects": [
+    [
+     6.65,
+     5.4,
+     9,
+     7.2
+    ]
+   ]
+  },
+  {
+   "id": "R04",
+   "name": {
+    "cs": "Obývací pokoj s kuchyní a jídelnou",
+    "en": "Living room with kitchen and dining"
+   },
+   "type": "living",
+   "role": "main-living",
+   "floor": "oak",
+   "rects": [
+    [
+     6.65,
+     0,
+     13.5,
+     5.4
+    ],
+    [
+     9,
+     5.4,
+     13.5,
+     8.7
+    ]
+   ]
+  },
+  {
+   "id": "R05",
+   "name": {
+    "cs": "Pracovna / pokoj pro hosty",
+    "en": "Study / guest room"
+   },
+   "type": "office",
+   "role": "home-office",
+   "floor": "oak",
+   "rects": [
+    [
+     9,
+     8.7,
+     13.5,
+     11.8
+    ]
+   ]
+  },
+  {
+   "id": "R06",
+   "name": {
+    "cs": "Hala se zádveřím a šatnou",
+    "en": "Entrance hall with porch and cloakroom"
+   },
+   "type": "hall",
+   "role": "entry",
+   "floor": "tile",
+   "rects": [
+    [
+     15.2,
+     7,
+     18.45,
+     11.8
+    ],
+    [
+     13.5,
+     7,
+     15.2,
+     10.3
+    ]
+   ]
+  },
+  {
+   "id": "R14",
+   "name": {
+    "cs": "Chodba noční zóny",
+    "en": "Night-zone corridor"
+   },
+   "type": "corridor",
+   "role": "night-corridor",
+   "floor": "tile",
+   "rects": [
+    [
+     17,
+     0,
+     18.45,
+     7
+    ]
+   ]
+  },
+  {
+   "id": "R07",
+   "name": {
+    "cs": "WC pro hosty",
+    "en": "Guest toilet"
+   },
+   "type": "wc",
+   "role": "guest-wc",
+   "floor": "tile",
+   "rects": [
+    [
+     13.5,
+     10.3,
+     15.2,
+     11.8
+    ]
+   ]
+  },
+  {
+   "id": "R08",
+   "name": {
+    "cs": "Dětský pokoj 1",
+    "en": "Children's room 1"
+   },
+   "type": "kids",
+   "role": "children",
+   "floor": "oak",
+   "rects": [
+    [
+     13.5,
+     0,
+     17,
+     4.6
+    ]
+   ]
+  },
+  {
+   "id": "R09",
+   "name": {
+    "cs": "Hlavní koupelna",
+    "en": "Family bathroom"
+   },
+   "type": "bath",
+   "role": "family-bath",
+   "floor": "tile",
+   "rects": [
+    [
+     13.5,
+     4.6,
+     17,
+     7
+    ]
+   ]
+  },
+  {
+   "id": "R10",
+   "name": {
+    "cs": "Ložnice rodičů",
+    "en": "Primary bedroom"
+   },
+   "type": "bedroom",
+   "role": "primary-bedroom",
+   "floor": "oak",
+   "rects": [
+    [
+     18.45,
+     0,
+     23,
+     4.2
+    ]
+   ]
+  },
+  {
+   "id": "R11",
+   "name": {
+    "cs": "Šatna rodičů",
+    "en": "Primary walk-in wardrobe"
+   },
+   "type": "wardrobe",
+   "role": "primary-wardrobe",
+   "floor": "oak",
+   "rects": [
+    [
+     18.45,
+     4.2,
+     23,
+     6.2
+    ]
+   ]
+  },
+  {
+   "id": "R12",
+   "name": {
+    "cs": "Koupelna rodičů",
+    "en": "Primary bathroom"
+   },
+   "type": "bath",
+   "role": "primary-bath",
+   "floor": "tile",
+   "rects": [
+    [
+     18.45,
+     6.2,
+     23,
+     8.4
+    ]
+   ]
+  },
+  {
+   "id": "R13",
+   "name": {
+    "cs": "Dětský pokoj 2",
+    "en": "Children's room 2"
+   },
+   "type": "kids",
+   "role": "children",
+   "floor": "oak",
+   "rects": [
+    [
+     18.45,
+     8.4,
+     23,
+     11.8
+    ]
+   ]
+  }
+ ],
+ "zones": {
+  "day": {
+   "label": {
+    "cs": "Denní zóna",
+    "en": "Day zone"
+   },
+   "types": [
+    "living",
+    "kitchen",
+    "dining",
+    "office",
+    "guest",
+    "hall"
+   ]
+  },
+  "night": {
+   "label": {
+    "cs": "Noční zóna",
+    "en": "Night zone"
+   },
+   "types": [
+    "bedroom",
+    "kids",
+    "bath",
+    "wardrobe",
+    "corridor"
+   ]
+  },
+  "service": {
+   "label": {
+    "cs": "Provozní zóna",
+    "en": "Service zone"
+   },
+   "types": [
+    "wc",
+    "utility",
+    "pantry",
+    "garage",
+    "storage",
+    "technical"
+   ]
+  },
+  "outdoor": {
+   "label": {
+    "cs": "Venkovní plochy",
+    "en": "Outdoor areas"
+   },
+   "types": [
+    "terrace",
+    "paving",
+    "drive",
+    "path"
+   ]
+  }
+ },
+ "openings": [
+  {
+   "id": "S01",
+   "kind": "slider",
+   "orient": "h",
+   "cx": 10.2,
+   "cy": 0,
+   "w": 4.4,
+   "sill": 0,
+   "head": 2.4
+  },
+  {
+   "id": "W02",
+   "kind": "window",
+   "orient": "h",
+   "cx": 15.3,
+   "cy": 0,
+   "w": 2.1,
+   "sill": 0.9,
+   "head": 2.4
+  },
+  {
+   "id": "W03",
+   "kind": "window",
+   "orient": "h",
+   "cx": 17.725,
+   "cy": 0,
+   "w": 0.6,
+   "sill": 0.6,
+   "head": 2.4
+  },
+  {
+   "id": "W04",
+   "kind": "window",
+   "orient": "h",
+   "cx": 20.9,
+   "cy": 0,
+   "w": 2.4,
+   "sill": 0.9,
+   "head": 2.4
+  },
+  {
+   "id": "S02",
+   "kind": "slider",
+   "orient": "v",
+   "cx": 6.65,
+   "cy": 3.5,
+   "w": 2.9,
+   "sill": 0,
+   "head": 2.4
+  },
+  {
+   "id": "W05",
+   "kind": "window",
+   "orient": "v",
+   "cx": 0,
+   "cy": 8.6,
+   "w": 1,
+   "sill": 1.2,
+   "head": 2
+  },
+  {
+   "id": "G01",
+   "kind": "garage",
+   "orient": "h",
+   "cx": 3.4,
+   "cy": 11.8,
+   "w": 5,
+   "sill": 0,
+   "head": 2.3
+  },
+  {
+   "id": "W06",
+   "kind": "window",
+   "orient": "h",
+   "cx": 11.25,
+   "cy": 11.8,
+   "w": 2.4,
+   "sill": 0.9,
+   "head": 2.3
+  },
+  {
+   "id": "W07",
+   "kind": "window",
+   "orient": "h",
+   "cx": 14.35,
+   "cy": 11.8,
+   "w": 0.6,
+   "sill": 1.2,
+   "head": 2.3
+  },
+  {
+   "id": "E01",
+   "kind": "entry",
+   "orient": "h",
+   "cx": 17.5,
+   "cy": 11.8,
+   "w": 1.2,
+   "sill": 0,
+   "head": 2.3,
+   "swing": "-",
+   "hinge": "-"
+  },
+  {
+   "id": "W08",
+   "kind": "window",
+   "orient": "h",
+   "cx": 21.9,
+   "cy": 11.8,
+   "w": 1.2,
+   "sill": 0.9,
+   "head": 2.3
+  },
+  {
+   "id": "W09",
+   "kind": "window",
+   "orient": "v",
+   "cx": 23,
+   "cy": 1.9,
+   "w": 1.2,
+   "sill": 0.9,
+   "head": 2.4
+  },
+  {
+   "id": "W10",
+   "kind": "window",
+   "orient": "v",
+   "cx": 23,
+   "cy": 7.25,
+   "w": 0.8,
+   "sill": 1.2,
+   "head": 2.4
+  },
+  {
+   "id": "W11",
+   "kind": "window",
+   "orient": "v",
+   "cx": 23,
+   "cy": 10.1,
+   "w": 1.2,
+   "sill": 0.9,
+   "head": 2.4
+  },
+  {
+   "id": "D01",
+   "kind": "door",
+   "orient": "v",
+   "cx": 6.65,
+   "cy": 8.4,
+   "w": 0.9,
+   "sill": 0,
+   "head": 2.1,
+   "swing": "+",
+   "hinge": "+"
+  },
+  {
+   "id": "D13",
+   "kind": "door",
+   "orient": "h",
+   "cx": 7.7,
+   "cy": 7.2,
+   "w": 0.8,
+   "sill": 0,
+   "head": 2.1,
+   "swing": "-",
+   "hinge": "-"
+  },
+  {
+   "id": "D03",
+   "kind": "door",
+   "orient": "v",
+   "cx": 9,
+   "cy": 6.3,
+   "w": 0.8,
+   "sill": 0,
+   "head": 2.1,
+   "swing": "-",
+   "hinge": "+"
+  },
+  {
+   "id": "D04",
+   "kind": "door",
+   "orient": "v",
+   "cx": 13.5,
+   "cy": 7.8,
+   "w": 1,
+   "sill": 0,
+   "head": 2.1,
+   "swing": "+",
+   "hinge": "-"
+  },
+  {
+   "id": "D05",
+   "kind": "door",
+   "orient": "v",
+   "cx": 13.5,
+   "cy": 9.5,
+   "w": 0.9,
+   "sill": 0,
+   "head": 2.1,
+   "swing": "-",
+   "hinge": "+"
+  },
+  {
+   "id": "D06",
+   "kind": "door",
+   "orient": "h",
+   "cx": 14.4,
+   "cy": 10.3,
+   "w": 0.8,
+   "sill": 0,
+   "head": 2.1,
+   "swing": "-",
+   "hinge": "+"
+  },
+  {
+   "id": "D07",
+   "kind": "door",
+   "orient": "v",
+   "cx": 17,
+   "cy": 3.3,
+   "w": 0.9,
+   "sill": 0,
+   "head": 2.1,
+   "swing": "-",
+   "hinge": "+"
+  },
+  {
+   "id": "D08",
+   "kind": "door",
+   "orient": "v",
+   "cx": 17,
+   "cy": 5.3,
+   "w": 0.8,
+   "sill": 0,
+   "head": 2.1,
+   "swing": "-",
+   "hinge": "-"
+  },
+  {
+   "id": "D09",
+   "kind": "door",
+   "orient": "v",
+   "cx": 18.45,
+   "cy": 1.5,
+   "w": 0.9,
+   "sill": 0,
+   "head": 2.1,
+   "swing": "+",
+   "hinge": "-"
+  },
+  {
+   "id": "D10",
+   "kind": "door",
+   "orient": "h",
+   "cx": 22.1,
+   "cy": 4.2,
+   "w": 0.8,
+   "sill": 0,
+   "head": 2.1,
+   "swing": "+",
+   "hinge": "+"
+  },
+  {
+   "id": "D11",
+   "kind": "door",
+   "orient": "h",
+   "cx": 19.5,
+   "cy": 6.2,
+   "w": 0.8,
+   "sill": 0,
+   "head": 2.1,
+   "swing": "+",
+   "hinge": "-"
+  },
+  {
+   "id": "D12",
+   "kind": "door",
+   "orient": "v",
+   "cx": 18.45,
+   "cy": 10.4,
+   "w": 0.9,
+   "sill": 0,
+   "head": 2.1,
+   "swing": "+",
+   "hinge": "+"
+  },
+  {
+   "id": "D14",
+   "kind": "door",
+   "orient": "h",
+   "cx": 17.69,
+   "cy": 7,
+   "w": 0.8,
+   "sill": 0,
+   "head": 2.1,
+   "swing": "+",
+   "hinge": "+"
+  }
+ ],
+ "roofs": [
+  {
+   "id": "T1",
+   "rect": [
+    -0.25,
+    -0.25,
+    23.25,
+    12.05
+   ],
+   "pitch": 22,
+   "overhang": 0.8,
+   "wallTop": 3.05
+  },
+  {
+   "id": "T2",
+   "rect": [
+    15.7,
+    8.45,
+    19.3,
+    14.45
+   ],
+   "pitch": 22,
+   "overhang": 0.8,
+   "wallTop": 3.05
+  }
+ ],
+ "outdoor": [
+  {
+   "id": "O1",
+   "type": "terrace",
+   "covered": true,
+   "rect": [
+    -0.25,
+    -0.25,
+    6.4,
+    5.15
+   ],
+   "posts": [
+    [
+     -0.1,
+     -0.1
+    ],
+    [
+     3.05,
+     -0.1
+    ],
+    [
+     6.25,
+     -0.1
+    ],
+    [
+     -0.1,
+     2.55
+    ]
+   ],
+   "postSize": 0.3
+  },
+  {
+   "id": "O2",
+   "type": "paving",
+   "covered": false,
+   "rect": [
+    -0.25,
+    -4,
+    13.6,
+    -0.25
+   ]
+  },
+  {
+   "id": "O3",
+   "type": "paving",
+   "covered": true,
+   "rect": [
+    15.7,
+    12.05,
+    19.3,
+    14.45
+   ],
+   "posts": [
+    [
+     15.85,
+     14.3
+    ],
+    [
+     19.15,
+     14.3
+    ]
+   ],
+   "postSize": 0.3
+  },
+  {
+   "id": "O4",
+   "type": "drive",
+   "covered": false,
+   "rect": [
+    0.2,
+    12.05,
+    6.4,
+    20.5
+   ]
+  },
+  {
+   "id": "O5",
+   "type": "path",
+   "covered": false,
+   "rect": [
+    16.8,
+    14.45,
+    18.2,
+    20.5
+   ]
+  }
+ ],
+ "accents": [
+  {
+   "id": "A1",
+   "type": "wood",
+   "orient": "h",
+   "cx": 3.2,
+   "cy": 5.4,
+   "w": 5
+  },
+  {
+   "id": "A2",
+   "type": "wood",
+   "orient": "h",
+   "cx": 17.175,
+   "cy": 11.8,
+   "w": 2.55
+  },
+  {
+   "id": "A2b",
+   "type": "wood",
+   "orient": "h",
+   "cx": 18.775,
+   "cy": 11.8,
+   "w": 0.65
+  },
+  {
+   "id": "A3",
+   "type": "wood",
+   "orient": "h",
+   "cx": 7.825,
+   "cy": 11.8,
+   "w": 2.3
+  },
+  {
+   "id": "A4",
+   "type": "wood",
+   "orient": "h",
+   "cx": 13,
+   "cy": 0,
+   "w": 1
+  },
+  {
+   "id": "A5",
+   "type": "wood",
+   "orient": "h",
+   "cx": 13.825,
+   "cy": 0,
+   "w": 0.65
+  }
+ ],
+ "furniture": [
+  {
+   "type": "car",
+   "x": 1.9,
+   "y": 8.85,
+   "rot": 90
+  },
+  {
+   "type": "car",
+   "x": 4.65,
+   "y": 8.85,
+   "rot": 90
+  },
+  {
+   "type": "shelf",
+   "x": 1.5,
+   "y": 5.825,
+   "rot": 180,
+   "w": 2,
+   "d": 0.35
+  },
+  {
+   "type": "shelf",
+   "x": 3.7,
+   "y": 5.825,
+   "rot": 180,
+   "w": 2,
+   "d": 0.35
+  },
+  {
+   "type": "washer",
+   "x": 7.25,
+   "y": 11.2,
+   "rot": 0
+  },
+  {
+   "type": "washer",
+   "x": 7.9,
+   "y": 11.2,
+   "rot": 0
+  },
+  {
+   "type": "wardrobe",
+   "x": 8.55,
+   "y": 11.2,
+   "rot": 0,
+   "w": 0.7
+  },
+  {
+   "type": "shelf",
+   "x": 8.75,
+   "y": 9.9,
+   "rot": 270,
+   "w": 1.5
+  },
+  {
+   "type": "shelf",
+   "x": 6.975,
+   "y": 6.3,
+   "rot": 90,
+   "w": 1.4
+  },
+  {
+   "type": "shelf",
+   "x": 7.9,
+   "y": 5.65,
+   "rot": 0,
+   "w": 1.4
+  },
+  {
+   "type": "sofaL",
+   "x": 8.4,
+   "y": 1.3,
+   "rot": 180
+  },
+  {
+   "type": "armchair",
+   "x": 9.35,
+   "y": 3.35,
+   "rot": 270
+  },
+  {
+   "type": "table6",
+   "x": 8,
+   "y": 3.05,
+   "rot": 0,
+   "w": 0.9,
+   "d": 0.6
+  },
+  {
+   "type": "tv",
+   "x": 8,
+   "y": 5.125,
+   "rot": 0
+  },
+  {
+   "type": "table8",
+   "x": 11.5,
+   "y": 3.2,
+   "rot": 0
+  },
+  {
+   "type": "chair",
+   "x": 10.6,
+   "y": 2.475,
+   "rot": 180
+  },
+  {
+   "type": "chair",
+   "x": 11.2,
+   "y": 2.475,
+   "rot": 180
+  },
+  {
+   "type": "chair",
+   "x": 11.8,
+   "y": 2.475,
+   "rot": 180
+  },
+  {
+   "type": "chair",
+   "x": 12.4,
+   "y": 2.475,
+   "rot": 180
+  },
+  {
+   "type": "chair",
+   "x": 10.6,
+   "y": 3.925,
+   "rot": 0
+  },
+  {
+   "type": "chair",
+   "x": 11.2,
+   "y": 3.925,
+   "rot": 0
+  },
+  {
+   "type": "chair",
+   "x": 11.8,
+   "y": 3.925,
+   "rot": 0
+  },
+  {
+   "type": "chair",
+   "x": 12.4,
+   "y": 3.925,
+   "rot": 0
+  },
+  {
+   "type": "fridge",
+   "x": 9.55,
+   "y": 8.275,
+   "rot": 0
+  },
+  {
+   "type": "kitchenLine",
+   "x": 11.15,
+   "y": 8.315,
+   "rot": 0,
+   "w": 2.5
+  },
+  {
+   "type": "island",
+   "x": 11.2,
+   "y": 6.5,
+   "rot": 0,
+   "w": 2.4
+  },
+  {
+   "type": "chair",
+   "x": 10.5,
+   "y": 5.7,
+   "rot": 180
+  },
+  {
+   "type": "chair",
+   "x": 11.2,
+   "y": 5.7,
+   "rot": 180
+  },
+  {
+   "type": "chair",
+   "x": 11.9,
+   "y": 5.7,
+   "rot": 180
+  },
+  {
+   "type": "desk",
+   "x": 11.25,
+   "y": 11.2,
+   "rot": 0
+  },
+  {
+   "type": "chair",
+   "x": 11.25,
+   "y": 10.5,
+   "rot": 180
+  },
+  {
+   "type": "sofa3",
+   "x": 10.5,
+   "y": 9.25,
+   "rot": 180
+  },
+  {
+   "type": "shelf",
+   "x": 13.175,
+   "y": 10.8,
+   "rot": 270,
+   "w": 1.4
+  },
+  {
+   "type": "wardrobe",
+   "x": 15.8,
+   "y": 7.375,
+   "rot": 180,
+   "w": 2
+  },
+  {
+   "type": "bench",
+   "x": 16.05,
+   "y": 11.35,
+   "rot": 0
+  },
+  {
+   "type": "wc",
+   "x": 14.4,
+   "y": 11.2,
+   "rot": 0
+  },
+  {
+   "type": "sink",
+   "x": 13.9,
+   "y": 10.8,
+   "rot": 90
+  },
+  {
+   "type": "bed90",
+   "x": 14.65,
+   "y": 3,
+   "rot": 90
+  },
+  {
+   "type": "desk",
+   "x": 15.35,
+   "y": 0.65,
+   "rot": 180
+  },
+  {
+   "type": "wardrobe",
+   "x": 16.15,
+   "y": 4.225,
+   "rot": 0,
+   "w": 1.5
+  },
+  {
+   "type": "bath",
+   "x": 14.55,
+   "y": 6.55,
+   "rot": 0
+  },
+  {
+   "type": "shower",
+   "x": 16.45,
+   "y": 6.475,
+   "rot": 0
+  },
+  {
+   "type": "wc",
+   "x": 15.6,
+   "y": 5.025,
+   "rot": 180
+  },
+  {
+   "type": "sink2",
+   "x": 13.925,
+   "y": 5.3,
+   "rot": 90
+  },
+  {
+   "type": "bed180",
+   "x": 20.55,
+   "y": 3.1,
+   "rot": 0
+  },
+  {
+   "type": "shelf",
+   "x": 19.3,
+   "y": 3.9,
+   "rot": 0,
+   "w": 0.45
+  },
+  {
+   "type": "armchair",
+   "x": 22.3,
+   "y": 0.7,
+   "rot": 0
+  },
+  {
+   "type": "wardrobe",
+   "x": 21.375,
+   "y": 5.825,
+   "rot": 180,
+   "w": 2.7
+  },
+  {
+   "type": "shelf",
+   "x": 20.05,
+   "y": 4.45,
+   "rot": 180,
+   "w": 2.9
+  },
+  {
+   "type": "wc",
+   "x": 19.3,
+   "y": 7.975,
+   "rot": 0
+  },
+  {
+   "type": "sink2",
+   "x": 20.7,
+   "y": 8.075,
+   "rot": 0
+  },
+  {
+   "type": "shower",
+   "x": 21.2,
+   "y": 6.725,
+   "rot": 0
+  },
+  {
+   "type": "bath",
+   "x": 22.375,
+   "y": 7.25,
+   "rot": 270
+  },
+  {
+   "type": "bed90",
+   "x": 20.3,
+   "y": 10.55,
+   "rot": 0
+  },
+  {
+   "type": "desk",
+   "x": 22.4,
+   "y": 9.9,
+   "rot": 270
+  },
+  {
+   "type": "wardrobe",
+   "x": 20.5,
+   "y": 8.775,
+   "rot": 180,
+   "w": 1.8
+  },
+  {
+   "type": "table8",
+   "x": 3.3,
+   "y": 1.2,
+   "rot": 0
+  },
+  {
+   "type": "chair",
+   "x": 2.4,
+   "y": 0.35,
+   "rot": 180
+  },
+  {
+   "type": "chair",
+   "x": 3,
+   "y": 0.35,
+   "rot": 180
+  },
+  {
+   "type": "chair",
+   "x": 3.6,
+   "y": 0.35,
+   "rot": 180
+  },
+  {
+   "type": "chair",
+   "x": 4.2,
+   "y": 0.35,
+   "rot": 180
+  },
+  {
+   "type": "chair",
+   "x": 2.4,
+   "y": 2.05,
+   "rot": 0
+  },
+  {
+   "type": "chair",
+   "x": 3,
+   "y": 2.05,
+   "rot": 0
+  },
+  {
+   "type": "chair",
+   "x": 3.6,
+   "y": 2.05,
+   "rot": 0
+  },
+  {
+   "type": "chair",
+   "x": 4.2,
+   "y": 2.05,
+   "rot": 0
+  },
+  {
+   "type": "swingbed",
+   "x": 1.2,
+   "y": 4.35,
+   "rot": 0
+  },
+  {
+   "type": "sofa3",
+   "x": 4.2,
+   "y": 4.65,
+   "rot": 0
+  },
+  {
+   "type": "armchair",
+   "x": 3,
+   "y": 3.4,
+   "rot": 90
+  },
+  {
+   "type": "table6",
+   "x": 4.2,
+   "y": 3.55,
+   "rot": 0,
+   "w": 0.9,
+   "d": 0.5
+  },
+  {
+   "type": "lounger",
+   "x": 0.9,
+   "y": 1.7,
+   "rot": 0
+  },
+  {
+   "type": "grill",
+   "x": 5.3,
+   "y": 0.45,
+   "rot": 180
+  }
+ ],
+ "lightpipes": [
+  [
+   11.3,
+   8.3
+  ],
+  [
+   16,
+   9
+  ],
+  [
+   17.7,
+   3.5
+  ],
+  [
+   15.4,
+   5.8
+  ]
+ ],
+ "screens": [
+  {
+   "id": "L1",
+   "type": "slats",
+   "orient": "v",
+   "cx": -0.1,
+   "y0": 2.7,
+   "y1": 5.15
+  }
+ ],
+ "assemblies": {
+  "exteriorWall": {
+   "name": {
+    "cs": "Obvodová zeď 500 mm, kontaktní zateplovací systém",
+    "en": "External wall 500 mm, external thermal insulation composite system"
+   },
+   "rsi": 0.13,
+   "rse": 0.04,
+   "layers": [
+    {
+     "id": "render",
+     "name": {
+      "cs": "Tenkovrstvá silikonová omítka se síťovinou",
+      "en": "Thin silicone render with reinforcing mesh"
+     },
+     "t": 0.01,
+     "lambda": 0.8,
+     "role": "finish"
+    },
+    {
+     "id": "eps",
+     "name": {
+      "cs": "Fasádní polystyren EPS grafitový",
+      "en": "Graphite EPS facade insulation"
+     },
+     "t": 0.1,
+     "lambda": 0.032,
+     "role": "insulation"
+    },
+    {
+     "id": "block",
+     "name": {
+      "cs": "Keramický tepelněizolační blok",
+      "en": "Ceramic thermal-insulation block"
+     },
+     "t": 0.375,
+     "lambda": 0.12,
+     "role": "structure"
+    },
+    {
+     "id": "plaster-in",
+     "name": {
+      "cs": "Vnitřní vápenná omítka",
+      "en": "Internal lime plaster"
+     },
+     "t": 0.015,
+     "lambda": 0.7,
+     "role": "finish"
+    }
+   ]
+  },
+  "bearingWall": {
+   "name": {
+    "cs": "Vnitřní nosná zeď 300 mm",
+    "en": "Internal bearing wall 300 mm"
+   },
+   "rsi": 0.13,
+   "rse": 0.13,
+   "layers": [
+    {
+     "id": "plaster-a",
+     "name": {
+      "cs": "Vápenná omítka",
+      "en": "Lime plaster"
+     },
+     "t": 0.015,
+     "lambda": 0.7,
+     "role": "finish"
+    },
+    {
+     "id": "block",
+     "name": {
+      "cs": "Keramický broušený blok",
+      "en": "Ground ceramic block"
+     },
+     "t": 0.27,
+     "lambda": 0.4,
+     "role": "structure"
+    },
+    {
+     "id": "plaster-b",
+     "name": {
+      "cs": "Vápenná omítka",
+      "en": "Lime plaster"
+     },
+     "t": 0.015,
+     "lambda": 0.7,
+     "role": "finish"
+    }
+   ]
+  },
+  "partitionWall": {
+   "name": {
+    "cs": "Příčka 150 mm",
+    "en": "Partition wall 150 mm"
+   },
+   "rsi": 0.13,
+   "rse": 0.13,
+   "layers": [
+    {
+     "id": "plaster-a",
+     "name": {
+      "cs": "Vápenná omítka",
+      "en": "Lime plaster"
+     },
+     "t": 0.0175,
+     "lambda": 0.7,
+     "role": "finish"
+    },
+    {
+     "id": "block",
+     "name": {
+      "cs": "Keramická příčkovka",
+      "en": "Ceramic partition block"
+     },
+     "t": 0.115,
+     "lambda": 0.4,
+     "role": "structure"
+    },
+    {
+     "id": "plaster-b",
+     "name": {
+      "cs": "Vápenná omítka",
+      "en": "Lime plaster"
+     },
+     "t": 0.0175,
+     "lambda": 0.7,
+     "role": "finish"
+    }
+   ]
+  },
+  "ceiling": {
+   "name": {
+    "cs": "Strop z předpjatých dutinových panelů 300 mm s podlahou půdního prostoru",
+    "en": "Ceiling of pre-stressed hollow-core slabs 300 mm with attic floor"
+   },
+   "rsi": 0.1,
+   "rse": 0.1,
+   "layers": [
+    {
+     "id": "attic-floor",
+     "name": {
+      "cs": "Podlaha půdního prostoru (desky OSB)",
+      "en": "Attic floor (OSB boards)"
+     },
+     "t": 0.022,
+     "lambda": 0.13,
+     "role": "finish"
+    },
+    {
+     "id": "hollow-core",
+     "name": {
+      "cs": "Předpjatý dutinový panel",
+      "en": "Pre-stressed hollow-core slab"
+     },
+     "t": 0.3,
+     "lambda": 1.1,
+     "role": "structure"
+    },
+    {
+     "id": "plaster",
+     "name": {
+      "cs": "Stropní omítka",
+      "en": "Ceiling plaster"
+     },
+     "t": 0.01,
+     "lambda": 0.7,
+     "role": "finish"
+    }
+   ]
+  },
+  "roof": {
+   "name": {
+    "cs": "Šikmá střecha, izolace mezi krokvemi a pod nimi",
+    "en": "Pitched roof, insulation between and under the rafters"
+   },
+   "rsi": 0.1,
+   "rse": 0.04,
+   "layers": [
+    {
+     "id": "sheet",
+     "name": {
+      "cs": "Falcovaná plechová krytina",
+      "en": "Standing-seam steel roofing"
+     },
+     "t": 0.001,
+     "lambda": 50,
+     "role": "cladding"
+    },
+    {
+     "id": "vent-gap",
+     "name": {
+      "cs": "Větraná mezera (kontralatě)",
+      "en": "Ventilated gap (counter-battens)"
+     },
+     "t": 0.05,
+     "r": 0,
+     "role": "air",
+     "ventilated": true
+    },
+    {
+     "id": "deck",
+     "name": {
+      "cs": "Bednění z desek OSB",
+      "en": "OSB decking"
+     },
+     "t": 0.022,
+     "lambda": 0.13,
+     "role": "structure"
+    },
+    {
+     "id": "rafter-wool",
+     "name": {
+      "cs": "Minerální vata mezi krokvemi",
+      "en": "Mineral wool between the rafters"
+     },
+     "t": 0.22,
+     "lambda": 0.036,
+     "role": "insulation"
+    },
+    {
+     "id": "service-wool",
+     "name": {
+      "cs": "Minerální vata v instalační rovině",
+      "en": "Mineral wool in the service layer"
+     },
+     "t": 0.06,
+     "lambda": 0.036,
+     "role": "insulation"
+    },
+    {
+     "id": "vcl",
+     "name": {
+      "cs": "Parozábrana",
+      "en": "Vapour control layer"
+     },
+     "t": 0.001,
+     "r": 0,
+     "role": "membrane"
+    },
+    {
+     "id": "plasterboard",
+     "name": {
+      "cs": "Sádrokartonový podhled",
+      "en": "Plasterboard ceiling"
+     },
+     "t": 0.0125,
+     "lambda": 0.22,
+     "role": "finish"
+    }
+   ]
+  },
+  "groundFloor": {
+   "name": {
+    "cs": "Podlaha na terénu",
+    "en": "Floor on the ground"
+   },
+   "rsi": 0.17,
+   "rse": 0,
+   "layers": [
+    {
+     "id": "blinding",
+     "name": {
+      "cs": "Podkladní beton",
+      "en": "Blinding concrete"
+     },
+     "t": 0.1,
+     "lambda": 1.3,
+     "role": "structure"
+    },
+    {
+     "id": "membrane",
+     "name": {
+      "cs": "Hydroizolační pás",
+      "en": "Waterproofing membrane"
+     },
+     "t": 0.005,
+     "lambda": 0.21,
+     "role": "membrane"
+    },
+    {
+     "id": "slab",
+     "name": {
+      "cs": "Železobetonová základová deska",
+      "en": "Reinforced-concrete ground slab"
+     },
+     "t": 0.15,
+     "lambda": 1.43,
+     "role": "structure"
+    },
+    {
+     "id": "eps-floor",
+     "name": {
+      "cs": "Podlahový polystyren EPS",
+      "en": "EPS floor insulation"
+     },
+     "t": 0.15,
+     "lambda": 0.034,
+     "role": "insulation"
+    },
+    {
+     "id": "screed",
+     "name": {
+      "cs": "Cementový potěr s podlahovým topením",
+      "en": "Cement screed with underfloor heating"
+     },
+     "t": 0.065,
+     "lambda": 1.3,
+     "role": "screed"
+    },
+    {
+     "id": "finish",
+     "name": {
+      "cs": "Podlahová krytina (dřevo, dlažba)",
+      "en": "Floor finish (oak, tile)"
+     },
+     "t": 0.015,
+     "lambda": 0.18,
+     "role": "finish"
+    }
+   ]
+  }
+ },
+ "windows": {
+  "Uw": 0.8,
+  "Ug": 0.6,
+  "g": 0.52,
+  "frameShare": 0.25,
+  "Ud": 0.9,
+  "slider": {
+   "Uw": 0.95,
+   "g": 0.53,
+   "frameShare": 0.18
+  }
+ },
+ "equipment": {
+  "pv": {
+   "module": {
+    "name": {
+     "cs": "Fotovoltaický modul, monokrystalický typ N",
+     "en": "Photovoltaic module, N-type monocrystalline"
+    },
+    "wp": 430,
+    "width": 1.134,
+    "height": 1.722
+   },
+   "layout": {
+    "facings": [
+     "S"
+    ],
+    "orientation": "portrait",
+    "gap": 0.02,
+    "setback": {
+     "eave": 0.8,
+     "ridge": 0.4,
+     "hip": 1,
+     "valley": 0.5,
+     "step": 0.5
+    },
+    "obstacleClearance": 0.3
+   },
+   "inverter": {
+    "ratedKw": 10
+   }
+  },
+  "battery": {
+   "options": [
+    {
+     "id": "none",
+     "name": {
+      "cs": "Bez baterie",
+      "en": "No battery"
+     },
+     "capacityKwh": 0,
+     "powerKw": 0
+    },
+    {
+     "id": "b5",
+     "name": {
+      "cs": "Baterie 5 kWh",
+      "en": "5 kWh battery"
+     },
+     "capacityKwh": 5,
+     "powerKw": 3
+    },
+    {
+     "id": "b10",
+     "name": {
+      "cs": "Baterie 10 kWh",
+      "en": "10 kWh battery"
+     },
+     "capacityKwh": 10,
+     "powerKw": 5
+    },
+    {
+     "id": "b15",
+     "name": {
+      "cs": "Baterie 15 kWh",
+      "en": "15 kWh battery"
+     },
+     "capacityKwh": 15,
+     "powerKw": 5
+    }
+   ],
+   "default": "b10"
+  },
+  "heating": {
+   "type": "air-water-heat-pump",
+   "name": {
+    "cs": "Tepelné čerpadlo vzduch–voda s ohřevem teplé vody",
+    "en": "Air-to-water heat pump with domestic hot water"
+   },
+   "ratedPowerKw": 8,
+   "scop": 4.3,
+   "scopDhw": 3,
+   "emission": "underfloor",
+   "flowTemperatureC": 35,
+   "dhw": {
+    "tankLiters": 200,
+    "setpointC": 50
+   }
+  },
+  "ventilation": {
+   "type": "mvhr",
+   "name": {
+    "cs": "Řízené větrání s rekuperací tepla",
+    "en": "Mechanical ventilation with heat recovery"
+   },
+   "heatRecoveryEfficiency": 0.88,
+   "nominalAirflowM3h": 240,
+   "specificFanPower": 0.35
+  }
+ },
+ "shading": {
+  "blinds": {
+   "type": "external-venetian",
+   "name": {
+    "cs": "Venkovní žaluzie s vodicími lištami",
+    "en": "External venetian blinds with guide rails"
+   },
+   "kinds": [
+    "window",
+    "slider"
+   ],
+   "azimuthFrom": 0,
+   "azimuthTo": 360,
+   "boxHeight": 0.2,
+   "closedFactor": 0.15,
+   "closeAboveIrradiance": 250,
+   "product": {
+    "slatWidth": 0.08,
+    "slatPitch": 0.072,
+    "slatThickness": 0.0035,
+    "railWidth": 0.024,
+    "railDepth": 0.03,
+    "boxDepth": 0.09,
+    "reveal": 0.051,
+    "maxSectionWidth": 2.4
+   }
+  },
+  "slats": {
+   "pitch": 0.1,
+   "width": 0.025,
+   "depth": 0.12,
+   "restDeg": 60
+  }
+ },
+ "roof": {
+  "attic": "warm",
+  "covering": {
+   "type": "standing-seam-steel",
+   "name": {
+    "cs": "Falcovaná plechová krytina, stojatá drážka",
+    "en": "Standing-seam steel roofing"
+   }
+  },
+  "lightpipes": {
+   "diameter": 0.35,
+   "domeHeight": 0.12
+  },
+  "downpipes": [
+   {
+    "x": 14.9,
+    "y": 12.85,
+    "diameter": 0.1
+   },
+   {
+    "x": 20.1,
+    "y": 12.85,
+    "diameter": 0.1
+   },
+   {
+    "x": -0.1,
+    "y": -0.1,
+    "diameter": 0.1
+   },
+   {
+    "x": 24.05,
+    "y": -1.05,
+    "diameter": 0.1
+   },
+   {
+    "x": 24.05,
+    "y": 12.85,
+    "diameter": 0.1
+   },
+   {
+    "x": -1.05,
+    "y": 12.85,
+    "diameter": 0.1
+   }
+  ],
+  "snowGuards": {
+   "aboveOpeningKinds": [
+    "garage",
+    "entry"
+   ]
+  }
+ },
+ "cameras": [
+  {
+   "id": "street",
+   "name": {
+    "cs": "street",
+    "en": "street"
+   },
+   "kind": "perspective",
+   "position": [
+    11.5,
+    29,
+    13
+   ],
+   "target": [
+    11.5,
+    7,
+    1.2
+   ],
+   "fov": 54,
+   "use": [
+    "web",
+    "render"
+   ]
+  },
+  {
+   "id": "garden",
+   "name": {
+    "cs": "garden",
+    "en": "garden"
+   },
+   "kind": "perspective",
+   "position": [
+    11.5,
+    -12.2,
+    1.2
+   ],
+   "target": [
+    10,
+    2,
+    1.8
+   ],
+   "fov": 50,
+   "use": [
+    "web",
+    "render"
+   ]
+  },
+  {
+   "id": "aerial-sw",
+   "name": {
+    "cs": "aerial-sw",
+    "en": "aerial-sw"
+   },
+   "kind": "perspective",
+   "position": [
+    -14,
+    -17,
+    32
+   ],
+   "target": [
+    11.5,
+    5.5,
+    1.5
+   ],
+   "fov": 33,
+   "use": [
+    "web",
+    "render",
+    "og"
+   ]
+  },
+  {
+   "id": "aerial-se",
+   "name": {
+    "cs": "aerial-se",
+    "en": "aerial-se"
+   },
+   "kind": "perspective",
+   "position": [
+    38,
+    -16,
+    32
+   ],
+   "target": [
+    11.5,
+    5.5,
+    1.5
+   ],
+   "fov": 33,
+   "use": [
+    "web",
+    "render"
+   ]
+  },
+  {
+   "id": "terrace",
+   "name": {
+    "cs": "terrace",
+    "en": "terrace"
+   },
+   "kind": "perspective",
+   "position": [
+    4.2,
+    -5.6,
+    1.6
+   ],
+   "target": [
+    3.2,
+    2,
+    1.4
+   ],
+   "fov": 52,
+   "use": [
+    "web",
+    "render"
+   ]
+  },
+  {
+   "id": "living",
+   "name": {
+    "cs": "living",
+    "en": "living"
+   },
+   "kind": "perspective",
+   "position": [
+    13,
+    8.2,
+    1.5
+   ],
+   "target": [
+    8,
+    1,
+    1.1
+   ],
+   "fov": 70,
+   "use": [
+    "web",
+    "render"
+   ]
+  },
+  {
+   "id": "entry",
+   "name": {
+    "cs": "entry",
+    "en": "entry"
+   },
+   "kind": "perspective",
+   "position": [
+    17.5,
+    20.7,
+    2.1
+   ],
+   "target": [
+    17.5,
+    11.8,
+    1.7
+   ],
+   "fov": 42,
+   "use": [
+    "web",
+    "render"
+   ]
+  },
+  {
+   "id": "plan",
+   "name": {
+    "cs": "plan",
+    "en": "plan"
+   },
+   "kind": "orthographic",
+   "position": [
+    11.5,
+    5.9,
+    60
+   ],
+   "target": [
+    11.5,
+    5.9,
+    0
+   ],
+   "orthoHeight": 24,
+   "use": [
+    "web"
+   ]
+  }
+ ],
+ "notes": {}
+}

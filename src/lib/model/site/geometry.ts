@@ -95,6 +95,21 @@ export function distToBoundary(q: XY, poly: readonly XY[]): number {
 /** Distance from q to the polygon as a solid (0 when inside). */
 export const distToPolygon = (q: XY, poly: readonly XY[]): number => (pointInPolygon(q, poly) ? 0 : distToBoundary(q, poly));
 
+/** Closest point on the boundary of the polygon to q. */
+export function nearestOnPolygon(q: XY, poly: readonly XY[]): XY {
+  let best: XY = poly[0] ?? q;
+  let d = Infinity;
+  for (let i = 0; i < poly.length; i++) {
+    const n = nearestOnSegment(q, poly[i], poly[(i + 1) % poly.length]);
+    const dn = dist(q, n);
+    if (dn < d) {
+      d = dn;
+      best = n;
+    }
+  }
+  return best;
+}
+
 /** Distance from q to a polyline (open). */
 export function distToPolyline(q: XY, pts: readonly XY[]): number {
   let d = Infinity;

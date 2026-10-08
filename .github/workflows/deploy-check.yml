@@ -1,0 +1,65 @@
+# Runs after Vercel reports a deployment as ready (preview or production). It tests the deployed site itself, so it sees what
+# `next start` in CI cannot: the platform's routing and 404 handling, the response headers, the environment variables (the
+# canonical host) and the served media. Vercel's Deployment Checks can wait for this job before a deployment gets the
+# production domain (docs/TESTING.md, "Checks on deployments").
+name: Deploy check
+
+on:
+  deployment_status:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-check-${{ github.event.deployment.id }}
+  cancel-in-progress: true
+
+jobs:
+  deploy-check:
+    name: deploy-check
+    if: github.event.deployment_status.state == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      # the unique URL of the deployment that just became ready
+      BASE_URL: ${{ github.event.deployment_status.environment_url || github.event.deployment_status.target_url }}
+      # lets the requests through Vercel's deployment protection, when the project has it (Settings > Deployment Protection >
+      # Protection Bypass for Automation); e2e/playwright.config.ts sends it as a header
+      VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+      CI: "true"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.deployment.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+
+      # The canonical host is read from the deployed page (a preview names the production host), and it must answer:
+      # every share card and search result points at it.
+      - name: The canonical host answers
+        run: |
+          set -euo pipefail
+          headers=()
+          if [ -n "${VERCEL_AUTOMATION_BYPASS_SECRET}" ]; then headers=(-H "x-vercel-protection-bypass: ${VERCEL_AUTOMATION_BYPASS_SECRET}"); fi
+          html="$(curl -fsSL "${headers[@]}" "${BASE_URL%/}/")"
+          canonical="$(printf '%s' "$html" | grep -o '<link rel="canonical" href="[^"]*"' | head -n 1 | sed -e 's/.*href="//' -e 's/"$//')"
+          image="$(printf '%s' "$html" | grep -o '<meta property="og:image" content="[^"]*"' | head -n 1 | sed -e 's/.*content="//' -e 's/"$//')"
+          test -n "$canonical" || { echo "no canonical link on ${BASE_URL}"; exit 1; }
+          test -n "$image" || { echo "no og:image on ${BASE_URL}"; exit 1; }
+          origin="$(printf '%s' "$canonical" | sed -E 's#^(https?://[^/]+).*#\1#')"
+          echo "canonical host: $origin"
+          curl -fsS -o /dev/null "$origin/robots.txt"
+          curl -fsS -o /dev/null "$image"
+
+      - run: npx playwright install --with-deps chromium webkit
+      - name: End-to-end tests against the deployment
+        run: npx playwright test -c e2e/playwright.config.ts smoke routing headers navigation media --project=desktop --project=iphone-15
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: deploy-check-report
+          path: e2e/playwright-report
+          retention-days: 7

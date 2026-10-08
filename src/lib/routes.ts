@@ -7,26 +7,31 @@
 
 import { DEFAULT_LOCALE, LOCALES, isLocale, localePrefix, type Locale } from "./i18n/config";
 
-export const ROUTE_KEYS = ["home", "plan", "plot", "model", "sun", "energy", "budget", "gallery"] as const;
+export const ROUTE_KEYS = ["home", "model", "plan", "plot", "sun", "energy", "budget", "gallery"] as const;
 export type RouteKey = (typeof ROUTE_KEYS)[number];
 export type ToolKey = Exclude<RouteKey, "home">;
 
-type RouteDef = {
-  /** Two-digit number shown in headings and the menu; "00" is the home page. */
+export type RouteDef = {
+  /** Two-digit number of a tool page shown in headings and the menu ("01".."07"); "" for the home page (no "00"). */
   n: string;
   /** Public slug per locale ("" for the home page). */
   slugs: Record<Locale, string>;
   /** Sitemap priority. */
   priority: number;
+  /**
+   * The page loads the 3D engine (three.js, GLB files). Links to it are not prefetched in the viewport; the navigation
+   * prefetches them on intent (pointer, focus, touch) instead. A property of the route, read instead of branching on keys.
+   */
+  heavy?: true;
 };
 
-/** In navigation order: floor plan -> plot -> 3D -> sun -> energy -> budget -> gallery. */
+/** In navigation order: 3D tour -> floor plan -> plot -> sun -> energy -> budget -> gallery. */
 export const ROUTES: Record<RouteKey, RouteDef> = {
-  home: { n: "00", slugs: { cs: "", en: "" }, priority: 1 },
-  plan: { n: "01", slugs: { cs: "pudorys", en: "floor-plan" }, priority: 0.8 },
-  plot: { n: "02", slugs: { cs: "pozemek", en: "plot" }, priority: 0.8 },
-  model: { n: "03", slugs: { cs: "model", en: "model" }, priority: 0.9 },
-  sun: { n: "04", slugs: { cs: "slunce", en: "sun" }, priority: 0.8 },
+  home: { n: "", slugs: { cs: "", en: "" }, priority: 1 },
+  model: { n: "01", slugs: { cs: "model", en: "model" }, priority: 0.9, heavy: true },
+  plan: { n: "02", slugs: { cs: "pudorys", en: "floor-plan" }, priority: 0.8 },
+  plot: { n: "03", slugs: { cs: "pozemek", en: "plot" }, priority: 0.8 },
+  sun: { n: "04", slugs: { cs: "slunce", en: "sun" }, priority: 0.8, heavy: true },
   energy: { n: "05", slugs: { cs: "energie", en: "energy" }, priority: 0.7 },
   budget: { n: "06", slugs: { cs: "rozpocet", en: "budget" }, priority: 0.7 },
   gallery: { n: "07", slugs: { cs: "galerie", en: "gallery" }, priority: 0.7 },
@@ -99,7 +104,8 @@ export type Resolution =
 /**
  * Decides what the proxy does with a request path:
  * canonical public URL -> rewrite to the key URL, any other spelling of a known page -> redirect to the canonical URL,
- * unknown path -> rewrite to the locale's catch-all (404 page, status 404).
+ * unknown path -> rewrite into the locale with status 404. No route matches the target (there is no catch-all), so the
+ * router serves app/global-not-found.tsx: a static page with full server HTML, never a streamed or client-rendered 404.
  */
 export function resolveRequest(pathname: string): Resolution {
   const segs = segmentsOf(pathname);

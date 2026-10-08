@@ -1,6 +1,7 @@
 # House Sample: architecture and contracts
 
-House Sample is a portfolio project: a **fictional** single-storey house ("Long Roof House") on a fictional plot.
+House Sample (the repository) is a portfolio project: a **fictional** single-storey family house, "Dům pod ořechem" /
+"Walnut House", on a fictional plot in South Moravia. The visible brand is the name of the house (`house.json` `name`).
 Every number on the website (areas, U-values, sun hours, PV yield, budget quantities) and every picture (floor plan,
 3D model, renders) is derived from **one data model** in `model/`.
 
@@ -45,8 +46,15 @@ the code a page is written against; `DESIGN.md` is the contract for UI code.
 * `model/render.json`: what to shoot (cameras, times, frame counts) for the renders (`docs/RENDER-INPUTS.md`).
 * The zod schema in `src/lib/model/schema.ts` is the single definition; `model/house.schema.json` is exported from it.
 * `src/lib/model/derive.ts` is the only place that derives geometry (net room polygons, walls, openings with facing,
-  roof planes with eave/ridge/hip edges, footprint, set-backs, metrics). Web code and `scripts/build-derived.ts` use it.
-  The Python/Blender side never re-derives geometry; it reads `generated/derived.json`.
+  roof planes with eave/ridge/hip edges, footprint, set-backs, metrics). With the plot (`derive(house, { site })`) it also
+  grades the outdoor slabs (drive and path ramps to their gates), resolves camera heights given above the ground and
+  resolves the plot (fences, gates, pillars, street). Web code (`@/lib/model/instance`) and `scripts/build-derived.ts` use
+  it with the plot. The Python/Blender side never re-derives geometry; it reads `generated/derived.json`
+  (`derive(house, { site })` plus `metrics`; `docs/HOUSE-FORMAT.md` section 6).
+* **Levels.** ±0.000 is the finished floor. Outdoor slabs have a top (`outdoor[].top`, default −0.02); the driveway and
+  the walkway are planar ramps from that top at the house end to the ground at their gate. The terrain is cut under every
+  slab (it stays at least 3 cm below the top, with a 0.6 m blend beside it), so a slab never sinks into the ground
+  (`docs/SITE.md`, section 3). Web, renders and walk mode use this graded terrain (`createSite(raw, bearing, house.outdoor)`).
 * **Content hash.** `hashModelFiles` (SHA-256 over every `model/*.json` except the generated schemas) is stored in
   `generated/derived.json` (`inputHash`), in `public/models/manifest.json` and in `public/media/manifest.json`. CI recomputes it
   (`npm run check:model`, `npm run models:check`) so a committed artefact can never silently disagree with the model. The hash covers
@@ -69,13 +77,29 @@ triangle counts, file sizes; the web uses the hash as `?v=` cache-buster).
   by role (no `.001` suffixes; one material per role).
 * Material roles (house): `plaster`, `wood_cladding`, `frame`, `glass`, `sill`, `soffit`, `fascia`, `gutter`,
   `roof_tile`, `ridge_cap`, `ceiling`, `plaster_in`, `door_leaf`, `slab`, `floor_oak`, `floor_tile`, `floor_stone`,
-  `floor_concrete`, `terrace_paving`, `drive_paving`, `path`, `gravel`, `post`, `screen_slats`.
-  Terrain (`lawn`, `mulch`) is generated in JS from `model/site.json` (single source of truth for the ground), not in the GLB.
+  `floor_concrete`, `terrace_paving`, `drive_paving`, `path`, `gravel`, `post`, `screen_slats`, and since R2:
+
+  | role | what | built from |
+  |---|---|---|
+  | `deck` | timber deck boards (outdoor areas with `surface: "deck"` and type `deck`) | `derived.outdoor[].role === "deck"`, minus `holes` |
+  | `pool_coping` | the light stone ring around a pool | `derived.outdoor[].pool.polygons.copingOuter` / `copingInner`, top `pool.copingTop` |
+  | `pool_liner` | walls and floor of the basin | `pool.water` from `pool.floorZ` to `pool.copingTop` |
+  | `water` | the water surface (the web swaps in its own material) | `pool.water` at `pool.waterZ` |
+  | `garage_door` | the leaf of the garage door (timber look) | openings of kind `garage` |
+  | `screen_rail` | top and bottom rails of a louvre wall (the web hides only `screen_slats`) | `derived.screens[]` `z0`/`z1` |
+  | `equipment` | the heat-pump outdoor unit (graphite) | `derived.outdoorUnit` |
+
+  `drive_paving` and `path` stay, now built as sloped slabs from `derived.outdoor[].grade` (`corners`, `plane`); every
+  slab top comes from `grade`, never from a constant in Python. Terrain (`lawn`, `mulch`) is generated in JS from
+  `model/site.json` (single source of truth for the ground), not in the GLB; the terrain has holes at `derived.groundVoids`
+  (pool basins).
 * `toggle: "roof"` marks everything hidden by the web "Roof" switch: `roof_tile`, `ridge_cap`, `fascia`, `gutter`,
   roof underside, `ceiling`.
 * Generated at runtime in JS (not in the GLB), driven by `derive()`: terrain, trees and shrubs, exterior blinds,
-  terrace screen animation, PV panels and battery, room labels, plot boundary. The Blender builder can add blinds, PV
-  and vegetation for renders (`--blinds --pv --vegetation`), never for the web GLB.
+  terrace louvre rotation, PV panels and battery, room labels, plot boundary. **Fences, gates and pillars are not in the
+  GLB**: the web builds them in JS and the renders in `pipeline/render`, both from the resolved site
+  (`derived.site.fences` with posts and slat spec, `gates` with posts, leaf, park span or swing arc, `pillars`). The
+  Blender builder can add blinds, PV and vegetation for renders (`--blinds --pv --vegetation`), never for the web GLB.
 * Furniture GLB: one root node `furniture`, children `furniture_<roomId>_<material>` (room id with `.`/`-` normalised to `_`),
   `furniture_terrace_<material>`; materials `f_*` (interior) and `t_*` (terrace); only the wood materials have textures.
   Style rules: light Scandinavian (`pipeline/furniture/STYLE.md`, `docs/PIPELINE-FURNITURE.md`).
@@ -98,8 +122,8 @@ Next.js 16 (App Router), React 19, TypeScript, three.js. Read `node_modules/next
 `src/proxy.ts`), English under `/en`; route slugs are localised (`src/lib/routes.ts`). Pages (`src/app/[locale]/<key>/page.tsx`):
 Home, Floor plan, Plot, 3D model (+ exports), Sun, Energy, Budget, Gallery. Three.js is loaded only on `/model` and `/sun`
 (checked by `scripts/check-bundles.mjs` after a build). Phones get the lite GLB, lower pixel ratio and render-on-demand.
-Tailwind is used for the preflight only; the design system lives in `src/styles/tokens.css` (graphite, ivory, mint; Geist; no
-serif, no orange; `docs/DESIGN.md`).
+Tailwind is used for the preflight only; the design system lives in `src/styles/tokens.css` (graphite, ivory, mint; Geist,
+with one italic serif accent phrase per heading through `--font-accent`; no orange; `docs/DESIGN.md`).
 
 Reliability on phones is a design rule, not a polish step: pages render complete HTML on the server, client state is read after
 mount (`src/lib/calc/storageKeys.ts`), every 3D failure is a value that turns into a message with a retry button, and a device
@@ -161,7 +185,7 @@ and compare derived numbers with an independent oracle; they never hard-code mag
 | `npm run typecheck`, `npm run lint`, `npm test` | TypeScript, ESLint, Vitest (unit tests of the kernel, calc, engine, pages, scripts, privacy scanner) |
 | `npm run e2e` | Playwright against a production build |
 | `npm run check:bundles` | after a build: three.js only on Model and Sun, no external hosts, size per page |
-| `npm run model:validate`, `npm run model:build`, `npm run check:model` | validate the model, write `generated/derived.json` and `model/house.schema.json`, check that they are fresh |
+| `npm run model:validate`, `npm run model:build`, `npm run check:model` | validate the model, write `generated/derived.json` (house, site and metrics) and `model/house.schema.json`, check that they are fresh |
 | `npm run models`, `npm run models:check`, `npm run verify:glb`, `npm run verify:furniture` | Blender: build the GLB/USDZ files and the manifest; check the manifest; verify the files |
 | `npx tsx scripts/build-render-inputs.ts`, Blender with `pipeline/render/photo.py`, `bash scripts/build-media.sh` | render inputs, renders, web media (`docs/RENDER-INPUTS.md`, `docs/MEDIA.md`) |
 | `npm run pvgis:fetch`, `npm run pvgis:build` | PVGIS climate data: fetch raw answers, assemble `src/lib/data/pvgis.json` (`docs/ENERGY-DATA.md`) |

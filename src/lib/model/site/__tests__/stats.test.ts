@@ -42,10 +42,45 @@ describe("plotStats on a hand-made case", () => {
     expect(s.byPavedKind.pad).toBeCloseTo(4, 9);
   });
 
-  it("built-up + paved + green always add up to the plot area", () => {
+  it("built-up + paved + water + green always add up to the plot area", () => {
     const s = plotStats(plot, footprint, outdoor, paved);
-    expect(s.builtUpArea + s.pavedArea + s.greenArea).toBeCloseTo(s.plotArea, 9);
-    expect(s.builtUpRatio + s.pavedRatio + s.greenRatio).toBeCloseTo(1, 12);
+    expect(s.waterArea).toBe(0);
+    expect(s.builtUpArea + s.pavedArea + s.waterArea + s.greenArea).toBeCloseTo(s.plotArea, 9);
+    expect(s.builtUpRatio + s.pavedRatio + s.waterRatio + s.greenRatio).toBeCloseTo(1, 12);
+  });
+});
+
+describe("water: pools are counted apart from the paving", () => {
+  const plot = rectToPolygon([0, 0, 30, 20]); // 600
+  const footprint = rectToPolygon([2, 12, 12, 18]); // 60
+  const outdoor = [
+    { type: "deck", covered: false, rect: [2, 2, 14, 10] as [number, number, number, number] }, // 96
+    { type: "pool", covered: false, rect: [4, 4, 12, 7.5] as [number, number, number, number] }, // 28, inside the deck
+    { type: "paving", covered: false, rect: [12, 9, 16, 12] as [number, number, number, number] }, // 12, 2 of it over the deck
+  ];
+  it("built-up + paved + water + green = plot, and the water is the pool", () => {
+    const s = plotStats(plot, footprint, outdoor);
+    expect(s.waterArea).toBeCloseTo(28, 9);
+    expect(s.pavedArea).toBeCloseTo(96 - 28 + 12 - 2, 9);
+    expect(s.builtUpArea + s.pavedArea + s.waterArea + s.greenArea).toBeCloseTo(s.plotArea, 9);
+    expect(s.builtUpRatio + s.pavedRatio + s.waterRatio + s.greenRatio).toBeCloseTo(1, 12);
+    expect(s.imperviousRatio).toBeCloseTo((s.builtUpArea + s.pavedArea + s.waterArea) / s.plotArea, 12);
+  });
+  it("without a pool the water is zero", () => {
+    expect(plotStats(plot, footprint, outdoor.filter((o) => o.type !== "pool")).waterArea).toBe(0);
+  });
+  it("the tree-to-pool check appears with a pool and a rule", () => {
+    const pool = { type: "pool", covered: false, rect: [4, -9, 10, -6] as [number, number, number, number] };
+    const dry = { ...FIXTURE_HOUSE, outdoor: FIXTURE_HOUSE.outdoor.filter((o) => o.type !== "pool") };
+    const house = { ...dry, outdoor: [...dry.outdoor, pool] };
+    const withRule = { ...site, setbackRules: { ...site.setbackRules, minCrownEdgeToPool: 2 } };
+    const c = analyzeSite(withRule, house).checks.find((x) => x.key === "treePool")!;
+    expect(c).toBeDefined();
+    const independent = Math.min(...site.trees.map((t) => Math.hypot(Math.max(pool.rect[0] - t.pos[0], 0, t.pos[0] - pool.rect[2]), Math.max(pool.rect[1] - t.pos[1], 0, t.pos[1] - pool.rect[3])) - t.crown / 2));
+    expect(c.actual).toBeCloseTo(independent, 9);
+    expect(c.ok).toBe(c.actual >= 2);
+    expect(analyzeSite(site, house).checks.some((x) => x.key === "treePool")).toBe(site.setbackRules.minCrownEdgeToPool !== undefined);
+    expect(analyzeSite(withRule, dry).checks.some((x) => x.key === "treePool")).toBe(false);
   });
 });
 

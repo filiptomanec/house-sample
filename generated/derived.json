@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "inputHash": "399fe6bb6974bc62d1ec5afbb8956c30aa57927c1b17b05a1c6303b48f4a3b28",
-  "houseId": "long-roof",
+  "inputHash": "6e92f0b0269073772ae4b30c8593884b735eba82af7f3e6659e1478f1c218a94",
+  "houseId": "walnut",
   "houseAxisBearingDeg": 12,
   "wall": {
     "ext": 0.5,
@@ -18,6 +18,7 @@
       15.2,
       17,
       18.45,
+      20.4,
       23
     ],
     "ys": [
@@ -25,7 +26,6 @@
       4.2,
       4.6,
       5.4,
-      6.2,
       7,
       7.2,
       8.4,
@@ -49,10 +49,10 @@
         "R09",
         "R08",
         "R14",
-        "R13",
-        "R12",
         "R11",
-        "R10"
+        "R12",
+        "R10",
+        "R13"
       ],
       "area": 235.49
     }
@@ -74,7 +74,7 @@
       "azimuth": 180,
       "azimuthTrue": 192,
       "facing": "S",
-      "height": 3.05
+      "height": 3.35
     },
     {
       "id": "Z02",
@@ -92,7 +92,7 @@
       "azimuth": 180,
       "azimuthTrue": 192,
       "facing": "S",
-      "height": 3.05
+      "height": 3.35
     },
     {
       "id": "Z03",
@@ -110,7 +110,7 @@
       "azimuth": 180,
       "azimuthTrue": 192,
       "facing": "S",
-      "height": 3.05
+      "height": 3.35
     },
     {
       "id": "Z04",
@@ -123,12 +123,12 @@
       "ext": true,
       "t": 0.5,
       "lo": null,
-      "hi": "R10",
-      "room": "R10",
+      "hi": "R13",
+      "room": "R13",
       "azimuth": 180,
       "azimuthTrue": 192,
       "facing": "S",
-      "height": 3.05
+      "height": 3.35
     },
     {
       "id": "Z05",
@@ -140,8 +140,8 @@
       "kind": "partition",
       "ext": false,
       "t": 0.15,
-      "lo": "R10",
-      "hi": "R11"
+      "lo": "R13",
+      "hi": "R10"
     },
     {
       "id": "Z06",
@@ -172,7 +172,7 @@
       "azimuth": 180,
       "azimuthTrue": 192,
       "facing": "S",
-      "height": 3.05
+      "height": 3.35
     },
     {
       "id": "Z08",
@@ -190,19 +190,6 @@
     {
       "id": "Z09",
       "orient": "h",
-      "at": 6.2,
-      "from": 18.45,
-      "to": 23,
-      "len": 4.55,
-      "kind": "partition",
-      "ext": false,
-      "t": 0.15,
-      "lo": "R11",
-      "hi": "R12"
-    },
-    {
-      "id": "Z10",
-      "orient": "h",
       "at": 7,
       "from": 13.5,
       "to": 17,
@@ -214,7 +201,7 @@
       "hi": "R06"
     },
     {
-      "id": "Z11",
+      "id": "Z10",
       "orient": "h",
       "at": 7,
       "from": 17,
@@ -227,7 +214,7 @@
       "hi": "R06"
     },
     {
-      "id": "Z12",
+      "id": "Z11",
       "orient": "h",
       "at": 7.2,
       "from": 6.65,
@@ -240,17 +227,30 @@
       "hi": "R02"
     },
     {
-      "id": "Z13",
+      "id": "Z12",
       "orient": "h",
       "at": 8.4,
       "from": 18.45,
-      "to": 23,
-      "len": 4.55,
+      "to": 20.4,
+      "len": 1.95,
       "kind": "partition",
       "ext": false,
       "t": 0.15,
-      "lo": "R12",
-      "hi": "R13"
+      "lo": "R10",
+      "hi": "R11"
+    },
+    {
+      "id": "Z13",
+      "orient": "h",
+      "at": 8.4,
+      "from": 20.4,
+      "to": 23,
+      "len": 2.6,
+      "kind": "partition",
+      "ext": false,
+      "t": 0.15,
+      "lo": "R10",
+      "hi": "R12"
     },
     {
       "id": "Z14",
@@ -294,7 +294,7 @@
       "azimuth": 0,
       "azimuthTrue": 12,
       "facing": "N",
-      "height": 3.05
+      "height": 3.35
     },
     {
       "id": "Z17",
@@ -312,7 +312,7 @@
       "azimuth": 0,
       "azimuthTrue": 12,
       "facing": "N",
-      "height": 3.05
+      "height": 3.35
     },
     {
       "id": "Z18",
@@ -330,7 +330,7 @@
       "azimuth": 0,
       "azimuthTrue": 12,
       "facing": "N",
-      "height": 3.05
+      "height": 3.35
     },
     {
       "id": "Z19",
@@ -348,7 +348,7 @@
       "azimuth": 0,
       "azimuthTrue": 12,
       "facing": "N",
-      "height": 3.05
+      "height": 3.35
     },
     {
       "id": "Z20",
@@ -366,28 +366,46 @@
       "azimuth": 0,
       "azimuthTrue": 12,
       "facing": "N",
-      "height": 3.05
+      "height": 3.35
     },
     {
       "id": "Z21",
       "orient": "h",
       "at": 11.8,
       "from": 18.45,
-      "to": 23,
-      "len": 4.55,
+      "to": 20.4,
+      "len": 1.95,
       "kind": "exterior",
       "ext": true,
       "t": 0.5,
-      "lo": "R13",
+      "lo": "R11",
       "hi": null,
-      "room": "R13",
+      "room": "R11",
       "azimuth": 0,
       "azimuthTrue": 12,
       "facing": "N",
-      "height": 3.05
+      "height": 3.35
     },
     {
       "id": "Z22",
+      "orient": "h",
+      "at": 11.8,
+      "from": 20.4,
+      "to": 23,
+      "len": 2.6,
+      "kind": "exterior",
+      "ext": true,
+      "t": 0.5,
+      "lo": "R12",
+      "hi": null,
+      "room": "R12",
+      "azimuth": 0,
+      "azimuthTrue": 12,
+      "facing": "N",
+      "height": 3.35
+    },
+    {
+      "id": "Z23",
       "orient": "v",
       "at": 0,
       "from": 5.4,
@@ -402,10 +420,10 @@
       "azimuth": 270,
       "azimuthTrue": 282,
       "facing": "W",
-      "height": 3.05
+      "height": 3.35
     },
     {
-      "id": "Z23",
+      "id": "Z24",
       "orient": "v",
       "at": 6.65,
       "from": 0,
@@ -420,10 +438,10 @@
       "azimuth": 270,
       "azimuthTrue": 282,
       "facing": "W",
-      "height": 3.05
+      "height": 3.35
     },
     {
-      "id": "Z24",
+      "id": "Z25",
       "orient": "v",
       "at": 6.65,
       "from": 5.4,
@@ -433,10 +451,11 @@
       "ext": false,
       "t": 0.3,
       "lo": "R01",
-      "hi": "R03"
+      "hi": "R03",
+      "toUnheated": true
     },
     {
-      "id": "Z25",
+      "id": "Z26",
       "orient": "v",
       "at": 6.65,
       "from": 7.2,
@@ -446,10 +465,11 @@
       "ext": false,
       "t": 0.3,
       "lo": "R01",
-      "hi": "R02"
+      "hi": "R02",
+      "toUnheated": true
     },
     {
-      "id": "Z26",
+      "id": "Z27",
       "orient": "v",
       "at": 9,
       "from": 5.4,
@@ -462,7 +482,7 @@
       "hi": "R04"
     },
     {
-      "id": "Z27",
+      "id": "Z28",
       "orient": "v",
       "at": 9,
       "from": 7.2,
@@ -475,7 +495,7 @@
       "hi": "R04"
     },
     {
-      "id": "Z28",
+      "id": "Z29",
       "orient": "v",
       "at": 9,
       "from": 8.7,
@@ -488,7 +508,7 @@
       "hi": "R05"
     },
     {
-      "id": "Z29",
+      "id": "Z30",
       "orient": "v",
       "at": 13.5,
       "from": 0,
@@ -501,7 +521,7 @@
       "hi": "R08"
     },
     {
-      "id": "Z30",
+      "id": "Z31",
       "orient": "v",
       "at": 13.5,
       "from": 4.6,
@@ -514,7 +534,7 @@
       "hi": "R09"
     },
     {
-      "id": "Z31",
+      "id": "Z32",
       "orient": "v",
       "at": 13.5,
       "from": 7,
@@ -527,7 +547,7 @@
       "hi": "R06"
     },
     {
-      "id": "Z32",
+      "id": "Z33",
       "orient": "v",
       "at": 13.5,
       "from": 8.7,
@@ -540,7 +560,7 @@
       "hi": "R06"
     },
     {
-      "id": "Z33",
+      "id": "Z34",
       "orient": "v",
       "at": 13.5,
       "from": 10.3,
@@ -553,7 +573,7 @@
       "hi": "R07"
     },
     {
-      "id": "Z34",
+      "id": "Z35",
       "orient": "v",
       "at": 15.2,
       "from": 10.3,
@@ -566,7 +586,7 @@
       "hi": "R06"
     },
     {
-      "id": "Z35",
+      "id": "Z36",
       "orient": "v",
       "at": 17,
       "from": 0,
@@ -579,7 +599,7 @@
       "hi": "R14"
     },
     {
-      "id": "Z36",
+      "id": "Z37",
       "orient": "v",
       "at": 17,
       "from": 4.6,
@@ -592,7 +612,7 @@
       "hi": "R14"
     },
     {
-      "id": "Z37",
+      "id": "Z38",
       "orient": "v",
       "at": 18.45,
       "from": 0,
@@ -602,33 +622,20 @@
       "ext": false,
       "t": 0.3,
       "lo": "R14",
-      "hi": "R10"
-    },
-    {
-      "id": "Z38",
-      "orient": "v",
-      "at": 18.45,
-      "from": 4.2,
-      "to": 6.2,
-      "len": 2,
-      "kind": "bearing",
-      "ext": false,
-      "t": 0.3,
-      "lo": "R14",
-      "hi": "R11"
+      "hi": "R13"
     },
     {
       "id": "Z39",
       "orient": "v",
       "at": 18.45,
-      "from": 6.2,
+      "from": 4.2,
       "to": 7,
-      "len": 0.8,
+      "len": 2.8,
       "kind": "bearing",
       "ext": false,
       "t": 0.3,
       "lo": "R14",
-      "hi": "R12"
+      "hi": "R10"
     },
     {
       "id": "Z40",
@@ -641,7 +648,7 @@
       "ext": false,
       "t": 0.3,
       "lo": "R06",
-      "hi": "R12"
+      "hi": "R10"
     },
     {
       "id": "Z41",
@@ -654,14 +661,45 @@
       "ext": false,
       "t": 0.3,
       "lo": "R06",
-      "hi": "R13"
+      "hi": "R11"
     },
     {
       "id": "Z42",
       "orient": "v",
+      "at": 20.4,
+      "from": 8.4,
+      "to": 11.8,
+      "len": 3.4,
+      "kind": "partition",
+      "ext": false,
+      "t": 0.15,
+      "lo": "R11",
+      "hi": "R12"
+    },
+    {
+      "id": "Z43",
+      "orient": "v",
       "at": 23,
       "from": 0,
       "to": 4.2,
+      "len": 4.2,
+      "kind": "exterior",
+      "ext": true,
+      "t": 0.5,
+      "lo": "R13",
+      "hi": null,
+      "room": "R13",
+      "azimuth": 90,
+      "azimuthTrue": 102,
+      "facing": "E",
+      "height": 3.35
+    },
+    {
+      "id": "Z44",
+      "orient": "v",
+      "at": 23,
+      "from": 4.2,
+      "to": 8.4,
       "len": 4.2,
       "kind": "exterior",
       "ext": true,
@@ -672,43 +710,7 @@
       "azimuth": 90,
       "azimuthTrue": 102,
       "facing": "E",
-      "height": 3.05
-    },
-    {
-      "id": "Z43",
-      "orient": "v",
-      "at": 23,
-      "from": 4.2,
-      "to": 6.2,
-      "len": 2,
-      "kind": "exterior",
-      "ext": true,
-      "t": 0.5,
-      "lo": "R11",
-      "hi": null,
-      "room": "R11",
-      "azimuth": 90,
-      "azimuthTrue": 102,
-      "facing": "E",
-      "height": 3.05
-    },
-    {
-      "id": "Z44",
-      "orient": "v",
-      "at": 23,
-      "from": 6.2,
-      "to": 8.4,
-      "len": 2.2,
-      "kind": "exterior",
-      "ext": true,
-      "t": 0.5,
-      "lo": "R12",
-      "hi": null,
-      "room": "R12",
-      "azimuth": 90,
-      "azimuthTrue": 102,
-      "facing": "E",
-      "height": 3.05
+      "height": 3.35
     },
     {
       "id": "Z45",
@@ -720,22 +722,27 @@
       "kind": "exterior",
       "ext": true,
       "t": 0.5,
-      "lo": "R13",
+      "lo": "R12",
       "hi": null,
-      "room": "R13",
+      "room": "R12",
       "azimuth": 90,
       "azimuthTrue": 102,
       "facing": "E",
-      "height": 3.05
+      "height": 3.35
     }
   ],
   "rooms": [
     {
       "id": "R01",
       "name": {
-        "cs": "Garáž pro dvě auta",
-        "en": "Two-car garage"
+        "cs": "Dvojgaráž",
+        "en": "Double garage"
       },
+      "shortName": {
+        "cs": "Garáž",
+        "en": "Garage"
+      },
+      "displayNo": "1.14",
       "type": "garage",
       "zone": "service",
       "heated": false,
@@ -783,11 +790,11 @@
         "d": 5.9
       },
       "glazing": {
-        "total": 0.8,
+        "total": 1.2,
         "N": 0,
         "E": 0,
         "S": 0,
-        "W": 0.8
+        "W": 1.2
       },
       "openings": [
         "W05",
@@ -807,16 +814,21 @@
         8.6
       ],
       "exteriorWallLength": 19.7,
-      "exteriorWallArea": 60.085,
+      "exteriorWallArea": 65.995,
       "role": "garage",
       "floor": "concrete"
     },
     {
       "id": "R02",
       "name": {
-        "cs": "Technická místnost a prádelna",
-        "en": "Plant room and laundry"
+        "cs": "Technická místnost s prádelnou",
+        "en": "Utility room and laundry"
       },
+      "shortName": {
+        "cs": "Technická",
+        "en": "Utility"
+      },
+      "displayNo": "1.11",
       "type": "utility",
       "zone": "service",
       "heated": true,
@@ -887,7 +899,7 @@
         9.41249
       ],
       "exteriorWallLength": 2.35,
-      "exteriorWallArea": 7.1675,
+      "exteriorWallArea": 7.8725,
       "role": "plant",
       "floor": "tile"
     },
@@ -897,6 +909,8 @@
         "cs": "Spíž",
         "en": "Pantry"
       },
+      "shortName": null,
+      "displayNo": "1.06",
       "type": "pantry",
       "zone": "service",
       "heated": true,
@@ -974,9 +988,14 @@
     {
       "id": "R04",
       "name": {
-        "cs": "Obývací pokoj s kuchyní a jídelnou",
-        "en": "Living room with kitchen and dining"
+        "cs": "Obývací pokoj s kuchyní",
+        "en": "Living room and kitchen"
       },
+      "shortName": {
+        "cs": "Obývák",
+        "en": "Living"
+      },
+      "displayNo": "1.02",
       "type": "living",
       "zone": "day",
       "heated": true,
@@ -1083,16 +1102,18 @@
         4.04884
       ],
       "exteriorWallLength": 12.25,
-      "exteriorWallArea": 37.3625,
+      "exteriorWallArea": 41.0375,
       "role": "main-living",
       "floor": "oak"
     },
     {
       "id": "R05",
       "name": {
-        "cs": "Pracovna / pokoj pro hosty",
-        "en": "Study / guest room"
+        "cs": "Pracovna",
+        "en": "Study"
       },
+      "shortName": null,
+      "displayNo": "1.03",
       "type": "office",
       "zone": "day",
       "heated": true,
@@ -1140,8 +1161,8 @@
         "d": 2.775
       },
       "glazing": {
-        "total": 3.36,
-        "N": 3.36,
+        "total": 3.6,
+        "N": 3.6,
         "E": 0,
         "S": 0,
         "W": 0
@@ -1163,16 +1184,21 @@
         10.1625
       ],
       "exteriorWallLength": 4.5,
-      "exteriorWallArea": 13.725,
+      "exteriorWallArea": 15.075,
       "role": "home-office",
       "floor": "oak"
     },
     {
       "id": "R06",
       "name": {
-        "cs": "Hala se zádveřím a šatnou",
-        "en": "Entrance hall with porch and cloakroom"
+        "cs": "Vstupní hala",
+        "en": "Entrance hall"
       },
+      "shortName": {
+        "cs": "Hala",
+        "en": "Hall"
+      },
+      "displayNo": "1.01",
       "type": "hall",
       "zone": "day",
       "heated": true,
@@ -1265,7 +1291,6 @@
         "D04",
         "D05",
         "D06",
-        "D12",
         "D14"
       ],
       "height": 2.75,
@@ -1281,16 +1306,21 @@
         9.13106
       ],
       "exteriorWallLength": 3.25,
-      "exteriorWallArea": 9.9125,
+      "exteriorWallArea": 10.8875,
       "role": "entry",
       "floor": "tile"
     },
     {
       "id": "R14",
       "name": {
-        "cs": "Chodba noční zóny",
-        "en": "Night-zone corridor"
+        "cs": "Chodba k ložnicím",
+        "en": "Bedroom corridor"
       },
+      "shortName": {
+        "cs": "Chodba",
+        "en": "Corridor"
+      },
+      "displayNo": "1.05",
       "type": "corridor",
       "zone": "night",
       "heated": true,
@@ -1349,6 +1379,7 @@
         "D07",
         "D08",
         "D09",
+        "D10",
         "D14"
       ],
       "height": 2.75,
@@ -1364,7 +1395,7 @@
         3.5875
       ],
       "exteriorWallLength": 1.45,
-      "exteriorWallArea": 4.4225,
+      "exteriorWallArea": 4.8575,
       "role": "night-corridor",
       "floor": "tile"
     },
@@ -1372,8 +1403,13 @@
       "id": "R07",
       "name": {
         "cs": "WC pro hosty",
-        "en": "Guest toilet"
+        "en": "Guest WC"
       },
+      "shortName": {
+        "cs": "WC",
+        "en": "WC"
+      },
+      "displayNo": "1.04",
       "type": "wc",
       "zone": "service",
       "heated": true,
@@ -1421,8 +1457,8 @@
         "d": 1.175
       },
       "glazing": {
-        "total": 0.66,
-        "N": 0.66,
+        "total": 0.72,
+        "N": 0.72,
         "E": 0,
         "S": 0,
         "W": 0
@@ -1444,7 +1480,7 @@
         10.96247
       ],
       "exteriorWallLength": 1.7,
-      "exteriorWallArea": 5.185,
+      "exteriorWallArea": 5.695,
       "role": "guest-wc",
       "floor": "tile"
     },
@@ -1452,8 +1488,13 @@
       "id": "R08",
       "name": {
         "cs": "Dětský pokoj 1",
-        "en": "Children's room 1"
+        "en": "Bedroom 2"
       },
+      "shortName": {
+        "cs": "Dětský 1",
+        "en": "Bedroom 2"
+      },
+      "displayNo": "1.07",
       "type": "kids",
       "zone": "night",
       "heated": true,
@@ -1501,10 +1542,10 @@
         "d": 4.275
       },
       "glazing": {
-        "total": 3.15,
+        "total": 5.04,
         "N": 0,
         "E": 0,
-        "S": 3.15,
+        "S": 5.04,
         "W": 0
       },
       "openings": [
@@ -1524,16 +1565,18 @@
         2.3875
       ],
       "exteriorWallLength": 3.5,
-      "exteriorWallArea": 10.675,
+      "exteriorWallArea": 11.725,
       "role": "children",
       "floor": "oak"
     },
     {
       "id": "R09",
       "name": {
-        "cs": "Hlavní koupelna",
-        "en": "Family bathroom"
+        "cs": "Koupelna",
+        "en": "Bathroom"
       },
+      "shortName": null,
+      "displayNo": "1.08",
       "type": "bath",
       "zone": "night",
       "heated": true,
@@ -1610,10 +1653,272 @@
     {
       "id": "R10",
       "name": {
-        "cs": "Ložnice rodičů",
-        "en": "Primary bedroom"
+        "cs": "Ložnice",
+        "en": "Main bedroom"
       },
+      "shortName": {
+        "cs": "Ložnice",
+        "en": "Bedroom"
+      },
+      "displayNo": "1.10",
       "type": "bedroom",
+      "zone": "night",
+      "heated": true,
+      "rects": [
+        [
+          18.45,
+          4.2,
+          23,
+          8.4
+        ]
+      ],
+      "cleanRects": [
+        [
+          18.6,
+          4.275,
+          22.75,
+          8.325
+        ]
+      ],
+      "area": 16.8075,
+      "axisArea": 19.11,
+      "bbox": {
+        "x0": 18.6,
+        "y0": 4.275,
+        "x1": 22.75,
+        "y1": 8.325,
+        "w": 4.15,
+        "d": 4.05
+      },
+      "rectsClear": [
+        {
+          "rect": [
+            18.45,
+            4.2,
+            23,
+            8.4
+          ],
+          "w": 4.15,
+          "d": 4.05
+        }
+      ],
+      "minWidth": 4.05,
+      "mainClear": {
+        "w": 4.15,
+        "d": 4.05
+      },
+      "glazing": {
+        "total": 3,
+        "N": 0,
+        "E": 3,
+        "S": 0,
+        "W": 0
+      },
+      "openings": [
+        "W10",
+        "D10",
+        "D11",
+        "D12"
+      ],
+      "height": 2.75,
+      "volume": 46.2206,
+      "label": {
+        "x": 20.675,
+        "y": 6.3,
+        "r": 2.025
+      },
+      "outlineDistance": 2.575,
+      "centroid": [
+        20.675,
+        6.3
+      ],
+      "exteriorWallLength": 4.2,
+      "exteriorWallArea": 14.07,
+      "role": "primary-bedroom",
+      "floor": "oak"
+    },
+    {
+      "id": "R11",
+      "name": {
+        "cs": "Šatna",
+        "en": "Walk-in wardrobe"
+      },
+      "shortName": {
+        "cs": "Šatna",
+        "en": "Wardrobe"
+      },
+      "displayNo": "1.12",
+      "type": "wardrobe",
+      "zone": "night",
+      "heated": true,
+      "rects": [
+        [
+          18.45,
+          8.4,
+          20.4,
+          11.8
+        ]
+      ],
+      "cleanRects": [
+        [
+          18.6,
+          8.475,
+          20.325,
+          11.55
+        ]
+      ],
+      "area": 5.30438,
+      "axisArea": 6.63,
+      "bbox": {
+        "x0": 18.6,
+        "y0": 8.475,
+        "x1": 20.325,
+        "y1": 11.55,
+        "w": 1.725,
+        "d": 3.075
+      },
+      "rectsClear": [
+        {
+          "rect": [
+            18.45,
+            8.4,
+            20.4,
+            11.8
+          ],
+          "w": 1.725,
+          "d": 3.075
+        }
+      ],
+      "minWidth": 1.725,
+      "mainClear": {
+        "w": 1.725,
+        "d": 3.075
+      },
+      "glazing": {
+        "total": 0,
+        "N": 0,
+        "E": 0,
+        "S": 0,
+        "W": 0
+      },
+      "openings": [
+        "D11"
+      ],
+      "height": 2.75,
+      "volume": 14.587,
+      "label": {
+        "x": 19.463,
+        "y": 10.013,
+        "r": 0.862
+      },
+      "outlineDistance": 2.038,
+      "centroid": [
+        19.46248,
+        10.01249
+      ],
+      "exteriorWallLength": 1.95,
+      "exteriorWallArea": 6.5325,
+      "role": "primary-wardrobe",
+      "floor": "oak"
+    },
+    {
+      "id": "R12",
+      "name": {
+        "cs": "Koupelna u ložnice",
+        "en": "En-suite bathroom"
+      },
+      "shortName": {
+        "cs": "Koupelna",
+        "en": "En-suite"
+      },
+      "displayNo": "1.13",
+      "type": "bath",
+      "zone": "night",
+      "heated": true,
+      "rects": [
+        [
+          20.4,
+          8.4,
+          23,
+          11.8
+        ]
+      ],
+      "cleanRects": [
+        [
+          20.475,
+          8.475,
+          22.75,
+          11.55
+        ]
+      ],
+      "area": 6.99563,
+      "axisArea": 8.84,
+      "bbox": {
+        "x0": 20.475,
+        "y0": 8.475,
+        "x1": 22.75,
+        "y1": 11.55,
+        "w": 2.275,
+        "d": 3.075
+      },
+      "rectsClear": [
+        {
+          "rect": [
+            20.4,
+            8.4,
+            23,
+            11.8
+          ],
+          "w": 2.275,
+          "d": 3.075
+        }
+      ],
+      "minWidth": 2.275,
+      "mainClear": {
+        "w": 2.275,
+        "d": 3.075
+      },
+      "glazing": {
+        "total": 1.8,
+        "N": 0.72,
+        "E": 1.08,
+        "S": 0,
+        "W": 0
+      },
+      "openings": [
+        "W08",
+        "W11",
+        "D12"
+      ],
+      "height": 2.75,
+      "volume": 19.238,
+      "label": {
+        "x": 21.613,
+        "y": 10.013,
+        "r": 1.137
+      },
+      "outlineDistance": 1.637,
+      "centroid": [
+        21.61248,
+        10.01249
+      ],
+      "exteriorWallLength": 6,
+      "exteriorWallArea": 20.1,
+      "role": "primary-bath",
+      "floor": "tile"
+    },
+    {
+      "id": "R13",
+      "name": {
+        "cs": "Dětský pokoj 2",
+        "en": "Bedroom 3"
+      },
+      "shortName": {
+        "cs": "Dětský 2",
+        "en": "Bedroom 3"
+      },
+      "displayNo": "1.09",
+      "type": "kids",
       "zone": "night",
       "heated": true,
       "rects": [
@@ -1660,17 +1965,16 @@
         "d": 3.875
       },
       "glazing": {
-        "total": 5.4,
+        "total": 7.56,
         "N": 0,
         "E": 1.8,
-        "S": 3.6,
+        "S": 5.76,
         "W": 0
       },
       "openings": [
         "W04",
         "W09",
-        "D09",
-        "D10"
+        "D09"
       ],
       "height": 2.75,
       "volume": 44.2234,
@@ -1685,248 +1989,7 @@
         2.1875
       ],
       "exteriorWallLength": 8.75,
-      "exteriorWallArea": 26.6875,
-      "role": "primary-bedroom",
-      "floor": "oak"
-    },
-    {
-      "id": "R11",
-      "name": {
-        "cs": "Šatna rodičů",
-        "en": "Primary walk-in wardrobe"
-      },
-      "type": "wardrobe",
-      "zone": "night",
-      "heated": true,
-      "rects": [
-        [
-          18.45,
-          4.2,
-          23,
-          6.2
-        ]
-      ],
-      "cleanRects": [
-        [
-          18.6,
-          4.275,
-          22.75,
-          6.125
-        ]
-      ],
-      "area": 7.6775,
-      "axisArea": 9.1,
-      "bbox": {
-        "x0": 18.6,
-        "y0": 4.275,
-        "x1": 22.75,
-        "y1": 6.125,
-        "w": 4.15,
-        "d": 1.85
-      },
-      "rectsClear": [
-        {
-          "rect": [
-            18.45,
-            4.2,
-            23,
-            6.2
-          ],
-          "w": 4.15,
-          "d": 1.85
-        }
-      ],
-      "minWidth": 1.85,
-      "mainClear": {
-        "w": 4.15,
-        "d": 1.85
-      },
-      "glazing": {
-        "total": 0,
-        "N": 0,
-        "E": 0,
-        "S": 0,
-        "W": 0
-      },
-      "openings": [
-        "D10",
-        "D11"
-      ],
-      "height": 2.75,
-      "volume": 21.1131,
-      "label": {
-        "x": 20.675,
-        "y": 5.2,
-        "r": 0.925
-      },
-      "outlineDistance": 2.575,
-      "centroid": [
-        20.675,
-        5.2
-      ],
-      "exteriorWallLength": 2,
-      "exteriorWallArea": 6.1,
-      "role": "primary-wardrobe",
-      "floor": "oak"
-    },
-    {
-      "id": "R12",
-      "name": {
-        "cs": "Koupelna rodičů",
-        "en": "Primary bathroom"
-      },
-      "type": "bath",
-      "zone": "night",
-      "heated": true,
-      "rects": [
-        [
-          18.45,
-          6.2,
-          23,
-          8.4
-        ]
-      ],
-      "cleanRects": [
-        [
-          18.6,
-          6.275,
-          22.75,
-          8.325
-        ]
-      ],
-      "area": 8.5075,
-      "axisArea": 10.01,
-      "bbox": {
-        "x0": 18.6,
-        "y0": 6.275,
-        "x1": 22.75,
-        "y1": 8.325,
-        "w": 4.15,
-        "d": 2.05
-      },
-      "rectsClear": [
-        {
-          "rect": [
-            18.45,
-            6.2,
-            23,
-            8.4
-          ],
-          "w": 4.15,
-          "d": 2.05
-        }
-      ],
-      "minWidth": 2.05,
-      "mainClear": {
-        "w": 4.15,
-        "d": 2.05
-      },
-      "glazing": {
-        "total": 0.96,
-        "N": 0,
-        "E": 0.96,
-        "S": 0,
-        "W": 0
-      },
-      "openings": [
-        "W10",
-        "D11"
-      ],
-      "height": 2.75,
-      "volume": 23.3956,
-      "label": {
-        "x": 20.675,
-        "y": 7.3,
-        "r": 1.025
-      },
-      "outlineDistance": 2.575,
-      "centroid": [
-        20.675,
-        7.3
-      ],
-      "exteriorWallLength": 2.2,
-      "exteriorWallArea": 6.71,
-      "role": "primary-bath",
-      "floor": "tile"
-    },
-    {
-      "id": "R13",
-      "name": {
-        "cs": "Dětský pokoj 2",
-        "en": "Children's room 2"
-      },
-      "type": "kids",
-      "zone": "night",
-      "heated": true,
-      "rects": [
-        [
-          18.45,
-          8.4,
-          23,
-          11.8
-        ]
-      ],
-      "cleanRects": [
-        [
-          18.6,
-          8.475,
-          22.75,
-          11.55
-        ]
-      ],
-      "area": 12.76125,
-      "axisArea": 15.47,
-      "bbox": {
-        "x0": 18.6,
-        "y0": 8.475,
-        "x1": 22.75,
-        "y1": 11.55,
-        "w": 4.15,
-        "d": 3.075
-      },
-      "rectsClear": [
-        {
-          "rect": [
-            18.45,
-            8.4,
-            23,
-            11.8
-          ],
-          "w": 4.15,
-          "d": 3.075
-        }
-      ],
-      "minWidth": 3.075,
-      "mainClear": {
-        "w": 4.15,
-        "d": 3.075
-      },
-      "glazing": {
-        "total": 3.48,
-        "N": 1.68,
-        "E": 1.8,
-        "S": 0,
-        "W": 0
-      },
-      "openings": [
-        "W08",
-        "W11",
-        "D12"
-      ],
-      "height": 2.75,
-      "volume": 35.0934,
-      "label": {
-        "x": 20.675,
-        "y": 10.013,
-        "r": 1.537
-      },
-      "outlineDistance": 2.038,
-      "centroid": [
-        20.675,
-        10.0125
-      ],
-      "exteriorWallLength": 7.95,
-      "exteriorWallArea": 24.2475,
+      "exteriorWallArea": 29.3125,
       "role": "children",
       "floor": "oak"
     }
@@ -2126,12 +2189,12 @@
       "rects": [
         [
           18.6,
-          0.25,
+          4.275,
           22.75,
-          4.125
+          8.325
         ]
       ],
-      "area": 16.08125
+      "area": 16.8075
     },
     {
       "id": "R11",
@@ -2141,12 +2204,12 @@
       "rects": [
         [
           18.6,
-          4.275,
-          22.75,
-          6.125
+          8.475,
+          20.325,
+          11.55
         ]
       ],
-      "area": 7.6775
+      "area": 5.30438
     },
     {
       "id": "R12",
@@ -2155,13 +2218,13 @@
       "heated": true,
       "rects": [
         [
-          18.6,
-          6.275,
+          20.475,
+          8.475,
           22.75,
-          8.325
+          11.55
         ]
       ],
-      "area": 8.5075
+      "area": 6.99563
     },
     {
       "id": "R13",
@@ -2171,12 +2234,12 @@
       "rects": [
         [
           18.6,
-          8.475,
+          0.25,
           22.75,
-          11.55
+          4.125
         ]
       ],
-      "area": 12.76125
+      "area": 16.08125
     }
   ],
   "outer": {
@@ -2273,8 +2336,8 @@
     "w": 25.1,
     "d": 16.3,
     "z0": 0,
-    "z1": 5.5348,
-    "h": 5.5348
+    "z1": 5.8348,
+    "h": 5.8348
   },
   "openings": [
     {
@@ -2313,20 +2376,21 @@
         1.2
       ],
       "blind": true,
+      "blindSections": 2,
       "overhang": {
         "depth": 0.8,
-        "eaveHeight": 2.72678,
-        "wallTop": 3.05
+        "eaveHeight": 3.02678,
+        "wallTop": 3.35
       }
     },
     {
       "id": "W02",
-      "kind": "window",
+      "kind": "slider",
       "orient": "h",
       "cx": 15.3,
       "cy": 0,
       "w": 2.1,
-      "sill": 0.9,
+      "sill": 0,
       "head": 2.4,
       "swing": null,
       "hinge": null,
@@ -2342,23 +2406,24 @@
       "room": "R08",
       "connects": null,
       "swingRoom": null,
-      "glazingArea": 3.15,
+      "glazingArea": 5.04,
       "clearStart": 0.6,
       "clearEnd": 0.575,
       "azimuthTrue": 192,
       "facing": "S",
       "dir": "S",
-      "area": 3.15,
+      "area": 5.04,
       "center": [
         15.3,
         0,
-        1.65
+        1.2
       ],
       "blind": true,
+      "blindSections": 1,
       "overhang": {
         "depth": 0.8,
-        "eaveHeight": 2.72678,
-        "wallTop": 3.05
+        "eaveHeight": 3.02678,
+        "wallTop": 3.35
       }
     },
     {
@@ -2397,20 +2462,21 @@
         1.5
       ],
       "blind": true,
+      "blindSections": 1,
       "overhang": {
         "depth": 0.8,
-        "eaveHeight": 2.72678,
-        "wallTop": 3.05
+        "eaveHeight": 3.02678,
+        "wallTop": 3.35
       }
     },
     {
       "id": "W04",
-      "kind": "window",
+      "kind": "slider",
       "orient": "h",
       "cx": 20.9,
       "cy": 0,
       "w": 2.4,
-      "sill": 0.9,
+      "sill": 0,
       "head": 2.4,
       "swing": null,
       "hinge": null,
@@ -2423,26 +2489,27 @@
       "exterior": true,
       "wallKind": "exterior",
       "azimuth": 180,
-      "room": "R10",
+      "room": "R13",
       "connects": null,
       "swingRoom": null,
-      "glazingArea": 3.6,
+      "glazingArea": 5.76,
       "clearStart": 1.1,
       "clearEnd": 0.65,
       "azimuthTrue": 192,
       "facing": "S",
       "dir": "S",
-      "area": 3.6,
+      "area": 5.76,
       "center": [
         20.9,
         0,
-        1.65
+        1.2
       ],
       "blind": true,
+      "blindSections": 1,
       "overhang": {
         "depth": 0.8,
-        "eaveHeight": 2.72678,
-        "wallTop": 3.05
+        "eaveHeight": 3.02678,
+        "wallTop": 3.35
       }
     },
     {
@@ -2460,7 +2527,7 @@
       "axis": 6.65,
       "from": 2.05,
       "to": 4.95,
-      "wallId": "Z23",
+      "wallId": "Z24",
       "problem": null,
       "exterior": true,
       "wallKind": "exterior",
@@ -2481,10 +2548,11 @@
         1.2
       ],
       "blind": true,
+      "blindSections": 2,
       "overhang": {
-        "depth": 0.8,
-        "eaveHeight": 2.72678,
-        "wallTop": 3.05
+        "depth": 7.45,
+        "eaveHeight": 2.75,
+        "wallTop": 3.35
       }
     },
     {
@@ -2495,14 +2563,14 @@
       "cy": 8.6,
       "w": 1,
       "sill": 1.2,
-      "head": 2,
+      "head": 2.4,
       "swing": null,
       "hinge": null,
       "c": 8.6,
       "axis": 0,
       "from": 8.1,
       "to": 9.1,
-      "wallId": "Z22",
+      "wallId": "Z23",
       "problem": null,
       "exterior": true,
       "wallKind": "exterior",
@@ -2510,23 +2578,24 @@
       "room": "R01",
       "connects": null,
       "swingRoom": null,
-      "glazingArea": 0.8,
+      "glazingArea": 1.2,
       "clearStart": 2.45,
       "clearEnd": 2.45,
       "azimuthTrue": 282,
       "facing": "W",
       "dir": "W",
-      "area": 0.8,
+      "area": 1.2,
       "center": [
         0,
         8.6,
-        1.6
+        1.8
       ],
       "blind": false,
+      "blindSections": 0,
       "overhang": {
         "depth": 0.8,
-        "eaveHeight": 2.72678,
-        "wallTop": 3.05
+        "eaveHeight": 3.02678,
+        "wallTop": 3.35
       }
     },
     {
@@ -2537,7 +2606,7 @@
       "cy": 11.8,
       "w": 5,
       "sill": 0,
-      "head": 2.3,
+      "head": 2.4,
       "swing": null,
       "hinge": null,
       "c": 3.4,
@@ -2558,17 +2627,18 @@
       "azimuthTrue": 12,
       "facing": "N",
       "dir": "N",
-      "area": 11.5,
+      "area": 12,
       "center": [
         3.4,
         11.8,
-        1.15
+        1.2
       ],
       "blind": false,
+      "blindSections": 0,
       "overhang": {
         "depth": 0.8,
-        "eaveHeight": 2.72678,
-        "wallTop": 3.05
+        "eaveHeight": 3.02678,
+        "wallTop": 3.35
       }
     },
     {
@@ -2579,7 +2649,7 @@
       "cy": 11.8,
       "w": 2.4,
       "sill": 0.9,
-      "head": 2.3,
+      "head": 2.4,
       "swing": null,
       "hinge": null,
       "c": 11.25,
@@ -2594,23 +2664,24 @@
       "room": "R05",
       "connects": null,
       "swingRoom": null,
-      "glazingArea": 3.36,
+      "glazingArea": 3.6,
       "clearStart": 0.975,
       "clearEnd": 0.9,
       "azimuthTrue": 12,
       "facing": "N",
       "dir": "N",
-      "area": 3.36,
+      "area": 3.6,
       "center": [
         11.25,
         11.8,
-        1.6
+        1.65
       ],
-      "blind": false,
+      "blind": true,
+      "blindSections": 1,
       "overhang": {
         "depth": 0.8,
-        "eaveHeight": 2.72678,
-        "wallTop": 3.05
+        "eaveHeight": 3.02678,
+        "wallTop": 3.35
       }
     },
     {
@@ -2621,7 +2692,7 @@
       "cy": 11.8,
       "w": 0.6,
       "sill": 1.2,
-      "head": 2.3,
+      "head": 2.4,
       "swing": null,
       "hinge": null,
       "c": 14.35,
@@ -2636,23 +2707,24 @@
       "room": "R07",
       "connects": null,
       "swingRoom": null,
-      "glazingArea": 0.66,
+      "glazingArea": 0.72,
       "clearStart": 0.4,
       "clearEnd": 0.475,
       "azimuthTrue": 12,
       "facing": "N",
       "dir": "N",
-      "area": 0.66,
+      "area": 0.72,
       "center": [
         14.35,
         11.8,
-        1.75
+        1.8
       ],
-      "blind": false,
+      "blind": true,
+      "blindSections": 1,
       "overhang": {
         "depth": 0.8,
-        "eaveHeight": 2.72678,
-        "wallTop": 3.05
+        "eaveHeight": 3.02678,
+        "wallTop": 3.35
       }
     },
     {
@@ -2663,7 +2735,7 @@
       "cy": 11.8,
       "w": 1.2,
       "sill": 0,
-      "head": 2.3,
+      "head": 2.4,
       "swing": "-",
       "hinge": "-",
       "c": 17.5,
@@ -2684,59 +2756,61 @@
       "azimuthTrue": 12,
       "facing": "N",
       "dir": "N",
-      "area": 2.76,
+      "area": 2.88,
       "center": [
         17.5,
         11.8,
-        1.15
+        1.2
       ],
       "blind": false,
+      "blindSections": 0,
       "overhang": {
-        "depth": 0.8,
-        "eaveHeight": 2.72678,
-        "wallTop": 3.05
+        "depth": 3.2,
+        "eaveHeight": 2.75,
+        "wallTop": 3.35
       }
     },
     {
       "id": "W08",
       "kind": "window",
       "orient": "h",
-      "cx": 21.9,
+      "cx": 21.3,
       "cy": 11.8,
-      "w": 1.2,
-      "sill": 0.9,
-      "head": 2.3,
+      "w": 0.6,
+      "sill": 1.2,
+      "head": 2.4,
       "swing": null,
       "hinge": null,
-      "c": 21.9,
+      "c": 21.3,
       "axis": 11.8,
-      "from": 21.3,
-      "to": 22.5,
-      "wallId": "Z21",
+      "from": 21,
+      "to": 21.6,
+      "wallId": "Z22",
       "problem": null,
       "exterior": true,
       "wallKind": "exterior",
       "azimuth": 0,
-      "room": "R13",
+      "room": "R12",
       "connects": null,
       "swingRoom": null,
-      "glazingArea": 1.68,
-      "clearStart": 2.7,
-      "clearEnd": 0.25,
+      "glazingArea": 0.72,
+      "clearStart": 0.525,
+      "clearEnd": 1.15,
       "azimuthTrue": 12,
       "facing": "N",
       "dir": "N",
-      "area": 1.68,
+      "area": 0.72,
       "center": [
-        21.9,
+        21.3,
         11.8,
-        1.6
+        1.8
       ],
-      "blind": false,
+      "blind": true,
+      "blindSections": 1,
       "overhang": {
         "depth": 0.8,
-        "eaveHeight": 2.72678,
-        "wallTop": 3.05
+        "eaveHeight": 3.02678,
+        "wallTop": 3.35
       }
     },
     {
@@ -2754,12 +2828,12 @@
       "axis": 23,
       "from": 1.3,
       "to": 2.5,
-      "wallId": "Z42",
+      "wallId": "Z43",
       "problem": null,
       "exterior": true,
       "wallKind": "exterior",
       "azimuth": 90,
-      "room": "R10",
+      "room": "R13",
       "connects": null,
       "swingRoom": null,
       "glazingArea": 1.8,
@@ -2774,11 +2848,12 @@
         1.9,
         1.65
       ],
-      "blind": false,
+      "blind": true,
+      "blindSections": 1,
       "overhang": {
         "depth": 0.8,
-        "eaveHeight": 2.72678,
-        "wallTop": 3.05
+        "eaveHeight": 3.02678,
+        "wallTop": 3.35
       }
     },
     {
@@ -2786,41 +2861,42 @@
       "kind": "window",
       "orient": "v",
       "cx": 23,
-      "cy": 7.25,
-      "w": 0.8,
-      "sill": 1.2,
+      "cy": 6.3,
+      "w": 2,
+      "sill": 0.9,
       "head": 2.4,
       "swing": null,
       "hinge": null,
-      "c": 7.25,
+      "c": 6.3,
       "axis": 23,
-      "from": 6.85,
-      "to": 7.65,
+      "from": 5.3,
+      "to": 7.3,
       "wallId": "Z44",
       "problem": null,
       "exterior": true,
       "wallKind": "exterior",
       "azimuth": 90,
-      "room": "R12",
+      "room": "R10",
       "connects": null,
       "swingRoom": null,
-      "glazingArea": 0.96,
-      "clearStart": 0.575,
-      "clearEnd": 0.675,
+      "glazingArea": 3,
+      "clearStart": 1.025,
+      "clearEnd": 1.025,
       "azimuthTrue": 102,
       "facing": "E",
       "dir": "E",
-      "area": 0.96,
+      "area": 3,
       "center": [
         23,
-        7.25,
-        1.8
+        6.3,
+        1.65
       ],
-      "blind": false,
+      "blind": true,
+      "blindSections": 1,
       "overhang": {
         "depth": 0.8,
-        "eaveHeight": 2.72678,
-        "wallTop": 3.05
+        "eaveHeight": 3.02678,
+        "wallTop": 3.35
       }
     },
     {
@@ -2829,40 +2905,41 @@
       "orient": "v",
       "cx": 23,
       "cy": 10.1,
-      "w": 1.2,
-      "sill": 0.9,
+      "w": 0.9,
+      "sill": 1.2,
       "head": 2.4,
       "swing": null,
       "hinge": null,
       "c": 10.1,
       "axis": 23,
-      "from": 9.5,
-      "to": 10.7,
+      "from": 9.65,
+      "to": 10.55,
       "wallId": "Z45",
       "problem": null,
       "exterior": true,
       "wallKind": "exterior",
       "azimuth": 90,
-      "room": "R13",
+      "room": "R12",
       "connects": null,
       "swingRoom": null,
-      "glazingArea": 1.8,
-      "clearStart": 1.025,
-      "clearEnd": 0.85,
+      "glazingArea": 1.08,
+      "clearStart": 1.175,
+      "clearEnd": 1,
       "azimuthTrue": 102,
       "facing": "E",
       "dir": "E",
-      "area": 1.8,
+      "area": 1.08,
       "center": [
         23,
         10.1,
-        1.65
+        1.8
       ],
-      "blind": false,
+      "blind": true,
+      "blindSections": 1,
       "overhang": {
         "depth": 0.8,
-        "eaveHeight": 2.72678,
-        "wallTop": 3.05
+        "eaveHeight": 3.02678,
+        "wallTop": 3.35
       }
     },
     {
@@ -2880,7 +2957,7 @@
       "axis": 6.65,
       "from": 7.95,
       "to": 8.85,
-      "wallId": "Z25",
+      "wallId": "Z26",
       "problem": null,
       "exterior": false,
       "wallKind": "bearing",
@@ -2904,6 +2981,7 @@
         1.05
       ],
       "blind": false,
+      "blindSections": 0,
       "overhang": null
     },
     {
@@ -2921,7 +2999,7 @@
       "axis": 7.2,
       "from": 7.3,
       "to": 8.1,
-      "wallId": "Z12",
+      "wallId": "Z11",
       "problem": null,
       "exterior": false,
       "wallKind": "partition",
@@ -2945,6 +3023,7 @@
         1.05
       ],
       "blind": false,
+      "blindSections": 0,
       "overhang": null
     },
     {
@@ -2962,7 +3041,7 @@
       "axis": 9,
       "from": 5.9,
       "to": 6.7,
-      "wallId": "Z26",
+      "wallId": "Z27",
       "problem": null,
       "exterior": false,
       "wallKind": "partition",
@@ -2986,6 +3065,7 @@
         1.05
       ],
       "blind": false,
+      "blindSections": 0,
       "overhang": null
     },
     {
@@ -3003,7 +3083,7 @@
       "axis": 13.5,
       "from": 7.3,
       "to": 8.3,
-      "wallId": "Z31",
+      "wallId": "Z32",
       "problem": null,
       "exterior": false,
       "wallKind": "bearing",
@@ -3027,6 +3107,7 @@
         1.05
       ],
       "blind": false,
+      "blindSections": 0,
       "overhang": null
     },
     {
@@ -3044,7 +3125,7 @@
       "axis": 13.5,
       "from": 9.05,
       "to": 9.95,
-      "wallId": "Z32",
+      "wallId": "Z33",
       "problem": null,
       "exterior": false,
       "wallKind": "bearing",
@@ -3068,6 +3149,7 @@
         1.05
       ],
       "blind": false,
+      "blindSections": 0,
       "overhang": null
     },
     {
@@ -3109,6 +3191,7 @@
         1.05
       ],
       "blind": false,
+      "blindSections": 0,
       "overhang": null
     },
     {
@@ -3126,7 +3209,7 @@
       "axis": 17,
       "from": 2.85,
       "to": 3.75,
-      "wallId": "Z35",
+      "wallId": "Z36",
       "problem": null,
       "exterior": false,
       "wallKind": "partition",
@@ -3150,6 +3233,7 @@
         1.05
       ],
       "blind": false,
+      "blindSections": 0,
       "overhang": null
     },
     {
@@ -3167,7 +3251,7 @@
       "axis": 17,
       "from": 4.9,
       "to": 5.7,
-      "wallId": "Z36",
+      "wallId": "Z37",
       "problem": null,
       "exterior": false,
       "wallKind": "partition",
@@ -3191,6 +3275,7 @@
         1.05
       ],
       "blind": false,
+      "blindSections": 0,
       "overhang": null
     },
     {
@@ -3208,7 +3293,7 @@
       "axis": 18.45,
       "from": 1.05,
       "to": 1.95,
-      "wallId": "Z37",
+      "wallId": "Z38",
       "problem": null,
       "exterior": false,
       "wallKind": "bearing",
@@ -3216,9 +3301,9 @@
       "room": null,
       "connects": [
         "R14",
-        "R10"
+        "R13"
       ],
-      "swingRoom": "R10",
+      "swingRoom": "R13",
       "glazingArea": 0,
       "clearStart": 0.8,
       "clearEnd": 2.175,
@@ -3232,24 +3317,67 @@
         1.05
       ],
       "blind": false,
+      "blindSections": 0,
       "overhang": null
     },
     {
       "id": "D10",
       "kind": "door",
+      "orient": "v",
+      "cx": 18.45,
+      "cy": 5.6,
+      "w": 0.9,
+      "sill": 0,
+      "head": 2.1,
+      "swing": "+",
+      "hinge": "-",
+      "c": 5.6,
+      "axis": 18.45,
+      "from": 5.15,
+      "to": 6.05,
+      "wallId": "Z39",
+      "problem": null,
+      "exterior": false,
+      "wallKind": "bearing",
+      "azimuth": null,
+      "room": null,
+      "connects": [
+        "R14",
+        "R10"
+      ],
+      "swingRoom": "R10",
+      "glazingArea": 0,
+      "clearStart": 0.875,
+      "clearEnd": 0.875,
+      "azimuthTrue": null,
+      "facing": null,
+      "dir": null,
+      "area": 1.89,
+      "center": [
+        18.45,
+        5.6,
+        1.05
+      ],
+      "blind": false,
+      "blindSections": 0,
+      "overhang": null
+    },
+    {
+      "id": "D11",
+      "kind": "door",
       "orient": "h",
-      "cx": 22.1,
-      "cy": 4.2,
+      "cx": 19.4,
+      "cy": 8.4,
       "w": 0.8,
       "sill": 0,
       "head": 2.1,
       "swing": "+",
       "hinge": "+",
-      "c": 22.1,
-      "axis": 4.2,
-      "from": 21.7,
-      "to": 22.5,
-      "wallId": "Z05",
+      "c": 19.4,
+      "axis": 8.4,
+      "from": 19,
+      "to": 19.8,
+      "wallId": "Z12",
       "problem": null,
       "exterior": false,
       "wallKind": "partition",
@@ -3261,100 +3389,61 @@
       ],
       "swingRoom": "R11",
       "glazingArea": 0,
-      "clearStart": 3.1,
-      "clearEnd": 0.25,
+      "clearStart": 0.4,
+      "clearEnd": 0.525,
       "azimuthTrue": null,
       "facing": null,
       "dir": null,
       "area": 1.68,
       "center": [
-        22.1,
-        4.2,
+        19.4,
+        8.4,
         1.05
       ],
       "blind": false,
+      "blindSections": 0,
       "overhang": null
     },
     {
-      "id": "D11",
+      "id": "D12",
       "kind": "door",
       "orient": "h",
-      "cx": 19.5,
-      "cy": 6.2,
+      "cx": 21.5,
+      "cy": 8.4,
       "w": 0.8,
       "sill": 0,
       "head": 2.1,
       "swing": "+",
-      "hinge": "-",
-      "c": 19.5,
-      "axis": 6.2,
-      "from": 19.1,
-      "to": 19.9,
-      "wallId": "Z09",
+      "hinge": "+",
+      "c": 21.5,
+      "axis": 8.4,
+      "from": 21.1,
+      "to": 21.9,
+      "wallId": "Z13",
       "problem": null,
       "exterior": false,
       "wallKind": "partition",
       "azimuth": null,
       "room": null,
       "connects": [
-        "R11",
+        "R10",
         "R12"
       ],
       "swingRoom": "R12",
       "glazingArea": 0,
-      "clearStart": 0.5,
-      "clearEnd": 2.85,
+      "clearStart": 0.625,
+      "clearEnd": 0.85,
       "azimuthTrue": null,
       "facing": null,
       "dir": null,
       "area": 1.68,
       "center": [
-        19.5,
-        6.2,
+        21.5,
+        8.4,
         1.05
       ],
       "blind": false,
-      "overhang": null
-    },
-    {
-      "id": "D12",
-      "kind": "door",
-      "orient": "v",
-      "cx": 18.45,
-      "cy": 10.4,
-      "w": 0.9,
-      "sill": 0,
-      "head": 2.1,
-      "swing": "+",
-      "hinge": "+",
-      "c": 10.4,
-      "axis": 18.45,
-      "from": 9.95,
-      "to": 10.85,
-      "wallId": "Z41",
-      "problem": null,
-      "exterior": false,
-      "wallKind": "bearing",
-      "azimuth": null,
-      "room": null,
-      "connects": [
-        "R06",
-        "R13"
-      ],
-      "swingRoom": "R13",
-      "glazingArea": 0,
-      "clearStart": 1.475,
-      "clearEnd": 0.7,
-      "azimuthTrue": null,
-      "facing": null,
-      "dir": null,
-      "area": 1.89,
-      "center": [
-        18.45,
-        10.4,
-        1.05
-      ],
-      "blind": false,
+      "blindSections": 0,
       "overhang": null
     },
     {
@@ -3372,7 +3461,7 @@
       "axis": 7,
       "from": 17.29,
       "to": 18.09,
-      "wallId": "Z11",
+      "wallId": "Z10",
       "problem": null,
       "exterior": false,
       "wallKind": "partition",
@@ -3396,6 +3485,7 @@
         1.05
       ],
       "blind": false,
+      "blindSections": 0,
       "overhang": null
     }
   ],
@@ -3483,6 +3573,34 @@
       "azimuth": 180,
       "azimuthTrue": 192,
       "facing": "S"
+    },
+    {
+      "id": "A6",
+      "type": "wood",
+      "orient": "h",
+      "cx": 22.575,
+      "cy": 0,
+      "w": 0.85,
+      "wallId": "Z04",
+      "exterior": true,
+      "problem": null,
+      "azimuth": 180,
+      "azimuthTrue": 192,
+      "facing": "S"
+    },
+    {
+      "id": "A7",
+      "type": "wood",
+      "orient": "h",
+      "cx": 16.65,
+      "cy": 0,
+      "w": 0.5,
+      "wallId": "Z02",
+      "exterior": true,
+      "problem": null,
+      "azimuth": 180,
+      "azimuthTrue": 192,
+      "facing": "S"
     }
   ],
   "roofs": [
@@ -3496,12 +3614,12 @@
       ],
       "pitch": 22,
       "overhang": 0.8,
-      "wallTop": 3.05,
+      "wallTop": 3.35,
       "w": 23.5,
       "d": 12.3,
       "ridgeAlong": "x",
       "ridgeLength": 11.2,
-      "ridgeHeight": 5.53476,
+      "ridgeHeight": 5.83476,
       "ridgeRise": 2.48476,
       "ridge": [
         [
@@ -3519,7 +3637,7 @@
         24.05,
         12.85
       ],
-      "eaveHeight": 2.72678,
+      "eaveHeight": 3.02678,
       "planAreaWithOverhang": 348.89,
       "slopedArea": 376.28999,
       "faces": [
@@ -3540,12 +3658,12 @@
       ],
       "pitch": 22,
       "overhang": 0.8,
-      "wallTop": 3.05,
+      "wallTop": 3.35,
       "w": 3.6,
       "d": 6,
       "ridgeAlong": "y",
       "ridgeLength": 2.4,
-      "ridgeHeight": 3.77725,
+      "ridgeHeight": 4.07725,
       "ridgeRise": 0.72725,
       "ridge": [
         [
@@ -3563,7 +3681,7 @@
         20.1,
         15.25
       ],
-      "eaveHeight": 2.72678,
+      "eaveHeight": 3.02678,
       "planAreaWithOverhang": 39.52,
       "slopedArea": 42.62369,
       "faces": [
@@ -3606,22 +3724,22 @@
         [
           -1.05,
           -1.05,
-          2.726779019
+          3.026779019
         ],
         [
           24.05,
           -1.05,
-          2.726779019
+          3.026779019
         ],
         [
           17.1,
           5.9,
-          5.534761289
+          5.834761289
         ],
         [
           5.9,
           5.9,
-          5.534761289
+          5.834761289
         ]
       ],
       "uv": [
@@ -3665,15 +3783,15 @@
       "centroid": [
         11.5,
         1.981450872,
-        3.951564674
+        4.251564674
       ],
-      "zMin": 2.726779019,
-      "zMax": 5.534761289,
+      "zMin": 3.026779019,
+      "zMax": 5.834761289,
       "frame": {
         "origin": [
           0,
           -1.05,
-          2.726779019
+          3.026779019
         ],
         "u": [
           1,
@@ -3720,17 +3838,17 @@
         [
           24.05,
           -1.05,
-          2.726779019
+          3.026779019
         ],
         [
           24.05,
           12.85,
-          2.726779019
+          3.026779019
         ],
         [
           17.1,
           5.9,
-          5.534761289
+          5.834761289
         ]
       ],
       "uv": [
@@ -3766,15 +3884,15 @@
       "centroid": [
         21.733333333,
         5.9,
-        3.662773109
+        3.962773109
       ],
-      "zMin": 2.726779019,
-      "zMax": 5.534761289,
+      "zMin": 3.026779019,
+      "zMax": 5.834761289,
       "frame": {
         "origin": [
           24.05,
           0,
-          2.726779019
+          3.026779019
         ],
         "u": [
           0,
@@ -3833,32 +3951,32 @@
         [
           14.9,
           12.85,
-          2.726779019
+          3.026779019
         ],
         [
           -1.05,
           12.85,
-          2.726779019
+          3.026779019
         ],
         [
           5.9,
           5.9,
-          5.534761289
+          5.834761289
         ],
         [
           17.1,
           5.9,
-          5.534761289
+          5.834761289
         ],
         [
           19.475,
           8.275,
-          4.575199003
+          4.875199003
         ],
         [
           17.500000071,
           10.249999929,
-          3.777247235
+          4.077247235
         ]
       ],
       "uv": [
@@ -3918,15 +4036,15 @@
       "centroid": [
         9.913470586,
         9.518859019,
-        4.072647338
+        4.372647338
       ],
-      "zMin": 2.726779019,
-      "zMax": 5.534761289,
+      "zMin": 3.026779019,
+      "zMax": 5.834761289,
       "frame": {
         "origin": [
           0,
           12.85,
-          2.726779019
+          3.026779019
         ],
         "u": [
           -1,
@@ -3977,22 +4095,22 @@
         [
           24.05,
           12.85,
-          2.726779019
+          3.026779019
         ],
         [
           20.1,
           12.85,
-          2.726779019
+          3.026779019
         ],
         [
           17.5,
           10.25,
-          3.777247207
+          4.077247207
         ],
         [
           19.475,
           8.275,
-          4.575199003
+          4.875199003
         ]
       ],
       "uv": [
@@ -4036,15 +4154,15 @@
       "centroid": [
         20.417160279,
         11.010946574,
-        3.469804834
+        3.769804834
       ],
-      "zMin": 2.726779019,
-      "zMax": 4.575199003,
+      "zMin": 3.026779019,
+      "zMax": 4.875199003,
       "frame": {
         "origin": [
           0,
           12.85,
-          2.726779019
+          3.026779019
         ],
         "u": [
           -1,
@@ -4091,17 +4209,17 @@
         [
           -1.05,
           -1.05,
-          2.726779019
+          3.026779019
         ],
         [
           5.9,
           5.9,
-          5.534761289
+          5.834761289
         ],
         [
           -1.05,
           12.85,
-          2.726779019
+          3.026779019
         ]
       ],
       "uv": [
@@ -4137,15 +4255,15 @@
       "centroid": [
         1.266666667,
         5.9,
-        3.662773109
+        3.962773109
       ],
-      "zMin": 2.726779019,
-      "zMax": 5.534761289,
+      "zMin": 3.026779019,
+      "zMax": 5.834761289,
       "frame": {
         "origin": [
           -1.05,
           0,
-          2.726779019
+          3.026779019
         ],
         "u": [
           0,
@@ -4196,22 +4314,22 @@
         [
           20.1,
           12.85,
-          2.726779019
+          3.026779019
         ],
         [
           20.1,
           15.25,
-          2.726779019
+          3.026779019
         ],
         [
           17.5,
           12.65,
-          3.777247207
+          4.077247207
         ],
         [
           17.5,
           10.25,
-          3.777247207
+          4.077247207
         ]
       ],
       "uv": [
@@ -4255,15 +4373,15 @@
       "centroid": [
         18.8,
         12.75,
-        3.252013113
+        3.552013113
       ],
-      "zMin": 2.726779019,
-      "zMax": 3.777247207,
+      "zMin": 3.026779019,
+      "zMax": 4.077247207,
       "frame": {
         "origin": [
           20.1,
           0,
-          2.726779019
+          3.026779019
         ],
         "u": [
           0,
@@ -4310,17 +4428,17 @@
         [
           20.1,
           15.25,
-          2.726779019
+          3.026779019
         ],
         [
           14.9,
           15.25,
-          2.726779019
+          3.026779019
         ],
         [
           17.5,
           12.65,
-          3.777247207
+          4.077247207
         ]
       ],
       "uv": [
@@ -4356,15 +4474,15 @@
       "centroid": [
         17.5,
         14.383333333,
-        3.076935082
+        3.376935082
       ],
-      "zMin": 2.726779019,
-      "zMax": 3.777247207,
+      "zMin": 3.026779019,
+      "zMax": 4.077247207,
       "frame": {
         "origin": [
           0,
           15.25,
-          2.726779019
+          3.026779019
         ],
         "u": [
           -1,
@@ -4415,22 +4533,22 @@
         [
           17.5,
           10.25,
-          3.777247207
+          4.077247207
         ],
         [
           17.5,
           12.65,
-          3.777247207
+          4.077247207
         ],
         [
           14.9,
           15.25,
-          2.726779019
+          3.026779019
         ],
         [
           14.9,
           12.85,
-          2.726779019
+          3.026779019
         ]
       ],
       "uv": [
@@ -4474,15 +4592,15 @@
       "centroid": [
         16.2,
         12.75,
-        3.252013113
+        3.552013113
       ],
-      "zMin": 2.726779019,
-      "zMax": 3.777247207,
+      "zMin": 3.026779019,
+      "zMax": 4.077247207,
       "frame": {
         "origin": [
           14.9,
           0,
-          2.726779019
+          3.026779019
         ],
         "u": [
           0,
@@ -4506,6 +4624,10 @@
     {
       "id": "O1",
       "type": "terrace",
+      "name": {
+        "cs": "Krytá terasa",
+        "en": "Covered terrace"
+      },
       "covered": true,
       "rect": [
         -0.25,
@@ -4514,43 +4636,86 @@
         5.15
       ],
       "area": 35.91,
+      "netArea": 35.91,
+      "holes": [],
       "posts": [
         [
           -0.1,
           -0.1
-        ],
-        [
-          3.05,
-          -0.1
-        ],
-        [
-          6.25,
-          -0.1
-        ],
-        [
-          -0.1,
-          2.55
         ]
       ],
-      "zone": "outdoor"
+      "postSize": 0.2,
+      "zone": "outdoor",
+      "surface": "deck",
+      "role": "deck",
+      "top": -0.02,
+      "grade": {
+        "kind": "flat",
+        "top": -0.02,
+        "plane": {
+          "z0": -0.02,
+          "ox": 0,
+          "oy": 0,
+          "gx": 0,
+          "gy": 0
+        },
+        "corners": [
+          -0.02,
+          -0.02,
+          -0.02,
+          -0.02
+        ],
+        "ramp": null
+      },
+      "pool": null
     },
     {
       "id": "O2",
       "type": "paving",
+      "name": null,
       "covered": false,
       "rect": [
         -0.25,
-        -4,
+        -2.5,
         13.6,
         -0.25
       ],
-      "area": 51.9375,
+      "area": 31.1625,
+      "netArea": 31.1625,
+      "holes": [],
       "posts": [],
-      "zone": "outdoor"
+      "postSize": null,
+      "zone": "outdoor",
+      "surface": "paving",
+      "role": "terrace_paving",
+      "top": -0.02,
+      "grade": {
+        "kind": "flat",
+        "top": -0.02,
+        "plane": {
+          "z0": -0.02,
+          "ox": 0,
+          "oy": 0,
+          "gx": 0,
+          "gy": 0
+        },
+        "corners": [
+          -0.02,
+          -0.02,
+          -0.02,
+          -0.02
+        ],
+        "ramp": null
+      },
+      "pool": null
     },
     {
       "id": "O3",
       "type": "paving",
+      "name": {
+        "cs": "Závětří u vstupu",
+        "en": "Entrance porch"
+      },
       "covered": true,
       "rect": [
         15.7,
@@ -4559,6 +4724,8 @@
         14.45
       ],
       "area": 8.64,
+      "netArea": 8.64,
+      "holes": [],
       "posts": [
         [
           15.85,
@@ -4569,11 +4736,38 @@
           14.3
         ]
       ],
-      "zone": "outdoor"
+      "postSize": 0.2,
+      "zone": "outdoor",
+      "surface": "paving",
+      "role": "terrace_paving",
+      "top": -0.02,
+      "grade": {
+        "kind": "flat",
+        "top": -0.02,
+        "plane": {
+          "z0": -0.02,
+          "ox": 0,
+          "oy": 0,
+          "gx": 0,
+          "gy": 0
+        },
+        "corners": [
+          -0.02,
+          -0.02,
+          -0.02,
+          -0.02
+        ],
+        "ramp": null
+      },
+      "pool": null
     },
     {
       "id": "O4",
       "type": "drive",
+      "name": {
+        "cs": "Příjezd ke garáži",
+        "en": "Driveway"
+      },
       "covered": false,
       "rect": [
         0.2,
@@ -4582,22 +4776,403 @@
         20.5
       ],
       "area": 52.39,
+      "netArea": 52.39,
+      "holes": [],
       "posts": [],
-      "zone": "outdoor"
+      "postSize": null,
+      "zone": "outdoor",
+      "surface": "paving",
+      "role": "drive_paving",
+      "top": -0.02,
+      "grade": {
+        "kind": "ramp",
+        "top": -0.02,
+        "plane": {
+          "z0": -0.02,
+          "ox": 0.2,
+          "oy": 12.05,
+          "gx": 0,
+          "gy": -0.008706904
+        },
+        "corners": [
+          -0.02,
+          -0.02,
+          -0.09357,
+          -0.09357
+        ],
+        "ramp": {
+          "access": "driveway",
+          "axis": "y",
+          "from": 12.05,
+          "to": 20.970716511,
+          "z0": -0.02,
+          "z1": -0.09767,
+          "slope": -0.008706904,
+          "gate": [
+            3.3,
+            20.97072
+          ],
+          "groundAtGate": -0.12767,
+          "apron": {
+            "polygon": [
+              [
+                0.2,
+                20.5
+              ],
+              [
+                6.4,
+                20.5
+              ],
+              [
+                6.4,
+                21.10592
+              ],
+              [
+                0.2,
+                20.83551
+              ]
+            ],
+            "z": [
+              -0.09357,
+              -0.09357,
+              -0.09885,
+              -0.09649
+            ]
+          }
+        }
+      },
+      "pool": null
     },
     {
       "id": "O5",
       "type": "path",
+      "name": {
+        "cs": "Chodník ke vstupu",
+        "en": "Front path"
+      },
       "covered": false,
       "rect": [
-        16.8,
+        16.9,
         14.45,
-        18.2,
+        18.1,
         20.5
       ],
-      "area": 8.47,
+      "area": 7.26,
+      "netArea": 7.26,
+      "holes": [],
       "posts": [],
-      "zone": "outdoor"
+      "postSize": null,
+      "zone": "outdoor",
+      "surface": "paving",
+      "role": "path",
+      "top": -0.02,
+      "grade": {
+        "kind": "ramp",
+        "top": -0.02,
+        "plane": {
+          "z0": -0.02,
+          "ox": 16.9,
+          "oy": 14.45,
+          "gx": 0,
+          "gy": -0.00380018
+        },
+        "corners": [
+          -0.02,
+          -0.02,
+          -0.04299,
+          -0.04299
+        ],
+        "ramp": {
+          "access": "walkway",
+          "axis": "y",
+          "from": 14.45,
+          "to": 21.590031153,
+          "z0": -0.02,
+          "z1": -0.04713,
+          "slope": -0.00380018,
+          "gate": [
+            17.5,
+            21.59003
+          ],
+          "groundAtGate": -0.07713,
+          "apron": {
+            "polygon": [
+              [
+                16.9,
+                20.5
+              ],
+              [
+                18.1,
+                20.5
+              ],
+              [
+                18.1,
+                21.6162
+              ],
+              [
+                16.9,
+                21.56386
+              ]
+            ],
+            "z": [
+              -0.04299,
+              -0.04299,
+              -0.04723,
+              -0.04703
+            ]
+          }
+        }
+      },
+      "pool": null
+    },
+    {
+      "id": "O8",
+      "type": "deck",
+      "name": {
+        "cs": "Terasa u bazénu",
+        "en": "Pool deck"
+      },
+      "covered": false,
+      "rect": [
+        -0.25,
+        -9.5,
+        10.25,
+        -2.5
+      ],
+      "area": 73.5,
+      "netArea": 38.24,
+      "holes": [
+        [
+          0.7,
+          -8.8,
+          9.3,
+          -4.7
+        ]
+      ],
+      "posts": [],
+      "postSize": null,
+      "zone": "outdoor",
+      "surface": "deck",
+      "role": "deck",
+      "top": -0.02,
+      "grade": {
+        "kind": "flat",
+        "top": -0.02,
+        "plane": {
+          "z0": -0.02,
+          "ox": 0,
+          "oy": 0,
+          "gx": 0,
+          "gy": 0
+        },
+        "corners": [
+          -0.02,
+          -0.02,
+          -0.02,
+          -0.02
+        ],
+        "ramp": null
+      },
+      "pool": null
+    },
+    {
+      "id": "O9",
+      "type": "pool",
+      "name": {
+        "cs": "Bazén",
+        "en": "Pool"
+      },
+      "covered": false,
+      "rect": [
+        1,
+        -8.5,
+        9,
+        -5
+      ],
+      "area": 28,
+      "netArea": 28,
+      "holes": [],
+      "posts": [],
+      "postSize": null,
+      "zone": "outdoor",
+      "surface": "paving",
+      "role": "pool_coping",
+      "top": -0.02,
+      "grade": {
+        "kind": "flat",
+        "top": -0.02,
+        "plane": {
+          "z0": -0.02,
+          "ox": 0,
+          "oy": 0,
+          "gx": 0,
+          "gy": 0
+        },
+        "corners": [
+          -0.02,
+          -0.02,
+          -0.02,
+          -0.02
+        ],
+        "ramp": null
+      },
+      "pool": {
+        "water": [
+          1,
+          -8.5,
+          9,
+          -5
+        ],
+        "depth": 1.4,
+        "waterBelowTop": 0.12,
+        "coping": 0.3,
+        "copingTop": -0.02,
+        "waterZ": -0.14,
+        "floorZ": -1.42,
+        "outer": [
+          0.7,
+          -8.8,
+          9.3,
+          -4.7
+        ],
+        "polygons": {
+          "water": [
+            [
+              1,
+              -8.5
+            ],
+            [
+              9,
+              -8.5
+            ],
+            [
+              9,
+              -5
+            ],
+            [
+              1,
+              -5
+            ]
+          ],
+          "copingOuter": [
+            [
+              0.7,
+              -8.8
+            ],
+            [
+              9.3,
+              -8.8
+            ],
+            [
+              9.3,
+              -4.7
+            ],
+            [
+              0.7,
+              -4.7
+            ]
+          ],
+          "copingInner": [
+            [
+              1,
+              -8.5
+            ],
+            [
+              9,
+              -8.5
+            ],
+            [
+              9,
+              -5
+            ],
+            [
+              1,
+              -5
+            ]
+          ],
+          "deck": {
+            "outer": [
+              [
+                -0.25,
+                -9.5
+              ],
+              [
+                10.25,
+                -9.5
+              ],
+              [
+                10.25,
+                -2.5
+              ],
+              [
+                -0.25,
+                -2.5
+              ]
+            ],
+            "hole": [
+              [
+                0.7,
+                -8.8
+              ],
+              [
+                9.3,
+                -8.8
+              ],
+              [
+                9.3,
+                -4.7
+              ],
+              [
+                0.7,
+                -4.7
+              ]
+            ]
+          }
+        },
+        "deck": "O8",
+        "waterArea": 28,
+        "waterVolume": 35.84
+      }
+    },
+    {
+      "id": "O10",
+      "type": "paving",
+      "name": null,
+      "covered": false,
+      "rect": [
+        13.6,
+        -1.45,
+        23.25,
+        -0.25
+      ],
+      "area": 11.58,
+      "netArea": 11.58,
+      "holes": [],
+      "posts": [],
+      "postSize": null,
+      "zone": "outdoor",
+      "surface": "paving",
+      "role": "terrace_paving",
+      "top": -0.02,
+      "grade": {
+        "kind": "flat",
+        "top": -0.02,
+        "plane": {
+          "z0": -0.02,
+          "ox": 0,
+          "oy": 0,
+          "gx": 0,
+          "gy": 0
+        },
+        "corners": [
+          -0.02,
+          -0.02,
+          -0.02,
+          -0.02
+        ],
+        "ramp": null
+      },
+      "pool": null
     }
   ],
   "screens": [
@@ -4606,12 +5181,75 @@
       "type": "slats",
       "orient": "v",
       "at": -0.1,
-      "from": 2.7,
+      "from": 0.15,
       "to": 5.15,
-      "length": 2.45,
+      "length": 5,
       "azimuth": 270,
       "azimuthTrue": 282,
-      "facing": "W"
+      "facing": "W",
+      "blades": {
+        "count": 50,
+        "pitch": 0.1,
+        "chord": 0.12,
+        "thickness": 0.025,
+        "positions": [
+          0.2,
+          0.3,
+          0.4,
+          0.5,
+          0.6,
+          0.7,
+          0.8,
+          0.9,
+          1,
+          1.1,
+          1.2,
+          1.3,
+          1.4,
+          1.5,
+          1.6,
+          1.7,
+          1.8,
+          1.9,
+          2,
+          2.1,
+          2.2,
+          2.3,
+          2.4,
+          2.5,
+          2.6,
+          2.7,
+          2.8,
+          2.9,
+          3,
+          3.1,
+          3.2,
+          3.3,
+          3.4,
+          3.5,
+          3.6,
+          3.7,
+          3.8,
+          3.9,
+          4,
+          4.1,
+          4.2,
+          4.3,
+          4.4,
+          4.5,
+          4.6,
+          4.7,
+          4.8,
+          4.9,
+          5,
+          5.1
+        ]
+      },
+      "closedDeg": 15,
+      "openDeg": 90,
+      "restDeg": 60,
+      "z0": -0.02,
+      "z1": 2.75
     }
   ],
   "lightpipes": [
@@ -4621,7 +5259,15 @@
       "diameter": 0.35,
       "room": "R04",
       "face": "T1.N#1",
-      "z": 4.5651
+      "z": 4.8651
+    },
+    {
+      "x": 11.2,
+      "y": 6.6,
+      "diameter": 0.35,
+      "room": "R04",
+      "face": "T1.N#1",
+      "z": 5.5519
     },
     {
       "x": 16,
@@ -4629,15 +5275,15 @@
       "diameter": 0.35,
       "room": "R06",
       "face": "T1.N#1",
-      "z": 4.2823
+      "z": 4.5823
     },
     {
       "x": 17.7,
-      "y": 3.5,
+      "y": 6.2,
       "diameter": 0.35,
       "room": "R14",
-      "face": "T1.S",
-      "z": 4.5651
+      "face": "T1.E",
+      "z": 5.5923
     },
     {
       "x": 15.4,
@@ -4645,7 +5291,7 @@
       "diameter": 0.35,
       "room": "R09",
       "face": "T1.S",
-      "z": 5.4944
+      "z": 5.7944
     }
   ],
   "furniture": [
@@ -4821,85 +5467,85 @@
     },
     {
       "index": 10,
-      "type": "sofaL",
-      "x": 8.4,
-      "y": 1.3,
-      "rot": 180,
-      "w": 2.9,
-      "d": 1.9,
+      "type": "table8",
+      "x": 8.35,
+      "y": 1.6,
+      "rot": 0,
+      "w": 2.4,
+      "d": 1,
       "rect": [
-        6.95,
-        0.35,
-        9.85,
-        2.25
+        7.15,
+        1.1,
+        9.55,
+        2.1
       ],
       "room": "R04",
       "outdoor": null
     },
     {
       "index": 11,
-      "type": "armchair",
-      "x": 9.35,
-      "y": 3.35,
-      "rot": 270,
-      "w": 0.85,
-      "d": 0.85,
+      "type": "chair",
+      "x": 7.45,
+      "y": 0.875,
+      "rot": 180,
+      "w": 0.45,
+      "d": 0.45,
       "rect": [
-        8.925,
-        2.925,
-        9.775,
-        3.775
+        7.225,
+        0.65,
+        7.675,
+        1.1
       ],
       "room": "R04",
       "outdoor": null
     },
     {
       "index": 12,
-      "type": "table6",
-      "x": 8,
-      "y": 3.05,
-      "rot": 0,
-      "w": 0.9,
-      "d": 0.6,
+      "type": "chair",
+      "x": 8.05,
+      "y": 0.875,
+      "rot": 180,
+      "w": 0.45,
+      "d": 0.45,
       "rect": [
-        7.55,
-        2.75,
-        8.45,
-        3.35
+        7.825,
+        0.65,
+        8.275,
+        1.1
       ],
       "room": "R04",
       "outdoor": null
     },
     {
       "index": 13,
-      "type": "tv",
-      "x": 8,
-      "y": 5.125,
-      "rot": 0,
-      "w": 1.6,
-      "d": 0.4,
+      "type": "chair",
+      "x": 8.65,
+      "y": 0.875,
+      "rot": 180,
+      "w": 0.45,
+      "d": 0.45,
       "rect": [
-        7.2,
-        4.925,
-        8.8,
-        5.325
+        8.425,
+        0.65,
+        8.875,
+        1.1
       ],
       "room": "R04",
       "outdoor": null
     },
     {
       "index": 14,
-      "type": "table8",
-      "x": 11.5,
-      "y": 3.2,
-      "rot": 0,
-      "w": 2.4,
-      "d": 1,
+      "type": "chair",
+      "x": 9.25,
+      "y": 0.875,
+      "rot": 180,
+      "w": 0.45,
+      "d": 0.45,
       "rect": [
-        10.3,
-        2.7,
-        12.7,
-        3.7
+        9.025,
+        0.65,
+        9.475,
+        1.1
       ],
       "room": "R04",
       "outdoor": null
@@ -4907,16 +5553,16 @@
     {
       "index": 15,
       "type": "chair",
-      "x": 10.6,
-      "y": 2.475,
-      "rot": 180,
+      "x": 7.45,
+      "y": 2.325,
+      "rot": 0,
       "w": 0.45,
       "d": 0.45,
       "rect": [
-        10.375,
-        2.25,
-        10.825,
-        2.7
+        7.225,
+        2.1,
+        7.675,
+        2.55
       ],
       "room": "R04",
       "outdoor": null
@@ -4924,16 +5570,16 @@
     {
       "index": 16,
       "type": "chair",
-      "x": 11.2,
-      "y": 2.475,
-      "rot": 180,
+      "x": 8.05,
+      "y": 2.325,
+      "rot": 0,
       "w": 0.45,
       "d": 0.45,
       "rect": [
-        10.975,
-        2.25,
-        11.425,
-        2.7
+        7.825,
+        2.1,
+        8.275,
+        2.55
       ],
       "room": "R04",
       "outdoor": null
@@ -4941,16 +5587,16 @@
     {
       "index": 17,
       "type": "chair",
-      "x": 11.8,
-      "y": 2.475,
-      "rot": 180,
+      "x": 8.65,
+      "y": 2.325,
+      "rot": 0,
       "w": 0.45,
       "d": 0.45,
       "rect": [
-        11.575,
-        2.25,
-        12.025,
-        2.7
+        8.425,
+        2.1,
+        8.875,
+        2.55
       ],
       "room": "R04",
       "outdoor": null
@@ -4958,90 +5604,73 @@
     {
       "index": 18,
       "type": "chair",
-      "x": 12.4,
-      "y": 2.475,
-      "rot": 180,
+      "x": 9.25,
+      "y": 2.325,
+      "rot": 0,
       "w": 0.45,
       "d": 0.45,
       "rect": [
-        12.175,
-        2.25,
-        12.625,
-        2.7
+        9.025,
+        2.1,
+        9.475,
+        2.55
       ],
       "room": "R04",
       "outdoor": null
     },
     {
       "index": 19,
-      "type": "chair",
-      "x": 10.6,
-      "y": 3.925,
-      "rot": 0,
-      "w": 0.45,
-      "d": 0.45,
+      "type": "sofaL",
+      "x": 11.05,
+      "y": 2.75,
+      "rot": 90,
+      "w": 2.9,
+      "d": 1.9,
       "rect": [
-        10.375,
-        3.7,
-        10.825,
-        4.15
+        10.1,
+        1.3,
+        12,
+        4.2
       ],
       "room": "R04",
       "outdoor": null
     },
     {
       "index": 20,
-      "type": "chair",
-      "x": 11.2,
-      "y": 3.925,
-      "rot": 0,
-      "w": 0.45,
-      "d": 0.45,
+      "type": "coffeeTable",
+      "x": 12.45,
+      "y": 2.75,
+      "rot": 90,
+      "w": 0.9,
+      "d": 0.5,
       "rect": [
-        10.975,
-        3.7,
-        11.425,
-        4.15
+        12.2,
+        2.3,
+        12.7,
+        3.2
       ],
       "room": "R04",
       "outdoor": null
     },
     {
       "index": 21,
-      "type": "chair",
-      "x": 11.8,
-      "y": 3.925,
-      "rot": 0,
-      "w": 0.45,
-      "d": 0.45,
+      "type": "tv",
+      "x": 13.15,
+      "y": 2.75,
+      "rot": 270,
+      "w": 1.6,
+      "d": 0.4,
       "rect": [
-        11.575,
-        3.7,
-        12.025,
-        4.15
+        12.95,
+        1.95,
+        13.35,
+        3.55
       ],
       "room": "R04",
       "outdoor": null
     },
     {
       "index": 22,
-      "type": "chair",
-      "x": 12.4,
-      "y": 3.925,
-      "rot": 0,
-      "w": 0.45,
-      "d": 0.45,
-      "rect": [
-        12.175,
-        3.7,
-        12.625,
-        4.15
-      ],
-      "room": "R04",
-      "outdoor": null
-    },
-    {
-      "index": 23,
       "type": "fridge",
       "x": 9.55,
       "y": 8.275,
@@ -5058,7 +5687,7 @@
       "outdoor": null
     },
     {
-      "index": 24,
+      "index": 23,
       "type": "kitchenLine",
       "x": 11.15,
       "y": 8.315,
@@ -5075,7 +5704,7 @@
       "outdoor": null
     },
     {
-      "index": 25,
+      "index": 24,
       "type": "island",
       "x": 11.2,
       "y": 6.5,
@@ -5092,7 +5721,7 @@
       "outdoor": null
     },
     {
-      "index": 26,
+      "index": 25,
       "type": "chair",
       "x": 10.5,
       "y": 5.7,
@@ -5109,7 +5738,7 @@
       "outdoor": null
     },
     {
-      "index": 27,
+      "index": 26,
       "type": "chair",
       "x": 11.2,
       "y": 5.7,
@@ -5126,7 +5755,7 @@
       "outdoor": null
     },
     {
-      "index": 28,
+      "index": 27,
       "type": "chair",
       "x": 11.9,
       "y": 5.7,
@@ -5143,7 +5772,7 @@
       "outdoor": null
     },
     {
-      "index": 29,
+      "index": 28,
       "type": "desk",
       "x": 11.25,
       "y": 11.2,
@@ -5160,7 +5789,7 @@
       "outdoor": null
     },
     {
-      "index": 30,
+      "index": 29,
       "type": "chair",
       "x": 11.25,
       "y": 10.5,
@@ -5177,7 +5806,7 @@
       "outdoor": null
     },
     {
-      "index": 31,
+      "index": 30,
       "type": "sofa3",
       "x": 10.5,
       "y": 9.25,
@@ -5194,7 +5823,7 @@
       "outdoor": null
     },
     {
-      "index": 32,
+      "index": 31,
       "type": "shelf",
       "x": 13.175,
       "y": 10.8,
@@ -5211,7 +5840,7 @@
       "outdoor": null
     },
     {
-      "index": 33,
+      "index": 32,
       "type": "wardrobe",
       "x": 15.8,
       "y": 7.375,
@@ -5228,7 +5857,7 @@
       "outdoor": null
     },
     {
-      "index": 34,
+      "index": 33,
       "type": "bench",
       "x": 16.05,
       "y": 11.35,
@@ -5245,7 +5874,7 @@
       "outdoor": null
     },
     {
-      "index": 35,
+      "index": 34,
       "type": "wc",
       "x": 14.4,
       "y": 11.2,
@@ -5262,7 +5891,7 @@
       "outdoor": null
     },
     {
-      "index": 36,
+      "index": 35,
       "type": "sink",
       "x": 13.9,
       "y": 10.8,
@@ -5279,7 +5908,7 @@
       "outdoor": null
     },
     {
-      "index": 37,
+      "index": 36,
       "type": "bed90",
       "x": 14.65,
       "y": 3,
@@ -5296,24 +5925,24 @@
       "outdoor": null
     },
     {
-      "index": 38,
+      "index": 37,
       "type": "desk",
-      "x": 15.35,
-      "y": 0.65,
-      "rot": 180,
+      "x": 16.575,
+      "y": 1.6,
+      "rot": 270,
       "w": 1.4,
       "d": 0.7,
       "rect": [
-        14.65,
-        0.3,
-        16.05,
-        1
+        16.225,
+        0.9,
+        16.925,
+        2.3
       ],
       "room": "R08",
       "outdoor": null
     },
     {
-      "index": 39,
+      "index": 38,
       "type": "wardrobe",
       "x": 16.15,
       "y": 4.225,
@@ -5330,7 +5959,7 @@
       "outdoor": null
     },
     {
-      "index": 40,
+      "index": 39,
       "type": "bath",
       "x": 14.55,
       "y": 6.55,
@@ -5347,7 +5976,7 @@
       "outdoor": null
     },
     {
-      "index": 41,
+      "index": 40,
       "type": "shower",
       "x": 16.45,
       "y": 6.475,
@@ -5364,7 +5993,7 @@
       "outdoor": null
     },
     {
-      "index": 42,
+      "index": 41,
       "type": "wc",
       "x": 15.6,
       "y": 5.025,
@@ -5381,7 +6010,7 @@
       "outdoor": null
     },
     {
-      "index": 43,
+      "index": 42,
       "type": "sink2",
       "x": 13.925,
       "y": 5.3,
@@ -5398,211 +6027,262 @@
       "outdoor": null
     },
     {
-      "index": 44,
-      "type": "bed180",
-      "x": 20.55,
+      "index": 43,
+      "type": "bed90",
+      "x": 19.15,
       "y": 3.1,
       "rot": 0,
-      "w": 1.8,
+      "w": 0.9,
       "d": 2,
       "rect": [
-        19.65,
+        18.7,
         2.1,
-        21.45,
+        19.6,
         4.1
       ],
-      "room": "R10",
+      "room": "R13",
+      "outdoor": null
+    },
+    {
+      "index": 44,
+      "type": "desk",
+      "x": 22.4,
+      "y": 1.9,
+      "rot": 270,
+      "w": 1.4,
+      "d": 0.7,
+      "rect": [
+        22.05,
+        1.2,
+        22.75,
+        2.6
+      ],
+      "room": "R13",
       "outdoor": null
     },
     {
       "index": 45,
-      "type": "shelf",
-      "x": 19.3,
-      "y": 3.9,
+      "type": "wardrobe",
+      "x": 21.75,
+      "y": 3.825,
       "rot": 0,
-      "w": 0.45,
-      "d": 0.35,
+      "w": 1.8,
+      "d": 0.6,
       "rect": [
-        19.075,
-        3.725,
-        19.525,
-        4.075
+        20.85,
+        3.525,
+        22.65,
+        4.125
       ],
-      "room": "R10",
+      "room": "R13",
       "outdoor": null
     },
     {
       "index": 46,
-      "type": "armchair",
-      "x": 22.3,
-      "y": 0.7,
-      "rot": 0,
-      "w": 0.85,
-      "d": 0.85,
+      "type": "bed180",
+      "x": 21,
+      "y": 5.3,
+      "rot": 180,
+      "w": 1.8,
+      "d": 2,
       "rect": [
-        21.875,
-        0.275,
-        22.725,
-        1.125
+        20.1,
+        4.3,
+        21.9,
+        6.3
       ],
       "room": "R10",
       "outdoor": null
     },
     {
       "index": 47,
-      "type": "wardrobe",
-      "x": 21.375,
-      "y": 5.825,
-      "rot": 180,
-      "w": 2.7,
-      "d": 0.6,
+      "type": "shelf",
+      "x": 20.45,
+      "y": 8.15,
+      "rot": 0,
+      "w": 1,
+      "d": 0.35,
       "rect": [
-        20.025,
-        5.525,
-        22.725,
-        6.125
+        19.95,
+        7.975,
+        20.95,
+        8.325
       ],
-      "room": "R11",
+      "room": "R10",
       "outdoor": null
     },
     {
       "index": 48,
-      "type": "shelf",
-      "x": 20.05,
-      "y": 4.45,
-      "rot": 180,
-      "w": 2.9,
-      "d": 0.35,
+      "type": "armchair",
+      "x": 22.3,
+      "y": 7.7,
+      "rot": 270,
+      "w": 0.85,
+      "d": 0.85,
+      "rect": [
+        21.875,
+        7.275,
+        22.725,
+        8.125
+      ],
+      "room": "R10",
+      "outdoor": null
+    },
+    {
+      "index": 49,
+      "type": "wardrobe",
+      "x": 18.9,
+      "y": 10.45,
+      "rot": 90,
+      "w": 2.1,
+      "d": 0.6,
       "rect": [
         18.6,
-        4.275,
-        21.5,
-        4.625
+        9.4,
+        19.2,
+        11.5
       ],
       "room": "R11",
       "outdoor": null
     },
     {
-      "index": 49,
-      "type": "wc",
-      "x": 19.3,
-      "y": 7.975,
-      "rot": 0,
-      "w": 0.4,
-      "d": 0.7,
-      "rect": [
-        19.1,
-        7.625,
-        19.5,
-        8.325
-      ],
-      "room": "R12",
-      "outdoor": null
-    },
-    {
       "index": 50,
-      "type": "sink2",
-      "x": 20.7,
-      "y": 8.075,
-      "rot": 0,
-      "w": 1.2,
-      "d": 0.5,
+      "type": "shelf",
+      "x": 20.15,
+      "y": 10.5,
+      "rot": 270,
+      "w": 2,
+      "d": 0.35,
       "rect": [
-        20.1,
-        7.825,
-        21.3,
-        8.325
+        19.975,
+        9.5,
+        20.325,
+        11.5
       ],
-      "room": "R12",
+      "room": "R11",
       "outdoor": null
     },
     {
       "index": 51,
       "type": "shower",
-      "x": 21.2,
-      "y": 6.725,
+      "x": 22.3,
+      "y": 11.1,
       "rot": 0,
       "w": 0.9,
       "d": 0.9,
       "rect": [
-        20.75,
-        6.275,
-        21.65,
-        7.175
+        21.85,
+        10.65,
+        22.75,
+        11.55
       ],
       "room": "R12",
       "outdoor": null
     },
     {
       "index": 52,
-      "type": "bath",
-      "x": 22.375,
-      "y": 7.25,
+      "type": "wc",
+      "x": 22.4,
+      "y": 9.75,
       "rot": 270,
-      "w": 1.7,
-      "d": 0.75,
+      "w": 0.4,
+      "d": 0.7,
       "rect": [
-        22,
-        6.4,
+        22.05,
+        9.55,
         22.75,
-        8.1
+        9.95
       ],
       "room": "R12",
       "outdoor": null
     },
     {
       "index": 53,
-      "type": "bed90",
-      "x": 20.3,
-      "y": 10.55,
-      "rot": 0,
-      "w": 0.9,
-      "d": 2,
+      "type": "sink2",
+      "x": 20.725,
+      "y": 10.3,
+      "rot": 90,
+      "w": 1.2,
+      "d": 0.5,
       "rect": [
-        19.85,
-        9.55,
-        20.75,
-        11.55
+        20.475,
+        9.7,
+        20.975,
+        10.9
       ],
-      "room": "R13",
+      "room": "R12",
       "outdoor": null
     },
     {
       "index": 54,
-      "type": "desk",
-      "x": 22.4,
-      "y": 9.9,
-      "rot": 270,
-      "w": 1.4,
-      "d": 0.7,
+      "type": "sofa3",
+      "x": 2.2,
+      "y": 4.55,
+      "rot": 0,
+      "w": 2.2,
+      "d": 0.95,
       "rect": [
-        22.05,
-        9.2,
-        22.75,
-        10.6
+        1.1,
+        4.075,
+        3.3,
+        5.025
       ],
-      "room": "R13",
-      "outdoor": null
+      "room": null,
+      "outdoor": "O1"
     },
     {
       "index": 55,
-      "type": "wardrobe",
-      "x": 20.5,
-      "y": 8.775,
-      "rot": 180,
-      "w": 1.8,
-      "d": 0.6,
+      "type": "armchair",
+      "x": 0.8,
+      "y": 3.3,
+      "rot": 90,
+      "w": 0.85,
+      "d": 0.85,
       "rect": [
-        19.6,
-        8.475,
-        21.4,
-        9.075
+        0.375,
+        2.875,
+        1.225,
+        3.725
       ],
-      "room": "R13",
-      "outdoor": null
+      "room": null,
+      "outdoor": "O1"
     },
     {
       "index": 56,
+      "type": "armchair",
+      "x": 3.6,
+      "y": 3.3,
+      "rot": 270,
+      "w": 0.85,
+      "d": 0.85,
+      "rect": [
+        3.175,
+        2.875,
+        4.025,
+        3.725
+      ],
+      "room": null,
+      "outdoor": "O1"
+    },
+    {
+      "index": 57,
+      "type": "coffeeTable",
+      "x": 2.2,
+      "y": 3.4,
+      "rot": 0,
+      "w": 1.1,
+      "d": 0.6,
+      "rect": [
+        1.65,
+        3.1,
+        2.75,
+        3.7
+      ],
+      "room": null,
+      "outdoor": "O1"
+    },
+    {
+      "index": 58,
       "type": "table8",
       "x": 3.3,
       "y": 1.2,
@@ -5619,7 +6299,7 @@
       "outdoor": "O1"
     },
     {
-      "index": 57,
+      "index": 59,
       "type": "chair",
       "x": 2.4,
       "y": 0.35,
@@ -5630,40 +6310,6 @@
         2.175,
         0.125,
         2.625,
-        0.575
-      ],
-      "room": null,
-      "outdoor": "O1"
-    },
-    {
-      "index": 58,
-      "type": "chair",
-      "x": 3,
-      "y": 0.35,
-      "rot": 180,
-      "w": 0.45,
-      "d": 0.45,
-      "rect": [
-        2.775,
-        0.125,
-        3.225,
-        0.575
-      ],
-      "room": null,
-      "outdoor": "O1"
-    },
-    {
-      "index": 59,
-      "type": "chair",
-      "x": 3.6,
-      "y": 0.35,
-      "rot": 180,
-      "w": 0.45,
-      "d": 0.45,
-      "rect": [
-        3.375,
-        0.125,
-        3.825,
         0.575
       ],
       "room": null,
@@ -5672,6 +6318,40 @@
     {
       "index": 60,
       "type": "chair",
+      "x": 3,
+      "y": 0.35,
+      "rot": 180,
+      "w": 0.45,
+      "d": 0.45,
+      "rect": [
+        2.775,
+        0.125,
+        3.225,
+        0.575
+      ],
+      "room": null,
+      "outdoor": "O1"
+    },
+    {
+      "index": 61,
+      "type": "chair",
+      "x": 3.6,
+      "y": 0.35,
+      "rot": 180,
+      "w": 0.45,
+      "d": 0.45,
+      "rect": [
+        3.375,
+        0.125,
+        3.825,
+        0.575
+      ],
+      "room": null,
+      "outdoor": "O1"
+    },
+    {
+      "index": 62,
+      "type": "chair",
       "x": 4.2,
       "y": 0.35,
       "rot": 180,
@@ -5687,7 +6367,7 @@
       "outdoor": "O1"
     },
     {
-      "index": 61,
+      "index": 63,
       "type": "chair",
       "x": 2.4,
       "y": 2.05,
@@ -5704,7 +6384,7 @@
       "outdoor": "O1"
     },
     {
-      "index": 62,
+      "index": 64,
       "type": "chair",
       "x": 3,
       "y": 2.05,
@@ -5721,7 +6401,7 @@
       "outdoor": "O1"
     },
     {
-      "index": 63,
+      "index": 65,
       "type": "chair",
       "x": 3.6,
       "y": 2.05,
@@ -5738,7 +6418,7 @@
       "outdoor": "O1"
     },
     {
-      "index": 64,
+      "index": 66,
       "type": "chair",
       "x": 4.2,
       "y": 2.05,
@@ -5755,106 +6435,72 @@
       "outdoor": "O1"
     },
     {
-      "index": 65,
-      "type": "swingbed",
-      "x": 1.2,
-      "y": 4.35,
-      "rot": 0,
-      "w": 2,
-      "d": 1.4,
-      "rect": [
-        0.2,
-        3.65,
-        2.2,
-        5.05
-      ],
-      "room": null,
-      "outdoor": "O1"
-    },
-    {
-      "index": 66,
-      "type": "sofa3",
-      "x": 4.2,
-      "y": 4.65,
-      "rot": 0,
-      "w": 2.2,
-      "d": 0.95,
-      "rect": [
-        3.1,
-        4.175,
-        5.3,
-        5.125
-      ],
-      "room": null,
-      "outdoor": "O1"
-    },
-    {
       "index": 67,
-      "type": "armchair",
-      "x": 3,
-      "y": 3.4,
-      "rot": 90,
-      "w": 0.85,
-      "d": 0.85,
-      "rect": [
-        2.575,
-        2.975,
-        3.425,
-        3.825
-      ],
-      "room": null,
-      "outdoor": "O1"
-    },
-    {
-      "index": 68,
-      "type": "table6",
-      "x": 4.2,
-      "y": 3.55,
-      "rot": 0,
-      "w": 0.9,
-      "d": 0.5,
-      "rect": [
-        3.75,
-        3.3,
-        4.65,
-        3.8
-      ],
-      "room": null,
-      "outdoor": "O1"
-    },
-    {
-      "index": 69,
-      "type": "lounger",
-      "x": 0.9,
-      "y": 1.7,
-      "rot": 0,
-      "w": 0.7,
-      "d": 2,
-      "rect": [
-        0.55,
-        0.7,
-        1.25,
-        2.7
-      ],
-      "room": null,
-      "outdoor": "O1"
-    },
-    {
-      "index": 70,
       "type": "grill",
-      "x": 5.3,
-      "y": 0.45,
+      "x": 5.6,
+      "y": -1.8,
       "rot": 180,
       "w": 1,
       "d": 0.6,
       "rect": [
-        4.8,
-        0.15,
-        5.8,
-        0.75
+        5.1,
+        -2.1,
+        6.1,
+        -1.5
       ],
       "room": null,
-      "outdoor": "O1"
+      "outdoor": "O2"
+    },
+    {
+      "index": 68,
+      "type": "lounger",
+      "x": 6,
+      "y": -3.65,
+      "rot": 0,
+      "w": 0.7,
+      "d": 2,
+      "rect": [
+        5.65,
+        -4.65,
+        6.35,
+        -2.65
+      ],
+      "room": null,
+      "outdoor": "O8"
+    },
+    {
+      "index": 69,
+      "type": "lounger",
+      "x": 7.1,
+      "y": -3.65,
+      "rot": 0,
+      "w": 0.7,
+      "d": 2,
+      "rect": [
+        6.75,
+        -4.65,
+        7.45,
+        -2.65
+      ],
+      "room": null,
+      "outdoor": "O8"
+    },
+    {
+      "index": 70,
+      "type": "lounger",
+      "x": 8.2,
+      "y": -3.65,
+      "rot": 0,
+      "w": 0.7,
+      "d": 2,
+      "rect": [
+        7.85,
+        -4.65,
+        8.55,
+        -2.65
+      ],
+      "room": null,
+      "outdoor": "O8"
     }
   ],
   "access": {
@@ -5903,22 +6549,22 @@
       },
       {
         "a": "R14",
-        "b": "R10",
+        "b": "R13",
         "opening": "D09"
+      },
+      {
+        "a": "R14",
+        "b": "R10",
+        "opening": "D10"
       },
       {
         "a": "R10",
         "b": "R11",
-        "opening": "D10"
-      },
-      {
-        "a": "R11",
-        "b": "R12",
         "opening": "D11"
       },
       {
-        "a": "R06",
-        "b": "R13",
+        "a": "R10",
+        "b": "R12",
         "opening": "D12"
       },
       {
@@ -5932,16 +6578,16 @@
       "R04": 1,
       "R05": 1,
       "R07": 1,
-      "R13": 1,
       "R14": 1,
       "R03": 2,
       "R08": 2,
       "R09": 2,
+      "R13": 2,
       "R10": 2,
       "R02": 3,
       "R11": 3,
-      "R01": 4,
-      "R12": 4
+      "R12": 3,
+      "R01": 4
     },
     "unreachable": []
   },
@@ -5952,10 +6598,10 @@
       "azimuthDeg": 12,
       "facing": "N",
       "wallLength": 23,
-      "wallArea": 70.15,
-      "glazingArea": 5.7,
-      "doorArea": 14.26,
-      "blindedGlazingArea": 0,
+      "wallArea": 77.05,
+      "glazingArea": 5.04,
+      "doorArea": 14.88,
+      "blindedGlazingArea": 5.04,
       "roofArea": 136.0491
     },
     "E": {
@@ -5964,10 +6610,10 @@
       "azimuthDeg": 102,
       "facing": "E",
       "wallLength": 11.8,
-      "wallArea": 35.99,
-      "glazingArea": 4.56,
+      "wallArea": 39.53,
+      "glazingArea": 5.88,
       "doorArea": 0,
-      "blindedGlazingArea": 0,
+      "blindedGlazingArea": 5.88,
       "roofArea": 58.826
     },
     "S": {
@@ -5976,10 +6622,10 @@
       "azimuthDeg": 192,
       "facing": "S",
       "wallLength": 23,
-      "wallArea": 70.15,
-      "glazingArea": 18.39,
+      "wallArea": 77.05,
+      "glazingArea": 22.44,
       "doorArea": 0,
-      "blindedGlazingArea": 18.39,
+      "blindedGlazingArea": 22.44,
       "roofArea": 136.0491
     },
     "W": {
@@ -5988,8 +6634,8 @@
       "azimuthDeg": 282,
       "facing": "W",
       "wallLength": 11.8,
-      "wallArea": 35.99,
-      "glazingArea": 7.76,
+      "wallArea": 39.53,
+      "glazingArea": 8.16,
       "doorArea": 0,
       "blindedGlazingArea": 6.96,
       "roofArea": 58.826
@@ -6012,19 +6658,24 @@
       "U": 1.6736
     },
     "ceiling": {
-      "thickness": 0.332,
-      "R": 0.4562,
-      "U": 1.5238
+      "thickness": 0.631,
+      "R": 8.7081,
+      "U": 0.1123
     },
     "roof": {
-      "thickness": 0.3665,
-      "R": 8.0038,
-      "U": 0.1219
+      "thickness": 0.256,
+      "R": 1.3846,
+      "U": 0.6311
     },
     "groundFloor": {
       "thickness": 0.485,
       "R": 4.7507,
       "U": 0.2032
+    },
+    "wallToUnheated": {
+      "thickness": 0.393,
+      "R": 3.4842,
+      "U": 0.2671
     }
   },
   "pv": {
@@ -6046,28 +6697,28 @@
         "center": [
           3.422,
           0.490052382,
-          3.349000571
+          3.649000571
         ],
         "corners": [
           [
             2.855,
             -0.308252916,
-            3.026464294
+            3.326464294
           ],
           [
             3.989,
             -0.308252916,
-            3.026464294
+            3.326464294
           ],
           [
             3.989,
             1.288357681,
-            3.671536848
+            3.971536848
           ],
           [
             2.855,
             1.288357681,
-            3.671536848
+            3.971536848
           ]
         ]
       },
@@ -6087,28 +6738,28 @@
         "center": [
           4.576,
           0.490052382,
-          3.349000571
+          3.649000571
         ],
         "corners": [
           [
             4.009,
             -0.308252916,
-            3.026464294
+            3.326464294
           ],
           [
             5.143,
             -0.308252916,
-            3.026464294
+            3.326464294
           ],
           [
             5.143,
             1.288357681,
-            3.671536848
+            3.971536848
           ],
           [
             4.009,
             1.288357681,
-            3.671536848
+            3.971536848
           ]
         ]
       },
@@ -6128,28 +6779,28 @@
         "center": [
           5.73,
           0.490052382,
-          3.349000571
+          3.649000571
         ],
         "corners": [
           [
             5.163,
             -0.308252916,
-            3.026464294
+            3.326464294
           ],
           [
             6.297,
             -0.308252916,
-            3.026464294
+            3.326464294
           ],
           [
             6.297,
             1.288357681,
-            3.671536848
+            3.971536848
           ],
           [
             5.163,
             1.288357681,
-            3.671536848
+            3.971536848
           ]
         ]
       },
@@ -6169,28 +6820,28 @@
         "center": [
           6.884,
           0.490052382,
-          3.349000571
+          3.649000571
         ],
         "corners": [
           [
             6.317,
             -0.308252916,
-            3.026464294
+            3.326464294
           ],
           [
             7.451,
             -0.308252916,
-            3.026464294
+            3.326464294
           ],
           [
             7.451,
             1.288357681,
-            3.671536848
+            3.971536848
           ],
           [
             6.317,
             1.288357681,
-            3.671536848
+            3.971536848
           ]
         ]
       },
@@ -6210,28 +6861,28 @@
         "center": [
           8.038,
           0.490052382,
-          3.349000571
+          3.649000571
         ],
         "corners": [
           [
             7.471,
             -0.308252916,
-            3.026464294
+            3.326464294
           ],
           [
             8.605,
             -0.308252916,
-            3.026464294
+            3.326464294
           ],
           [
             8.605,
             1.288357681,
-            3.671536848
+            3.971536848
           ],
           [
             7.471,
             1.288357681,
-            3.671536848
+            3.971536848
           ]
         ]
       },
@@ -6251,28 +6902,28 @@
         "center": [
           9.192,
           0.490052382,
-          3.349000571
+          3.649000571
         ],
         "corners": [
           [
             8.625,
             -0.308252916,
-            3.026464294
+            3.326464294
           ],
           [
             9.759,
             -0.308252916,
-            3.026464294
+            3.326464294
           ],
           [
             9.759,
             1.288357681,
-            3.671536848
+            3.971536848
           ],
           [
             8.625,
             1.288357681,
-            3.671536848
+            3.971536848
           ]
         ]
       },
@@ -6292,28 +6943,28 @@
         "center": [
           10.346,
           0.490052382,
-          3.349000571
+          3.649000571
         ],
         "corners": [
           [
             9.779,
             -0.308252916,
-            3.026464294
+            3.326464294
           ],
           [
             10.913,
             -0.308252916,
-            3.026464294
+            3.326464294
           ],
           [
             10.913,
             1.288357681,
-            3.671536848
+            3.971536848
           ],
           [
             9.779,
             1.288357681,
-            3.671536848
+            3.971536848
           ]
         ]
       },
@@ -6333,28 +6984,28 @@
         "center": [
           11.5,
           0.490052382,
-          3.349000571
+          3.649000571
         ],
         "corners": [
           [
             10.933,
             -0.308252916,
-            3.026464294
+            3.326464294
           ],
           [
             12.067,
             -0.308252916,
-            3.026464294
+            3.326464294
           ],
           [
             12.067,
             1.288357681,
-            3.671536848
+            3.971536848
           ],
           [
             10.933,
             1.288357681,
-            3.671536848
+            3.971536848
           ]
         ]
       },
@@ -6374,28 +7025,28 @@
         "center": [
           12.654,
           0.490052382,
-          3.349000571
+          3.649000571
         ],
         "corners": [
           [
             12.087,
             -0.308252916,
-            3.026464294
+            3.326464294
           ],
           [
             13.221,
             -0.308252916,
-            3.026464294
+            3.326464294
           ],
           [
             13.221,
             1.288357681,
-            3.671536848
+            3.971536848
           ],
           [
             12.087,
             1.288357681,
-            3.671536848
+            3.971536848
           ]
         ]
       },
@@ -6415,28 +7066,28 @@
         "center": [
           13.808,
           0.490052382,
-          3.349000571
+          3.649000571
         ],
         "corners": [
           [
             13.241,
             -0.308252916,
-            3.026464294
+            3.326464294
           ],
           [
             14.375,
             -0.308252916,
-            3.026464294
+            3.326464294
           ],
           [
             14.375,
             1.288357681,
-            3.671536848
+            3.971536848
           ],
           [
             13.241,
             1.288357681,
-            3.671536848
+            3.971536848
           ]
         ]
       },
@@ -6456,28 +7107,28 @@
         "center": [
           14.962,
           0.490052382,
-          3.349000571
+          3.649000571
         ],
         "corners": [
           [
             14.395,
             -0.308252916,
-            3.026464294
+            3.326464294
           ],
           [
             15.529,
             -0.308252916,
-            3.026464294
+            3.326464294
           ],
           [
             15.529,
             1.288357681,
-            3.671536848
+            3.971536848
           ],
           [
             14.395,
             1.288357681,
-            3.671536848
+            3.971536848
           ]
         ]
       },
@@ -6497,28 +7148,28 @@
         "center": [
           16.116,
           0.490052382,
-          3.349000571
+          3.649000571
         ],
         "corners": [
           [
             15.549,
             -0.308252916,
-            3.026464294
+            3.326464294
           ],
           [
             16.683,
             -0.308252916,
-            3.026464294
+            3.326464294
           ],
           [
             16.683,
             1.288357681,
-            3.671536848
+            3.971536848
           ],
           [
             15.549,
             1.288357681,
-            3.671536848
+            3.971536848
           ]
         ]
       },
@@ -6538,28 +7189,28 @@
         "center": [
           17.27,
           0.490052382,
-          3.349000571
+          3.649000571
         ],
         "corners": [
           [
             16.703,
             -0.308252916,
-            3.026464294
+            3.326464294
           ],
           [
             17.837,
             -0.308252916,
-            3.026464294
+            3.326464294
           ],
           [
             17.837,
             1.288357681,
-            3.671536848
+            3.971536848
           ],
           [
             16.703,
             1.288357681,
-            3.671536848
+            3.971536848
           ]
         ]
       },
@@ -6579,28 +7230,28 @@
         "center": [
           18.424,
           0.490052382,
-          3.349000571
+          3.649000571
         ],
         "corners": [
           [
             17.857,
             -0.308252916,
-            3.026464294
+            3.326464294
           ],
           [
             18.991,
             -0.308252916,
-            3.026464294
+            3.326464294
           ],
           [
             18.991,
             1.288357681,
-            3.671536848
+            3.971536848
           ],
           [
             17.857,
             1.288357681,
-            3.671536848
+            3.971536848
           ]
         ]
       },
@@ -6620,28 +7271,28 @@
         "center": [
           19.578,
           0.490052382,
-          3.349000571
+          3.649000571
         ],
         "corners": [
           [
             19.011,
             -0.308252916,
-            3.026464294
+            3.326464294
           ],
           [
             20.145,
             -0.308252916,
-            3.026464294
+            3.326464294
           ],
           [
             20.145,
             1.288357681,
-            3.671536848
+            3.971536848
           ],
           [
             19.011,
             1.288357681,
-            3.671536848
+            3.971536848
           ]
         ]
       },
@@ -6661,28 +7312,28 @@
         "center": [
           5.153,
           2.105206657,
-          4.001565257
+          4.301565257
         ],
         "corners": [
           [
             4.586,
             1.306901358,
-            3.67902898
+            3.97902898
           ],
           [
             5.72,
             1.306901358,
-            3.67902898
+            3.97902898
           ],
           [
             5.72,
             2.903511956,
-            4.324101534
+            4.624101534
           ],
           [
             4.586,
             2.903511956,
-            4.324101534
+            4.624101534
           ]
         ]
       },
@@ -6702,28 +7353,28 @@
         "center": [
           6.307,
           2.105206657,
-          4.001565257
+          4.301565257
         ],
         "corners": [
           [
             5.74,
             1.306901358,
-            3.67902898
+            3.97902898
           ],
           [
             6.874,
             1.306901358,
-            3.67902898
+            3.97902898
           ],
           [
             6.874,
             2.903511956,
-            4.324101534
+            4.624101534
           ],
           [
             5.74,
             2.903511956,
-            4.324101534
+            4.624101534
           ]
         ]
       },
@@ -6743,28 +7394,28 @@
         "center": [
           7.461,
           2.105206657,
-          4.001565257
+          4.301565257
         ],
         "corners": [
           [
             6.894,
             1.306901358,
-            3.67902898
+            3.97902898
           ],
           [
             8.028,
             1.306901358,
-            3.67902898
+            3.97902898
           ],
           [
             8.028,
             2.903511956,
-            4.324101534
+            4.624101534
           ],
           [
             6.894,
             2.903511956,
-            4.324101534
+            4.624101534
           ]
         ]
       },
@@ -6784,28 +7435,28 @@
         "center": [
           8.615,
           2.105206657,
-          4.001565257
+          4.301565257
         ],
         "corners": [
           [
             8.048,
             1.306901358,
-            3.67902898
+            3.97902898
           ],
           [
             9.182,
             1.306901358,
-            3.67902898
+            3.97902898
           ],
           [
             9.182,
             2.903511956,
-            4.324101534
+            4.624101534
           ],
           [
             8.048,
             2.903511956,
-            4.324101534
+            4.624101534
           ]
         ]
       },
@@ -6825,28 +7476,28 @@
         "center": [
           9.769,
           2.105206657,
-          4.001565257
+          4.301565257
         ],
         "corners": [
           [
             9.202,
             1.306901358,
-            3.67902898
+            3.97902898
           ],
           [
             10.336,
             1.306901358,
-            3.67902898
+            3.97902898
           ],
           [
             10.336,
             2.903511956,
-            4.324101534
+            4.624101534
           ],
           [
             9.202,
             2.903511956,
-            4.324101534
+            4.624101534
           ]
         ]
       },
@@ -6866,28 +7517,28 @@
         "center": [
           10.923,
           2.105206657,
-          4.001565257
+          4.301565257
         ],
         "corners": [
           [
             10.356,
             1.306901358,
-            3.67902898
+            3.97902898
           ],
           [
             11.49,
             1.306901358,
-            3.67902898
+            3.97902898
           ],
           [
             11.49,
             2.903511956,
-            4.324101534
+            4.624101534
           ],
           [
             10.356,
             2.903511956,
-            4.324101534
+            4.624101534
           ]
         ]
       },
@@ -6907,28 +7558,28 @@
         "center": [
           12.077,
           2.105206657,
-          4.001565257
+          4.301565257
         ],
         "corners": [
           [
             11.51,
             1.306901358,
-            3.67902898
+            3.97902898
           ],
           [
             12.644,
             1.306901358,
-            3.67902898
+            3.97902898
           ],
           [
             12.644,
             2.903511956,
-            4.324101534
+            4.624101534
           ],
           [
             11.51,
             2.903511956,
-            4.324101534
+            4.624101534
           ]
         ]
       },
@@ -6948,28 +7599,28 @@
         "center": [
           13.231,
           2.105206657,
-          4.001565257
+          4.301565257
         ],
         "corners": [
           [
             12.664,
             1.306901358,
-            3.67902898
+            3.97902898
           ],
           [
             13.798,
             1.306901358,
-            3.67902898
+            3.97902898
           ],
           [
             13.798,
             2.903511956,
-            4.324101534
+            4.624101534
           ],
           [
             12.664,
             2.903511956,
-            4.324101534
+            4.624101534
           ]
         ]
       },
@@ -6989,28 +7640,28 @@
         "center": [
           14.385,
           2.105206657,
-          4.001565257
+          4.301565257
         ],
         "corners": [
           [
             13.818,
             1.306901358,
-            3.67902898
+            3.97902898
           ],
           [
             14.952,
             1.306901358,
-            3.67902898
+            3.97902898
           ],
           [
             14.952,
             2.903511956,
-            4.324101534
+            4.624101534
           ],
           [
             13.818,
             2.903511956,
-            4.324101534
+            4.624101534
           ]
         ]
       },
@@ -7030,28 +7681,28 @@
         "center": [
           15.539,
           2.105206657,
-          4.001565257
+          4.301565257
         ],
         "corners": [
           [
             14.972,
             1.306901358,
-            3.67902898
+            3.97902898
           ],
           [
             16.106,
             1.306901358,
-            3.67902898
+            3.97902898
           ],
           [
             16.106,
             2.903511956,
-            4.324101534
+            4.624101534
           ],
           [
             14.972,
             2.903511956,
-            4.324101534
+            4.624101534
           ]
         ]
       },
@@ -7071,28 +7722,28 @@
         "center": [
           16.693,
           2.105206657,
-          4.001565257
+          4.301565257
         ],
         "corners": [
           [
             16.126,
             1.306901358,
-            3.67902898
+            3.97902898
           ],
           [
             17.26,
             1.306901358,
-            3.67902898
+            3.97902898
           ],
           [
             17.26,
             2.903511956,
-            4.324101534
+            4.624101534
           ],
           [
             16.126,
             2.903511956,
-            4.324101534
+            4.624101534
           ]
         ]
       },
@@ -7112,28 +7763,28 @@
         "center": [
           17.847,
           2.105206657,
-          4.001565257
+          4.301565257
         ],
         "corners": [
           [
             17.28,
             1.306901358,
-            3.67902898
+            3.97902898
           ],
           [
             18.414,
             1.306901358,
-            3.67902898
+            3.97902898
           ],
           [
             18.414,
             2.903511956,
-            4.324101534
+            4.624101534
           ],
           [
             17.28,
             2.903511956,
-            4.324101534
+            4.624101534
           ]
         ]
       },
@@ -7153,28 +7804,28 @@
         "center": [
           6.884,
           3.720360932,
-          4.654129942
+          4.954129942
         ],
         "corners": [
           [
             6.317,
             2.922055633,
-            4.331593666
+            4.631593666
           ],
           [
             7.451,
             2.922055633,
-            4.331593666
+            4.631593666
           ],
           [
             7.451,
             4.518666231,
-            4.976666219
+            5.276666219
           ],
           [
             6.317,
             4.518666231,
-            4.976666219
+            5.276666219
           ]
         ]
       },
@@ -7194,28 +7845,28 @@
         "center": [
           8.038,
           3.720360932,
-          4.654129942
+          4.954129942
         ],
         "corners": [
           [
             7.471,
             2.922055633,
-            4.331593666
+            4.631593666
           ],
           [
             8.605,
             2.922055633,
-            4.331593666
+            4.631593666
           ],
           [
             8.605,
             4.518666231,
-            4.976666219
+            5.276666219
           ],
           [
             7.471,
             4.518666231,
-            4.976666219
+            5.276666219
           ]
         ]
       },
@@ -7235,28 +7886,28 @@
         "center": [
           9.192,
           3.720360932,
-          4.654129942
+          4.954129942
         ],
         "corners": [
           [
             8.625,
             2.922055633,
-            4.331593666
+            4.631593666
           ],
           [
             9.759,
             2.922055633,
-            4.331593666
+            4.631593666
           ],
           [
             9.759,
             4.518666231,
-            4.976666219
+            5.276666219
           ],
           [
             8.625,
             4.518666231,
-            4.976666219
+            5.276666219
           ]
         ]
       },
@@ -7276,28 +7927,28 @@
         "center": [
           10.346,
           3.720360932,
-          4.654129942
+          4.954129942
         ],
         "corners": [
           [
             9.779,
             2.922055633,
-            4.331593666
+            4.631593666
           ],
           [
             10.913,
             2.922055633,
-            4.331593666
+            4.631593666
           ],
           [
             10.913,
             4.518666231,
-            4.976666219
+            5.276666219
           ],
           [
             9.779,
             4.518666231,
-            4.976666219
+            5.276666219
           ]
         ]
       },
@@ -7317,28 +7968,28 @@
         "center": [
           11.5,
           3.720360932,
-          4.654129942
+          4.954129942
         ],
         "corners": [
           [
             10.933,
             2.922055633,
-            4.331593666
+            4.631593666
           ],
           [
             12.067,
             2.922055633,
-            4.331593666
+            4.631593666
           ],
           [
             12.067,
             4.518666231,
-            4.976666219
+            5.276666219
           ],
           [
             10.933,
             4.518666231,
-            4.976666219
+            5.276666219
           ]
         ]
       },
@@ -7358,28 +8009,28 @@
         "center": [
           12.654,
           3.720360932,
-          4.654129942
+          4.954129942
         ],
         "corners": [
           [
             12.087,
             2.922055633,
-            4.331593666
+            4.631593666
           ],
           [
             13.221,
             2.922055633,
-            4.331593666
+            4.631593666
           ],
           [
             13.221,
             4.518666231,
-            4.976666219
+            5.276666219
           ],
           [
             12.087,
             4.518666231,
-            4.976666219
+            5.276666219
           ]
         ]
       },
@@ -7399,28 +8050,28 @@
         "center": [
           13.808,
           3.720360932,
-          4.654129942
+          4.954129942
         ],
         "corners": [
           [
             13.241,
             2.922055633,
-            4.331593666
+            4.631593666
           ],
           [
             14.375,
             2.922055633,
-            4.331593666
+            4.631593666
           ],
           [
             14.375,
             4.518666231,
-            4.976666219
+            5.276666219
           ],
           [
             13.241,
             4.518666231,
-            4.976666219
+            5.276666219
           ]
         ]
       },
@@ -7440,28 +8091,28 @@
         "center": [
           14.962,
           3.720360932,
-          4.654129942
+          4.954129942
         ],
         "corners": [
           [
             14.395,
             2.922055633,
-            4.331593666
+            4.631593666
           ],
           [
             15.529,
             2.922055633,
-            4.331593666
+            4.631593666
           ],
           [
             15.529,
             4.518666231,
-            4.976666219
+            5.276666219
           ],
           [
             14.395,
             4.518666231,
-            4.976666219
+            5.276666219
           ]
         ]
       },
@@ -7481,28 +8132,28 @@
         "center": [
           16.116,
           3.720360932,
-          4.654129942
+          4.954129942
         ],
         "corners": [
           [
             15.549,
             2.922055633,
-            4.331593666
+            4.631593666
           ],
           [
             16.683,
             2.922055633,
-            4.331593666
+            4.631593666
           ],
           [
             16.683,
             4.518666231,
-            4.976666219
+            5.276666219
           ],
           [
             15.549,
             4.518666231,
-            4.976666219
+            5.276666219
           ]
         ]
       }
@@ -7523,5 +8174,1980 @@
         ]
       }
     ]
+  },
+  "attic": "cold",
+  "topEnvelope": "ceiling",
+  "cameras": [
+    {
+      "id": "aerial-sw",
+      "name": {
+        "cs": "Nadhled od jihozápadu",
+        "en": "Aerial, south-west"
+      },
+      "short": {
+        "cs": "Celý pozemek",
+        "en": "Whole plot"
+      },
+      "kind": "perspective",
+      "position": [
+        -14,
+        -17,
+        32
+      ],
+      "target": [
+        11.5,
+        5.5,
+        1.5
+      ],
+      "fov": 33,
+      "orthoHeight": null,
+      "use": [
+        "web",
+        "sun",
+        "render",
+        "og"
+      ],
+      "default": true,
+      "defaultFor": [
+        "narrow"
+      ],
+      "aboveGround": null,
+      "ground": -0.56169
+    },
+    {
+      "id": "street",
+      "name": {
+        "cs": "Od ulice",
+        "en": "From the street"
+      },
+      "short": {
+        "cs": "Ulice",
+        "en": "Street"
+      },
+      "kind": "perspective",
+      "position": [
+        -4,
+        28,
+        1.37518
+      ],
+      "target": [
+        11,
+        15,
+        1.4
+      ],
+      "fov": 50,
+      "orthoHeight": null,
+      "use": [
+        "web",
+        "render"
+      ],
+      "default": false,
+      "defaultFor": [],
+      "aboveGround": 1.6,
+      "ground": -0.22482
+    },
+    {
+      "id": "entry",
+      "name": {
+        "cs": "Vstup",
+        "en": "Front entrance"
+      },
+      "short": {
+        "cs": "Vstup",
+        "en": "Entrance"
+      },
+      "kind": "perspective",
+      "position": [
+        17.5,
+        20.6,
+        1.51132
+      ],
+      "target": [
+        17.5,
+        12,
+        1.6
+      ],
+      "fov": 45,
+      "orthoHeight": null,
+      "use": [
+        "web",
+        "render"
+      ],
+      "default": false,
+      "defaultFor": [],
+      "aboveGround": 1.6,
+      "ground": -0.08868
+    },
+    {
+      "id": "garden",
+      "name": {
+        "cs": "Ze zahrady",
+        "en": "From the garden"
+      },
+      "short": {
+        "cs": "Zahrada",
+        "en": "Garden"
+      },
+      "kind": "perspective",
+      "position": [
+        -2,
+        -13,
+        1.37878
+      ],
+      "target": [
+        7,
+        1.5,
+        1.7
+      ],
+      "fov": 55,
+      "orthoHeight": null,
+      "use": [
+        "web",
+        "sun",
+        "render"
+      ],
+      "default": false,
+      "defaultFor": [],
+      "aboveGround": 1.6,
+      "ground": -0.22122
+    },
+    {
+      "id": "pool",
+      "name": {
+        "cs": "Bazén a terasa",
+        "en": "Pool and terrace"
+      },
+      "short": {
+        "cs": "Bazén",
+        "en": "Pool"
+      },
+      "kind": "perspective",
+      "position": [
+        12.6,
+        -10.8,
+        1.44521
+      ],
+      "target": [
+        4.5,
+        -2.5,
+        0.8
+      ],
+      "fov": 55,
+      "orthoHeight": null,
+      "use": [
+        "web",
+        "sun",
+        "render"
+      ],
+      "default": false,
+      "defaultFor": [],
+      "aboveGround": 1.6,
+      "ground": -0.15479
+    },
+    {
+      "id": "terrace",
+      "name": {
+        "cs": "Krytá terasa",
+        "en": "Covered terrace"
+      },
+      "short": {
+        "cs": "Terasa",
+        "en": "Terrace"
+      },
+      "kind": "perspective",
+      "position": [
+        3.4,
+        -4.4,
+        1.45
+      ],
+      "target": [
+        3.2,
+        2,
+        1.4
+      ],
+      "fov": 52,
+      "orthoHeight": null,
+      "use": [
+        "web",
+        "sun",
+        "render"
+      ],
+      "default": false,
+      "defaultFor": [],
+      "aboveGround": 1.6,
+      "ground": -0.15
+    },
+    {
+      "id": "living",
+      "name": {
+        "cs": "Obývací pokoj",
+        "en": "Living room"
+      },
+      "short": {
+        "cs": "Obývák",
+        "en": "Living"
+      },
+      "kind": "perspective",
+      "position": [
+        13,
+        8.2,
+        1.5
+      ],
+      "target": [
+        8,
+        1,
+        1.1
+      ],
+      "fov": 60,
+      "orthoHeight": null,
+      "use": [
+        "web",
+        "render"
+      ],
+      "default": false,
+      "defaultFor": [],
+      "aboveGround": null,
+      "ground": -0.15
+    },
+    {
+      "id": "bedroom",
+      "name": {
+        "cs": "Ložnice",
+        "en": "Main bedroom"
+      },
+      "short": {
+        "cs": "Ložnice",
+        "en": "Bedroom"
+      },
+      "kind": "perspective",
+      "position": [
+        19,
+        7.9,
+        1.4
+      ],
+      "target": [
+        22,
+        5,
+        0.9
+      ],
+      "fov": 60,
+      "orthoHeight": null,
+      "use": [
+        "web",
+        "render"
+      ],
+      "default": false,
+      "defaultFor": [],
+      "aboveGround": null,
+      "ground": -0.15
+    },
+    {
+      "id": "plan",
+      "name": {
+        "cs": "Shora",
+        "en": "Top view"
+      },
+      "short": {
+        "cs": "Shora",
+        "en": "Top"
+      },
+      "kind": "orthographic",
+      "position": [
+        11.5,
+        5.9,
+        60
+      ],
+      "target": [
+        11.5,
+        5.9,
+        0
+      ],
+      "fov": null,
+      "orthoHeight": 24,
+      "use": [
+        "web",
+        "sun"
+      ],
+      "default": false,
+      "defaultFor": [],
+      "aboveGround": null,
+      "ground": -0.15
+    },
+    {
+      "id": "aerial-se",
+      "name": {
+        "cs": "Nadhled od jihovýchodu",
+        "en": "Aerial, south-east"
+      },
+      "short": {
+        "cs": "Nadhled JV",
+        "en": "Aerial SE"
+      },
+      "kind": "perspective",
+      "position": [
+        38,
+        -16,
+        32
+      ],
+      "target": [
+        11.5,
+        5.5,
+        1.5
+      ],
+      "fov": 33,
+      "orthoHeight": null,
+      "use": [
+        "render"
+      ],
+      "default": false,
+      "defaultFor": [],
+      "aboveGround": null,
+      "ground": -0.20334
+    }
+  ],
+  "groundVoids": [
+    [
+      0.7,
+      -8.8,
+      9.3,
+      -4.7
+    ]
+  ],
+  "outdoorUnit": {
+    "center": [
+      -0.75,
+      10.6
+    ],
+    "size": [
+      1.1,
+      0.45,
+      1
+    ],
+    "rot": 90,
+    "footprint": [
+      [
+        -0.975,
+        10.05
+      ],
+      [
+        -0.525,
+        10.05
+      ],
+      [
+        -0.525,
+        11.15
+      ],
+      [
+        -0.975,
+        11.15
+      ]
+    ],
+    "z": -0.15
+  },
+  "catalog": {
+    "groundVoidOutdoor": [
+      "pool"
+    ],
+    "sunSampledOutdoor": [
+      "terrace",
+      "pool"
+    ],
+    "waterOutdoor": [
+      "pool"
+    ],
+    "bedroomTypes": [
+      "bedroom",
+      "kids",
+      "guest"
+    ]
+  },
+  "site": {
+    "bounds": {
+      "x0": -40.2,
+      "y0": -51.2,
+      "x1": 63.4,
+      "y1": 57
+    },
+    "plot": {
+      "polygon": [
+        [
+          -3.9,
+          -16.2
+        ],
+        [
+          28.4,
+          -14.3
+        ],
+        [
+          26.9,
+          22
+        ],
+        [
+          -5.2,
+          20.6
+        ]
+      ],
+      "edgeKinds": [
+        "field",
+        "neighbour",
+        "street",
+        "neighbour"
+      ]
+    },
+    "terrain": {
+      "zeroLevelAsl": 240.15,
+      "plateau": {
+        "level": -0.15,
+        "rects": [
+          [
+            -1.2,
+            -9.8,
+            24.4,
+            13.6
+          ]
+        ],
+        "blend": 10
+      }
+    },
+    "zones": {
+      "street": {
+        "verge": [
+          [
+            91.838,
+            24.832
+          ],
+          [
+            -70.138,
+            17.768
+          ],
+          [
+            -70.247,
+            20.265
+          ],
+          [
+            91.729,
+            27.33
+          ]
+        ],
+        "pavement": [
+          [
+            91.795,
+            25.831
+          ],
+          [
+            -70.182,
+            18.767
+          ],
+          [
+            -70.247,
+            20.265
+          ],
+          [
+            91.729,
+            27.33
+          ]
+        ],
+        "green": [
+          [
+            91.838,
+            24.832
+          ],
+          [
+            -70.138,
+            17.768
+          ],
+          [
+            -70.182,
+            18.767
+          ],
+          [
+            91.795,
+            25.831
+          ]
+        ],
+        "carriageway": [
+          [
+            91.729,
+            27.33
+          ],
+          [
+            -70.247,
+            20.265
+          ],
+          [
+            -70.487,
+            25.76
+          ],
+          [
+            91.49,
+            32.825
+          ]
+        ],
+        "centreLine": [
+          [
+            91.61,
+            30.077
+          ],
+          [
+            -70.367,
+            23.013
+          ]
+        ],
+        "kerbHeight": 0.12,
+        "kerbWidth": 0.15
+      },
+      "field": [
+        [
+          -68.788,
+          -20.017
+        ],
+        [
+          93.288,
+          -10.483
+        ],
+        [
+          95.93,
+          -55.405
+        ],
+        [
+          -66.145,
+          -64.939
+        ]
+      ],
+      "neighbourPlots": [
+        {
+          "id": "NB01",
+          "polygon": [
+            [
+              -39.168,
+              19.119
+            ],
+            [
+              -37.841,
+              -18.197
+            ],
+            [
+              -3.9,
+              -16.2
+            ],
+            [
+              -5.2,
+              20.6
+            ]
+          ]
+        },
+        {
+          "id": "NB02",
+          "polygon": [
+            [
+              62.341,
+              -12.303
+            ],
+            [
+              60.868,
+              23.481
+            ],
+            [
+              26.9,
+              22
+            ],
+            [
+              28.4,
+              -14.3
+            ]
+          ]
+        }
+      ]
+    },
+    "access": {
+      "driveApron": [
+        [
+          0.2,
+          20.5
+        ],
+        [
+          6.4,
+          20.5
+        ],
+        [
+          6.4,
+          21.106
+        ],
+        [
+          0.2,
+          20.836
+        ]
+      ],
+      "driveVerge": [
+        [
+          0.2,
+          20.836
+        ],
+        [
+          6.4,
+          21.106
+        ],
+        [
+          7.4,
+          23.652
+        ],
+        [
+          -0.8,
+          23.294
+        ]
+      ],
+      "walkApron": [
+        [
+          16.9,
+          20.5
+        ],
+        [
+          18.1,
+          20.5
+        ],
+        [
+          18.1,
+          21.616
+        ],
+        [
+          16.9,
+          21.564
+        ]
+      ],
+      "walkVerge": [
+        [
+          16.9,
+          21.564
+        ],
+        [
+          18.1,
+          21.616
+        ],
+        [
+          18.1,
+          24.119
+        ],
+        [
+          16.9,
+          24.066
+        ]
+      ],
+      "driveGate": {
+        "center": [
+          3.3,
+          20.971
+        ],
+        "width": 6.9,
+        "opening": 6.7
+      },
+      "walkGate": {
+        "center": [
+          17.5,
+          21.59
+        ],
+        "width": 1.4,
+        "opening": 1.2
+      },
+      "driveKerb": [
+        [
+          -0.8,
+          23.144
+        ],
+        [
+          7.4,
+          23.502
+        ],
+        [
+          7.4,
+          23.652
+        ],
+        [
+          -0.8,
+          23.294
+        ]
+      ],
+      "walkKerb": [
+        [
+          16.9,
+          23.916
+        ],
+        [
+          18.1,
+          23.968
+        ],
+        [
+          18.1,
+          24.119
+        ],
+        [
+          16.9,
+          24.066
+        ]
+      ],
+      "droppedKerbReveal": 0.02
+    },
+    "fences": [
+      {
+        "id": "FN01",
+        "kind": "slat_fence",
+        "height": 1.6,
+        "thickness": 0.06,
+        "parts": [
+          [
+            [
+              -0.142,
+              20.72
+            ],
+            [
+              -5.097,
+              20.504
+            ],
+            [
+              -3.804,
+              -16.094
+            ],
+            [
+              28.296,
+              -14.206
+            ],
+            [
+              26.804,
+              21.896
+            ],
+            [
+              19.003,
+              21.555
+            ]
+          ],
+          [
+            [
+              16.805,
+              21.46
+            ],
+            [
+              6.751,
+              21.021
+            ]
+          ]
+        ],
+        "plinthHeight": 0.3,
+        "slat": {
+          "orient": "h",
+          "board": 0.09,
+          "gap": 0.015,
+          "depth": 0.02
+        },
+        "postSize": 0.06,
+        "postSpacing": 2.5,
+        "posts": [
+          {
+            "x": -2.619,
+            "y": 20.612,
+            "z": -0.149
+          },
+          {
+            "x": -5.097,
+            "y": 20.504,
+            "z": -0.141
+          },
+          {
+            "x": -5.01,
+            "y": 18.065,
+            "z": -0.131
+          },
+          {
+            "x": -4.924,
+            "y": 15.625,
+            "z": -0.127
+          },
+          {
+            "x": -4.838,
+            "y": 13.185,
+            "z": -0.122
+          },
+          {
+            "x": -4.752,
+            "y": 10.745,
+            "z": -0.12
+          },
+          {
+            "x": -4.666,
+            "y": 8.305,
+            "z": -0.121
+          },
+          {
+            "x": -4.579,
+            "y": 5.865,
+            "z": -0.125
+          },
+          {
+            "x": -4.493,
+            "y": 3.425,
+            "z": -0.134
+          },
+          {
+            "x": -4.407,
+            "y": 0.985,
+            "z": -0.144
+          },
+          {
+            "x": -4.321,
+            "y": -1.455,
+            "z": -0.155
+          },
+          {
+            "x": -4.235,
+            "y": -3.895,
+            "z": -0.166
+          },
+          {
+            "x": -4.148,
+            "y": -6.335,
+            "z": -0.177
+          },
+          {
+            "x": -4.062,
+            "y": -8.774,
+            "z": -0.187
+          },
+          {
+            "x": -3.976,
+            "y": -11.214,
+            "z": -0.206
+          },
+          {
+            "x": -3.89,
+            "y": -13.654,
+            "z": -0.286
+          },
+          {
+            "x": -3.804,
+            "y": -16.094,
+            "z": -0.408
+          },
+          {
+            "x": -1.334,
+            "y": -15.949,
+            "z": -0.364
+          },
+          {
+            "x": 1.135,
+            "y": -15.804,
+            "z": -0.335
+          },
+          {
+            "x": 3.604,
+            "y": -15.658,
+            "z": -0.306
+          },
+          {
+            "x": 6.073,
+            "y": -15.513,
+            "z": -0.279
+          },
+          {
+            "x": 8.542,
+            "y": -15.368,
+            "z": -0.255
+          },
+          {
+            "x": 11.012,
+            "y": -15.223,
+            "z": -0.236
+          },
+          {
+            "x": 13.481,
+            "y": -15.077,
+            "z": -0.224
+          },
+          {
+            "x": 15.95,
+            "y": -14.932,
+            "z": -0.219
+          },
+          {
+            "x": 18.419,
+            "y": -14.787,
+            "z": -0.221
+          },
+          {
+            "x": 20.888,
+            "y": -14.642,
+            "z": -0.229
+          },
+          {
+            "x": 23.358,
+            "y": -14.496,
+            "z": -0.234
+          },
+          {
+            "x": 25.827,
+            "y": -14.351,
+            "z": -0.245
+          },
+          {
+            "x": 28.296,
+            "y": -14.206,
+            "z": -0.277
+          },
+          {
+            "x": 28.197,
+            "y": -11.799,
+            "z": -0.222
+          },
+          {
+            "x": 28.097,
+            "y": -9.392,
+            "z": -0.195
+          },
+          {
+            "x": 27.998,
+            "y": -6.986,
+            "z": -0.18
+          },
+          {
+            "x": 27.898,
+            "y": -4.579,
+            "z": -0.169
+          },
+          {
+            "x": 27.799,
+            "y": -2.172,
+            "z": -0.157
+          },
+          {
+            "x": 27.699,
+            "y": 0.235,
+            "z": -0.142
+          },
+          {
+            "x": 27.6,
+            "y": 2.642,
+            "z": -0.133
+          },
+          {
+            "x": 27.5,
+            "y": 5.048,
+            "z": -0.128
+          },
+          {
+            "x": 27.401,
+            "y": 7.455,
+            "z": -0.124
+          },
+          {
+            "x": 27.301,
+            "y": 9.862,
+            "z": -0.121
+          },
+          {
+            "x": 27.202,
+            "y": 12.269,
+            "z": -0.118
+          },
+          {
+            "x": 27.103,
+            "y": 14.675,
+            "z": -0.112
+          },
+          {
+            "x": 27.003,
+            "y": 17.082,
+            "z": -0.074
+          },
+          {
+            "x": 26.904,
+            "y": 19.489,
+            "z": -0.014
+          },
+          {
+            "x": 26.804,
+            "y": 21.896,
+            "z": 0.031
+          },
+          {
+            "x": 24.854,
+            "y": 21.811,
+            "z": -0.002
+          },
+          {
+            "x": 22.904,
+            "y": 21.726,
+            "z": -0.032
+          },
+          {
+            "x": 20.953,
+            "y": 21.641,
+            "z": -0.054
+          },
+          {
+            "x": 14.794,
+            "y": 21.372,
+            "z": -0.096
+          },
+          {
+            "x": 12.783,
+            "y": 21.284,
+            "z": -0.1
+          },
+          {
+            "x": 10.773,
+            "y": 21.197,
+            "z": -0.096
+          },
+          {
+            "x": 8.762,
+            "y": 21.109,
+            "z": -0.097
+          }
+        ]
+      }
+    ],
+    "gates": [
+      {
+        "id": "GT01",
+        "access": "driveway",
+        "kind": "sliding",
+        "leaf": 6.7,
+        "height": 1.6,
+        "postSize": 0.1,
+        "thickness": 0.06,
+        "tail": 3,
+        "side": "-",
+        "fence": "FN01",
+        "center": [
+          3.304,
+          20.871
+        ],
+        "along": [
+          -0.99905,
+          -0.043572
+        ],
+        "inward": [
+          0.043572,
+          -0.99905
+        ],
+        "opening": 6.7,
+        "width": 6.9,
+        "z": -0.127,
+        "posts": [
+          {
+            "x": 6.701,
+            "y": 21.019,
+            "z": -0.113
+          },
+          {
+            "x": -0.092,
+            "y": 20.723,
+            "z": -0.144
+          }
+        ],
+        "leafPolygon": [
+          [
+            9.651,
+            21.088
+          ],
+          [
+            -0.04,
+            20.665
+          ],
+          [
+            -0.037,
+            20.605
+          ],
+          [
+            9.654,
+            21.028
+          ]
+        ],
+        "park": {
+          "from": [
+            6.651,
+            21.017
+          ],
+          "to": [
+            16.342,
+            21.439
+          ],
+          "offset": 0.09,
+          "polygon": [
+            [
+              16.345,
+              21.379
+            ],
+            [
+              6.654,
+              20.957
+            ],
+            [
+              6.656,
+              20.897
+            ],
+            [
+              16.347,
+              21.32
+            ]
+          ]
+        },
+        "swing": null
+      },
+      {
+        "id": "GT02",
+        "access": "walkway",
+        "kind": "swing",
+        "leaf": 1.2,
+        "height": 1.6,
+        "postSize": 0.1,
+        "thickness": 0.06,
+        "tail": 0,
+        "side": "-",
+        "fence": "FN01",
+        "center": [
+          17.504,
+          21.49
+        ],
+        "along": [
+          -0.99905,
+          -0.043572
+        ],
+        "inward": [
+          0.043572,
+          -0.99905
+        ],
+        "opening": 1.2,
+        "width": 1.4,
+        "z": -0.078,
+        "posts": [
+          {
+            "x": 18.154,
+            "y": 21.518,
+            "z": -0.077
+          },
+          {
+            "x": 16.855,
+            "y": 21.462,
+            "z": -0.083
+          }
+        ],
+        "leafPolygon": [
+          [
+            18.102,
+            21.546
+          ],
+          [
+            16.904,
+            21.494
+          ],
+          [
+            16.906,
+            21.434
+          ],
+          [
+            18.105,
+            21.486
+          ]
+        ],
+        "park": null,
+        "swing": {
+          "hinge": [
+            18.104,
+            21.516
+          ],
+          "radius": 1.2,
+          "closedEnd": [
+            16.905,
+            21.464
+          ],
+          "openEnd": [
+            18.156,
+            20.317
+          ],
+          "arc": [
+            [
+              16.905,
+              21.464
+            ],
+            [
+              16.922,
+              21.308
+            ],
+            [
+              16.959,
+              21.155
+            ],
+            [
+              17.016,
+              21.009
+            ],
+            [
+              17.092,
+              20.872
+            ],
+            [
+              17.184,
+              20.745
+            ],
+            [
+              17.293,
+              20.632
+            ],
+            [
+              17.415,
+              20.533
+            ],
+            [
+              17.55,
+              20.452
+            ],
+            [
+              17.693,
+              20.389
+            ],
+            [
+              17.844,
+              20.345
+            ],
+            [
+              17.999,
+              20.321
+            ],
+            [
+              18.156,
+              20.317
+            ]
+          ]
+        }
+      }
+    ],
+    "pillars": [
+      {
+        "id": "PL01",
+        "access": "walkway",
+        "side": "-",
+        "size": [
+          0.8,
+          0.45,
+          1.8
+        ],
+        "items": [
+          "meter-box",
+          "mailbox",
+          "intercom",
+          "house-number",
+          "light"
+        ],
+        "center": [
+          18.612,
+          21.343
+        ],
+        "along": [
+          -0.99905,
+          -0.043572
+        ],
+        "inward": [
+          0.043572,
+          -0.99905
+        ],
+        "footprint": [
+          [
+            19.002,
+            21.585
+          ],
+          [
+            18.202,
+            21.551
+          ],
+          [
+            18.222,
+            21.101
+          ],
+          [
+            19.021,
+            21.136
+          ]
+        ],
+        "z": -0.078
+      }
+    ],
+    "hedges": [],
+    "trees": [
+      {
+        "id": "TR01",
+        "species": "walnut",
+        "latin": "Juglans regia",
+        "evergreen": false,
+        "x": 19,
+        "y": -6.6,
+        "z": -0.15,
+        "height": 11,
+        "crown": 7.5,
+        "crownBase": 3.3,
+        "uplight": true
+      },
+      {
+        "id": "TR02",
+        "species": "crabapple",
+        "latin": "Malus floribunda",
+        "evergreen": false,
+        "x": 15.2,
+        "y": -11.4,
+        "z": -0.162,
+        "height": 4.5,
+        "crown": 4,
+        "crownBase": 1.35,
+        "uplight": true
+      },
+      {
+        "id": "TR03",
+        "species": "apple",
+        "latin": "Malus domestica",
+        "evergreen": false,
+        "x": 25,
+        "y": -9.6,
+        "z": -0.152,
+        "height": 5,
+        "crown": 5,
+        "crownBase": 1.5,
+        "uplight": false
+      },
+      {
+        "id": "TR04",
+        "species": "apple",
+        "latin": "Malus domestica",
+        "evergreen": false,
+        "x": 10.6,
+        "y": -13.2,
+        "z": -0.194,
+        "height": 4.8,
+        "crown": 4.8,
+        "crownBase": 1.44,
+        "uplight": false
+      },
+      {
+        "id": "TR05",
+        "species": "pear",
+        "latin": "Pyrus communis",
+        "evergreen": false,
+        "x": 25.3,
+        "y": -4.4,
+        "z": -0.152,
+        "height": 7,
+        "crown": 4.6,
+        "crownBase": 2.1,
+        "uplight": false
+      },
+      {
+        "id": "TR06",
+        "species": "crabapple",
+        "latin": "Malus floribunda",
+        "evergreen": false,
+        "x": -2.4,
+        "y": 15.5,
+        "z": -0.139,
+        "height": 4.5,
+        "crown": 4,
+        "crownBase": 1.35,
+        "uplight": true
+      },
+      {
+        "id": "TR07",
+        "species": "cherry",
+        "latin": "Prunus avium",
+        "evergreen": false,
+        "x": 23.8,
+        "y": 18,
+        "z": -0.095,
+        "height": 8,
+        "crown": 4.8,
+        "crownBase": 2.4,
+        "uplight": false
+      }
+    ],
+    "shrubs": [
+      {
+        "id": "SH01",
+        "species": "lavender",
+        "latin": "Lavandula angustifolia",
+        "evergreen": true,
+        "x": 1.5,
+        "y": -10.1,
+        "z": -0.151,
+        "height": 0.5,
+        "width": 0.6
+      },
+      {
+        "id": "SH02",
+        "species": "lavender",
+        "latin": "Lavandula angustifolia",
+        "evergreen": true,
+        "x": 3,
+        "y": -10.1,
+        "z": -0.15,
+        "height": 0.5,
+        "width": 0.6
+      },
+      {
+        "id": "SH03",
+        "species": "lavender",
+        "latin": "Lavandula angustifolia",
+        "evergreen": true,
+        "x": 4.5,
+        "y": -10.1,
+        "z": -0.15,
+        "height": 0.5,
+        "width": 0.6
+      },
+      {
+        "id": "SH04",
+        "species": "lavender",
+        "latin": "Lavandula angustifolia",
+        "evergreen": true,
+        "x": 6,
+        "y": -10.1,
+        "z": -0.15,
+        "height": 0.5,
+        "width": 0.6
+      },
+      {
+        "id": "SH05",
+        "species": "lavender",
+        "latin": "Lavandula angustifolia",
+        "evergreen": true,
+        "x": 7.5,
+        "y": -10.1,
+        "z": -0.15,
+        "height": 0.5,
+        "width": 0.6
+      },
+      {
+        "id": "SH06",
+        "species": "lavender",
+        "latin": "Lavandula angustifolia",
+        "evergreen": true,
+        "x": 9,
+        "y": -10.1,
+        "z": -0.15,
+        "height": 0.5,
+        "width": 0.6
+      },
+      {
+        "id": "SH07",
+        "species": "hydrangea",
+        "latin": "Hydrangea paniculata",
+        "evergreen": false,
+        "x": 14.3,
+        "y": 13.3,
+        "z": -0.15,
+        "height": 1.4,
+        "width": 1.3
+      },
+      {
+        "id": "SH08",
+        "species": "hydrangea",
+        "latin": "Hydrangea paniculata",
+        "evergreen": false,
+        "x": 21,
+        "y": 13.4,
+        "z": -0.15,
+        "height": 1.4,
+        "width": 1.3
+      },
+      {
+        "id": "SH09",
+        "species": "hydrangea",
+        "latin": "Hydrangea paniculata",
+        "evergreen": false,
+        "x": 21.6,
+        "y": 15,
+        "z": -0.145,
+        "height": 1.3,
+        "width": 1.2
+      },
+      {
+        "id": "SH10",
+        "species": "miscanthus",
+        "latin": "Miscanthus sinensis",
+        "evergreen": false,
+        "x": 15.7,
+        "y": 16.6,
+        "z": -0.138,
+        "height": 1.6,
+        "width": 1
+      },
+      {
+        "id": "SH11",
+        "species": "miscanthus",
+        "latin": "Miscanthus sinensis",
+        "evergreen": false,
+        "x": 15.7,
+        "y": 19,
+        "z": -0.114,
+        "height": 1.6,
+        "width": 1
+      },
+      {
+        "id": "SH12",
+        "species": "miscanthus",
+        "latin": "Miscanthus sinensis",
+        "evergreen": false,
+        "x": 19.3,
+        "y": 17.6,
+        "z": -0.126,
+        "height": 1.6,
+        "width": 1
+      },
+      {
+        "id": "SH13",
+        "species": "miscanthus",
+        "latin": "Miscanthus sinensis",
+        "evergreen": false,
+        "x": 19.3,
+        "y": 19,
+        "z": -0.105,
+        "height": 1.6,
+        "width": 1
+      },
+      {
+        "id": "SH14",
+        "species": "yew_topiary",
+        "latin": "Taxus baccata",
+        "evergreen": true,
+        "x": 12.6,
+        "y": 19.2,
+        "z": -0.111,
+        "height": 1.2,
+        "width": 1.2
+      },
+      {
+        "id": "SH15",
+        "species": "miscanthus",
+        "latin": "Miscanthus sinensis",
+        "evergreen": false,
+        "x": -2.4,
+        "y": 1,
+        "z": -0.149,
+        "height": 1.6,
+        "width": 1
+      },
+      {
+        "id": "SH16",
+        "species": "miscanthus",
+        "latin": "Miscanthus sinensis",
+        "evergreen": false,
+        "x": -2.4,
+        "y": 3,
+        "z": -0.147,
+        "height": 1.6,
+        "width": 1
+      }
+    ],
+    "beds": [
+      {
+        "id": "BD01",
+        "kind": "mulch",
+        "polygon": [
+          [
+            12,
+            12.4
+          ],
+          [
+            15.5,
+            12.4
+          ],
+          [
+            15.5,
+            15.8
+          ],
+          [
+            12,
+            15.8
+          ]
+        ]
+      },
+      {
+        "id": "BD02",
+        "kind": "mulch",
+        "polygon": [
+          [
+            19.9,
+            12.4
+          ],
+          [
+            23,
+            12.4
+          ],
+          [
+            23,
+            15.6
+          ],
+          [
+            19.9,
+            15.6
+          ]
+        ]
+      },
+      {
+        "id": "BD03",
+        "kind": "gravel",
+        "polygon": [
+          [
+            -0.25,
+            -10.5
+          ],
+          [
+            10.25,
+            -10.5
+          ],
+          [
+            10.25,
+            -9.6
+          ],
+          [
+            -0.25,
+            -9.6
+          ]
+        ]
+      },
+      {
+        "id": "BD04",
+        "kind": "mulch",
+        "polygon": [
+          [
+            10.9,
+            -7
+          ],
+          [
+            12.1,
+            -7
+          ],
+          [
+            12.1,
+            -4.6
+          ],
+          [
+            10.9,
+            -4.6
+          ]
+        ]
+      },
+      {
+        "id": "BD05",
+        "kind": "mulch",
+        "polygon": [
+          [
+            10.9,
+            -10
+          ],
+          [
+            12.1,
+            -10
+          ],
+          [
+            12.1,
+            -7.6
+          ],
+          [
+            10.9,
+            -7.6
+          ]
+        ]
+      },
+      {
+        "id": "BD06",
+        "kind": "mulch",
+        "polygon": [
+          [
+            -3.1,
+            0.2
+          ],
+          [
+            -1.7,
+            0.2
+          ],
+          [
+            -1.7,
+            3.8
+          ],
+          [
+            -3.1,
+            3.8
+          ]
+        ]
+      }
+    ],
+    "paved": [
+      {
+        "kind": "service_path",
+        "polygon": [
+          [
+            18.1,
+            15.8
+          ],
+          [
+            24.6,
+            15.8
+          ],
+          [
+            24.6,
+            -0.45
+          ],
+          [
+            23.25,
+            -0.45
+          ],
+          [
+            23.25,
+            -1.45
+          ],
+          [
+            25.6,
+            -1.45
+          ],
+          [
+            25.6,
+            16.8
+          ],
+          [
+            18.1,
+            16.8
+          ]
+        ]
+      },
+      {
+        "kind": "bins",
+        "polygon": [
+          [
+            19.4,
+            20.2
+          ],
+          [
+            21.4,
+            20.2
+          ],
+          [
+            21.4,
+            21.4
+          ],
+          [
+            19.4,
+            21.4
+          ]
+        ]
+      },
+      {
+        "kind": "apron",
+        "polygon": [
+          [
+            0.2,
+            20.5
+          ],
+          [
+            6.4,
+            20.5
+          ],
+          [
+            6.4,
+            21.106
+          ],
+          [
+            0.2,
+            20.836
+          ]
+        ]
+      },
+      {
+        "kind": "apron",
+        "polygon": [
+          [
+            16.9,
+            20.5
+          ],
+          [
+            18.1,
+            20.5
+          ],
+          [
+            18.1,
+            21.616
+          ],
+          [
+            16.9,
+            21.564
+          ]
+        ]
+      }
+    ],
+    "neighbours": [
+      {
+        "id": "NB01",
+        "footprint": [
+          [
+            -33.09,
+            4.32
+          ],
+          [
+            -22.596,
+            4.686
+          ],
+          [
+            -22.91,
+            13.68
+          ],
+          [
+            -33.404,
+            13.314
+          ]
+        ],
+        "baseZ": -0.347,
+        "eaveHeight": 2.9,
+        "ridgeHeight": 6.024,
+        "roof": {
+          "kind": "hip",
+          "pitchDeg": 32,
+          "overhang": 0.5
+        }
+      },
+      {
+        "id": "NB02",
+        "footprint": [
+          [
+            45.378,
+            3.896
+          ],
+          [
+            56.374,
+            3.608
+          ],
+          [
+            56.622,
+            13.104
+          ],
+          [
+            45.626,
+            13.392
+          ]
+        ],
+        "baseZ": -0.059,
+        "eaveHeight": 3,
+        "ridgeHeight": 5.791,
+        "roof": {
+          "kind": "hip",
+          "pitchDeg": 28,
+          "overhang": 0.5
+        }
+      }
+    ],
+    "rainwater": {
+      "tank": {
+        "x": 8,
+        "y": 14.2,
+        "z": -0.149,
+        "volumeM3": 8,
+        "diameter": 2.4,
+        "overflow": "soakaway"
+      }
+    }
+  },
+  "metrics": {
+    "id": "walnut",
+    "name": {
+      "cs": "Dům pod ořechem",
+      "en": "Walnut House"
+    },
+    "netArea": 166.43,
+    "garageArea": 36.88,
+    "areaByType": {
+      "garage": 36.88,
+      "utility": 9.08,
+      "pantry": 3.51,
+      "living": 46.85,
+      "office": 11.86,
+      "hall": 18.66,
+      "corridor": 8.18,
+      "wc": 1.73,
+      "kids": 30.08,
+      "bath": 14.36,
+      "bedroom": 16.81,
+      "wardrobe": 5.3
+    },
+    "roomCount": 14,
+    "footprintArea": 253.14,
+    "footprintBBox": {
+      "w": 23.5,
+      "d": 12.3
+    },
+    "footprintPerimeter": 71.6,
+    "volume": 1116.7,
+    "volumeWalls": 848,
+    "volumeRoof": 268.7,
+    "roofArea": 389.8,
+    "roofAreaOverFootprint": 273,
+    "ridges": [
+      {
+        "id": "T1",
+        "height": 5.83,
+        "length": 11.2
+      },
+      {
+        "id": "T2",
+        "height": 4.08,
+        "length": 2.4
+      }
+    ],
+    "ridgeMax": 5.83,
+    "terraceCovered": 35.91,
+    "terraceUncovered": 0,
+    "outdoorByType": {
+      "terrace": 35.91,
+      "paving": 51.38,
+      "drive": 52.39,
+      "path": 7.26,
+      "deck": 73.5,
+      "pool": 28
+    },
+    "glazing": {
+      "total": 41.52,
+      "N": 5.04,
+      "E": 5.88,
+      "S": 22.44,
+      "W": 8.16
+    },
+    "glazingRatio": 0.25,
+    "envelopeArea": 766,
+    "envelopeToVolume": 0.69,
+    "roofSouthArea": 136,
+    "roofAreaByAzimuth": {
+      "N": 136,
+      "E": 58.8,
+      "S": 136,
+      "W": 58.8
+    },
+    "pvKwp": 14.7,
+    "pvLayoutKwp": 15.48,
+    "pvModuleCount": 36,
+    "heated": {
+      "floorArea": 166.43,
+      "volume": 457.7,
+      "perimeter": 49.9,
+      "wallGross": 167.17,
+      "glazing": 40.32,
+      "doors": 2.88,
+      "wallOpaque": 123.97
+    },
+    "uValues": {
+      "exteriorWall": 0.1549,
+      "roof": 0.6311,
+      "groundFloor": 0.2032,
+      "windows": 0.8
+    },
+    "layoutCode": "5+kk",
+    "bedroomCount": 3,
+    "builtUpArea": 297.69,
+    "heatedArea": 166.43,
+    "heatedAreaGross": 205.53,
+    "unheatedBoundary": {
+      "wallArea": 15.71,
+      "doorArea": 1.89
+    }
   }
 }

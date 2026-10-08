@@ -13,7 +13,7 @@ export const EN_DASH = "\u{2013}";
 // ------------------------------------------------------------------------------------------- typography
 
 /** Units that stay glued to the number before them. Longest first, so "kWh" is not read as "kW" + "h". */
-const UNITS = ["kWh", "kWp", "MWh", "Wh", "kW", "MW", "W", "m²", "m³", "mm", "cm", "km", "ha", "m", "kg", "g", "l", "h", "min", "s", "Pa", "Hz", "lx", "lm", "°C", "°", "%", "‰", "Kč", "CZK", "EUR", "€"];
+const UNITS = ["kWh", "kWp", "MWh", "Wh", "Wp", "kW", "MW", "W", "m²", "m³", "mm", "cm", "km", "ha", "m", "kg", "g", "l", "h", "min", "s", "Pa", "Hz", "lx", "lm", "°C", "°", "%", "‰", "Kč", "CZK", "EUR", "€", "ks"];
 const UNIT_AFTER_NUMBER = new RegExp(`(\\d) (?=(?:${UNITS.map((u) => u.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})(?![\\p{L}\\p{N}]))`, "gu");
 /** Digit groups written with ordinary spaces: 1 234 567. */
 const THOUSANDS = /(?<![\p{N}.,])(\d{1,3})((?: \d{3})+)(?![\p{N}])/gu;
@@ -23,18 +23,82 @@ const CS_ONE_LETTER = /(?<![\p{L}\p{N}_])([AIKOSUVZaikosuvz]) (?=\S)/gu;
 const CS_DATE = /(\d{1,2}\.) (?=(?:ledna|února|března|dubna|května|června|července|srpna|září|října|listopadu|prosince)(?![\p{L}]))/gu;
 /** Numbered items: "č. 5", "str. 12". */
 const CS_ABBR_NUMBER = /(?<![\p{L}])(č\.|str\.|obr\.|tab\.) (?=\d)/gu;
+/** "240 m n. m.": the abbreviation of "above sea level" stays in one piece (the number is glued to "m" by the unit rule). */
+const CS_ASL = /(?<![\p{L}])m n\. m\.(?![\p{L}])/gu;
+const EN_ASL = /(?<![\p{L}])m a\.s\.l\.(?![\p{L}])/gu;
+/** "7,5 mil. Kč", "120 tis. Kč": the number, the abbreviation and the currency stay together. */
+const NUMBER_ABBR = /(\d) (?=(?:mil|mld|tis)\.(?![\p{L}]))/gu;
+const ABBR_CURRENCY = /(?<![\p{L}])((?:mil|mld|tis)\.) (?=(?:Kč|CZK|EUR|€)(?![\p{L}]))/gu;
+/** Numeric Czech dates: "20. 3." and "20. 3. 2026". */
+const CS_NUMERIC_DATE = /(?<![\d.])(\d{1,2}\.) (?=\d{1,2}\.)/gu;
+const CS_NUMERIC_DATE_YEAR = /(?<![\d.])(\d{1,2}\.\u{a0}\d{1,2}\.) (?=\d{4}(?!\d))/gu;
+/** Dimensions and scales: "23,5 × 12,3", "1 : 100". */
+const BETWEEN_NUMBERS = /(?<=\d) ([×:]) (?=\d)/gu;
 
 /**
- * Replaces ordinary spaces with non-breaking ones where a line break would hurt: before units, inside digit groups and
- * (Czech only) after single-letter prepositions and conjunctions and inside dates. Idempotent, plain text only.
+ * Replaces ordinary spaces with non-breaking ones where a line break would hurt: before units, inside digit groups,
+ * around "×" and ":" between numbers, inside "mil. Kč" and the sea-level abbreviation and (Czech only) after single-letter
+ * prepositions and conjunctions and inside dates. Idempotent. Plain text, or text with
+ * the simple tags of rich.tsx ("<q>…</q>"), which it never splits.
  */
 export function nb(text: string, locale: Locale = "cs"): string {
-  let s = text.replace(UNIT_AFTER_NUMBER, `$1${NBSP}`).replace(THOUSANDS, (_m, head: string, tail: string) => head + tail.replaceAll(" ", NBSP));
+  let s = text
+    .replace(UNIT_AFTER_NUMBER, `$1${NBSP}`)
+    .replace(THOUSANDS, (_m, head: string, tail: string) => head + tail.replaceAll(" ", NBSP))
+    .replace(NUMBER_ABBR, `$1${NBSP}`)
+    .replace(ABBR_CURRENCY, `$1${NBSP}`)
+    .replace(BETWEEN_NUMBERS, `${NBSP}$1${NBSP}`)
+    .replace(EN_ASL, `m${NBSP}a.s.l.`);
   if (locale === "cs") {
-    s = s.replace(CS_ONE_LETTER, `$1${NBSP}`).replace(CS_DATE, `$1${NBSP}`).replace(CS_ABBR_NUMBER, `$1${NBSP}`);
+    s = s
+      .replace(CS_ONE_LETTER, `$1${NBSP}`)
+      .replace(CS_DATE, `$1${NBSP}`)
+      .replace(CS_ABBR_NUMBER, `$1${NBSP}`)
+      .replace(CS_NUMERIC_DATE, `$1${NBSP}`)
+      .replace(CS_NUMERIC_DATE_YEAR, `$1${NBSP}`)
+      .replace(CS_ASL, `m${NBSP}n.${NBSP}m.`);
   }
   return s;
 }
+
+// ------------------------------------------------------------------------------------------- prepositions, affixes, estimates
+
+/**
+ * Hours before which Czech uses the vocalised preposition "ve": the spoken number starts with a consonant cluster
+ * (dvě, tři, čtyři, dvanáct, třináct, čtrnáct, dvacet…). "v 5:10", but "ve 4:48" and "ve 21:03".
+ */
+const CS_VE_HOURS: ReadonlySet<number> = new Set([2, 3, 4, 12, 13, 14, 20, 21, 22, 23, 24]);
+
+/** "ve" or "v" before a time of day with the given hour (Czech). Prefer Formatter.at(), which also formats the time. */
+export const csTimePreposition = (hour: number): "ve" | "v" => (CS_VE_HOURS.has(hour) ? "ve" : "v");
+
+/**
+ * Marker for a value slot: fill a template with it and split the result with affixes(). One dictionary template then
+ * drives both running text ("7,5 mil. Kč" / "CZK 7.5M") and a stat whose prefix and suffix are styled apart from the number.
+ */
+export const VALUE_SLOT = "\u{e000}";
+
+/**
+ * Prefix and suffix around VALUE_SLOT in a filled template, without the joining spaces:
+ * affixes(t("budget.money.million", { value: VALUE_SLOT })) gives { prefix: "", suffix: "mil. Kč" } in Czech and
+ * { prefix: "CZK", suffix: "M" } in English. Throws when the slot is missing (a template without the placeholder).
+ */
+export function affixes(filled: string): { prefix: string; suffix: string } {
+  const i = filled.indexOf(VALUE_SLOT);
+  if (i < 0) throw new Error(`affixes(): no value slot in "${filled}"`);
+  const trim = (s: string) => s.replace(/^[\s\u{a0}\u{202f}]+|[\s\u{a0}\u{202f}]+$/gu, "");
+  return { prefix: trim(filled.slice(0, i)), suffix: trim(filled.slice(i + VALUE_SLOT.length)) };
+}
+
+/** A value rounded to `sig` significant digits (3 by default): 1 234 567 → 1 230 000, 0,012345 → 0,0123. For estimates. */
+export function roundSig(v: number, sig = 3): number {
+  if (!Number.isFinite(v) || v === 0) return v;
+  return Number(v.toPrecision(Math.min(21, Math.max(1, Math.round(sig)))));
+}
+
+/** Fraction digits that show a value rounded to `sig` significant digits without false precision. */
+const sigFractionDigits = (v: number, sig: number): number =>
+  v === 0 || !Number.isFinite(v) ? 0 : Math.max(0, Math.round(sig) - 1 - Math.floor(Math.log10(Math.abs(v))));
 
 // ------------------------------------------------------------------------------------------- parsing
 
@@ -131,6 +195,27 @@ export class Formatter {
   /** Time of day from decimal hours (6.5 → 6:30). */
   clockHours(hours: number): string { return this.clock(hours * 60); }
 
+  /**
+   * Time of day with its preposition, from minutes since midnight: "ve 4:48", "v 5:10", "ve 21:03" in Czech (the
+   * vocalised "ve" before 2, 3, 4, 12, 13, 14 and 20–24 o'clock), "at 4:48" in English. Dictionaries write "{atSunset}",
+   * never "v {sunset}" (src/lib/i18n/copy.test.ts forbids a one-letter preposition before a placeholder).
+   */
+  at(minutes: number): string {
+    if (!Number.isFinite(minutes)) return EN_DASH;
+    const hour = Math.floor(Math.round(minutes) / 60);
+    const prep = this.locale === "cs" ? csTimePreposition(hour) : "at";
+    return `${prep}${NBSP}${this.clock(minutes)}`;
+  }
+
+  /** at() from decimal hours (4.8 → "ve 4:48"). */
+  atHours(hours: number): string { return this.at(hours * 60); }
+
+  /** An estimate: the number rounded to `sig` significant digits (3 by default) and shown without false precision. */
+  estimate(v: number, sig = 3): string {
+    const r = roundSig(v, sig);
+    return this.num(r, 0, sigFractionDigits(r, sig));
+  }
+
   /** Duration from decimal hours: "2 h 15 min" / "45 min". */
   duration(hours: number): string {
     if (!Number.isFinite(hours)) return EN_DASH;
@@ -192,3 +277,9 @@ export const degrees = (v: number, digits = 0, locale: Locale = "cs") => getForm
 export const area = (v: number, digits = 1, locale: Locale = "cs") => getFormatter(locale).area(v, digits);
 export const money = (v: number, locale: Locale = "cs", opts?: MoneyOptions) => getFormatter(locale).money(v, opts);
 export const range = (a: number, b: number, locale: Locale = "cs", o?: Parameters<Formatter["range"]>[2]) => getFormatter(locale).range(a, b, o);
+/** Time of day with its preposition: "ve 21:03" / "at 21:03" (see Formatter.at). */
+export const at = (minutes: number, locale: Locale = "cs") => getFormatter(locale).at(minutes);
+/** at() from decimal hours. */
+export const atHours = (hours: number, locale: Locale = "cs") => getFormatter(locale).atHours(hours);
+/** An estimate rounded to `sig` significant digits (3 by default): formatEstimate(1234567) → "1 230 000". */
+export const formatEstimate = (value: number, opts: { sig?: number; locale?: Locale } = {}) => getFormatter(opts.locale ?? "cs").estimate(value, opts.sig ?? 3);

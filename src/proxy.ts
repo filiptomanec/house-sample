@@ -7,7 +7,8 @@ import { resolveRequest } from "@/lib/routes";
  * /cs/... and /en/... (src/app/[locale]/<key>). All of the decisions are in resolveRequest() (lib/routes.ts):
  *   canonical public URL      -> rewrite to the internal URL ("/pudorys" -> "/cs/plan")
  *   other spelling of a page  -> permanent redirect to the canonical URL ("/cs/plan", "/en/pudorys", "/floor-plan")
- *   unknown path              -> rewrite to the language's catch-all with status 404 (styled 404 page)
+ *   unknown path              -> rewrite into the language with status 404 ("/nic" -> "/cs/nic"); no route matches
+ *                                there, so Next (and Vercel's edge) answer with app/global-not-found.tsx, a static page
  */
 export function proxy(request: NextRequest) {
   const { nextUrl } = request;

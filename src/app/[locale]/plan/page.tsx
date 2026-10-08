@@ -30,7 +30,7 @@ export default async function Page({ params }: Props) {
   const floors = derived.rooms.flatMap((r) => (r.floor ? [r.floor] : []));
   return (
     <>
-      <ToolHead n={ROUTES.plan.n} title={t("plan.title", { rooms: t("common.count.rooms", { count: derived.rooms.length }) })} lede={t("plan.lede")} />
+      <ToolHead n={ROUTES.plan.n} title={t("plan.title")} lede={t("plan.lede")} />
       <I18n locale={locale} namespaces={["plan"]}>
         <PlanTool view={view} />
       </I18n>

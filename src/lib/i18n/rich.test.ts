@@ -1,6 +1,6 @@
 import { createElement, isValidElement, type ReactElement, type ReactNode } from "react";
 import { describe, expect, it } from "vitest";
-import { rich } from "./rich";
+import { accent, plainText, rich } from "./rich";
 
 const tags = { b: (c: ReactNode) => createElement("b", null, c), a: (c: ReactNode) => createElement("a", { href: "/x" }, c) };
 
@@ -32,5 +32,21 @@ describe("rich", () => {
   });
   it("without tags the text comes back as is", () => {
     expect(rich("a <b>b</b>", {})).toEqual(["a <b>b</b>"]);
+  });
+});
+
+describe("two-voice headings", () => {
+  it("renders the <q> accent phrase as a span with the accent class", () => {
+    const out = accent("Dům a zahrada <q>ve 3D</q>");
+    expect(html(out)).toBe("Dům a zahrada [span:ve 3D]");
+    const el = out[1] as ReactElement<{ children: ReactElement<{ className: string }> }>;
+    expect(el.props.children.props.className).toBe("accent");
+  });
+  it("leaves a title without an accent as it is", () => {
+    expect(accent("Galerie")).toEqual(["Galerie"]);
+  });
+  it("gives the plain text for titles and labels", () => {
+    expect(plainText("Dům a zahrada <q>ve 3D</q>")).toBe("Dům a zahrada ve 3D");
+    expect(plainText("See <a>the plan</a>")).toBe("See the plan");
   });
 });

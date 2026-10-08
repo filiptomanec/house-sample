@@ -3,7 +3,10 @@ import fs from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { derive } from "../derive";
+import { derivedFile } from "../load";
+import { computeMetrics, localized } from "../metrics";
 import { HouseSchema, houseJsonSchema } from "../schema";
+import { parseSite } from "../site/siteSchema";
 import { baseline, rawHouse, repoRoot } from "./helpers";
 
 /** Same rounding as scripts/build-derived.ts. */
@@ -29,7 +32,7 @@ describe("model/house.json", () => {
     for (const v of [house.location.lat, house.location.lon]) expect(Math.abs(v * 10 - Math.round(v * 10))).toBeLessThan(1e-9);
   });
 
-  it("has Czech and English text everywhere, with Czech typography", () => {
+  it("has Czech and English text everywhere, with Czech typography once localized()", () => {
     const texts: { path: string; cs: string; en: string }[] = [];
     const walk = (v: unknown, p: string): void => {
       if (Array.isArray(v)) v.forEach((x, i) => walk(x, `${p}[${i}]`));
@@ -44,9 +47,11 @@ describe("model/house.json", () => {
     for (const t of texts) {
       expect(t.cs.trim().length, t.path).toBeGreaterThan(0);
       expect(t.en.trim().length, t.path).toBeGreaterThan(0);
-      // a single-letter Czech preposition or conjunction is followed by a no-break space, units are glued to the number
-      expect(/(^|[\s(])[vVkKsSzZoOuUaAiI] \S/.test(t.cs), `${t.path}: ${t.cs}`).toBe(false);
-      expect(/\d (mm|m|m²|m2|kWh|kW|kWp|W|°|%)(?![\p{L}])/u.test(t.cs), `${t.path}: ${t.cs}`).toBe(false);
+      // shown through localized(): a single-letter Czech preposition or conjunction is followed by a no-break space,
+      // units are glued to the number (the model itself may use plain spaces)
+      const cs = localized({ cs: t.cs, en: t.en }, "cs");
+      expect(/(^|[\s(])[vVkKsSzZoOuUaAiI] \S/.test(cs), `${t.path}: ${cs}`).toBe(false);
+      expect(/\d (mm|m|m²|m2|kWh|kW|kWp|W|°|%)(?![\p{L}])/u.test(cs), `${t.path}: ${cs}`).toBe(false);
     }
     // texts differ between the languages unless they are language-neutral (digits, one word, a proper symbol)
     const same = texts.filter((t) => t.cs === t.en && /\s/.test(t.cs));
@@ -83,11 +88,15 @@ describe("generated files are fresh", () => {
     expect(js.properties.rooms.type).toBe("array");
   });
 
-  it("generated/derived.json equals derive(house.json) (apart from the input hash)", () => {
+  it("generated/derived.json equals derive(house.json, { site }) plus the metrics (apart from the input hash)", () => {
     const file = path.join(repoRoot, "generated", "derived.json");
     expect(fs.existsSync(file), "run: npx tsx scripts/build-derived.ts").toBe(true);
     const committed = JSON.parse(fs.readFileSync(file, "utf8")) as Record<string, unknown>;
-    const fresh = stable(derive(baseline().house)) as Record<string, unknown>;
+    const site = parseSite(JSON.parse(fs.readFileSync(path.join(repoRoot, "model", "site.json"), "utf8")));
+    const { house } = baseline();
+    const d = derive(house, { site });
+    const fresh = stable({ ...d, metrics: computeMetrics(house, d) }) as Record<string, unknown>;
+    expect(stable(derivedFile(house, site))).toEqual(fresh);
     expect(typeof committed.inputHash).toBe("string");
     expect((committed.inputHash as string).length).toBe(64);
     delete committed.inputHash;

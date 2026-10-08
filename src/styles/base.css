@@ -11,6 +11,8 @@ body {
   color: var(--ink);
   font: var(--weight-body) var(--fs-base) / var(--lh-body) var(--font-sans);
   letter-spacing: var(--tracking-body);
+  /* a missing face (an italic, a weight) shows up in review instead of being faked by the browser */
+  font-synthesis: none;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -18,24 +20,60 @@ img, video, canvas, svg { display: block; max-width: 100%; }
 a { color: inherit; }
 button { cursor: pointer; }
 [hidden] { display: none !important; }
-:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; border-radius: 2px; }
 ::selection { background: var(--accent-soft); color: var(--ink); }
 
 h1, h2, h3, h4 { margin: 0; font-weight: var(--weight-strong); letter-spacing: var(--tracking-tight); line-height: var(--lh-tight); text-wrap: balance; }
 p { margin: 0; text-wrap: pretty; }
 
-/* ---------------------------------------------------------------- type scale */
-.display { font-size: var(--fs-display); line-height: 0.92; letter-spacing: -0.055em; }
-.h1 { font-size: var(--fs-2xl); line-height: var(--lh-tight); letter-spacing: -0.048em; }
-.h2 { font-size: var(--fs-xl); line-height: 1; }
+/* ---------------------------------------------------------------- type scale
+   Statements in Geist 600 with tight tracking; the second voice is one accent phrase (below). */
+.display { font-size: min(var(--fs-display), 16svh); line-height: var(--lh-display); letter-spacing: var(--tracking-display); font-weight: var(--weight-strong); }
+.h1 { font-size: var(--fs-2xl); line-height: 0.95; letter-spacing: -0.05em; }
+.h2 { font-size: var(--fs-xl); line-height: 1; letter-spacing: -0.044em; }
 .h3 { font-size: var(--fs-lg); line-height: 1.1; letter-spacing: -0.028em; }
 .lede { font-size: var(--fs-md); line-height: 1.45; color: var(--ink-2); max-width: 46ch; letter-spacing: -0.015em; }
-.body { max-width: 62ch; color: var(--ink-2); }
+.body { max-width: var(--measure); color: var(--ink-2); }
 .small { font-size: var(--fs-sm); line-height: 1.45; color: var(--ink-2); }
 .note { font-size: var(--fs-sm); line-height: 1.5; color: var(--ink-3); max-width: 70ch; }
-.label { font: var(--weight-medium) var(--fs-2xs) / 1.2 var(--font-mono); letter-spacing: var(--tracking-label); text-transform: uppercase; color: var(--ink-3); }
+.label { font: var(--weight-medium) var(--fs-label) / 1.2 var(--font-mono); letter-spacing: var(--tracking-label); text-transform: uppercase; color: var(--ink-3); }
+/* a standalone label with the mint hairline in front (kickers have it built in, see layout.css) */
+.label.ruled { display: inline-flex; align-items: center; gap: var(--sp-3); }
+.label.ruled::before { content: ""; width: var(--hairline); height: 1px; background: var(--accent); flex: none; }
 .mono, .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
-.accent { color: var(--accent-ink); }
+/* mint text for a short signal (a selected room number, a status); never for running text */
+.tint { color: var(--accent-ink); }
+
+/* ---------------------------------------------------------------- the accent voice
+   One phrase per heading, written as <q>…</q> in the dictionary and rendered as <span class="accent"> (accentPhrase() in
+   ui/display.tsx), or a literal <q> inside a heading. Italic serif, regular weight, in --ink-2; never in body, UI or numbers. */
+.accent,
+:is(h1, h2, h3, .display, .h1, .h2, .h3) q {
+  font-family: var(--font-accent);
+  font-style: italic;
+  font-weight: var(--weight-body);
+  letter-spacing: var(--tracking-accent);
+  color: var(--ink-2);
+  /* the italic overhangs its box: keep the last letter clear of a clip or a neighbour */
+  padding-inline-end: 0.06em;
+}
+:is(h1, h2, h3, .display, .h1, .h2, .h3) q { quotes: none; }
+/* over a photo the second voice keeps the light ink, slightly softer */
+.on-media .accent, .on-media :is(h1, h2, h3) q { color: color-mix(in srgb, currentColor 82%, transparent); }
+/* deprecated: "mono accent" used to mean mint figures; it keeps that meaning until the pages move to .tint */
+:is(.mono, .num).accent { font-family: var(--font-mono); font-style: normal; font-weight: inherit; letter-spacing: -0.01em; color: var(--accent-ink); padding-inline-end: 0; }
+
+/* ---------------------------------------------------------------- links in running text: ink with a mint underline that sweeps on hover */
+.link {
+  color: inherit; text-decoration: none;
+  background: linear-gradient(var(--accent), var(--accent)) 0 100% / 100% 1px no-repeat,
+              linear-gradient(currentColor, currentColor) 0 100% / 100% 1px no-repeat;
+  background-size: 0 1px, 100% 1px;
+  /* the line sits under the text even when a list gives the link padding for a larger target */
+  background-origin: content-box;
+  transition: background-size var(--dur-3) var(--ease);
+}
+.link:hover { background-size: 100% 1px, 100% 1px; }
 
 /* ---------------------------------------------------------------- accessibility helpers */
 .sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }

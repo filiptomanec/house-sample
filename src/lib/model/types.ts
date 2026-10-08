@@ -13,11 +13,13 @@ import type {
   RoomSchema,
   ScreenSchema,
 } from "./schema";
-import type { Dir, EdgeKind, Facing8, FloorKind, LocalizedText, OpeningKind, OutdoorType, RoomRole, RoomType, ZoneKey } from "./catalog";
+import type { CameraUse, Dir, EdgeKind, Facing8, FloorKind, LocalizedText, OpeningKind, OutdoorSurface, OutdoorType, RoofAttic, RoomRole, RoomType, ZoneKey } from "./catalog";
 import type { BBox, Pt, Pt3, Rect } from "./geom";
 import type { Label } from "./polylabel";
+import type { OutdoorGrade } from "./site/grading";
+import type { SiteLayout } from "./site/export";
 
-export type { Dir, EdgeKind, Facing8, FloorKind, LocalizedText, OpeningKind, OutdoorType, RoomRole, RoomType, ZoneKey, BBox, Pt, Pt3, Rect, Label };
+export type { CameraUse, Dir, EdgeKind, Facing8, FloorKind, LocalizedText, OpeningKind, OutdoorSurface, OutdoorType, RoofAttic, RoomRole, RoomType, ZoneKey, BBox, Pt, Pt3, Rect, Label };
 export type Locale = "cs" | "en";
 
 // ------------------------------------------------------------------ input model
@@ -60,6 +62,9 @@ export interface DerivedWall {
   facing?: Facing8;
   /** Wall height (top of the wall under the roof), m. */
   height?: number;
+  // interior walls only
+  /** Set (true) on a wall between a heated and an unheated room (the wall to the garage; assembly `wallToUnheated` when given). */
+  toUnheated?: true;
 }
 
 export interface Glazing {
@@ -73,6 +78,13 @@ export interface Glazing {
 export interface DerivedRoom {
   id: string;
   name: LocalizedText;
+  /** `rooms[].shortName` of the model, else null (use `name`). */
+  shortName: LocalizedText | null;
+  /**
+   * Room number for visitors: "1.01" (storey, then the order of a breadth-first walk through the doors from the room with
+   * the main entrance; unreachable rooms follow in model order). Use it instead of the id everywhere on the site.
+   */
+  displayNo: string;
   type: RoomType;
   role?: RoomRole;
   zone: Exclude<ZoneKey, "outdoor">;
@@ -147,7 +159,14 @@ export interface DerivedOpening {
   center: Pt3 | null;
   /** Does the shading rule give this opening an external blind? */
   blind: boolean;
-  /** The roof above an exterior opening: horizontal overhang beyond the wall, eave height and wall top (m). Null for interior openings. */
+  /** Number of blind sections (shading.blinds.product.maxSectionWidth); 0 without a blind. */
+  blindSections: number;
+  /**
+   * The roof in front of an exterior opening: `depth` is measured from the outer wall face at the centre of the head along the
+   * outward normal to where the plan of the roofs ends (a covered terrace counts in full); `eaveHeight` is the height of the
+   * shading edge there: the soffit (clear height) over a covered outdoor area, else the eave of the roof; `wallTop` of that roof (m).
+   * Null for interior openings and for openings with no roof above.
+   */
   overhang: { depth: number; eaveHeight: number; wallTop: number } | null;
 }
 
@@ -258,14 +277,57 @@ export interface PvLayout {
   byFace: { face: string; plane: string; orientation: "portrait" | "landscape"; count: number; rows: number[] }[];
 }
 
+/** Levels of an outdoor slab (see site/grading.ts): flat at `top`, or a ramp (drive, path) from `top` to the gate. */
+export type DerivedGrade = OutdoorGrade;
+
+/** GLB role of the top of an outdoor slab (docs/ARCHITECTURE.md section 3). */
+export type OutdoorRole = "terrace_paving" | "deck" | "drive_paving" | "path" | "pool_coping";
+
+export interface DerivedPool {
+  /** Water surface (= `rect`), its level and the floor of the basin (m). */
+  water: Rect;
+  depth: number;
+  waterBelowTop: number;
+  coping: number;
+  /** Top of the coping (= the outdoor top), the water level and the basin floor, m (absolute, house frame). */
+  copingTop: number;
+  waterZ: number;
+  floorZ: number;
+  /** Outer edge of the coping: the water grown by the coping width; the hole in the deck and in the terrain. */
+  outer: Rect;
+  /** Plan polygons: water, coping ring (outer and inner ring, counter-clockwise), the deck around it with the hole. */
+  polygons: { water: Pt[]; copingOuter: Pt[]; copingInner: Pt[]; deck: { outer: Pt[]; hole: Pt[] } | null };
+  /** Id of the deck or paving area the pool sits in (null when none: E-BAZEN). */
+  deck: string | null;
+  /** Water area (m2) and water volume (m3). */
+  waterArea: number;
+  waterVolume: number;
+}
+
 export interface DerivedOutdoor {
   id: string;
   type: OutdoorType;
+  /** `outdoor[].name`, else null (use OUTDOOR_TYPE_NAMES). */
+  name: LocalizedText | null;
   covered: boolean;
   rect: Rect;
+  /** Rect area (m2), and the area without the cut-outs (`holes`). */
   area: number;
+  netArea: number;
+  /** Cut-outs: the pools (coping outer edge) that lie inside this area. */
+  holes: Rect[];
   posts: Pt[];
+  /** Side of the posts (m), null without posts. */
+  postSize: number | null;
   zone: "outdoor";
+  /** Finish and the GLB role of the slab top. */
+  surface: OutdoorSurface;
+  role: OutdoorRole;
+  /** Top at the house end (m) and the levels of the slab (corner heights; drive and path are ramps when the site is known). */
+  top: number;
+  grade: DerivedGrade;
+  /** Pool data (type pool only). */
+  pool: DerivedPool | null;
 }
 
 export interface DerivedScreen {
@@ -281,6 +343,40 @@ export interface DerivedScreen {
   azimuth: number;
   azimuthTrue: number;
   facing: Facing8;
+  /**
+   * Blades (shading.slats): count = floor(length / pitch), spread evenly (effective pitch = length / count), centre positions
+   * along the screen axis, chord (depth) and thickness (width), m.
+   */
+  blades: { count: number; pitch: number; chord: number; thickness: number; positions: number[] };
+  /**
+   * Angles of the blades from the wall plane (degrees): closed stop where neighbouring blades touch,
+   * ceil5(asin(thickness / pitch)); open = 90 (square to the wall); rest = the static model and the default of the controls.
+   */
+  closedDeg: number;
+  openDeg: number;
+  restDeg: number;
+  /** Bottom (top of the slab under the screen) and top (the soffit = clear height) of the blades, m. */
+  z0: number;
+  z1: number;
+}
+
+export interface DerivedCamera {
+  id: string;
+  name: LocalizedText;
+  /** `cameras[].short`, else null (use `name`). */
+  short: LocalizedText | null;
+  kind: "perspective" | "orthographic";
+  /** Position with the z resolved: ground + aboveGround when the camera has `aboveGround` and the site is known. */
+  position: Pt3;
+  target: Pt3;
+  fov: number | null;
+  orthoHeight: number | null;
+  use: CameraUse[];
+  default: boolean;
+  defaultFor: string[];
+  aboveGround: number | null;
+  /** Graded ground under the camera (null without the site). */
+  ground: number | null;
 }
 
 export interface DerivedLightpipe {
@@ -404,6 +500,20 @@ export interface Derived {
   facings: Record<Dir, DerivedFacing>;
   assemblies: Record<string, DerivedAssembly>;
   pv: PvLayout;
+  // ---- extensions (R2)
+  /** Roof build-up and the assembly that closes the heated volume at the top ("roof" for a warm roof, "ceiling" for a cold attic). */
+  attic: RoofAttic;
+  topEnvelope: "roof" | "ceiling";
+  /** Cameras with resolved heights, in model order. */
+  cameras: DerivedCamera[];
+  /** Plan rects where the terrain has a hole (pool basins: the coping outer edge), from GROUND_VOID_OUTDOOR. */
+  groundVoids: Rect[];
+  /** Outdoor unit of the heat pump: plan footprint (corners counter-clockwise), size [w, d, h], rotation and the ground under it (null without the site). */
+  outdoorUnit: { center: Pt; size: Pt3; rot: number; footprint: Pt[]; z: number | null } | null;
+  /** Catalogue lists the pipeline needs (so Python never copies a list from TypeScript). */
+  catalog: { groundVoidOutdoor: OutdoorType[]; sunSampledOutdoor: OutdoorType[]; waterOutdoor: OutdoorType[]; bedroomTypes: RoomType[] };
+  /** The plot resolved for this house (null when derived without the site): fences, gates, pillars, street, trees, ... */
+  site: SiteLayout | null;
 }
 
 export interface Metrics {
@@ -447,6 +557,19 @@ export interface Metrics {
   /** Heated part: net floor area (m2) and volume (m3), length of its exterior walls (m), gross wall area, openings and opaque wall area (m2). */
   heated: { floorArea: number; volume: number; perimeter: number; wallGross: number; glazing: number; doors: number; wallOpaque: number };
   uValues: { exteriorWall: number; roof: number; groundFloor: number; windows: number };
+  // ---- extensions (R2)
+  /** Czech layout code: number of rooms of LAYOUT_ROOM_TYPES + "kk" (kitchen corner) or "1" (a separate kitchen): "5+kk". */
+  layoutCode: string;
+  /** Rooms of BEDROOM_TYPES. */
+  bedroomCount: number;
+  /** Built-up area (zastavěná plocha): the footprint plus the roofed outdoor areas outside it, m2. */
+  builtUpArea: number;
+  /** Net heated floor area (= heated.floorArea), m2. */
+  heatedArea: number;
+  /** Gross heated area (energy reference area): heated rooms to the outer face of the exterior walls and to the axis of the walls to unheated rooms, m2. */
+  heatedAreaGross: number;
+  /** Walls and doors between heated and unheated rooms: wall area without the doors, door area (clear height x length), m2. */
+  unheatedBoundary: { wallArea: number; doorArea: number };
 }
 
 // ------------------------------------------------------------------ validation

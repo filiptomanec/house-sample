@@ -2,7 +2,7 @@
 // lie), and small helpers for the navigation, which is a bar on wide screens and a menu on phones.
 import type { Locator, Page, Response } from "@playwright/test";
 import { LOCALES, type Locale } from "../../src/lib/i18n/config";
-import { ROUTE_KEYS, TOOL_KEYS, alternatePaths, routePath, type RouteKey } from "../../src/lib/routes";
+import { ROUTES, ROUTE_KEYS, TOOL_KEYS, alternatePaths, routePath, type RouteKey } from "../../src/lib/routes";
 
 export { LOCALES, ROUTE_KEYS, TOOL_KEYS, alternatePaths as alternatesOf, routePath };
 export type { Locale, RouteKey };
@@ -24,8 +24,8 @@ export const PAGES: PageInfo[] = LOCALES.flatMap((locale) =>
   }),
 );
 
-/** The pages whose content is a WebGL scene (three.js is loaded on these only). */
-export const SCENE_KEYS: readonly RouteKey[] = ["model", "sun"];
+/** The pages whose content is a WebGL scene (three.js is loaded on these only): the routes marked heavy in routes.ts. */
+export const SCENE_KEYS: readonly RouteKey[] = ROUTE_KEYS.filter((k) => ROUTES[k].heavy);
 
 /**
  * Opens a page and waits until React has hydrated it: hydrated DOM nodes carry a "__reactFiber$..." property, so the header

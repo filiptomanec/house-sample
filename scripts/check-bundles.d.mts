@@ -6,8 +6,11 @@ export const BUDGET_KB: { plain: number; three: number };
 export function chunkRefs(text: string): Set<string>;
 export function externalResources(html: string): string[];
 export function findHtml(appDir: string, locale: string, key: string): string | null;
+export function backdropPrefixProblems(css: string): string[];
+export function modelSchemas(dir?: string): Record<string, string>;
+export function modelFilesIn(text: string, schemas: Record<string, string>): string[];
 export type BundleRow = {
   locale: string; key: string; path: string; html: string; initial: Set<string>;
-  chunks: number; lazy: number; kb: number; three: boolean; threeIn: string[]; missing: string[];
+  chunks: number; lazy: number; kb: number; three: boolean; threeIn: string[]; model: string[]; missing: string[];
 };
-export function analyzeBuild(buildDir: string): { rows: BundleRow[]; errors: string[]; warnings: string[] };
+export function analyzeBuild(buildDir: string, options?: { modelSchemas?: Record<string, string> }): { rows: BundleRow[]; errors: string[]; warnings: string[] };

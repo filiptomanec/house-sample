@@ -1,6 +1,6 @@
 // Analytic terrain: a heightfield defined only by parameters (plane + smooth waves + seeded micro-relief),
 // blended into a levelled plateau around the house. Heights are metres relative to the finished floor (+-0.000).
-import { azimuthOf, deg2rad, houseToTrueAzimuth, mod360, rad2deg, type Bbox, type Rect, type XY } from "./geometry";
+import { azimuthOf, bboxOf, deg2rad, houseToTrueAzimuth, mod360, nearestOnPolygon, pointInPolygon, rad2deg, dist, type Bbox, type Rect, type XY } from "./geometry";
 
 export interface WaveParams {
   /** Peak height (m). */
@@ -71,13 +71,42 @@ export interface SlopeInfo {
   downhillTrueAzimuth: number;
 }
 
+/** A planar slab top: z = z0 + gx * (x - ox) + gy * (y - oy) (house frame, m). */
+export interface SlabPlane {
+  z0: number;
+  ox: number;
+  oy: number;
+  gx: number;
+  gy: number;
+}
+export const planeZ = (p: SlabPlane, x: number, y: number): number => p.z0 + p.gx * (x - p.ox) + p.gy * (y - p.oy);
+
+/** A hard surface the ground must stay under: a convex footprint and the plane of its top (see `createTerrain`). */
+export interface GroundSlab {
+  polygon: XY[];
+  plane: SlabPlane;
+}
+
+/** The ground stays at least this far below the top of every slab (m): the exposed edge of a slab at the gate. */
+export const SLAB_GROUND_GAP = 0.03;
+/** Beside a slab the cut ground blends back to the graded terrain over this width (m). */
+export const SLAB_SIDE_BLEND = 0.6;
+
 export interface Terrain {
   params: TerrainParams;
   bearingDeg: number;
   /** Natural ground before grading. */
   naturalAt(x: number, y: number): number;
-  /** Graded ground (plateau blended with the natural ground): the surface used everywhere. */
+  /** Plateau blended with the natural ground, before the slabs are cut in. */
+  baseAt(x: number, y: number): number;
+  /**
+   * Graded ground: the plateau blended with the natural ground, cut down under the slabs (paving, drive and path ramps) so
+   * that it stays at least SLAB_GROUND_GAP below every slab top, with a SLAB_SIDE_BLEND band beside them. The surface used
+   * everywhere (web terrain, renders, sun analysis, cameras with `aboveGround`).
+   */
   groundAt(x: number, y: number): number;
+  /** The slabs the ground follows (empty for a terrain without the house). */
+  slabs: readonly GroundSlab[];
   /** Weight of the plateau at a point: 1 on the levelled area, 0 on untouched ground. */
   plateauWeight(x: number, y: number): number;
   /** Distance from a point to the levelled area (0 inside). */
@@ -115,7 +144,13 @@ const smoothstep = (t: number): number => {
 export const distToRect = (x: number, y: number, [x0, y0, x1, y1]: Rect): number =>
   Math.hypot(Math.max(x0 - x, 0, x - x1), Math.max(y0 - y, 0, y - y1));
 
-export function createTerrain(params: TerrainParams, bearingDeg: number): Terrain {
+/**
+ * Builds the terrain. `slabs` (from `gradeOutdoor`) cut the ground under the hard surfaces of the house: inside a slab the
+ * ground is min(base, top - SLAB_GROUND_GAP); outside it the cut fades out over SLAB_SIDE_BLEND (smoothstep of the
+ * distance), measured to the top at the nearest point of the slab. The result is continuous; a slab never sinks under the
+ * ground, and where the ground is already lower (the plateau around the house) nothing changes.
+ */
+export function createTerrain(params: TerrainParams, bearingDeg: number, slabs: readonly GroundSlab[] = []): Terrain {
   const phi = deg2rad(bearingDeg);
   const cp = Math.cos(phi), sp = Math.sin(phi);
   const sN = params.plane.slopeSouthPct / 100; // ground rises towards the north by this much per metre
@@ -157,10 +192,31 @@ export function createTerrain(params: TerrainParams, bearingDeg: number): Terrai
     const d = plateauDistance(x, y);
     return d <= 0 ? 1 : smoothstep(1 - d / params.plateau.blend);
   };
-  const groundAt = (x: number, y: number): number => {
+  const baseAt = (x: number, y: number): number => {
     const k = plateauWeight(x, y);
     if (k >= 1) return params.plateau.level;
     return naturalAt(x, y) * (1 - k) + params.plateau.level * k;
+  };
+  const cut = slabs.map((s) => {
+    const b = bboxOf(s.polygon);
+    return { ...s, box: { x0: b.x0 - SLAB_SIDE_BLEND, y0: b.y0 - SLAB_SIDE_BLEND, x1: b.x1 + SLAB_SIDE_BLEND, y1: b.y1 + SLAB_SIDE_BLEND } };
+  });
+  const groundAt = (x: number, y: number): number => {
+    const base = baseAt(x, y);
+    let g = base;
+    for (const s of cut) {
+      if (x < s.box.x0 || x > s.box.x1 || y < s.box.y0 || y > s.box.y1) continue;
+      const p: XY = [x, y];
+      const inside = pointInPolygon(p, s.polygon);
+      const q = inside ? p : nearestOnPolygon(p, s.polygon);
+      const d = inside ? 0 : dist(p, q);
+      if (d >= SLAB_SIDE_BLEND) continue;
+      const lim = planeZ(s.plane, q[0], q[1]) - SLAB_GROUND_GAP;
+      if (base <= lim) continue;
+      const w = d <= 0 ? 1 : smoothstep(1 - d / SLAB_SIDE_BLEND);
+      g = Math.min(g, base - w * (base - lim));
+    }
+    return g;
   };
 
   const slopeAt = (x: number, y: number): SlopeInfo => {
@@ -186,7 +242,7 @@ export function createTerrain(params: TerrainParams, bearingDeg: number): Terrai
     return { x0: bbox.x0, y0: bbox.y0, step, nx, ny, z };
   };
 
-  return { params, bearingDeg, naturalAt, groundAt, plateauWeight, plateauDistance, slopeAt, grid };
+  return { params, bearingDeg, naturalAt, baseAt, groundAt, slabs: cut.map(({ polygon, plane }) => ({ polygon, plane })), plateauWeight, plateauDistance, slopeAt, grid };
 }
 
 /** Bilinear height from a grid (clamped to the grid). */

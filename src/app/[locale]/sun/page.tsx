@@ -34,7 +34,7 @@ export default async function Page({ params }: Props) {
       <ToolHead
         n={ROUTES.sun.n}
         title={t("sun.title")}
-        lede={t("sun.lede", { bearing: f.degrees(house.location.houseAxisBearingDeg, 0) })}
+        lede={t("sun.lede")}
       />
       <I18n locale={locale} namespaces={["sun"]}>
         <SunTool year={YEAR} />

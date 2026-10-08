@@ -8,6 +8,8 @@ export interface OutdoorInput {
   covered?: boolean;
   rect?: Rect;
   polygon?: XY[];
+  /** Top of the slab (m relative to +-0.000); default -0.02 (see grading.ts). */
+  top?: number;
 }
 
 /** Site-level hard surface that is not part of the house model (apron, garden path, bin pad). */
@@ -16,8 +18,10 @@ export interface PavedInput {
   polygon: XY[];
 }
 
-/** Outdoor types that are hard surfaces. Types outside this list (lawn, planting) count as green. */
-export const HARD_OUTDOOR_TYPES: readonly string[] = ["terrace", "paving", "drive", "path"];
+/** Outdoor types that are hard surfaces (or water). Types outside this list (lawn, planting) count as green. */
+export const HARD_OUTDOOR_TYPES: readonly string[] = ["terrace", "paving", "drive", "path", "deck", "pool"];
+/** Outdoor types that are water: counted as `waterArea`, not as paving. */
+export const WATER_OUTDOOR_TYPES: readonly string[] = ["pool"];
 
 export const outdoorPolygon = (o: OutdoorInput): XY[] => (o.polygon ? o.polygon : o.rect ? rectToPolygon(o.rect) : []);
 
@@ -31,13 +35,16 @@ export interface PlotStats {
   /** Built-up area = footprint + roofed outdoor areas (m2). */
   builtUpArea: number;
   builtUpRatio: number;
-  /** Uncovered hard surfaces inside the plot, without overlaps and without built-up area (m2). */
+  /** Uncovered hard surfaces inside the plot, without overlaps, without built-up area and without water (m2). */
   pavedArea: number;
   pavedRatio: number;
-  /** Plot minus built-up minus paved (m2). */
+  /** Water surfaces (pools) outside the built-up area (m2). */
+  waterArea: number;
+  waterRatio: number;
+  /** Plot minus built-up minus paved minus water (m2). */
   greenArea: number;
   greenRatio: number;
-  /** (built-up + paved) / plot. */
+  /** (built-up + paved + water) / plot. */
   imperviousRatio: number;
   /** Area inside the plot per outdoor type and per site paved kind (each key de-overlapped on its own, m2). */
   byOutdoorType: Record<string, number>;
@@ -46,7 +53,7 @@ export interface PlotStats {
 
 /**
  * Areas of the plot. All shapes are clipped to the plot and overlaps are counted once, so the result
- * satisfies built-up + paved + green = plot area exactly.
+ * satisfies built-up + paved + water + green = plot area exactly.
  */
 export function plotStats(plot: readonly XY[], footprint: readonly XY[], outdoor: readonly OutdoorInput[], paved: readonly PavedInput[] = []): PlotStats {
   const plotArea = polygonArea(plot);
@@ -55,10 +62,12 @@ export function plotStats(plot: readonly XY[], footprint: readonly XY[], outdoor
     ...outdoor.filter((o) => !o.covered && HARD_OUTDOOR_TYPES.includes(o.type)).map(outdoorPolygon),
     ...paved.map((p) => p.polygon),
   ];
+  const water = outdoor.filter((o) => !o.covered && WATER_OUTDOOR_TYPES.includes(o.type)).map(outdoorPolygon);
   const footprintArea = unionArea([footprint], plot);
   const builtUpArea = unionArea([footprint, ...covered], plot);
+  const waterArea = water.length ? unionArea([footprint, ...covered, ...water], plot) - builtUpArea : 0;
   const impervious = unionArea([footprint, ...covered, ...hard], plot);
-  const pavedArea = impervious - builtUpArea;
+  const pavedArea = impervious - builtUpArea - waterArea;
   const greenArea = plotArea - impervious;
   const byOutdoorType: Record<string, number> = {};
   for (const type of new Set(outdoor.map((o) => o.type))) {
@@ -73,6 +82,7 @@ export function plotStats(plot: readonly XY[], footprint: readonly XY[], outdoor
     coveredOutdoorArea: builtUpArea - footprintArea,
     builtUpArea, builtUpRatio: builtUpArea / plotArea,
     pavedArea, pavedRatio: pavedArea / plotArea,
+    waterArea, waterRatio: waterArea / plotArea,
     greenArea, greenRatio: greenArea / plotArea,
     imperviousRatio: impervious / plotArea,
     byOutdoorType, byPavedKind,

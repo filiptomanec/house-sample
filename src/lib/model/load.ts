@@ -2,6 +2,7 @@
 import { derive } from "./derive";
 import { computeMetrics } from "./metrics";
 import { HouseSchema } from "./schema";
+import type { SiteModel } from "./site/siteSchema";
 import type { Derived, House, Issue, Metrics } from "./types";
 import { formatReport, validateHouse } from "./validate";
 
@@ -33,7 +34,7 @@ export interface Analysis {
  * Validates a house model and derives geometry and metrics. Throws a ModelError when the model has errors
  * (warnings are returned). This is what pages call once at module level: `analyzeHouse(houseJson)`.
  */
-export function analyzeHouse(input: unknown, options: { inputHash?: string | null } = {}): Analysis {
+export function analyzeHouse(input: unknown, options: { inputHash?: string | null; site?: SiteModel | null } = {}): Analysis {
   const res = validateHouse(input, options);
   if (!res.valid || !res.house || !res.derived || !res.metrics) {
     throw new ModelError(`Invalid house model:\n${formatReport(res, "en")}`, res.errors);
@@ -42,7 +43,14 @@ export function analyzeHouse(input: unknown, options: { inputHash?: string | nul
 }
 
 /** Derives geometry and metrics of an already parsed model without running the design rules. */
-export function deriveAll(house: House, options: { inputHash?: string | null } = {}): { derived: Derived; metrics: Metrics } {
+export function deriveAll(house: House, options: { inputHash?: string | null; site?: SiteModel | null } = {}): { derived: Derived; metrics: Metrics } {
   const derived = derive(house, options);
   return { derived, metrics: computeMetrics(house, derived) };
+}
+
+/** Content of generated/derived.json: derive(house, { site }) plus `metrics`. Scripts that check the file compare against this. */
+export type DerivedFile = Derived & { metrics: Metrics };
+export function derivedFile(house: House, site: SiteModel, inputHash: string | null = null): DerivedFile {
+  const { derived, metrics } = deriveAll(house, { inputHash, site });
+  return { ...derived, metrics };
 }

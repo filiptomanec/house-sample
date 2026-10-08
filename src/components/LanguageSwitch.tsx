@@ -4,8 +4,12 @@ import { usePathname } from "next/navigation";
 import { LOCALES, LOCALE_META } from "@/lib/i18n/config";
 import { useLocale, useT } from "@/lib/i18n/client";
 import { parseAnyPath, routePath } from "@/lib/routes";
+import { LinkPending } from "./LoadingLine";
 
-/** Switches to the same page in the other language (the home page when the current URL is not a known page, e.g. a 404). */
+/**
+ * Switches to the same page in the other language (the home page when the current URL is not a known page, e.g. a 404).
+ * Quiet in the bar (nav.css): the current language is underlined in mint, the other one recedes.
+ */
 export default function LanguageSwitch() {
   const path = usePathname();
   const locale = useLocale();
@@ -18,12 +22,13 @@ export default function LanguageSwitch() {
           key={l}
           href={here ? routePath(l, here.key, here.tail) : routePath(l, "home")}
           lang={LOCALE_META[l].htmlLang}
-          hrefLang={LOCALE_META[l].htmlLang}
+          hrefLang={LOCALE_META[l].hreflang}
           prefetch={false} /* the other language is served by a proxy rewrite: its segment prefetch would 404 */
           aria-label={t(`common.language.${l}`)}
           aria-current={l === locale ? "true" : undefined}
         >
           {LOCALE_META[l].short}
+          <LinkPending />
         </Link>
       ))}
     </div>

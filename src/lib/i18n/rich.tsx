@@ -24,3 +24,17 @@ export function rich(text: string, tags: RichTags): ReactNode[] {
   }
   return out;
 }
+
+// ------------------------------------------------------------------------------------------- two-voice headings
+
+/**
+ * Tags of a two-voice heading. A title such as "Dům a zahrada <q>ve 3D</q>" marks its accent phrase with <q>; it renders
+ * as <span class="accent"> (the italic serif of --font-accent, docs/DESIGN.md), never as a quotation. One accent per heading.
+ */
+export const ACCENT_TAGS: RichTags = { q: (c) => <span className="accent">{c}</span> };
+
+/** A heading with its accent phrase rendered: <h1>{accent(t("plot.title", { area }))}</h1>. Text without <q> comes back as is. */
+export const accent = (text: string): ReactNode[] => rich(text, ACCENT_TAGS);
+
+/** The text of a rich string without its tags, for <title>, og:title, aria-label and alt: "Dům a zahrada ve 3D". */
+export const plainText = (text: string): string => text.replace(/<\/?[a-z]+>/g, "");

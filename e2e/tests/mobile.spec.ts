@@ -1,6 +1,5 @@
 // Phone behaviour (the three phone projects): touch targets of at least the --touch token (44 px), text fields that do not make
 // iOS zoom in, a menu whose entries are easy to hit, and pages that stay inside the screen after they have been scrolled through.
-import { knownIssue, noteKnown } from "../helpers/known-issues";
 import { PAGES, hasHorizontalScroll, navigation, open } from "../helpers/site";
 import { expect, test } from "../helpers/test";
 
@@ -14,7 +13,7 @@ const cs = PAGES.filter((p) => p.locale === "cs");
 
 test.describe("touch targets @mobile", () => {
   for (const p of cs) {
-    test(`controls on ${p.name} are at least ${TOUCH} px high`, async ({ page }, testInfo) => {
+    test(`controls on ${p.name} are at least ${TOUCH} px high`, async ({ page }) => {
       await open(page, p.path);
       const small = await page.evaluate(
         ({ selector, min, slack }) => {
@@ -38,21 +37,16 @@ test.describe("touch targets @mobile", () => {
         },
         { selector: CONTROLS, min: TOUCH, slack: SLACK },
       );
-      const known = knownIssue("touch-select", { project: testInfo.project.name, locale: p.locale, key: p.key });
-      const unexpected = known ? small.filter((s) => !s.startsWith("select.numin")) : small;
-      if (known) noteKnown(testInfo, known, unexpected.length < small.length);
-      expect(unexpected, "controls smaller than the touch target").toEqual([]);
+      expect(small, "controls smaller than the touch target").toEqual([]);
     });
   }
 
-  test("the entries of the open menu are touch-sized", async ({ page }, testInfo) => {
+  test("the entries of the open menu are touch-sized", async ({ page }) => {
     await open(page, "/");
     const menu = await navigation(page);
     const heights = await Promise.all((await menu.locator("a").all()).map(async (link) => (await link.boundingBox())!.height));
-    const known = knownIssue("touch-menu", { project: testInfo.project.name });
-    const small = heights.some((h) => h < TOUCH - SLACK);
-    if (known) noteKnown(testInfo, known, small);
-    else expect(Math.min(...heights), "the smallest menu entry").toBeGreaterThanOrEqual(TOUCH - SLACK);
+    // also on the 568 px high iPhone SE: the rows are 44 px and the menu fits without scrolling (docs/DESIGN.md, Nav)
+    expect(Math.min(...heights), "the smallest menu entry").toBeGreaterThanOrEqual(TOUCH - SLACK);
     const toggle = (await page.locator(".nav-toggle").boundingBox())!;
     expect(toggle.height).toBeGreaterThanOrEqual(TOUCH - SLACK);
   });
@@ -79,17 +73,14 @@ test.describe("text fields do not trigger the iOS zoom @mobile", () => {
 
 test.describe("the page stays inside the screen @mobile", () => {
   for (const p of PAGES.filter((x) => ["home", "plan", "plot", "energy", "budget", "gallery"].includes(x.key))) {
-    test(`${p.name} does not scroll sideways after scrolling to the end`, async ({ page }, testInfo) => {
+    test(`${p.name} does not scroll sideways after scrolling to the end`, async ({ page }) => {
       await open(page, p.path);
       const height = await page.evaluate(() => document.documentElement.scrollHeight);
       for (let y = 0; y <= height; y += 700) {
         await page.evaluate((top) => window.scrollTo(0, top), y);
         await page.waitForTimeout(40); // lazy images and reveal-on-scroll blocks
       }
-      const scrolls = await hasHorizontalScroll(page);
-      const known = knownIssue("overflow", { project: testInfo.project.name, locale: p.locale, key: p.key });
-      if (known) noteKnown(testInfo, known, scrolls);
-      else expect(scrolls, "the page scrolls sideways").toBe(false);
+      expect(await hasHorizontalScroll(page), "the page scrolls sideways").toBe(false);
     });
   }
 

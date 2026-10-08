@@ -11,15 +11,6 @@ import { test as base, expect } from "@playwright/test";
 const HYDRATION = /hydrat|did not match|Minified React error #(?:418|419|423|425)\b/i;
 
 /**
- * KNOWN ISSUE (docs/TESTING.md): on every English page the language switch links to the Czech page; Next prefetches that link
- * with the segment path "/$d$locale/__PAGE__", which the production server answers with 404 (an HTTP error plus a console line
- * "Failed to load resource" per page view). It is harmless to the visitor, so the guard lets exactly this prefetch through and
- * records an annotation; any other HTTP error still fails. Remove once LanguageSwitch links use prefetch={false}.
- */
-const isKnownPrefetch404 = (status: number, headers: Record<string, string>, url: string) =>
-  status === 404 && url.includes("_rsc=") && headers["next-router-prefetch"] === "1" && headers["next-router-segment-prefetch"] === "/$d$locale/__PAGE__";
-const KNOWN_PREFETCH_CONSOLE = /^Failed to load resource/;
-/**
  * WebKit reports a request that the navigation (or the end of the test) cancelled while it was in flight, an RSC prefetch or a
  * lazily fetched image, as an uncaught page error "... due to access control checks", even when the code catches the rejection.
  * (These are same-origin requests; a real access-control failure would show up as a failed request or a console error as well.)
@@ -51,10 +42,8 @@ export const test = base.extend<Fixtures>({
     const add = (text: string) => {
       if (!ignoreProblems?.test(text)) found.push(text);
     };
-    let knownNoted = false;
     page.on("console", (m) => {
       const text = m.text();
-      if (KNOWN_PREFETCH_CONSOLE.test(text) && m.location().url.includes("_rsc=")) return; // see isKnownPrefetch404
       if (m.type() === "error" || HYDRATION.test(text)) add(`console.${m.type()}: ${text.slice(0, 300)}`);
     });
     page.on("pageerror", (e) => {
@@ -62,13 +51,7 @@ export const test = base.extend<Fixtures>({
       add(`pageerror: ${e.message.slice(0, 300)}`);
     });
     page.on("response", (r) => {
-      if (r.status() < 400) return;
-      if (isKnownPrefetch404(r.status(), r.request().headers(), r.url())) {
-        if (!knownNoted) base.info().annotations.push({ type: "known-issue", description: "language switch prefetch answers 404 (docs/TESTING.md)" });
-        knownNoted = true;
-        return;
-      }
-      add(`HTTP ${r.status()} ${r.url()}`);
+      if (r.status() >= 400) add(`HTTP ${r.status()} ${r.url()}`);
     });
 
     await provide(page);

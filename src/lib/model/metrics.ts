@@ -1,9 +1,68 @@
 // Metrics of the house computed from the derived geometry. Roof areas and the enclosed volume are exact (integrals
 // over the planar roof faces), not sampled.
-import { PV_EFFICIENCY_ESTIMATE, PV_ROOF_USABLE_SHARE, type Dir, type OutdoorType, type RoomType } from "./catalog";
-import { ringArea, ringCentroid } from "./geom";
+import { nb } from "../i18n/format";
+import {
+  BEDROOM_TYPES,
+  LAYOUT_ROOM_TYPES,
+  PV_EFFICIENCY_ESTIMATE,
+  PV_ROOF_USABLE_SHARE,
+  SEPARATE_KITCHEN_TYPE,
+  type Dir,
+  type LocalizedText,
+  type OutdoorType,
+  type RoomType,
+} from "./catalog";
+import { inRect, ringArea, ringCentroid, uniqSorted, unionOf, type Rect } from "./geom";
 import { clipRingToRect, faceZAt } from "./roofs";
-import type { Derived, Glazing, House, Metrics } from "./types";
+import type { Derived, Glazing, House, Locale, Metrics } from "./types";
+
+/**
+ * Text of the model in one language with the typography of the site applied (no-break spaces after one-letter Czech
+ * prepositions and between a number and its unit, see i18n/format.ts nb()). Model texts are stored with plain spaces;
+ * every page shows them through this function (or through t(), which does the same for the dictionaries).
+ */
+export const localized = (text: LocalizedText, locale: Locale): string => nb(text[locale], locale);
+
+/** Czech layout code: the rooms of LAYOUT_ROOM_TYPES plus "+kk" (kitchen corner) or "+1" (a separate kitchen), e.g. "5+kk". */
+export function layoutCode(rooms: readonly { type: RoomType }[]): string {
+  const n = rooms.filter((r) => LAYOUT_ROOM_TYPES.includes(r.type)).length;
+  return `${n}+${rooms.some((r) => r.type === SEPARATE_KITCHEN_TYPE) ? "1" : "kk"}`;
+}
+
+const distToRect = (x: number, y: number, r: Rect): number => Math.hypot(Math.max(r[0] - x, 0, x - r[2]), Math.max(r[1] - y, 0, y - r[3]));
+
+/**
+ * Gross floor area of the heated rooms: the outline split between the rooms, so that each room reaches the outer face of its
+ * exterior walls and the axis of its interior walls (the energy reference area of the heated zone).
+ */
+export function heatedGrossArea(derived: Derived): number {
+  const outline = derived.outline.rects;
+  const rooms = derived.rooms;
+  const xs = uniqSorted([...outline, ...rooms.flatMap((r) => r.rects)].flatMap((q) => [q[0], q[2]]));
+  const ys = uniqSorted([...outline, ...rooms.flatMap((r) => r.rects)].flatMap((q) => [q[1], q[3]]));
+  let area = 0;
+  for (let j = 0; j + 1 < ys.length; j++) {
+    for (let i = 0; i + 1 < xs.length; i++) {
+      const cx = (xs[i] + xs[i + 1]) / 2, cy = (ys[j] + ys[j + 1]) / 2;
+      if (!outline.some((q) => inRect(q, cx, cy))) continue;
+      let owner = rooms.find((r) => r.rects.some((q) => inRect(q, cx, cy)));
+      if (!owner) {
+        let best = Infinity;
+        for (const r of rooms) {
+          for (const q of r.rects) {
+            const d = distToRect(cx, cy, q);
+            if (d < best) {
+              best = d;
+              owner = r;
+            }
+          }
+        }
+      }
+      if (owner?.heated) area += (xs[i + 1] - xs[i]) * (ys[j + 1] - ys[j]);
+    }
+  }
+  return area;
+}
 
 const r2 = (v: number): number => Math.round(v * 100) / 100;
 const r1 = (v: number): number => Math.round(v * 10) / 10;
@@ -95,6 +154,12 @@ export function computeMetrics(house: House, derived: Derived): Metrics {
   const glazingHeated = sum(heatedOps.map((o) => o.glazingArea));
   const doorsHeated = sum(heatedOps.filter((o) => o.glazingArea === 0).map((o) => o.area));
 
+  // walls and doors between heated and unheated rooms
+  const boundaryWalls = derived.walls.filter((w) => w.toUnheated);
+  const boundaryDoors = derived.openings.filter((o) => o.wallId !== null && boundaryWalls.some((w) => w.id === o.wallId));
+  const boundaryDoorArea = sum(boundaryDoors.map((o) => o.area));
+  const covered = derived.outdoor.filter((o) => o.covered).map((o) => o.rect);
+
   return {
     id: house.id,
     name: house.name,
@@ -138,6 +203,15 @@ export function computeMetrics(house: House, derived: Derived): Metrics {
       roof: derived.assemblies.roof.U,
       groundFloor: derived.assemblies.groundFloor.U,
       windows: house.windows.Uw,
+    },
+    layoutCode: layoutCode(rooms),
+    bedroomCount: rooms.filter((r) => BEDROOM_TYPES.includes(r.type)).length,
+    builtUpArea: r2(unionOf([...derived.outline.rects, ...covered]).area),
+    heatedArea: r2(net),
+    heatedAreaGross: r2(heatedGrossArea(derived)),
+    unheatedBoundary: {
+      wallArea: r2(Math.max(0, sum(boundaryWalls.map((w) => w.len * house.clearHeight)) - boundaryDoorArea)),
+      doorArea: r2(boundaryDoorArea),
     },
   };
 }

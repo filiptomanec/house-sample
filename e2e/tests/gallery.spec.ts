@@ -76,14 +76,13 @@ for (const locale of LOCALES) {
   });
 }
 
-// KNOWN ISSUE: with motion, opening and closing the lightbox quickly starts a second view transition before the first has finished;
-// the promises of the skipped one reject and nobody catches them ("Transition was skipped" as an uncaught error in Chromium).
+// With motion, opening and closing the lightbox quickly starts a second view transition before the first has finished; the
+// promises of the skipped one reject, and gallery/morph.ts must catch them (it did not once: "Transition was skipped" as an
+// uncaught error in Chromium).
 test.describe("lightbox with motion", () => {
-  test.use({ reducedMotion: "no-preference", ignoreProblems: /Transition was skipped/ });
+  test.use({ reducedMotion: "no-preference" });
 
-  test("opening and closing at once leaves no uncaught error", async ({ page }, testInfo) => {
-    const errors: string[] = [];
-    page.on("pageerror", (e) => errors.push(e.message));
+  test("opening and closing at once leaves no uncaught error", async ({ page }) => {
     await open(page, routePath("cs", "gallery"));
     const tile = page.locator(".gal-item").first();
     await tile.scrollIntoViewIfNeeded();
@@ -91,14 +90,6 @@ test.describe("lightbox with motion", () => {
     await page.getByRole("dialog").waitFor();
     await page.keyboard.press("Escape"); // no pause: the opening morph is still running
     await expect(page.getByRole("dialog")).toHaveCount(0);
-    await page.waitForTimeout(800);
-    const present = errors.some((m) => /Transition was skipped/.test(m));
-    testInfo.annotations.push({
-      type: "known-issue",
-      description: present
-        ? "gallery/morph.ts: a skipped view transition rejects its promises uncaught (add .catch to ready / finished / updateCallbackDone)"
-        : "FIXED (or not reproduced in this browser): remove the allowance from gallery.spec.ts",
-    });
-    expect(errors.filter((m) => !/Transition was skipped/.test(m))).toEqual([]);
+    await page.waitForTimeout(800); // a skipped transition rejects its promises after the fact; the guard fails the test on any of them
   });
 });

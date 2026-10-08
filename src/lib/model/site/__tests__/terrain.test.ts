@@ -3,7 +3,7 @@ import siteRaw from "@model/site.json";
 import { deg2rad, pointInPolygon, type XY } from "../geometry";
 import { createTerrain, gridHeight, gridToMesh, latticeHash, valueNoise, type TerrainParams } from "../terrain";
 import { parseSite } from "../siteSchema";
-import { FIXTURE_BEARING_DEG } from "./fixture";
+import { FIXTURE_BEARING_DEG, FIXTURE_HOUSE } from "./fixture";
 
 const site = parseSite(siteRaw);
 const terrain = createTerrain(site.terrain, FIXTURE_BEARING_DEG);
@@ -55,9 +55,16 @@ describe("levelled plateau", () => {
     }
   });
 
-  it("covers the house and its outdoor areas (house outline and the terrace, paving and porch)", () => {
-    const pts: XY[] = [[-0.25, -0.25], [23.25, -0.25], [23.25, 12.05], [-0.25, 12.05], [-0.25, -4], [13.6, -4], [17.5, 13.5]];
-    for (const [x, y] of pts) expect(Math.abs(terrain.groundAt(x, y))).toBeLessThan(1e-9);
+  it("covers the house and its flat outdoor areas (outline, terrace, paving, pool deck): the lawn there is the plateau level", () => {
+    const inside = (p: XY) => params.plateau.rects.some((r) => p[0] >= r[0] && p[0] <= r[2] && p[1] >= r[1] && p[1] <= r[3]);
+    const corners = (r: readonly number[]): XY[] => [[r[0], r[1]], [r[2], r[1]], [r[2], r[3]], [r[0], r[3]]];
+    const pts: XY[] = [...FIXTURE_HOUSE.footprint, ...FIXTURE_HOUSE.outdoor.filter((o) => !["drive", "path"].includes(o.type) && !o.covered).flatMap((o) => corners(o.rect!))];
+    for (const p of pts) {
+      expect(inside(p), `${p}`).toBe(true);
+      expect(terrain.groundAt(p[0], p[1])).toBe(params.plateau.level);
+    }
+    // the lawn around the house lies below the finished floor, so the plinth of the facade shows
+    expect(params.plateau.level).toBeLessThan(0);
   });
 
   it("returns to natural ground beyond the transition", () => {
@@ -104,14 +111,21 @@ describe("levelled plateau", () => {
 });
 
 describe("natural terrain of the model", () => {
-  it("falls south by about 2.5 to 3.5 % on average and the mean fall line points south (a little west)", () => {
-    const a = terrain.naturalAt(11.5, 40), b = terrain.naturalAt(11.5, -40);
-    const alongAxis = ((a - b) / 80) * 100;
-    expect(alongAxis).toBeGreaterThan(2);
-    expect(alongAxis).toBeLessThan(4);
-    const g = terrain.slopeAt(11.5, -30);
-    expect(g.downhillTrueAzimuth).toBeGreaterThan(150);
-    expect(g.downhillTrueAzimuth).toBeLessThan(230);
+  it("its plane falls by the stated percentages towards the field and the west (waves and noise aside)", () => {
+    const plane = createTerrain({ ...params, waves: [], noise: undefined }, FIXTURE_BEARING_DEG);
+    const b = deg2rad(FIXTURE_BEARING_DEG);
+    // along the house +y axis (true azimuth = bearing) the plane rises by sS cos(b) + sW sin(b) per 100 m
+    const alongAxis = ((plane.naturalAt(11.5, 40) - plane.naturalAt(11.5, -40)) / 80) * 100;
+    expect(alongAxis).toBeCloseTo(params.plane.slopeSouthPct * Math.cos(b) + params.plane.slopeWestPct * Math.sin(b), 9);
+    expect(params.plane.slopeSouthPct).toBeGreaterThanOrEqual(0); // the garden never rises towards the field
+    const g = plane.slopeAt(11.5, -30);
+    expect(g.downhillTrueAzimuth).toBeCloseTo(180 + (Math.atan2(params.plane.slopeWestPct, params.plane.slopeSouthPct) * 180) / Math.PI, 3);
+  });
+
+  it("puts the street below the finished floor and the garden boundary below the street (water runs away from the house)", () => {
+    const street: XY = [11.5, 24]; // the street is the north edge of the plot (site.test.ts checks the orientation)
+    expect(terrain.naturalAt(...street)).toBeLessThan(0);
+    expect(terrain.naturalAt(11.5, -16)).toBeLessThan(terrain.naturalAt(...street));
   });
 
   it("is deterministic: same parameters give identical heights; the seed changes the micro relief", () => {

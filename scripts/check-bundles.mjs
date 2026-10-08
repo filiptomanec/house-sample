@@ -1,30 +1,35 @@
 // After `next build`: three.js (WebGLRenderer) may only be loaded by the model and sun pages, in both languages, and
-// no page may pull in anything it should not: external script/style hosts, runtime Google Fonts.
+// no page may pull in anything it should not: external script/style hosts, runtime Google Fonts. The built CSS must
+// keep the unprefixed backdrop-filter wherever it has the -webkit- one.
 //
 //   node scripts/check-bundles.mjs [buildDir]        (default: .next; run after `npm run build`)
 //
 // For every page the static HTML is read and its client chunks collected (script tags and the flight payload). Chunks
 // that only load on demand (dynamic import) are found by following the chunk paths written inside non-shared chunks;
 // shared chunks (present on every page: framework, runtime, layout) are not followed, because a runtime may know all chunks.
-// Exit code 1 when a rule is broken. The checks live in analyzeBuild(), which scripts/check-bundles.test.ts exercises on fixtures.
+//
+// Errors (exit code 1): three.js outside model and sun, an external runtime resource, Google Fonts, a missing page, a
+// CSS rule with -webkit-backdrop-filter but no backdrop-filter (the CSS minifier can drop the unprefixed property, and
+// then only Safari blurs). Warnings: JavaScript over the size guide, model data (model/*.json) in client chunks.
+// The checks live in analyzeBuild(), which scripts/check-bundles.test.ts exercises on fixtures.
 
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
-import { join, resolve } from "node:path";
-import { pathToFileURL } from "node:url";
+import { join, relative, resolve } from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 export const LOCALES = ["cs", "en"];
 /** Route key -> public slug per language. Kept in step with src/lib/routes.ts by scripts/check-bundles.test.ts. */
 export const ROUTES = {
   home: { cs: "", en: "" },
+  model: { cs: "model", en: "model" },
   plan: { cs: "pudorys", en: "floor-plan" },
   plot: { cs: "pozemek", en: "plot" },
-  model: { cs: "model", en: "model" },
   sun: { cs: "slunce", en: "sun" },
   energy: { cs: "energie", en: "energy" },
   budget: { cs: "rozpocet", en: "budget" },
   gallery: { cs: "galerie", en: "gallery" },
 };
-/** The only pages that may load three.js. */
+/** The only pages that may load three.js: the routes marked `heavy` in src/lib/routes.ts (checked by the test). */
 export const THREE_ROUTES = new Set(["model", "sun"]);
 /** A string every three.js build contains (error messages and the renderer's type name survive minification). */
 export const THREE_SIGNATURE = "WebGLRenderer";
@@ -63,6 +68,63 @@ export function findHtml(appDir, locale, key) {
   return candidates.map((c) => join(appDir, c)).find((p) => existsSync(p)) ?? null;
 }
 
+// ------------------------------------------------------------------------------------------------------------- CSS
+
+/** Declaration blocks of a stylesheet with the selector (or at-rule prelude) in front of each; comments removed. */
+function cssBlocks(css) {
+  const text = css.replace(/\/\*[\s\S]*?\*\//g, "");
+  const out = [];
+  for (const m of text.matchAll(/([^{}]*)\{([^{}]*)\}/g)) out.push({ selector: m[1].trim(), body: m[2] });
+  return out;
+}
+
+/** Lower-case property names declared in a block body ("a:b;c:d" -> ["a", "c"]). */
+const cssProps = (body) => body.split(";").map((d) => d.slice(0, d.indexOf(":")).trim().toLowerCase()).filter(Boolean);
+
+/**
+ * Selectors of the rules that set -webkit-backdrop-filter without the unprefixed backdrop-filter. Such a rule blurs in
+ * Safari only (or, with "none", leaves Chromium's blur from another rule in place).
+ */
+export function backdropPrefixProblems(css) {
+  return cssBlocks(css)
+    .filter(({ body }) => { const p = cssProps(body); return p.includes("-webkit-backdrop-filter") && !p.includes("backdrop-filter"); })
+    .map(({ selector }) => selector || "(no selector)");
+}
+
+// ------------------------------------------------------------------------------------------------------- model data
+
+const DEFAULT_MODEL_DIR = fileURLToPath(new URL("../model/", import.meta.url));
+
+/**
+ * The model files and their schema ids ({ "model/house.json": "house/1", ... }), read from the model directory. Every
+ * model file names its schema in a top-level "schema" field; a bundled copy of the file keeps that pair.
+ */
+export function modelSchemas(dir = DEFAULT_MODEL_DIR) {
+  if (!existsSync(dir)) return {};
+  const out = {};
+  for (const f of readdirSync(dir).filter((n) => n.endsWith(".json") && !n.endsWith(".schema.json")).sort()) {
+    try {
+      const schema = JSON.parse(readFileSync(join(dir, f), "utf8"))?.schema;
+      if (typeof schema === "string") out[`model/${f}`] = schema;
+    } catch { /* not a model file */ }
+  }
+  return out;
+}
+
+const escapeRe = (s) => s.replace(/[.*+?^${}()|[\]\\/]/g, "\\$&");
+
+/**
+ * Model files whose data a chunk contains: a "schema" key followed by the file's schema id, as a bundler writes it
+ * (JSON.parse('{"schema":"house/1",...}') or {schema:"house/1",...}). The zod schema (schema: z.literal("house/1")) and
+ * messages that quote the id do not match.
+ */
+export function modelFilesIn(text, schemas) {
+  const q = `\\\\?["']`;
+  return Object.entries(schemas)
+    .filter(([, id]) => new RegExp(`${q}?schema${q}?\\s*:\\s*${q}${escapeRe(id)}${q}`).test(text))
+    .map(([file]) => file);
+}
+
 function walk(dir, out = []) {
   if (!existsSync(dir)) return out;
   for (const f of readdirSync(dir)) {
@@ -75,8 +137,10 @@ function walk(dir, out = []) {
 /**
  * Inspects a build. Returns { rows, errors, warnings }; a row is one page in one language.
  * @param {string} buildDir the .next directory
+ * @param {{ modelSchemas?: Record<string, string> }} [options] model files to look for (default: read from model/)
  */
-export function analyzeBuild(buildDir) {
+export function analyzeBuild(buildDir, options = {}) {
+  const schemas = options.modelSchemas ?? modelSchemas();
   const appDir = join(buildDir, "server", "app");
   const errors = [], warnings = [];
   const cache = new Map();
@@ -119,7 +183,8 @@ export function analyzeBuild(buildDir) {
     }
     const withThree = [...all].filter((c) => (read(c) ?? "").includes(THREE_SIGNATURE));
     const bytes = [...all].reduce((n, c) => n + (read(c)?.length ?? 0), 0);
-    rows.push({ ...p, chunks: all.size, lazy: lazy.size, kb: Math.round(bytes / 1024), three: withThree.length > 0, threeIn: withThree, missing: [...missing] });
+    const model = [...new Set([...all].filter((c) => !shared.has(c)).flatMap((c) => modelFilesIn(read(c) ?? "", schemas)))].sort();
+    rows.push({ ...p, chunks: all.size, lazy: lazy.size, kb: Math.round(bytes / 1024), three: withThree.length > 0, threeIn: withThree, model, missing: [...missing] });
   }
 
   // 3. rules
@@ -133,6 +198,17 @@ export function analyzeBuild(buildDir) {
     if (r.missing.length) warnings.push(`${label}: ${r.missing.length} chunk(s) named in the page were not found on disk (e.g. ${r.missing[0]})`);
     const budget = allowed ? BUDGET_KB.three : BUDGET_KB.plain;
     if (r.kb > budget) warnings.push(`${label}: ${r.kb} KB of JavaScript is over the ${budget} KB guide for this kind of page`);
+    if (r.model.length) warnings.push(`${label}: client JavaScript contains ${r.model.join(", ")}; pass derived values from a server component instead`);
+  }
+  // model data in a chunk that every page loads: a client component of the layout imports the model (or site-config)
+  const sharedModel = [...new Set([...shared].flatMap((c) => modelFilesIn(read(c) ?? "", schemas)))].sort();
+  if (sharedModel.length) warnings.push(`every page: a shared client chunk contains ${sharedModel.join(", ")}; never import the model or site-config into a client component of the layout`);
+
+  // built CSS: every -webkit-backdrop-filter needs the unprefixed property next to it
+  for (const file of walk(join(buildDir, "static")).filter((f) => f.endsWith(".css")).sort()) {
+    for (const sel of backdropPrefixProblems(readFileSync(file, "utf8"))) {
+      errors.push(`${relative(buildDir, file)}: "${sel.slice(0, 80)}" has -webkit-backdrop-filter without backdrop-filter (only Safari would blur)`);
+    }
   }
   // the two languages of a page should ship (nearly) the same code
   for (const key of Object.keys(ROUTES)) {
@@ -153,7 +229,7 @@ function main(argv) {
   }
   for (const w of warnings) console.warn(`! ${w}`);
   for (const e of errors) console.error(`✗ ${e}`);
-  console.log(errors.length ? `\n${errors.length} problem(s)` : "\nthree.js only on model and sun; no external runtime resources");
+  console.log(errors.length ? `\n${errors.length} problem(s)` : "\nthree.js only on model and sun; no external runtime resources; backdrop-filter unprefixed everywhere");
   return errors.length ? 1 : 0;
 }
 

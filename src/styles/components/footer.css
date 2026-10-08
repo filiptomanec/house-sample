@@ -1,17 +1,41 @@
-/* Footer: about, pages, project and licences. */
+/* Footer: three columns on the 12-column grid (about, pages, project and sources), one line with the copyright and the
+   single disclaimer, then the house name as a large two-voice wordmark that closes every page. */
 
-.footer { border-top: 1px solid var(--rule); padding-block: var(--sp-7) calc(40px + env(safe-area-inset-bottom)); font-size: var(--fs-sm); color: var(--ink-2); }
-.footer b, .footer h2 { display: block; color: var(--ink); font-size: inherit; font-weight: var(--weight-strong); letter-spacing: normal; line-height: var(--lh-body); margin-bottom: 6px; }
-.footer-grid { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr); gap: var(--sp-6) var(--sp-7); align-items: start; }
-.footer p + p { margin-top: var(--sp-2); }
+.footer { border-top: 1px solid var(--rule); padding-top: clamp(48px, 6vw, 88px); font-size: var(--fs-sm); color: var(--ink-2); overflow: clip; }
+.footer h2 { display: block; color: var(--ink); font-size: inherit; font-weight: var(--weight-strong); letter-spacing: -0.01em; line-height: var(--lh-body); margin-bottom: var(--sp-2); text-wrap: initial; }
+.footer-grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--grid-gap); row-gap: var(--sp-6); align-items: start; }
+.foot-about { grid-column: 1 / span 5; }
+.foot-about p { max-width: 46ch; }
+.foot-about p + p { margin-top: var(--sp-2); }
+.foot-pages { grid-column: 7 / span 3; }
+.foot-project { grid-column: 10 / -1; }
+.foot-project h2 + .foot-links + h2 { margin-top: var(--sp-5); }
+
 .foot-links { list-style: none; margin: 0; padding: 0; }
+/* the page list in two columns (also on phones) */
+.foot-links.cols { columns: 2; column-gap: var(--grid-gap); }
+.foot-links li { break-inside: avoid; }
 .foot-links a { display: inline-block; padding-block: 4px; text-decoration: none; transition: color var(--dur-1); }
-.foot-links a:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+.foot-links a:hover { color: var(--ink); }
 .foot-links a[aria-current="page"] { color: var(--ink); }
-.foot-note { margin-top: var(--sp-6); padding-top: var(--sp-5); border-top: 1px solid var(--rule); display: flex; flex-wrap: wrap; gap: var(--sp-2) var(--sp-5); justify-content: space-between; }
 
-@media (max-width: 900px) { .footer-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .foot-about { grid-column: 1 / -1; } }
-@media (max-width: 640px) { .footer-grid { grid-template-columns: minmax(0, 1fr); gap: 28px; } }
+/* copyright and the one disclaimer: one row, on a shared baseline */
+.foot-note { margin-top: clamp(40px, 5vw, 72px); padding-top: var(--sp-5); border-top: 1px solid var(--rule); display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--sp-2) var(--sp-6); }
+.foot-note p { margin: 0; }
+
+/* the wordmark: the house name, first word in Geist, the rest in the accent voice; decorative (the name is the heading above) */
+.foot-mark { padding-top: clamp(24px, 4vw, 56px); padding-bottom: calc(clamp(16px, 2vw, 28px) + env(safe-area-inset-bottom)); }
+.foot-mark p { font-size: var(--fs-wordmark); font-weight: var(--weight-strong); letter-spacing: -0.06em; line-height: 0.86; color: var(--ink); text-wrap: balance; }
+.foot-mark .accent { letter-spacing: -0.035em; }
+
+@media (max-width: 900px) {
+  .foot-about { grid-column: 1 / -1; }
+  .foot-pages { grid-column: 1 / span 6; }
+  .foot-project { grid-column: 7 / -1; }
+}
+@media (max-width: 640px) {
+  .foot-pages, .foot-project { grid-column: 1 / -1; }
+}
 @media (max-width: 900px), (pointer: coarse) {
   /* 44 px touch targets */
   .foot-links { margin-block: -7px; }

@@ -1,17 +1,12 @@
-/* 404, error and loading states. */
+/* 404 and error states. */
 
 .state { min-height: min(88svh, 960px); padding-top: calc(var(--nav-h) + env(safe-area-inset-top) + clamp(40px, 9vw, 128px)); padding-bottom: clamp(56px, 8vw, 120px); display: grid; align-content: start; justify-items: start; gap: clamp(16px, 2.4vw, 28px); }
-.state .h1 { max-width: 14ch; }
+.state .h1 { max-width: 16ch; }
 .state > nav { justify-self: stretch; }
 .state-actions { display: flex; flex-wrap: wrap; gap: var(--sp-3); }
-.state-digest { font: 0.75rem / 1.4 var(--font-mono); color: var(--ink-3); }
+.state-digest { font: var(--fs-xs) / 1.4 var(--font-mono); color: var(--ink-3); }
 .state-links { list-style: none; margin: clamp(24px, 5vw, 56px) 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); column-gap: clamp(16px, 2vw, 28px); border-top: 1px solid var(--rule-2); }
 .state-links a { display: grid; gap: 2px; padding: 14px 0; border-bottom: 1px solid var(--rule); text-decoration: none; }
-.state-links b { font-size: 1.0625rem; font-weight: var(--weight-strong); letter-spacing: -0.02em; transition: color var(--dur-1); }
+.state-links b { font-size: var(--fs-base); font-weight: var(--weight-strong); letter-spacing: -0.02em; transition: color var(--dur-1); }
 .state-links span { font-size: var(--fs-sm); color: var(--ink-2); }
 .state-links a:hover b { color: var(--accent-ink); }
-
-/* loading: a thin bar sliding at the top, plus a label for screen readers */
-.loading { position: fixed; inset: 0 0 auto 0; z-index: var(--z-overlay); height: 2px; overflow: hidden; pointer-events: none; }
-.loading::before { content: ""; display: block; height: 100%; width: 40%; background: var(--accent); animation: loading-slide 1.1s var(--ease) infinite; }
-@keyframes loading-slide { from { transform: translateX(-100%); } to { transform: translateX(250%); } }

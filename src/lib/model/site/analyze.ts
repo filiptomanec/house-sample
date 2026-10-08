@@ -1,17 +1,18 @@
 // Plot analysis: areas, set-backs, rule checks and terrain statistics for the Plot page and the tests.
 import {
-  bboxOf, distToBoundary, expandRect, polygonArea, polygonCentroid, polygonPerimeter, rayToBoundary, rectToPolygon, vectorOfAzimuth, type Bbox, type XY,
+  bboxOf, distToBoundary, distToPolygon, expandRect, polygonArea, polygonCentroid, polygonPerimeter, rayToBoundary, rectToPolygon, vectorOfAzimuth, type Bbox, type XY,
 } from "./geometry";
+import { gradeOutdoor } from "./grading";
 import { accessGeometry, plotPolygon, type AccessGeometry } from "./layout";
 import { houseSetbacks, type SetbackSet } from "./setbacks";
-import { cutFillVolume, plotStats, slopeStats, type CutFill, type PavedInput, type PlotStats, type SlopeStats } from "./stats";
+import { WATER_OUTDOOR_TYPES, cutFillVolume, outdoorPolygon, plotStats, slopeStats, type CutFill, type PavedInput, type PlotStats, type SlopeStats } from "./stats";
 import type { SiteModel } from "./siteSchema";
 import { createTerrain, type Terrain } from "./terrain";
 import type { HouseInput } from "./types";
 
 export interface SiteCheck {
   /** Stable key for tests and the UI dictionary (never a house id). */
-  key: "boundary" | "roofEdge" | "garageDrive" | "builtUp" | "green" | "treeTrunk" | "treeCrown" | "houseInside";
+  key: "boundary" | "roofEdge" | "garageDrive" | "builtUp" | "green" | "treeTrunk" | "treeCrown" | "treePool" | "houseInside";
   ok: boolean;
   /** Measured value and its limit; `rule` says whether the value must be at least or at most the limit. */
   actual: number;
@@ -70,10 +71,14 @@ export function garageDriveLengths(site: SiteModel, house: HouseInput): SiteAnal
   return out;
 }
 
+/**
+ * Areas, set-backs, rule checks and terrain statistics of the plot with the house. Without `terrain` the terrain is graded
+ * with the house's slabs (the same ground as `createSite(raw, bearing, outdoor)`).
+ */
 export function analyzeSite(site: SiteModel, house: HouseInput, terrain?: Terrain): SiteAnalysis {
   const plot = plotPolygon(site);
-  const t = terrain ?? createTerrain(site.terrain, house.bearingDeg);
   const access = accessGeometry(site, house.outdoor);
+  const t = terrain ?? gradedTerrain(site, house.outdoor, house.bearingDeg, access);
   const paved = sitePaved(site, access);
   const stats = plotStats(plot, house.footprint, house.outdoor, paved);
   const edgeKinds = site.plot.edges.map((e) => e.kind);
@@ -106,6 +111,11 @@ export function analyzeSite(site: SiteModel, house: HouseInput, terrain?: Terrai
       { key: "treeTrunk", ok: trunk >= r.minTreeTrunkToHouse, actual: trunk, limit: r.minTreeTrunkToHouse, rule: "min", unit: "m" },
       { key: "treeCrown", ok: crownEdge >= r.minCrownEdgeToHouse, actual: crownEdge, limit: r.minCrownEdgeToHouse, rule: "min", unit: "m" },
     );
+    const pools = house.outdoor.filter((o) => WATER_OUTDOOR_TYPES.includes(o.type)).map(outdoorPolygon).filter((p) => p.length >= 3);
+    if (pools.length && r.minCrownEdgeToPool !== undefined) {
+      const toPool = Math.min(...site.trees.flatMap((tr) => pools.map((p) => distToPolygon(tr.pos, p) - tr.crown / 2)));
+      checks.push({ key: "treePool", ok: toPool >= r.minCrownEdgeToPool, actual: toPool, limit: r.minCrownEdgeToPool, rule: "min", unit: "m" });
+    }
   }
 
   const slope = slopeStats(t, plot);
@@ -116,6 +126,13 @@ export function analyzeSite(site: SiteModel, house: HouseInput, terrain?: Terrai
     terrain: { slope, cutFill: cutFillVolume(t, plot), zMin: slope.zMin, zMax: slope.zMax },
     access, paved,
   };
+}
+
+/** The terrain graded with the slabs of the house (outdoor areas, drive and path ramps). */
+export function gradedTerrain(site: SiteModel, outdoor: HouseInput["outdoor"], bearingDeg: number, access?: AccessGeometry): Terrain {
+  const base = createTerrain(site.terrain, bearingDeg);
+  const { slabs } = gradeOutdoor(outdoor, base.baseAt, access ?? accessGeometry(site, outdoor));
+  return createTerrain(site.terrain, bearingDeg, slabs);
 }
 
 /** Distance from a point to the house outline (0 inside). */

@@ -1,7 +1,8 @@
-// The kernel against the independent oracle (concept-stage deriver and metrics of the same floor plan).
+// The kernel against the independent oracle (concept-stage deriver and metrics of the same floor plan). The input is the
+// frozen concept plan in __fixtures__/oracle-house.json, so a re-plan of model/house.json does not touch this test.
 import { describe, expect, it } from "vitest";
 import { computeMetrics } from "../metrics";
-import { baseline, fixture } from "./helpers";
+import { fixture, oracleBaseline as baseline } from "./helpers";
 
 type Json = null | boolean | number | string | Json[] | { [k: string]: Json };
 

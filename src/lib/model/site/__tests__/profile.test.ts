@@ -53,7 +53,7 @@ describe("sampleProfile", () => {
 
   it("a profile through the levelled house is flat there", () => {
     const p = sampleProfile(terrain.groundAt, [0, 2], [22, 2], { step: 0.5 });
-    for (const q of p.points) expect(q.z).toBe(0);
+    for (const q of p.points) expect(q.z).toBe(site.terrain.plateau.level);
     expect(p.maxSlopePct).toBe(0);
   });
 });
@@ -93,8 +93,9 @@ describe("measureBetween", () => {
 
   it("reproduces the fall of the ground between the street and the south boundary", () => {
     const m = measureBetween(terrain.groundAt, [3.3, 20.9], [3.3, -15], FIXTURE_BEARING_DEG);
-    expect(m.dz).toBeLessThan(-0.5); // the ground falls to the south
-    expect(m.slopePct).toBeLessThan(-0.5); // negative: the ground falls towards the end point
+    expect(m.dz).toBeLessThan(0); // the ground falls to the south
+    expect(m.slopePct).toBeLessThan(0); // negative: the ground falls towards the end point
     expect(m.slopePct).toBeGreaterThan(-6);
+    expect(m.slopePct).toBeCloseTo((m.dz / m.distance) * 100, 9);
   });
 });

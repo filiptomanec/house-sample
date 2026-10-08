@@ -3,12 +3,21 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { SITE } from "../lib/site-config";
 import { BREAKPOINTS } from "./breakpoints";
-import { contrast, isOrangeish, parseColorTokens, parseSchemeTokens } from "./color";
+import { contrast, deltaE, isOrangeish, lab, parseColorTokens, parseSchemeTokens } from "./color";
 
 const root = join(__dirname, "..");
 const tokensCss = readFileSync(join(__dirname, "tokens.css"), "utf8");
 const T = parseColorTokens(tokensCss);
 const S = parseSchemeTokens(tokensCss);
+
+/** a* and b* of a colour (CIE Lab): its chroma and hue, whatever its lightness. */
+const labAB = (hex: string): [number, number] => { const [, a, b] = lab(hex); return [a, b]; };
+/** Difference of two hues in degrees (0-180) in the Lab plane. */
+const hueGap = (x: string, y: string) => {
+  const h = (hex: string) => { const [a, b] = labAB(hex); return ((Math.atan2(b, a) * 180) / Math.PI + 360) % 360; };
+  const d = Math.abs(h(x) - h(y)) % 360;
+  return Math.min(d, 360 - d);
+};
 
 const get = (name: string, scheme: "light" | "dark") => {
   const t = T[name];
@@ -24,7 +33,7 @@ describe("token file structure", () => {
     expect(Object.keys(S.dark).filter((n) => !(n in S.light))).toEqual([]);
   });
   it("does not alias scheme-dependent tokens with var() in :root (the alias would be fixed at the root and ignore .night)", () => {
-    const allowed = new Set(["--font-sans", "--font-mono", "--gutter-l", "--gutter-r"]);
+    const allowed = new Set(["--font-sans", "--font-mono", "--font-accent", "--gutter-l", "--gutter-r"]);
     expect(Object.entries(S.light).filter(([n, v]) => v.includes("var(") && !allowed.has(n)).map(([n]) => n)).toEqual([]);
   });
   it("gives every colour the dark block overrides a different value from light (no dead overrides)", () => {
@@ -33,6 +42,26 @@ describe("token file structure", () => {
   });
   it("does not use light-dark(), which Lightning CSS would down-level into toggles that ignore .night", () => {
     expect(tokensCss.replace(/\/\*[\s\S]*?\*\//g, "")).not.toContain("light-dark(");
+  });
+  it("keeps the scheme-independent tokens out of the dark blocks (mint, media, night band, sky, sun disc)", () => {
+    const fixed = /^--(mint|on-mint|on-media|media-|night-|sky-|sun-disc)/;
+    expect(Object.keys(S.dark).filter((n) => fixed.test(n))).toEqual([]);
+    for (const n of Object.keys(S.light).filter((k) => fixed.test(k))) expect(T[n] ? T[n].light : S.light[n], n).toBeDefined();
+  });
+  it("has a sky that follows the sun, not the page: the altitude keys exist and the deprecated aliases equal the day sky", () => {
+    for (const k of ["day-top", "day-horizon", "low-horizon", "dusk-top", "dusk-horizon", "night-top", "night-horizon", "glow"]) expect(T[`--sky-${k}`], k).toBeDefined();
+    expect(S.light["--sky-top"]).toBe(S.light["--sky-day-top"]);
+    expect(S.light["--sky-bottom"]).toBe(S.light["--sky-day-horizon"]);
+  });
+  it("sinks the night band below the dark page and lets the bar and the menu use it", () => {
+    const css = tokensCss.replace(/\/\*[\s\S]*?\*\//g, "");
+    const night = /(?:^|\})\s*\.night\s*\{([^}]*)\}/.exec(css)?.[1] ?? "";
+    for (const n of ["--bg", "--bg-2", "--surface", "--scrim"]) expect(night, n).toMatch(new RegExp(`${n}:\\s*var\\(--night-`));
+    const lum = (hex: string) => contrast(hex, "#000000");
+    expect(lum(get("--night-bg", "dark"))).toBeLessThan(lum(get("--bg", "dark")));
+    const nav = readFileSync(join(__dirname, "components", "nav.css"), "utf8");
+    expect(nav).toMatch(/\.nav\.scheme-dark\[data-solid="true"\]\s*\{[^}]*var\(--night-scrim\)/);
+    expect(nav).toMatch(/data-open="true"\]\s*\{[^}]*var\(--night-bg\)/);
   });
 });
 
@@ -49,11 +78,14 @@ describe("colour tokens", () => {
     ...surfaces.flatMap((s) => [["--ink", s, text], ["--ink-2", s, text], ["--ink-3", s, text], ["--accent-ink", s, text], ["--bad", s, text], ["--good", s, text], ["--info", s, text], ["--plan-dim", s, text]] as [string, string, number][]),
     ...surfaces.flatMap((s) => [["--accent", s, graphic], ["--focus", s, graphic], ["--plan-window", s, graphic], ["--plan-door", s, graphic]] as [string, string, number][]),
     ["--ink", "--surface-2", text], ["--ink-2", "--surface-2", text],
+    // graphite controls: the track of a switch that is on, the slider fill, the knob on it
+    ...surfaces.map((s) => ["--control-on", s, graphic] as [string, string, number]),
+    ["--control-knob-on", "--control-on", graphic],
     ["--accent-ink", "--accent-soft", text], ["--ink", "--accent-soft", text],
     ["--on-mint", "--mint", text],
     ["--bg", "--ink", text],                         // label on a graphite button
     ["--ink", "--stage-bg", text],
-    ...["--series-load", "--series-pv", "--series-battery", "--series-grid", "--series-heat", "--series-export", "--series-saving"].map((n) => [n, "--surface", graphic] as [string, string, number]),
+    ...["--series-load", "--series-pv", "--series-battery", "--series-grid", "--series-heat", "--series-export", "--series-saving"].flatMap((n) => [[n, "--surface", graphic], [n, "--surface-2", graphic]] as [string, string, number][]),
     ...[1, 2, 3, 4, 5, 6, 7, 8].map((i) => [`--cat-${i}`, "--surface", graphic] as [string, string, number]),
     ["--sun-summer", "--surface", graphic], ["--sun-equinox", "--surface", graphic], ["--sun-winter", "--surface", graphic],
     ["--map-plot-line", "--map-plot", graphic], ["--map-setback", "--map-plot", graphic], ["--map-house", "--map-plot", graphic],
@@ -72,6 +104,41 @@ describe("colour tokens", () => {
       expect(failures).toEqual([]);
     });
   }
+
+  // the night band always uses the dark ink on its own, deeper surfaces
+  const night = ["--night-bg", "--night-bg-2", "--night-surface"];
+  const nightPairs: [string, string, number][] = night.flatMap((s) => [
+    ["--ink", s, text], ["--ink-2", s, text], ["--ink-3", s, text], ["--accent-ink", s, text], ["--accent", s, graphic], ["--focus", s, graphic],
+  ] as [string, string, number][]);
+  it(`meets WCAG AA on the night band (${nightPairs.length} pairs)`, () => {
+    const failures = nightPairs
+      .map(([fg, bg, min]) => ({ fg, bg, min, ratio: contrast(get(fg, "dark"), get(bg, "dark")) }))
+      .filter((p) => p.ratio < p.min)
+      .map((p) => `${p.fg} on ${p.bg}: ${p.ratio.toFixed(2)} < ${p.min}`);
+    expect(failures).toEqual([]);
+  });
+
+  it("keeps the plan zones apart in a legend (every pair at least ΔE 6, in both schemes)", () => {
+    const zones = ["--zone-day", "--zone-night", "--zone-service", "--zone-circulation", "--zone-garage"];
+    for (const scheme of ["light", "dark"] as const) {
+      const close = zones.flatMap((a, i) => zones.slice(i + 1).map((b) => ({ a, b, d: deltaE(get(a, scheme), get(b, scheme)) }))).filter((p) => p.d < 6);
+      expect(close.map((p) => `${scheme}: ${p.a} ~ ${p.b} (${p.d.toFixed(1)})`)).toEqual([]);
+    }
+  });
+
+  it("draws charts in one graphite ramp with mint for PV (no new hue: every series is a neutral or a mint)", () => {
+    const series = Object.keys(T).filter((n) => /^--(series-|cat-)/.test(n));
+    expect(series.length).toBeGreaterThan(8);
+    for (const scheme of ["light", "dark"] as const) {
+      const pv = get("--series-pv", scheme);
+      const offRamp = series.filter((n) => {
+        const chroma = Math.hypot(...labAB(get(n, scheme)));
+        // a neutral (low chroma) or a colour close to the mint's hue
+        return chroma > 12 && hueGap(get(n, scheme), pv) > 25;
+      });
+      expect(offRamp, scheme).toEqual([]);
+    }
+  });
 
   it("has no orange, amber, honey or terracotta anywhere", () => {
     const bad = Object.entries(T).flatMap(([n, v]) => [v.light, v.dark].filter(isOrangeish).map((c) => `${n}: ${c}`));

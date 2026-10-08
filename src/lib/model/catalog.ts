@@ -25,8 +25,24 @@ export type FloorKind = (typeof FLOORS)[number];
 export const OPENING_KINDS = ["window", "door", "entry", "garage", "slider"] as const;
 export type OpeningKind = (typeof OPENING_KINDS)[number];
 
-export const OUTDOOR_TYPES = ["terrace", "paving", "drive", "path"] as const;
+export const OUTDOOR_TYPES = ["terrace", "paving", "drive", "path", "deck", "pool"] as const;
 export type OutdoorType = (typeof OUTDOOR_TYPES)[number];
+
+/** Surface finish of an outdoor slab (`outdoor[].surface`). Default: "deck" for type deck, "paving" otherwise. */
+export const OUTDOOR_SURFACES = ["paving", "deck"] as const;
+export type OutdoorSurface = (typeof OUTDOOR_SURFACES)[number];
+
+/** Top of an outdoor slab when `outdoor[].top` is not given (m, relative to the finished floor +-0.000). */
+export const DEFAULT_OUTDOOR_TOP = -0.02;
+
+/** Outdoor types under which the terrain has a hole (the basin of a pool). Renderers cut the ground there. */
+export const GROUND_VOID_OUTDOOR: readonly OutdoorType[] = ["pool"];
+/** Outdoor types the sun analysis samples (sun hours on the terrace and on the water). */
+export const SUN_SAMPLED_OUTDOOR: readonly OutdoorType[] = ["terrace", "pool"];
+/** Outdoor types that are water surfaces (plot statistics count them as water, not as paving). */
+export const WATER_OUTDOOR: readonly OutdoorType[] = ["pool"];
+/** A pool must lie inside an outdoor area of one of these types (its deck), see E-BAZEN. */
+export const POOL_SURROUND_TYPES: readonly OutdoorType[] = ["deck", "paving", "terrace"];
 
 export const ZONE_KEYS = ["day", "night", "service", "outdoor"] as const;
 export type ZoneKey = (typeof ZONE_KEYS)[number];
@@ -47,7 +63,16 @@ export type EdgeKind = (typeof EDGE_KINDS)[number];
 export const LAYER_ROLES = ["finish", "insulation", "structure", "cladding", "air", "membrane", "screed"] as const;
 export type LayerRole = (typeof LAYER_ROLES)[number];
 
-export const CAMERA_USES = ["web", "render", "og"] as const;
+/** What a camera is for: `web` 3D-page preset, `render` still, `og` share image, `sun` preset of the Sun page. */
+export const CAMERA_USES = ["web", "render", "og", "sun"] as const;
+export type CameraUse = (typeof CAMERA_USES)[number];
+/** Stage classes a camera can be the default view for (`cameras[].defaultFor`): `narrow` = phone-width stages. */
+export const CAMERA_DEFAULT_FOR = ["narrow"] as const;
+
+/** Roof build-up: `warm` = the roof assembly is the thermal envelope; `cold` = a ventilated attic above the insulated ceiling. */
+export const ROOF_ATTICS = ["cold", "warm"] as const;
+export type RoofAttic = (typeof ROOF_ATTICS)[number];
+
 
 // Room groups used by the validator.
 /** Habitable rooms (daylight check). */
@@ -60,6 +85,14 @@ export const WINDOWLESS_OK: readonly RoomType[] = [
 export const PRIVATE_TYPES: readonly RoomType[] = ["bedroom", "kids", "guest", "bath", "wc", "wardrobe"];
 /** Rooms that are not heated (excluded from the net heated floor area). */
 export const UNHEATED_TYPES: readonly RoomType[] = ["garage"];
+/** Bedrooms (metrics.bedroomCount, "3 bedrooms + study"). */
+export const BEDROOM_TYPES: readonly RoomType[] = ["bedroom", "kids", "guest"];
+/** Rooms counted by the Czech layout code ("5+kk"): living room and every room you can sleep or work in. */
+export const LAYOUT_ROOM_TYPES: readonly RoomType[] = ["living", "bedroom", "kids", "office", "guest"];
+/** A separate room of this type makes the layout code "+1" instead of "+kk" (kitchen corner in the living room). */
+export const SEPARATE_KITCHEN_TYPE: RoomType = "kitchen";
+/** Storey number used in the display numbers of the rooms ("1.01": ground floor, first room from the entrance). */
+export const DISPLAY_FLOOR = 1;
 
 /** Recommended minimum net floor areas (m2), warnings only. */
 export const MIN_AREA: Partial<Record<RoomType, number>> = {
@@ -81,9 +114,9 @@ export const OPENING_LIMITS: Record<OpeningKind, { sill: [number, number]; head:
 
 /** Furniture catalogue: footprint w x d (m) at rot 0; the "back" (bed head, sofa back, wall side) faces +y. */
 export const FURNITURE = {
-  bed160: { w: 1.6, d: 2.0, name: { cs: "Postel 160", en: "Bed 160" } },
-  bed180: { w: 1.8, d: 2.0, name: { cs: "Postel 180", en: "Bed 180" } },
-  bed90: { w: 0.9, d: 2.0, name: { cs: "Postel 90", en: "Bed 90" } },
+  bed160: { w: 1.6, d: 2.0, name: { cs: "Dvoulůžko", en: "Double bed" } },
+  bed180: { w: 1.8, d: 2.0, name: { cs: "Široké dvoulůžko", en: "Super king bed" } },
+  bed90: { w: 0.9, d: 2.0, name: { cs: "Jednolůžko", en: "Single bed" } },
   sofaL: { w: 2.9, d: 1.9, name: { cs: "Sedačka do L", en: "L-shaped sofa" } },
   sofa3: { w: 2.2, d: 0.95, name: { cs: "Pohovka", en: "Sofa" } },
   armchair: { w: 0.85, d: 0.85, name: { cs: "Křeslo", en: "Armchair" } },
@@ -92,21 +125,22 @@ export const FURNITURE = {
   table8: { w: 2.4, d: 1.0, name: { cs: "Stůl pro osm", en: "Table for eight" } },
   chair: { w: 0.45, d: 0.45, name: { cs: "Židle", en: "Chair" } },
   island: { w: 2.8, d: 1.0, name: { cs: "Kuchyňský ostrov", en: "Kitchen island" } },
-  kitchenLine: { w: 3.0, d: 0.62, name: { cs: "Kuchyňská linka", en: "Kitchen run" } },
+  kitchenLine: { w: 3.0, d: 0.62, name: { cs: "Kuchyňská linka", en: "Kitchen units" } },
   fridge: { w: 0.7, d: 0.7, name: { cs: "Lednice", en: "Fridge" } },
   wardrobe: { w: 1.0, d: 0.6, name: { cs: "Skříň", en: "Wardrobe" } },
   desk: { w: 1.4, d: 0.7, name: { cs: "Pracovní stůl", en: "Desk" } },
-  shelf: { w: 1.0, d: 0.35, name: { cs: "Regál", en: "Shelving" } },
-  wc: { w: 0.4, d: 0.7, name: { cs: "WC", en: "Toilet" } },
+  shelf: { w: 1.0, d: 0.35, name: { cs: "Regál", en: "Shelving unit" } },
+  wc: { w: 0.4, d: 0.7, name: { cs: "WC", en: "WC" } },
   sink: { w: 0.6, d: 0.5, name: { cs: "Umyvadlo", en: "Washbasin" } },
   sink2: { w: 1.2, d: 0.5, name: { cs: "Dvojumyvadlo", en: "Double washbasin" } },
   shower: { w: 0.9, d: 0.9, name: { cs: "Sprchový kout", en: "Shower" } },
   bath: { w: 1.7, d: 0.75, name: { cs: "Vana", en: "Bathtub" } },
   washer: { w: 0.6, d: 0.6, name: { cs: "Pračka", en: "Washing machine" } },
+  coffeeTable: { w: 1.1, d: 0.6, name: { cs: "Konferenční stolek", en: "Coffee table" } },
   car: { w: 4.7, d: 1.9, name: { cs: "Auto", en: "Car" } },
   lounger: { w: 0.7, d: 2.0, name: { cs: "Lehátko", en: "Lounger" } },
   swingbed: { w: 2.0, d: 1.4, name: { cs: "Závěsné lehátko", en: "Hanging daybed" } },
-  grill: { w: 1.0, d: 0.6, name: { cs: "Gril", en: "Grill" } },
+  grill: { w: 1.0, d: 0.6, name: { cs: "Gril", en: "Barbecue" } },
   bench: { w: 1.5, d: 0.4, name: { cs: "Lavice", en: "Bench" } },
 } as const satisfies Record<string, { w: number; d: number; name: LocalizedText }>;
 export type FurnitureType = keyof typeof FURNITURE;
@@ -114,15 +148,15 @@ export const FURNITURE_TYPES = Object.keys(FURNITURE) as [FurnitureType, ...Furn
 
 export const ROOM_TYPE_NAMES: Record<RoomType, LocalizedText> = {
   hall: { cs: "hala", en: "hall" },
-  living: { cs: "obytný prostor", en: "living space" },
+  living: { cs: "obývací pokoj", en: "living room" },
   kitchen: { cs: "kuchyně", en: "kitchen" },
   dining: { cs: "jídelna", en: "dining room" },
   bedroom: { cs: "ložnice", en: "bedroom" },
-  kids: { cs: "dětský pokoj", en: "children's room" },
+  kids: { cs: "dětský pokoj", en: "child's bedroom" },
   office: { cs: "pracovna", en: "study" },
   guest: { cs: "pokoj pro hosty", en: "guest room" },
   bath: { cs: "koupelna", en: "bathroom" },
-  wc: { cs: "WC", en: "toilet" },
+  wc: { cs: "WC", en: "WC" },
   wardrobe: { cs: "šatna", en: "wardrobe" },
   utility: { cs: "technická místnost", en: "utility room" },
   pantry: { cs: "spíž", en: "pantry" },
@@ -137,6 +171,8 @@ export const OUTDOOR_TYPE_NAMES: Record<OutdoorType, LocalizedText> = {
   paving: { cs: "Zpevněná plocha", en: "Paved area" },
   drive: { cs: "Vjezd", en: "Driveway" },
   path: { cs: "Chodník", en: "Footpath" },
+  deck: { cs: "Dřevěná terasa", en: "Timber deck" },
+  pool: { cs: "Bazén", en: "Pool" },
 };
 
 export const DIR_NAMES: Record<Dir, LocalizedText> = {
@@ -148,6 +184,20 @@ export const DIR_NAMES: Record<Dir, LocalizedText> = {
 
 // Rules of thumb for a low-energy house (not a code citation): U-values above these raise a warning, W/m2K.
 export const U_LIMITS = { exteriorWall: 0.2, roof: 0.15, groundFloor: 0.25 } as const;
+
+// Louvre wall (`screens` with `shading.slats`): the blades turn about their centres. They touch their neighbours (closed)
+// at closedDeg = ceil5(asin(thickness / pitch)) from the wall plane; a closed angle above this limit is an error.
+export const LOUVRE_MAX_CLOSED_DEG = 30;
+/** Angle of a fully open louvre blade (square to the wall), degrees. */
+export const LOUVRE_OPEN_DEG = 90;
+
+/**
+ * Longest gutter run to a downpipe (m): water flows to the nearer outlet, so two outlets may be at most twice this apart
+ * (25 m: a 25 m eave with an outlet at each end, the usual limit of one gutter run with a 2-3 mm/m fall). Rule of thumb.
+ */
+export const GUTTER_RUN_MAX = 12.5;
+/** A downpipe drains the gutter when it stands at most this far inside the eave line (a pipe inside a terrace column). */
+export const DOWNPIPE_REACH = 1.5;
 
 // Tolerances.
 /** Position tolerance of an opening on a wall axis (m). */

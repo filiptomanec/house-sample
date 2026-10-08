@@ -49,9 +49,20 @@ geometry written for this project. No HDRI is used: the sky is the physical Sky 
 the texture period): oak planks (`floor_oak`), 60 x 60 cm tiles (`floor_tile`), stone-grey tiles (`floor_stone`). They are
 generated at build time and cached in `pipeline/out/tex`.
 
-## Fonts, icons, other media
+## Fonts
 
-Not part of this file (see the web app and `docs/DESIGN.md`).
+Defined once in `src/fonts/index.ts` (`docs/DESIGN.md`, section 3). Nothing is committed: the files come from npm or are
+downloaded at build time, and the browser loads every face from the site's own origin.
+
+| font | source | licence | how it is loaded |
+|---|---|---|---|
+| Geist Sans, Geist Mono (variable, 100-900) | [vercel/geist-font](https://github.com/vercel/geist-font), the `geist` npm package | SIL OFL 1.1 | self-hosted from `node_modules/geist` by `geist/font` (no network at build time) |
+| Instrument Serif Italic (400, italic only; latin + latin-ext) | [Instrument/instrument-serif](https://github.com/Instrument/instrument-serif), served by Google Fonts | SIL OFL 1.1 | `next/font/google` downloads it at build time and self-hosts it (no request to Google from the browser); `next build` needs network access to Google Fonts once |
+
+## Icons
+
+Our own work: the master icon `src/app/icon.svg` and the files `scripts/make-brand-assets.sh` derives from it (`docs/DESIGN.md`,
+section 10).
 
 ## Draco decoder
 

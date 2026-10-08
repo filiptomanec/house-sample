@@ -1,10 +1,14 @@
 /* ==========================================================================================================
-   Design tokens. Graphite, ivory and mint; Geist; no serif, no orange.
+   Design tokens. Graphite ink on ivory, mint as light and signal only; Geist, plus one italic serif accent phrase per
+   heading (--font-accent); no orange, terracotta or honey.
 
    The scheme follows the system (prefers-color-scheme) and can be forced with <html data-theme="light|dark"> (set by
-   the theme switch, stored in localStorage). A block that must stay dark in both schemes (hero, gallery, menu) carries
-   class "night"; a subtree that only needs the dark tokens carries "scheme-dark".
+   the theme switch, stored in localStorage). A subtree that only needs the dark tokens carries "scheme-dark"; a block
+   that stays dark in both schemes (gallery band, menu) carries "night", which also sinks it to the deeper --night-*
+   room (see the end of the file).
    The dark values exist in two places: the forced block and the media query. tokens.test.ts keeps them identical.
+   Tokens that are the same in both schemes (mint, media, night band, sky) are written once, in :root, and never in a
+   dark block.
    Components use these tokens only: no hex in TSX, no raw colours in component CSS.
    Contrast is checked by src/styles/tokens.test.ts; the table is in docs/DESIGN.md.
    ========================================================================================================== */
@@ -18,70 +22,97 @@
   --surface:    #fbfaf5;   /* cards and panels */
   --surface-2:  #ffffff;   /* raised: popovers, selected segment */
   --ink:        #1b1e21;   /* text and strokes */
-  --ink-2:      #454a50;   /* secondary text */
+  --ink-2:      #454a50;   /* secondary text, the accent phrase */
   --ink-3:      #596067;   /* captions, labels; AA on bg, bg-2 and surface */
   --rule:       rgb(27 30 33 / 0.12);
   --rule-2:     rgb(27 30 33 / 0.22);
-  --scrim:      rgb(244 241 232 / 0.82); /* translucent bar and overlay backgrounds */
+  --scrim:      rgb(244 241 232 / 0.78); /* the glass of the bar and overlays (blurred behind) */
   /* text and controls on top of photos and renders (same in both schemes) */
   --on-media:       #ffffff;
   --media-scrim:    rgb(8 10 12 / 0.55);
   --media-scrim-lo: rgb(8 10 12 / 0.28);
+  --media-shadow:   rgb(8 10 12 / 0.42);  /* text-shadow of light text over a render */
 
-  /* ---------------------------------------------------------------- mint accent */
+  /* ---------------------------------------------------------------- night band (same in both schemes)
+     A deeper room than the dark page: the gallery band, the open menu and the bar over them (.night, below). */
+  --night-bg:        #0c0e10;
+  --night-bg-2:      #13161a;
+  --night-surface:   #171b1e;
+  --night-rule:      rgb(238 234 223 / 0.1);
+  --night-scrim:     rgb(12 14 16 / 0.62);
+
+  /* ---------------------------------------------------------------- mint: light and signal, never chrome (about 2-3 % of the pixels) */
   --mint:        #5fd6ae;                                    /* solid mint, same in both schemes; text on it is --on-mint */
   --on-mint:     #0e1b16;
   --accent:      #12906b;               /* graphics and strokes: 3:1 on bg and surface */
-  --accent-ink:  #0a6a4c;               /* text and links in mint: AA on bg and surface */
+  --accent-ink:  #0a6a4c;               /* text in mint: AA on bg and surface */
   --accent-soft: #d4efe3;               /* tinted backgrounds, selection */
   --focus:       #0a6a4c;               /* focus ring: 3:1 on every surface */
+
+  /* ---------------------------------------------------------------- controls: graphite (mint only for the knob of a switch that is on) */
+  --control-on:      #1b1e21;           /* switch track when on, slider fill */
+  --control-knob-on: #5fd6ae;           /* the knob of a switch that is on */
 
   /* ---------------------------------------------------------------- state */
   --good: #17724f;
   --bad:  #b3261e;
   --info: #2f64bd;
 
-  /* ---------------------------------------------------------------- floor plan: zones (opaque fills, labels in --ink) */
-  --zone-day:         #bfe9d8;   /* living, kitchen, dining */
-  --zone-night:       #cdd5f2;   /* bedrooms */
-  --zone-service:     #d4d9dc;   /* bathrooms, utility, technical */
-  --zone-circulation: #e2ddd0;   /* hall, corridor, wardrobe */
-  --zone-garage:      #b9c1c9;   /* garage and storage */
-  --zone-terrace:     #c3e3ea;   /* covered terrace and outdoor rooms */
+  /* ---------------------------------------------------------------- floor plan: zones (opaque fills, labels in --ink), each distinct in lightness or temperature */
+  --zone-day:         #cfeee1;   /* living, kitchen, dining: mint */
+  --zone-night:       #d6dce8;   /* bedrooms: cool slate */
+  --zone-service:     #dae2d8;   /* bathrooms, utility, technical: sage grey */
+  --zone-circulation: #eee8da;   /* hall, corridor, wardrobe: ivory */
+  --zone-garage:      #c6cacd;   /* garage and storage: mid grey */
+  --zone-terrace:     #fbfaf5;   /* terrace and outdoor rooms: no tint, the deck hatch (--plan-hatch) marks them */
   /* drawing (walls are drawn with var(--ink)) */
-  --plan-window:  #2f64bd;
-  --plan-door:    #0a6a4c;
+  --plan-window:  #454a50;       /* double thin line over a --surface fill */
+  --plan-door:    #767d84;       /* leaf and swing: solid thin lines */
   --plan-dim:     #596067;       /* dimension lines and text */
   --plan-fixture: #8a9097;       /* furniture and fixtures: thin lines */
+  --plan-hatch:   rgb(27 30 33 / 0.1); /* deck boards of the terrace */
 
-  /* ---------------------------------------------------------------- charts: data series (graphics, 3:1 on --surface) */
+  /* ---------------------------------------------------------------- charts: one graphite ramp plus mint for PV (graphics, 3:1 on --surface)
+     Battery and EV are told apart by a 45 degree hatch, never by a new hue. */
   --series-load:    #2b3036;     /* consumption */
-  --series-pv:      #12906b;     /* photovoltaic production */
-  --series-battery: #3c78d8;
-  --series-grid:    #707b88;     /* grid import */
-  --series-heat:    #c4476e;     /* heating */
-  --series-export:  #2a99b2;     /* feed-in to the grid */
-  --series-saving:  #6a58c9;
-  /* categorical set (budget groups, legends) */
+  --series-heat:    #4e5a60;     /* heating */
+  --series-export:  #7b8a86;     /* feed-in to the grid; also hot water */
+  --series-pv:      #12906b;     /* photovoltaic production: the only mint series */
+  --series-battery: #0a6a4c;     /* hatched */
+  --series-grid:    #868c93;     /* grid import */
+  --series-saving:  #3f7f6a;
+  /* categorical set (budget groups, legends): the same ramp, mint first */
   --cat-1: #12906b;
-  --cat-2: #3c78d8;
-  --cat-3: #8a63d2;
-  --cat-4: #c4476e;
-  --cat-5: #1f93ad;
-  --cat-6: #6b7785;
-  --cat-7: #6f9a2d;
-  --cat-8: #2b3036;
+  --cat-2: #2b3036;
+  --cat-3: #5b666c;
+  --cat-4: #0a6a4c;
+  --cat-5: #7b8a86;
+  --cat-6: #3d4a52;
+  --cat-7: #4f8a76;
+  --cat-8: #868c93;
 
-  /* ---------------------------------------------------------------- sun: states, paths, sky */
-  --sun-lit:      #d4e63f;       /* surface in direct sun */
+  /* ---------------------------------------------------------------- sun: states and paths */
+  --sun-lit:      #f6ead6;       /* surface in direct sun: warm white */
   --sun-shade:    #3d4a68;       /* surface in shade */
-  --sun-disc:     #c3d62a;       /* the sun marker */
-  --sun-summer:   #5f8a0f;       /* sun path on the summer solstice */
+  --sun-disc:     #fbfaf5;       /* the sun marker: white with an ink ring and a mint halo (same in both schemes) */
+  --sun-summer:   #2b3036;       /* sun path on the summer solstice */
   --sun-equinox:  #12906b;
-  --sun-winter:   #3c78d8;
-  --sky-top:      #a9c7de;
-  --sky-bottom:   #e1ecf1;
-  --stage-bg:     #cfdce4;       /* behind 3D scenes and renders */
+  --sun-winter:   #7b8a86;       /* drawn dashed */
+  --stage-bg:     #cfdce4;       /* behind 3D scenes until the canvas paints (follows the scheme) */
+
+  /* ---------------------------------------------------------------- sky (same in both schemes: a sky follows the sun, not the page)
+     Keyed by sun altitude: day (sun high), low (sun near the horizon), dusk, night; glow is the warm white around a low sun. */
+  --sky-day-top:      #a3c8ea;
+  --sky-day-horizon:  #e6eff4;
+  --sky-low-horizon:  #eef0ea;
+  --sky-dusk-top:     #3a5684;
+  --sky-dusk-horizon: #e6d3da;
+  --sky-night-top:    #0b1422;
+  --sky-night-horizon:#22324a;
+  --sky-glow:         #f6ead6;
+  /* deprecated aliases of the day sky (the 3D viewer and the sun chart read them until they move to the keys above) */
+  --sky-top:          #a3c8ea;
+  --sky-bottom:       #e6eff4;
 
   /* ---------------------------------------------------------------- plot map */
   --map-plot:       #e3efd9;     /* plot fill */
@@ -96,28 +127,42 @@
   --map-tree:       #6f9a64;
   --map-contour:    #8d9a8f;
 
-  /* ---------------------------------------------------------------- type */
+  /* ---------------------------------------------------------------- type
+     Geist Sans speaks, Geist Mono measures, the accent face (italic serif) says one phrase per heading (<q> in a title). */
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-  /* scale: fixed for UI, fluid for headings */
-  --fs-2xs: 0.6875rem;                                 /* 11 px: mono labels */
-  --fs-xs:  0.75rem;                                   /* 12 */
-  --fs-sm:  0.875rem;                                  /* 14 */
-  --fs-base: 1.0625rem;                                /* 17: body */
-  --fs-md:  clamp(1.125rem, 1rem + 0.45vw, 1.375rem);  /* 18-22: lede */
-  --fs-lg:  clamp(1.375rem, 1.1rem + 0.9vw, 1.875rem); /* 22-30 */
-  --fs-xl:  clamp(2rem, 1.3rem + 2.4vw, 4rem);         /* 32-64 */
-  --fs-2xl: clamp(2.5rem, 1.4rem + 3.9vw, 6rem);       /* 40-96 */
-  --fs-display: clamp(3rem, 1.6rem + 5.2vw, 9.25rem);  /* 48-148 */
+  --font-accent: var(--font-accent-face), "Instrument Serif", ui-serif, Georgia, serif;
+  /* scale: fixed for UI, fluid for statements. Every font-size in the CSS is one of these (style.test.ts). */
+  --fs-2xs:    0.6875rem;                                  /* 11 px: chart axes, table heads */
+  --fs-label:  0.71875rem;                                 /* 11.5: mono labels and kickers */
+  --fs-xs:     0.75rem;                                    /* 12: mono captions */
+  --fs-sm:     0.875rem;                                   /* 14: notes, hints, legends, nav links */
+  --fs-ui:     0.9375rem;                                  /* 15: controls, tables, buttons */
+  --fs-base:   1.0625rem;                                  /* 17: body */
+  --fs-md:     clamp(1.125rem, 1rem + 0.45vw, 1.375rem);   /* 18-22: lede */
+  --fs-lg:     clamp(1.375rem, 1.1rem + 0.9vw, 1.875rem);  /* 22-30: card titles */
+  --fs-stat:   clamp(1.875rem, 1.2rem + 1.9vw, 2.875rem);  /* 30-46: figures of the tool pages */
+  --fs-index:  clamp(1.625rem, 1rem + 2.4vw, 3rem);        /* 26-48: rows of a page index, the next tool, the menu */
+  --fs-figure: clamp(2.5rem, 1rem + 3.4vw, 4rem);          /* 40-64: hero figures on Home */
+  --fs-xl:     clamp(2rem, 1.1rem + 3.3vw, 4rem);          /* 32-64: h2 */
+  --fs-2xl:    clamp(2.5rem, 1.2rem + 5vw, 6rem);          /* 40-96: h1 claim */
+  --fs-display: clamp(3.25rem, 0.9rem + 8.6vw, 9.5rem);    /* 52-152: the house name on Home, two stacked lines */
+  --fs-wordmark: clamp(3rem, 0.5rem + 10vw, 10.5rem);      /* 48-168: the house name closing the footer */
+  --lh-display: 0.9;
   --lh-tight: 0.96;
   --lh-snug: 1.2;
   --lh-body: 1.55;
+  --tracking-display: -0.058em;
   --tracking-tight: -0.04em;
   --tracking-body: -0.011em;
-  --tracking-label: 0.08em;
+  --tracking-label: 0.12em;
+  --tracking-accent: -0.02em;
+  --weight-light: 300;
   --weight-body: 400;
   --weight-medium: 500;
   --weight-strong: 600;
+  --measure: 62ch;                                         /* body text line length */
+  --hairline: 24px;                                        /* the mint rule in front of a kicker */
 
   /* ---------------------------------------------------------------- space (4 px base) */
   --sp-1: 4px;
@@ -130,8 +175,8 @@
   --sp-8: 64px;
   --sp-9: 96px;
   --sp-10: 128px;
-  --section-y: clamp(80px, 12vw, 180px);
-  --section-y-sm: clamp(56px, 7vw, 100px);
+  --section-y: clamp(96px, 11vw, 168px);
+  --section-y-sm: clamp(64px, 7vw, 112px);
 
   /* ---------------------------------------------------------------- shape */
   --r-xs: 6px;
@@ -146,6 +191,7 @@
   /* ---------------------------------------------------------------- layout */
   --shell: 1440px;
   --gutter: clamp(20px, 4vw, 56px);
+  --grid-gap: clamp(16px, 2vw, 28px);                  /* column gap of the 12-column grid */
   /* side padding that also clears the notch in landscape (viewport-fit=cover) */
   --gutter-l: max(var(--gutter), env(safe-area-inset-left));
   --gutter-r: max(var(--gutter), env(safe-area-inset-right));
@@ -160,9 +206,11 @@
 
   /* ---------------------------------------------------------------- motion and stacking */
   --ease: cubic-bezier(0.2, 0.7, 0, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --dur-1: 0.2s;
   --dur-2: 0.4s;
   --dur-3: 0.8s;
+  --dur-reveal: 1.1s;
   --z-nav: 80;
   --z-menu: 79;
   --z-overlay: 100;
@@ -186,52 +234,53 @@
   --ink-3:      #9a9a93;
   --rule:       rgb(238 234 223 / 0.12);
   --rule-2:     rgb(238 234 223 / 0.24);
-  --scrim:      rgb(20 23 26 / 0.78);
-  /* ---------------------------------------------------------------- mint accent */
+  --scrim:      rgb(20 23 26 / 0.72);
+  /* ---------------------------------------------------------------- mint */
   --accent:      #52d4a8;
   --accent-ink:  #7fe6c2;
   --accent-soft: #1d3a31;
   --focus:       #8be8c8;
+  /* ---------------------------------------------------------------- controls */
+  --control-on:      #5fd6ae;
+  --control-knob-on: #0e1b16;
   /* ---------------------------------------------------------------- state */
   --good: #6fdcae;
   --bad:  #ff8f86;
   --info: #8ab4f5;
-  /* ---------------------------------------------------------------- floor plan: zones (opaque fills, labels in --ink) */
-  --zone-day:         #1f4a3d;
-  --zone-night:       #2d3764;
-  --zone-service:     #343b41;
-  --zone-circulation: #2b3033;
-  --zone-garage:      #3d444b;
-  --zone-terrace:     #20474f;
-  --plan-window:  #8ab4f5;
-  --plan-door:    #7fe6c2;
+  /* ---------------------------------------------------------------- floor plan: zones */
+  --zone-day:         #1f3d33;
+  --zone-night:       #252c3b;
+  --zone-service:     #2a322c;
+  --zone-circulation: #212327;
+  --zone-garage:      #383e43;
+  --zone-terrace:     #1f2428;
+  --plan-window:  #bcb8ad;
+  --plan-door:    #7d848b;
   --plan-dim:     #9a9a93;
   --plan-fixture: #6c737a;
-  /* ---------------------------------------------------------------- charts: data series (graphics, 3:1 on --surface) */
+  --plan-hatch:   rgb(238 234 223 / 0.12);
+  /* ---------------------------------------------------------------- charts */
   --series-load:    #e6e2d6;
+  --series-heat:    #b9c3c0;
+  --series-export:  #8d9995;
   --series-pv:      #4fdcae;
-  --series-battery: #6ea6f5;
-  --series-grid:    #8f9aa6;
-  --series-heat:    #ef7fa0;
-  --series-export:  #5ec6dc;
-  --series-saving:  #a493f0;
+  --series-battery: #2fa985;
+  --series-grid:    #737c84;
+  --series-saving:  #7fc8ad;
   --cat-1: #4fdcae;
-  --cat-2: #6ea6f5;
-  --cat-3: #b79af0;
-  --cat-4: #ef7fa0;
-  --cat-5: #5ec6dc;
-  --cat-6: #94a0ad;
-  --cat-7: #a6cf5a;
-  --cat-8: #e6e2d6;
-  /* ---------------------------------------------------------------- sun: states, paths, sky */
-  --sun-lit:      #e7f67a;
+  --cat-2: #e6e2d6;
+  --cat-3: #a3aeab;
+  --cat-4: #2fa985;
+  --cat-5: #8d9995;
+  --cat-6: #c9cfcd;
+  --cat-7: #79b9a2;
+  --cat-8: #737c84;
+  /* ---------------------------------------------------------------- sun */
+  --sun-lit:      #e9dcc0;
   --sun-shade:    #2a3452;
-  --sun-disc:     #eef67f;
-  --sun-summer:   #b6e04a;
+  --sun-summer:   #e6e2d6;
   --sun-equinox:  #52d4a8;
-  --sun-winter:   #6ea6f5;
-  --sky-top:      #0f1a2b;
-  --sky-bottom:   #26364a;
+  --sun-winter:   #8d9995;
   --stage-bg:     #1d252b;
   /* ---------------------------------------------------------------- plot map */
   --map-plot:       #243126;
@@ -265,52 +314,53 @@
     --ink-3:      #9a9a93;
     --rule:       rgb(238 234 223 / 0.12);
     --rule-2:     rgb(238 234 223 / 0.24);
-    --scrim:      rgb(20 23 26 / 0.78);
-    /* ---------------------------------------------------------------- mint accent */
+    --scrim:      rgb(20 23 26 / 0.72);
+    /* ---------------------------------------------------------------- mint */
     --accent:      #52d4a8;
     --accent-ink:  #7fe6c2;
     --accent-soft: #1d3a31;
     --focus:       #8be8c8;
+    /* ---------------------------------------------------------------- controls */
+    --control-on:      #5fd6ae;
+    --control-knob-on: #0e1b16;
     /* ---------------------------------------------------------------- state */
     --good: #6fdcae;
     --bad:  #ff8f86;
     --info: #8ab4f5;
-    /* ---------------------------------------------------------------- floor plan: zones (opaque fills, labels in --ink) */
-    --zone-day:         #1f4a3d;
-    --zone-night:       #2d3764;
-    --zone-service:     #343b41;
-    --zone-circulation: #2b3033;
-    --zone-garage:      #3d444b;
-    --zone-terrace:     #20474f;
-    --plan-window:  #8ab4f5;
-    --plan-door:    #7fe6c2;
+    /* ---------------------------------------------------------------- floor plan: zones */
+    --zone-day:         #1f3d33;
+    --zone-night:       #252c3b;
+    --zone-service:     #2a322c;
+    --zone-circulation: #212327;
+    --zone-garage:      #383e43;
+    --zone-terrace:     #1f2428;
+    --plan-window:  #bcb8ad;
+    --plan-door:    #7d848b;
     --plan-dim:     #9a9a93;
     --plan-fixture: #6c737a;
-    /* ---------------------------------------------------------------- charts: data series (graphics, 3:1 on --surface) */
+    --plan-hatch:   rgb(238 234 223 / 0.12);
+    /* ---------------------------------------------------------------- charts */
     --series-load:    #e6e2d6;
+    --series-heat:    #b9c3c0;
+    --series-export:  #8d9995;
     --series-pv:      #4fdcae;
-    --series-battery: #6ea6f5;
-    --series-grid:    #8f9aa6;
-    --series-heat:    #ef7fa0;
-    --series-export:  #5ec6dc;
-    --series-saving:  #a493f0;
+    --series-battery: #2fa985;
+    --series-grid:    #737c84;
+    --series-saving:  #7fc8ad;
     --cat-1: #4fdcae;
-    --cat-2: #6ea6f5;
-    --cat-3: #b79af0;
-    --cat-4: #ef7fa0;
-    --cat-5: #5ec6dc;
-    --cat-6: #94a0ad;
-    --cat-7: #a6cf5a;
-    --cat-8: #e6e2d6;
-    /* ---------------------------------------------------------------- sun: states, paths, sky */
-    --sun-lit:      #e7f67a;
+    --cat-2: #e6e2d6;
+    --cat-3: #a3aeab;
+    --cat-4: #2fa985;
+    --cat-5: #8d9995;
+    --cat-6: #c9cfcd;
+    --cat-7: #79b9a2;
+    --cat-8: #737c84;
+    /* ---------------------------------------------------------------- sun */
+    --sun-lit:      #e9dcc0;
     --sun-shade:    #2a3452;
-    --sun-disc:     #eef67f;
-    --sun-summer:   #b6e04a;
+    --sun-summer:   #e6e2d6;
     --sun-equinox:  #52d4a8;
-    --sun-winter:   #6ea6f5;
-    --sky-top:      #0f1a2b;
-    --sky-bottom:   #26364a;
+    --sun-winter:   #8d9995;
     --stage-bg:     #1d252b;
     /* ---------------------------------------------------------------- plot map */
     --map-plot:       #243126;
@@ -331,5 +381,14 @@
   }
 }
 
-/* A block that stays dark in either scheme. */
-.night { background: var(--bg); color: var(--ink); }
+/* ---------------------------------------------------------------- the night band: dark in either scheme, one step deeper than the dark page.
+   It keeps the dark ink and mint from the block above and only sinks the surfaces (contrast pairs in tokens.test.ts). */
+.night {
+  --bg: var(--night-bg);
+  --bg-2: var(--night-bg-2);
+  --surface: var(--night-surface);
+  --rule: var(--night-rule);
+  --scrim: var(--night-scrim);
+  background: var(--bg);
+  color: var(--ink);
+}

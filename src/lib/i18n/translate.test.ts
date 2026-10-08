@@ -95,8 +95,8 @@ describe("translator", () => {
     expect(cs("common.validation.min", { value: "5 m" })).toBe(`Nejméně 5${NBSP}m.`);
   });
   it("applies Czech non-breaking spaces to the dictionary text", () => {
-    expect(cs("nav.items.plan.desc")).toBe(`Místnosti, okna, rozměry a${NBSP}skladby`);
-    expect(cs("footer.fiction")).toContain(`a${NBSP}všechny`);
+    expect(cs("nav.items.plan.desc")).toBe(`Místnosti, rozměry a${NBSP}skladby stěn`);
+    expect(cs("footer.fiction")).toContain(`Dům i${NBSP}pozemek`);
   });
   it("returns the key for a missing message and reports it with has()", () => {
     const partial = createT<unknown>("cs", { common: {} });

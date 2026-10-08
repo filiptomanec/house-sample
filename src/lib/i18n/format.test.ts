@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { Formatter, MINUS, NBSP, getFormatter, nb, parseNum } from "./format";
+import { Formatter, MINUS, NBSP, VALUE_SLOT, affixes, at, atHours, csTimePreposition, formatEstimate, getFormatter, nb, parseNum, roundSig } from "./format";
 
 const cs = getFormatter("cs");
 const en = getFormatter("en");
@@ -16,6 +16,7 @@ describe("nb (Czech typography)", () => {
     expect(nb("plocha 120 m² a 12 kWh")).toBe(`plocha 120${NBSP}m² a${NBSP}12${NBSP}kWh`);
     expect(nb("120 m² of floor", "en")).toBe(`120${NBSP}m² of floor`);
     expect(nb("sklon 12 ° a 30 %")).toBe(`sklon 12${NBSP}° a${NBSP}30${NBSP}%`);
+    expect(nb("36 ks po 430 Wp")).toBe(`36${NBSP}ks po 430${NBSP}Wp`);
   });
   it("does not glue a number to a word that merely starts like a unit", () => {
     expect(nb("5 měsíců a 3 hodiny")).toBe(`5 měsíců a${NBSP}3 hodiny`);
@@ -27,8 +28,27 @@ describe("nb (Czech typography)", () => {
   it("keeps day and month of a date together", () => {
     expect(nb("od 15. března do 1. září")).toBe(`od 15.${NBSP}března do 1.${NBSP}září`);
   });
+  it("keeps the sea-level abbreviation in one piece", () => {
+    expect(nb("240,5 m n. m.")).toBe(`240,5${NBSP}m${NBSP}n.${NBSP}m.`);
+    expect(nb("240.5 m a.s.l.", "en")).toBe(`240.5${NBSP}m${NBSP}a.s.l.`);
+  });
+  it("keeps millions and thousands with the currency", () => {
+    expect(nb("7,5 mil. Kč")).toBe(`7,5${NBSP}mil.${NBSP}Kč`);
+    expect(nb("120 tis. Kč a 2 mld. Kč")).toBe(`120${NBSP}tis.${NBSP}Kč a${NBSP}2${NBSP}mld.${NBSP}Kč`);
+  });
+  it("keeps numeric Czech dates together", () => {
+    expect(nb("Jaro 20. 3. a léto 21. 6. 2026")).toBe(`Jaro 20.${NBSP}3. a${NBSP}léto 21.${NBSP}6.${NBSP}2026`);
+    expect(nb("Spring 20/03", "en")).toBe("Spring 20/03");
+  });
+  it("keeps dimensions and scales together", () => {
+    expect(nb("23,5 × 12,3 m")).toBe(`23,5${NBSP}×${NBSP}12,3${NBSP}m`);
+    expect(nb("1 : 100", "en")).toBe(`1${NBSP}:${NBSP}100`);
+  });
+  it("works through the simple tags of rich text", () => {
+    expect(nb("Světlo a stín <q>v kterýkoli den</q>")).toBe(`Světlo a${NBSP}stín <q>v${NBSP}kterýkoli den</q>`);
+  });
   it("is idempotent and leaves English prepositions alone", () => {
-    const once = nb("v domě 120 m² a 1 234 Kč");
+    const once = nb("v domě 120 m² a 1 234 Kč, 7,5 mil. Kč, 20. 3. 2026, 240 m n. m., 2 × 3, 1 : 50");
     expect(nb(once)).toBe(once);
     expect(nb("a house in a plot", "en")).toBe("a house in a plot");
   });
@@ -137,5 +157,53 @@ describe("units, angles, clock, money, ranges", () => {
   it("list joins with the language's conjunction", () => {
     expect(cs.list(["a", "b", "c"])).toMatch(/^a, b a.c$/);
     expect(en.list(["a", "b", "c"])).toBe("a, b and c");
+  });
+});
+
+describe("time with its preposition", () => {
+  const cs = getFormatter("cs"), en = getFormatter("en");
+  it("uses the vocalised 've' before 2, 3, 4, 12, 13, 14 and 20-24 o'clock", () => {
+    expect(cs.at(4 * 60 + 48)).toBe(`ve${NBSP}4:48`);
+    expect(cs.at(5 * 60 + 10)).toBe(`v${NBSP}5:10`);
+    expect(cs.at(12 * 60 + 55)).toBe(`ve${NBSP}12:55`);
+    expect(cs.at(19 * 60 + 40)).toBe(`v${NBSP}19:40`);
+    expect(cs.atHours(21.05)).toBe(`ve${NBSP}21:03`);
+    expect(at(0, "cs")).toBe(`v${NBSP}0:00`);
+  });
+  it("covers every hour of the day", () => {
+    const ve = [2, 3, 4, 12, 13, 14, 20, 21, 22, 23];
+    for (let h = 0; h < 24; h++) expect(cs.at(h * 60 + 30).split(NBSP)[0], String(h)).toBe(ve.includes(h) ? "ve" : "v");
+    for (let h = 0; h < 24; h++) expect(csTimePreposition(h)).toBe(ve.includes(h) ? "ve" : "v");
+  });
+  it("takes the hour after rounding (1:59.6 is 2:00)", () => {
+    expect(cs.at(119.6)).toBe(`ve${NBSP}2:00`);
+  });
+  it("is 'at' in English and a dash for a missing time", () => {
+    expect(en.at(21 * 60 + 3)).toBe(`at${NBSP}21:03`);
+    expect(atHours(6.5, "en")).toBe(`at${NBSP}6:30`);
+    expect(cs.at(NaN)).toBe("–");
+  });
+});
+
+describe("estimates and affixes", () => {
+  it("rounds to significant digits", () => {
+    expect(roundSig(1234567)).toBe(1230000);
+    expect(roundSig(-1234567, 2)).toBe(-1200000);
+    expect(roundSig(0.012345)).toBe(0.0123);
+    expect(roundSig(999.6)).toBe(1000);
+    expect(roundSig(0)).toBe(0);
+    expect(roundSig(NaN)).toBeNaN();
+  });
+  it("formats an estimate without false precision", () => {
+    expect(formatEstimate(1234567)).toBe(`1${NBSP}230${NBSP}000`);
+    expect(formatEstimate(1234567, { locale: "en" })).toBe("1,230,000");
+    expect(formatEstimate(12.345, { sig: 3 })).toBe("12,3");
+    expect(formatEstimate(0.012345, { locale: "en" })).toBe("0.0123");
+    expect(formatEstimate(12.0, { sig: 3 })).toBe("12");
+  });
+  it("splits a filled template into prefix and suffix", () => {
+    expect(affixes(`${VALUE_SLOT}${NBSP}mil.${NBSP}Kč`)).toEqual({ prefix: "", suffix: `mil.${NBSP}Kč` });
+    expect(affixes(`CZK ${VALUE_SLOT}M`)).toEqual({ prefix: "CZK", suffix: "M" });
+    expect(() => affixes("no slot")).toThrow();
   });
 });

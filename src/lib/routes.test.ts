@@ -3,19 +3,35 @@ import { ROUTE_KEYS, ROUTES, TOOL_KEYS, alternatePaths, internalPath, keyForSlug
 import { LOCALES } from "./i18n/config";
 
 describe("route table", () => {
-  it("has eight routes, the home page first, seven tools in order with numbers 01-07", () => {
+  it("has eight routes: the home page first, then seven tools in menu order, the 3D tour leading", () => {
     expect(ROUTE_KEYS[0]).toBe("home");
     expect(TOOL_KEYS).toHaveLength(7);
-    expect(TOOL_KEYS.map((k) => ROUTES[k].n)).toEqual(["01", "02", "03", "04", "05", "06", "07"]);
+    expect(TOOL_KEYS[0]).toBe("model");
+    expect(new Set(ROUTE_KEYS).size).toBe(ROUTE_KEYS.length);
+  });
+  it("numbers the tools 01-07 in menu order; the home page has no number (no '00')", () => {
+    expect(ROUTES.home.n).toBe("");
+    expect(TOOL_KEYS.map((k) => ROUTES[k].n)).toEqual(TOOL_KEYS.map((_, i) => String(i + 1).padStart(2, "0")));
   });
   it("has the agreed localised slugs", () => {
-    expect(TOOL_KEYS.map((k) => ROUTES[k].slugs.cs)).toEqual(["pudorys", "pozemek", "model", "slunce", "energie", "rozpocet", "galerie"]);
-    expect(TOOL_KEYS.map((k) => ROUTES[k].slugs.en)).toEqual(["floor-plan", "plot", "model", "sun", "energy", "budget", "gallery"]);
+    expect(TOOL_KEYS.map((k) => ROUTES[k].slugs.cs)).toEqual(["model", "pudorys", "pozemek", "slunce", "energie", "rozpocet", "galerie"]);
+    expect(TOOL_KEYS.map((k) => ROUTES[k].slugs.en)).toEqual(["model", "floor-plan", "plot", "sun", "energy", "budget", "gallery"]);
+    for (const l of LOCALES) expect(ROUTES.home.slugs[l]).toBe("");
   });
   it("has unique slugs within a language", () => {
     for (const l of LOCALES) {
       const slugs = TOOL_KEYS.map((k) => ROUTES[k].slugs[l]);
       expect(new Set(slugs).size).toBe(slugs.length);
+    }
+  });
+  it("marks the 3D pages heavy (not prefetched in the viewport) and nothing else", () => {
+    expect(ROUTE_KEYS.filter((k) => ROUTES[k].heavy)).toEqual(["model", "sun"]);
+    for (const k of ROUTE_KEYS) expect([true, undefined]).toContain(ROUTES[k].heavy);
+  });
+  it("gives every route a sitemap priority in (0, 1], the home page the highest", () => {
+    for (const k of ROUTE_KEYS) {
+      expect(ROUTES[k].priority).toBeGreaterThan(0);
+      expect(ROUTES[k].priority).toBeLessThanOrEqual(ROUTES.home.priority);
     }
   });
 });
@@ -92,7 +108,7 @@ describe("resolveRequest (proxy)", () => {
     expect(resolveRequest("/budget")).toEqual({ type: "redirect", to: "/rozpocet" });
     expect(resolveRequest("/en/energie")).toEqual({ type: "redirect", to: "/en/energy" });
   });
-  it("sends unknown paths to the catch-all of their language with status 404", () => {
+  it("rewrites unknown paths into their language with status 404 (no route matches: the global 404 page)", () => {
     expect(resolveRequest("/nic")).toEqual({ type: "rewrite", to: "/cs/nic", status: 404 });
     expect(resolveRequest("/en/nothing/here")).toEqual({ type: "rewrite", to: "/en/nothing/here", status: 404 });
   });

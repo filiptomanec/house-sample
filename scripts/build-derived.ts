@@ -4,10 +4,13 @@
 //   npx tsx scripts/build-derived.ts            validate, write generated/derived.json and model/house.schema.json
 //   npx tsx scripts/build-derived.ts --check    write nothing; exit 1 when the committed files are stale
 //
+// derived.json = derive(house, { site }) plus `metrics` (computeMetrics): everything the pipeline needs, so Python never
+// re-derives geometry. The site is validated too (validateSite + validateSiteWithHouse); its errors fail the build.
 // Exit codes: 0 ok, 1 model has errors or (with --check) generated files are stale, 2 input/IO problem.
 import fs from "node:fs";
 import path from "node:path";
-import { formatReport, hashModelFiles, houseJsonSchema, isHashedModelFile, validateHouseJson } from "../src/lib/model";
+import { derivedFile, formatReport, hashModelFiles, houseJsonSchema, isHashedModelFile, validateHouseJson } from "../src/lib/model";
+import { parseSite, validateSite, validateSiteWithHouse } from "../src/lib/model/site";
 
 const root = path.resolve(path.dirname(process.argv[1] ?? "."), "..");
 const modelDir = path.join(root, "model");
@@ -29,17 +32,33 @@ function main(): number {
     return 2;
   }
   const houseFile = files.find((f) => f.name === "house.json");
-  if (!houseFile) {
-    console.error("model/house.json is missing");
+  const siteFile = files.find((f) => f.name === "site.json");
+  if (!houseFile || !siteFile) {
+    console.error("model/house.json or model/site.json is missing");
     return 2;
   }
+  let site;
+  try {
+    site = parseSite(JSON.parse(siteFile.content));
+  } catch (err) {
+    console.error(`model/site.json is not a valid site/1 document:\n${(err as Error).message}`);
+    return 1;
+  }
   const inputHash = hashModelFiles(files);
-  const res = validateHouseJson(houseFile.content, { inputHash });
+  const res = validateHouseJson(houseFile.content, { inputHash, site });
   console.log(formatReport(res, "en"));
-  if (!res.valid || !res.derived) return 1;
+  if (!res.valid || !res.derived || !res.house) return 1;
+
+  const siteIssues = validateSite(site);
+  const withHouse = validateSiteWithHouse(site, res.house.outdoor, res.house.location.houseAxisBearingDeg);
+  const siteErrors = [...siteIssues.errors, ...withHouse.errors];
+  const siteWarnings = [...siteIssues.warnings, ...withHouse.warnings];
+  console.log(`SITE: ${siteErrors.length} errors, ${siteWarnings.length} warnings`);
+  for (const i of [...siteErrors, ...siteWarnings]) console.log(`  [${i.code}] ${i.message}`);
+  if (siteErrors.length) return 1;
 
   const outputs: [string, string][] = [
-    [path.join(root, "generated", "derived.json"), stable(res.derived)],
+    [path.join(root, "generated", "derived.json"), stable(derivedFile(res.house, site, inputHash))],
     [path.join(modelDir, "house.schema.json"), stable(houseJsonSchema())],
   ];
   if (check) {

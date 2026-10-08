@@ -1,10 +1,10 @@
-/* Buttons, links and chips. */
+/* Buttons, links and chips. Controls are graphite; the one solid mint button (.btn.mint) is the page's single call to action. */
 
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-2);
   min-height: var(--touch); padding: 0 20px;
   border-radius: var(--r-pill); border: 1px solid var(--ink); background: var(--ink); color: var(--bg);
-  font-size: 0.9375rem; font-weight: var(--weight-medium); text-decoration: none;
+  font-size: var(--fs-ui); font-weight: var(--weight-medium); letter-spacing: -0.01em; text-decoration: none;
   transition: transform var(--dur-2) var(--ease), opacity var(--dur-1), background var(--dur-1), border-color var(--dur-1);
 }
 .btn:hover { opacity: 0.88; }
@@ -23,25 +23,41 @@
 .icon-btn:hover { background: color-mix(in srgb, currentColor 10%, transparent); }
 .icon-btn svg { width: 20px; height: 20px; }
 
-.link-arrow { display: inline-flex; align-items: center; gap: var(--sp-2); text-decoration: none; font-weight: var(--weight-medium); border-bottom: 1px solid currentColor; padding-bottom: 2px; }
-.link-arrow::after { content: "\2192"; transition: transform var(--dur-2) var(--ease); }
+/* a link that leads on: label, a hairline under it that turns mint from the left on hover, the long thin arrow */
+.link-arrow {
+  position: relative; display: inline-flex; align-items: center; gap: var(--sp-3); padding-bottom: 3px;
+  text-decoration: none; font-weight: var(--weight-medium);
+  background: linear-gradient(var(--accent), var(--accent)) 0 100% / 0 1px no-repeat,
+              linear-gradient(currentColor, currentColor) 0 100% / 100% 1px no-repeat;
+  transition: background-size var(--dur-3) var(--ease);
+}
+.link-arrow::after {
+  content: ""; width: 22px; height: 10px; flex: none; background: currentColor;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 22 10'%3E%3Cpath d='M0 5h20.5M16 .8 20.5 5 16 9.2' fill='none' stroke='black' stroke-width='1.4'/%3E%3C/svg%3E") center / contain no-repeat;
+  transition: transform var(--dur-2) var(--ease);
+}
+.link-arrow:hover { background-size: 100% 1px, 100% 1px; }
 .link-arrow:hover::after { transform: translateX(4px); }
 
-/* text link inside running text */
-.link { color: var(--accent-ink); text-underline-offset: 3px; text-decoration-thickness: 1px; }
-.link:hover { text-decoration-thickness: 2px; }
-
-/* chips: toggle buttons in a row (layers, filters, views) */
+/* chips: independent toggles in a row (layers); one choice from many is a Segmented control (docs/DESIGN.md §6) */
 .chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .chip {
   display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 0 12px;
   border-radius: var(--r-pill); border: 1px solid var(--rule-2); background: transparent;
-  font-size: 0.84375rem; white-space: nowrap;
+  font-size: var(--fs-sm); white-space: nowrap; transition: background var(--dur-1), border-color var(--dur-1), color var(--dur-1);
 }
+.chip:hover { border-color: var(--ink-3); }
 .chip[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
 .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; flex: none; background: var(--dot, currentColor); }
+
+/* a status pill ("splněno", "ok"): mint is a signal */
+.pill { display: inline-flex; align-items: center; gap: 6px; min-height: 24px; padding: 0 10px; border-radius: var(--r-pill); font: var(--weight-medium) var(--fs-label) / 1 var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; background: var(--bg-2); color: var(--ink-2); }
+.pill.ok { background: var(--accent-soft); color: var(--accent-ink); }
+.pill.bad { color: var(--bad); }
 
 @media (pointer: coarse) {
   /* 44 px touch targets; :is() carries the specificity of .btn.sm so layout rules cannot shrink them */
   :is(.chip, .btn.sm) { min-height: var(--touch); }
+  /* a larger invisible hit area that does not move the underline or the arrow */
+  .link-arrow::before { content: ""; position: absolute; inset: -12px -6px; }
 }

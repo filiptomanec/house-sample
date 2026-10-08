@@ -15,7 +15,7 @@ describe("sha256Hex", () => {
     }
   });
   it("handles unicode and raw bytes", () => {
-    const s = "Dům Dlouhá střecha – Long Roof House ✓";
+    const s = "Dům u cesty – žluťoučký kůň ✓";
     expect(sha256Hex(s)).toBe(ref(s));
     const bytes = new Uint8Array(100000).map((_, i) => (i * 31 + 7) & 255);
     expect(sha256Hex(bytes)).toBe(ref(bytes));

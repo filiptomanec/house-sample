@@ -1,10 +1,13 @@
 // Semantic checks of site.json that the zod schema cannot express (references, geometry sanity).
 import {
-  distToBoundary, edgeDirection, intersectionArea, pointInPolygon, polygonArea, segmentsIntersect, signedArea, type XY,
+  dist, distToBoundary, distToPolygon, edgeDirection, intersectionArea, pointInPolygon, polygonArea, polylineLength, segmentsIntersect, signedArea, type XY,
 } from "./geometry";
-import { neighbourPlot, plotPolygon } from "./layout";
+import { RAMP_MAX_SLOPE, gradeOutdoor } from "./grading";
+import { accessGeometry, accessRect, distToGateSweep, neighbourPlot, plotPolygon, resolveBoundary } from "./layout";
 import { orientedRect } from "./occluders";
 import type { SiteModel } from "./siteSchema";
+import { outdoorPolygon, type OutdoorInput } from "./stats";
+import { createTerrain } from "./terrain";
 
 export interface SiteIssue {
   code: string;
@@ -93,6 +96,74 @@ export function validateSite(site: SiteModel): SiteValidation {
     const along = edgeDirection(plot, nb.edge);
     if (!Number.isFinite(along[0])) err("E-NEIGHBOUR-EDGE", `neighbour ${nb.id}: degenerate edge`);
   }
+  const gatesPerAccess = new Map<string, number>();
+  for (const g of site.gates ?? []) gatesPerAccess.set(g.access, (gatesPerAccess.get(g.access) ?? 0) + 1);
+  for (const [a, c] of gatesPerAccess) if (c > 1) err("E-BRANA", `${c} gates for the ${a}; at most one gate per access`);
+  const tank = site.rainwater?.tank;
+  if (tank) {
+    if (!pointInPolygon(tank.pos, plot) || distToBoundary(tank.pos, plot) < tank.diameter / 2) err("E-TANK", "the rainwater tank is not inside the plot");
+  }
   if (site.terrain.plateau.blend < 3) warn("W-BLEND", "plateau blend below 3 m gives visible slopes");
+  return { errors, warnings };
+}
+
+/** A tree trunk is treated as a disc of this radius (m) when checking what stands in the way of a gate. */
+export const TRUNK_RADIUS = 0.25;
+/** Free space kept around the moving leaf of a gate (m). */
+export const GATE_SWEEP_CLEARANCE = 0.1;
+/** The fence opening may exceed the gate leaf by at most this much (m): the two gate posts. */
+export const GATE_OPENING_SLACK = 0.25;
+
+/**
+ * Checks of the site together with the outdoor areas of the house (which give the access strips, the gates' positions and
+ * the ramps): gates (E-BRANA), ramp slopes (E-RAMP) and the rainwater tank against the paved areas (E-TANK).
+ */
+export function validateSiteWithHouse(site: SiteModel, outdoor: readonly OutdoorInput[], bearingDeg: number): SiteValidation {
+  const errors: SiteIssue[] = [];
+  const warnings: SiteIssue[] = [];
+  const err = (code: string, message: string) => errors.push({ code, message });
+  let access;
+  try {
+    access = accessGeometry(site, outdoor);
+  } catch (e) {
+    err("E-ACCESS", (e as Error).message);
+    return { errors, warnings };
+  }
+  const { fences, gates } = resolveBoundary(site, access);
+  for (const g of gates) {
+    const fence = fences.find((f) => f.id === g.fence);
+    if (!fence) {
+      err("E-BRANA", `gate ${g.id}: no fence with gates crosses the ${g.access}`);
+      continue;
+    }
+    const strip = accessRect(access, g.access);
+    if (strip[2] - strip[0] > g.leaf + 1e-6) err("E-BRANA", `gate ${g.id}: the ${g.access} (${(strip[2] - strip[0]).toFixed(2)} m) is wider than the leaf (${g.leaf} m)`);
+    if (!(g.leaf <= g.width + 1e-9 && g.width <= g.leaf + GATE_OPENING_SLACK + 1e-9)) err("E-BRANA", `gate ${g.id}: the fence opening ${g.width.toFixed(2)} m does not fit the leaf ${g.leaf} m`);
+    if (g.park) {
+      const len = polylineLength(fence.path);
+      const closed = fence.path.length > 2 && dist(fence.path[0], fence.path[fence.path.length - 1]) < 1e-9;
+      const [a, b] = g.park.span;
+      if (!closed && (a < -1e-6 || b > len + 1e-6)) err("E-BRANA", `gate ${g.id}: the open leaf runs past the end of fence ${fence.id}`);
+      for (const gap of fence.gaps) {
+        if (gap.ref === g.id) continue;
+        const wrap = closed ? [-len, 0, len] : [0];
+        if (wrap.some((k) => gap.from + k < b - 1e-6 && gap.to + k > a + 1e-6)) err("E-BRANA", `gate ${g.id}: the open leaf crosses the opening for ${gap.ref ?? gap.access}`);
+      }
+    }
+    for (const t of site.trees) if (distToGateSweep(g, t.pos) < TRUNK_RADIUS + GATE_SWEEP_CLEARANCE) err("E-BRANA", `gate ${g.id}: tree ${t.id} stands where the leaf moves`);
+    for (const sh of site.shrubs) if (distToGateSweep(g, sh.pos) < sh.width / 2 + GATE_SWEEP_CLEARANCE) err("E-BRANA", `gate ${g.id}: shrub ${sh.id} stands where the leaf moves`);
+  }
+  const base = createTerrain(site.terrain, bearingDeg);
+  const { grades } = gradeOutdoor(outdoor, base.baseAt, access);
+  for (const gr of grades) {
+    if (gr.ramp && Math.abs(gr.ramp.slope) > RAMP_MAX_SLOPE + 1e-9) {
+      err("E-RAMP", `the ${gr.ramp.access} ramp is ${(Math.abs(gr.ramp.slope) * 100).toFixed(1)} %, more than ${RAMP_MAX_SLOPE * 100} %`);
+    }
+  }
+  const tank = site.rainwater?.tank;
+  if (tank) {
+    const hard = [...outdoor.map(outdoorPolygon), ...site.paved.map((p) => p.polygon as XY[])].filter((p) => p.length >= 3);
+    if (hard.some((p) => distToPolygon(tank.pos, p) < tank.diameter / 2)) err("E-TANK", "the rainwater tank lies under a paved area");
+  }
   return { errors, warnings };
 }

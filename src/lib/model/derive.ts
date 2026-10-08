@@ -3,12 +3,21 @@
 // `generated/derived.json` is this object (a superset of the concept/1 derived format).
 import {
   AZ_KEYS,
+  BEDROOM_TYPES,
+  DEFAULT_OUTDOOR_TOP,
   DERIVED_SCHEMA_VERSION,
   DIRS,
   DIR_AZIMUTH,
+  DISPLAY_FLOOR,
   FURNITURE,
+  GROUND_VOID_OUTDOOR,
+  LOUVRE_OPEN_DEG,
+  POOL_SURROUND_TYPES,
+  SUN_SAMPLED_OUTDOOR,
   UNHEATED_TYPES,
+  WATER_OUTDOOR,
   type Dir,
+  type OutdoorSurface,
 } from "./catalog";
 import {
   R5,
@@ -17,20 +26,31 @@ import {
   facing8,
   furnitureRect,
   inRect,
+  rectArea,
+  rectInter,
   round,
   distToSegment,
   trueAzimuth,
   unionOf,
   type Pt,
+  type Pt3,
   type Rect,
 } from "./geom";
 import { clearEnds, derivePlan, locateOnWall } from "./plan";
 import { poleOfInaccessibility } from "./polylabel";
 import { layoutPv } from "./pv";
 import { buildRoofFaces, roofSurfaceAt, type RoofInput } from "./roofs";
+import { exportSiteLayout } from "./site/export";
+import { gradeOutdoor, type OutdoorGrade } from "./site/grading";
+import { accessGeometry } from "./site/layout";
+import type { SiteModel } from "./site/siteSchema";
+import { createTerrain, type Terrain } from "./site/terrain";
 import type {
   Assembly,
   Derived,
+  DerivedCamera,
+  DerivedPool,
+  OutdoorRole,
   DerivedAccent,
   DerivedAccess,
   DerivedAssembly,
@@ -52,6 +72,12 @@ import type {
 export interface DeriveOptions {
   /** Hash of model/*.json to store in the output (see hash.ts). */
   inputHash?: string | null;
+  /**
+   * The plot (site.json, parsed or at least schema-valid). With it the drive and path become ramps to their gates, cameras
+   * with `aboveGround` get their absolute z and `derived.site` holds the resolved plot. Without it every slab is flat,
+   * camera z values are taken as given and `site` is null.
+   */
+  site?: SiteModel | null;
 }
 
 const DEG = Math.PI / 180;
@@ -78,13 +104,60 @@ export function assemblyU(a: Assembly): DerivedAssembly {
 
 const inAnyRect = (rects: Rect[], x: number, y: number): boolean => rects.some((q) => inRect(q, x, y));
 
-/** Is the house-frame azimuth within the (clockwise) range from -> to? */
+/**
+ * Is the azimuth within the clockwise range from -> to? A range of 360 degrees or more (0 -> 360) contains every azimuth;
+ * otherwise the ends are taken modulo 360, so 350 -> 10 wraps through north.
+ */
 export const azimuthInRange = (az: number, from: number, to: number): boolean => {
+  if (to - from >= 360) return true;
   const a = ((az % 360) + 360) % 360;
   const f = ((from % 360) + 360) % 360;
   const t = ((to % 360) + 360) % 360;
   return f <= t ? a >= f && a <= t : a >= f || a <= t;
 };
+
+/** Rounds an angle up to the next multiple of 5 degrees (ceil5(14.48) = 15). */
+export const ceil5 = (deg: number): number => Math.ceil(deg / 5 - 1e-9) * 5;
+
+/** Closed stop of louvre blades turning about their centres: they touch at asin(thickness / pitch) from the wall plane. */
+export const louvreClosedDeg = (thickness: number, pitch: number): number => (thickness >= pitch ? LOUVRE_OPEN_DEG : ceil5((Math.asin(thickness / pitch) * 180) / Math.PI));
+
+/** Default finish and GLB role of an outdoor slab. */
+export const outdoorSurface = (type: string, surface: OutdoorSurface | undefined): OutdoorSurface => surface ?? (type === "deck" ? "deck" : "paving");
+export function outdoorRole(type: string, surface: OutdoorSurface): OutdoorRole {
+  if ((WATER_OUTDOOR as readonly string[]).includes(type)) return "pool_coping";
+  if (type === "drive") return "drive_paving";
+  if (type === "path") return "path";
+  return surface === "deck" ? "deck" : "terrace_paving";
+}
+
+/**
+ * Distance from `start` along an axis-parallel unit direction until the point leaves the union of the rectangles (0 when
+ * `start` is outside all of them). Exact: jumps from far edge to far edge.
+ */
+export function exitDistance(rects: readonly Rect[], start: Pt, dir: Pt): number {
+  const alongX = Math.abs(dir[0]) > 0.5;
+  const sgn = alongX ? Math.sign(dir[0]) : Math.sign(dir[1]);
+  const across = alongX ? start[1] : start[0];
+  const tol = 1e-9;
+  let t = 0;
+  for (let guard = 0; guard < 64; guard++) {
+    const pos = (alongX ? start[0] : start[1]) + sgn * t;
+    let far = -Infinity;
+    for (const r of rects) {
+      const [a0, a1] = alongX ? [r[0], r[2]] : [r[1], r[3]];
+      const [c0, c1] = alongX ? [r[1], r[3]] : [r[0], r[2]];
+      if (across < c0 - tol || across > c1 + tol) continue;
+      const near = sgn > 0 ? a0 : -a1;
+      const end = sgn > 0 ? a1 : -a0;
+      const p = sgn * pos;
+      if (near <= p + tol && end > p + tol) far = Math.max(far, end);
+    }
+    if (far === -Infinity) break;
+    t = far - sgn * (alongX ? start[0] : start[1]);
+  }
+  return t;
+}
 
 export function derive(house: House, options: DeriveOptions = {}): Derived {
   const bearing = house.location.houseAxisBearingDeg;
@@ -130,6 +203,7 @@ export function derive(house: House, options: DeriveOptions = {}): Derived {
       faces: faces.filter((f) => f.roofId === rf.id).map((f) => f.id),
     };
   });
+  const eaveRects = roofs.map((r) => r.eaveRect);
   const roofAt = (x: number, y: number): DerivedRoof | null => {
     let best: DerivedRoof | null = null;
     for (const r of roofs) if (inRect(expandRect(r.rect, 0.01), x, y) && (!best || r.wallTop > best.wallTop)) best = r;
@@ -142,8 +216,12 @@ export function derive(house: House, options: DeriveOptions = {}): Derived {
   };
 
   // --- walls with orientation and height
+  const heatedRoom = new Map(house.rooms.map((r) => [r.id, heatedOf(r.type)]));
   const walls: DerivedWall[] = plan.walls.map((w) => {
-    if (!w.ext) return w;
+    if (!w.ext) {
+      const lo = w.lo ? heatedRoom.get(w.lo) : undefined, hi = w.hi ? heatedRoom.get(w.hi) : undefined;
+      return lo !== undefined && hi !== undefined && lo !== hi ? { ...w, toUnheated: true } : w;
+    }
     const mid = (w.from + w.to) / 2;
     const [x, y] = w.orient === "h" ? [mid, w.at] : [w.at, mid];
     const az = w.azimuth as number;
@@ -193,6 +271,7 @@ export function derive(house: House, options: DeriveOptions = {}): Derived {
       area: R5(op.w * Math.max(0, op.head - op.sill)),
       center: [op.cx, op.cy, R5((op.sill + op.head) / 2)],
       blind: false,
+      blindSections: 0,
       overhang: null,
     };
     if (loc.wall) {
@@ -207,7 +286,18 @@ export function derive(house: House, options: DeriveOptions = {}): Derived {
         o.facing = wl.facing as DerivedOpening["facing"];
         o.dir = AZ_KEYS[o.azimuth];
         const roofAbove = roofAt(op.cx, op.cy);
-        if (roofAbove) o.overhang = { depth: roofAbove.overhang, eaveHeight: roofAbove.eaveHeight, wallTop: roofAbove.wallTop };
+        if (roofAbove) {
+          // march from the centre of the head on the outer wall face along the outward normal out of the roof plan
+          const n: Pt = [Math.round(Math.sin((o.azimuth * Math.PI) / 180)), Math.round(Math.cos((o.azimuth * Math.PI) / 180))];
+          const face: Pt = [op.cx + (n[0] * wl.t) / 2, op.cy + (n[1] * wl.t) / 2];
+          const depth = exitDistance(eaveRects, face, n);
+          const near: Pt = [face[0] + n[0] * Math.min(0.25, depth / 2), face[1] + n[1] * Math.min(0.25, depth / 2)];
+          const overCovered = house.outdoor.some((od) => od.covered && inRect(od.rect, near[0], near[1]));
+          const exit: Pt = [face[0] + n[0] * (depth - 1e-6), face[1] + n[1] * (depth - 1e-6)];
+          const edge = roofSurfaceAt(faces, exit[0], exit[1]);
+          const eaveHeight = overCovered ? house.clearHeight : edge ? edge.z : roofAbove.eaveHeight;
+          o.overhang = { depth: R5(depth), eaveHeight: R5(eaveHeight), wallTop: roofAbove.wallTop };
+        }
         const room = roomIn.get(o.room);
         o.blind =
           glazingArea > 0 &&
@@ -215,6 +305,7 @@ export function derive(house: House, options: DeriveOptions = {}): Derived {
           !!room &&
           heatedOf(room.type) &&
           azimuthInRange(o.azimuthTrue, blinds.azimuthFrom, blinds.azimuthTo);
+        o.blindSections = o.blind ? Math.max(1, Math.ceil(op.w / blinds.product.maxSectionWidth - 1e-9)) : 0;
       } else {
         o.connects = [wl.lo, wl.hi];
       }
@@ -281,6 +372,8 @@ export function derive(house: House, options: DeriveOptions = {}): Derived {
     const room: DerivedRoom = {
       id: r.id,
       name: src.name,
+      shortName: src.shortName ?? null,
+      displayNo: "",
       type: src.type,
       zone: zoneOf(src.type),
       heated: heatedOf(src.type),
@@ -308,16 +401,94 @@ export function derive(house: House, options: DeriveOptions = {}): Derived {
   });
   const roomAt = (x: number, y: number): string | null => rooms.find((r) => inAnyRect(r.cleanRects, x, y))?.id ?? null;
 
-  // --- outdoor, screens, light pipes, furniture
-  const outdoor: DerivedOutdoor[] = house.outdoor.map((o) => ({
-    id: o.id,
-    type: o.type,
-    covered: o.covered ?? false,
-    rect: o.rect,
-    area: R5((o.rect[2] - o.rect[0]) * (o.rect[3] - o.rect[1])),
-    posts: o.posts ?? [],
-    zone: "outdoor",
-  }));
+  // --- levels: the site grades the slabs (drive and path ramp to their gates), else every slab is flat at its top
+  const site = options.site ?? null;
+  let terrain: Terrain | null = null;
+  let grades: OutdoorGrade[];
+  if (site) {
+    const base = createTerrain(site.terrain, bearing);
+    const grading = gradeOutdoor(house.outdoor, base.baseAt, accessGeometry(site, house.outdoor));
+    terrain = createTerrain(site.terrain, bearing, grading.slabs);
+    grades = grading.grades;
+  } else {
+    grades = gradeOutdoor(house.outdoor, () => 0).grades;
+  }
+  const roundGrade = (g: OutdoorGrade): OutdoorGrade => ({
+    ...g,
+    corners: g.corners.map(R5),
+    plane: { z0: R5(g.plane.z0), ox: g.plane.ox, oy: g.plane.oy, gx: g.plane.gx, gy: round(g.plane.gy, 9) },
+    ramp: g.ramp
+      ? {
+          ...g.ramp,
+          z1: R5(g.ramp.z1),
+          slope: round(g.ramp.slope, 9),
+          groundAtGate: R5(g.ramp.groundAtGate),
+          gate: g.ramp.gate.map(R5) as Pt,
+          apron: g.ramp.apron ? { polygon: g.ramp.apron.polygon.map((p) => p.map(R5) as Pt), z: g.ramp.apron.z.map(R5) } : null,
+        }
+      : null,
+  });
+
+  // --- outdoor areas, pools
+  const isWater = (type: string): boolean => (WATER_OUTDOOR as readonly string[]).includes(type);
+  const poolOuter = (o: (typeof house.outdoor)[number]): Rect => expandRect(o.rect, o.coping ?? 0).map(R5) as Rect;
+  const pools = house.outdoor.filter((o) => isWater(o.type));
+  const ringOf = (q: Rect): Pt[] => [[q[0], q[1]], [q[2], q[1]], [q[2], q[3]], [q[0], q[3]]];
+  const outdoor: DerivedOutdoor[] = house.outdoor.map((o, i) => {
+    const area = R5((o.rect[2] - o.rect[0]) * (o.rect[3] - o.rect[1]));
+    const holes: Rect[] = isWater(o.type) ? [] : pools.map((p) => rectInter(poolOuter(p), o.rect)).filter((q): q is Rect => !!q && rectArea(q) > 1e-9);
+    const surface = outdoorSurface(o.type, o.surface);
+    const top = o.top ?? DEFAULT_OUTDOOR_TOP;
+    let pool: DerivedPool | null = null;
+    if (isWater(o.type)) {
+      const depth = o.depth ?? 0, below = o.waterBelowTop ?? 0, coping = o.coping ?? 0;
+      const outer = poolOuter(o);
+      const deck = house.outdoor.find((d) => POOL_SURROUND_TYPES.includes(d.type) && inRect(expandRect(d.rect, 1e-6), outer[0], outer[1]) && inRect(expandRect(d.rect, 1e-6), outer[2], outer[3]));
+      pool = {
+        water: [...o.rect] as Rect,
+        depth,
+        waterBelowTop: below,
+        coping,
+        copingTop: top,
+        waterZ: R5(top - below),
+        floorZ: R5(top - depth),
+        outer,
+        polygons: { water: ringOf(o.rect), copingOuter: ringOf(outer), copingInner: ringOf(o.rect), deck: deck ? { outer: ringOf(deck.rect), hole: ringOf(outer) } : null },
+        deck: deck ? deck.id : null,
+        waterArea: area,
+        waterVolume: R5(area * Math.max(0, depth - below)),
+      };
+    }
+    return {
+      id: o.id,
+      type: o.type,
+      name: o.name ?? null,
+      covered: o.covered ?? false,
+      rect: o.rect,
+      area,
+      netArea: R5(area - holes.reduce((s, q) => s + rectArea(q), 0)),
+      holes,
+      posts: o.posts ?? [],
+      postSize: o.posts?.length ? (o.postSize ?? null) : null,
+      zone: "outdoor",
+      surface,
+      role: outdoorRole(o.type, surface),
+      top,
+      grade: roundGrade(grades[i]),
+      pool,
+    };
+  });
+  const groundVoids: Rect[] = house.outdoor.filter((o) => (GROUND_VOID_OUTDOOR as readonly string[]).includes(o.type)).map((o) => poolOuter(o));
+
+  // --- louvre walls: blades spread evenly, the closed stop where neighbouring blades touch
+  const slats = house.shading.slats;
+  const closedDeg = louvreClosedDeg(slats.width, slats.pitch);
+  const slabTopAt = (x: number, y: number): number => {
+    const i = house.outdoor.findIndex((o) => inRect(expandRect(o.rect, 0.01), x, y));
+    if (i < 0) return 0;
+    const g = grades[i];
+    return R5(g.plane.z0 + g.plane.gx * (x - g.plane.ox) + g.plane.gy * (y - g.plane.oy));
+  };
   const hb = plan.outline.bbox ?? { x0: 0, y0: 0, x1: 0, y1: 0, w: 0, d: 0 };
   const hc: Pt = [(hb.x0 + hb.x1) / 2, (hb.y0 + hb.y1) / 2];
   const screens: DerivedScreen[] = house.screens.map((s) => {
@@ -328,7 +499,20 @@ export function derive(house: House, options: DeriveOptions = {}): Derived {
     // outward = away from the centre of the house
     const az = vertical ? (at < hc[0] ? 270 : 90) : at < hc[1] ? 180 : 0;
     const azT = trueAzimuth(az, bearing);
-    return { id: s.id, type: s.type, orient: s.orient, at, from, to, length: R5(Math.abs(to - from)), azimuth: az, azimuthTrue: azT, facing: facing8(azT) };
+    const length = Math.abs(to - from);
+    const count = Math.max(1, Math.floor(length / slats.pitch + 1e-6));
+    const pitch = length / count;
+    const lo = Math.min(from, to);
+    const mid = (from + to) / 2;
+    return {
+      id: s.id, type: s.type, orient: s.orient, at, from, to, length: R5(length), azimuth: az, azimuthTrue: azT, facing: facing8(azT),
+      blades: { count, pitch: R5(pitch), chord: slats.depth, thickness: slats.width, positions: Array.from({ length: count }, (_, k) => R5(lo + (k + 0.5) * pitch)) },
+      closedDeg,
+      openDeg: LOUVRE_OPEN_DEG,
+      restDeg: slats.restDeg,
+      z0: vertical ? slabTopAt(at, mid) : slabTopAt(mid, at),
+      z1: house.clearHeight,
+    };
   });
   const lpDiameter = house.roof.lightpipes.diameter;
   const lightpipes: DerivedLightpipe[] = house.lightpipes.map(([x, y]) => {
@@ -373,6 +557,42 @@ export function derive(house: House, options: DeriveOptions = {}): Derived {
     depth,
     unreachable: rooms.filter((r) => depth[r.id] === undefined).map((r) => r.id),
   };
+  // display numbers: breadth-first from the entry room, neighbours in the order of their doors; the rest in model order
+  const order: string[] = [];
+  if (entry && entry.room) {
+    const seen = new Set([entry.room]);
+    const queue = [entry.room];
+    while (queue.length) {
+      const a = queue.shift()!;
+      order.push(a);
+      for (const b of adj.get(a) ?? []) if (!seen.has(b)) { seen.add(b); queue.push(b); }
+    }
+  }
+  for (const r of rooms) if (!order.includes(r.id)) order.push(r.id);
+  for (const r of rooms) r.displayNo = `${DISPLAY_FLOOR}.${String(order.indexOf(r.id) + 1).padStart(2, "0")}`;
+
+  // --- heat-pump outdoor unit on the ground
+  const unit = house.equipment.heating.outdoorUnit;
+  const outdoorUnit: Derived["outdoorUnit"] = unit
+    ? (() => {
+        const [w, dd] = unit.rot % 180 === 0 ? [unit.size[0], unit.size[1]] : [unit.size[1], unit.size[0]];
+        const [x, y] = unit.pos;
+        const footprint: Pt[] = [[x - w / 2, y - dd / 2], [x + w / 2, y - dd / 2], [x + w / 2, y + dd / 2], [x - w / 2, y + dd / 2]].map((p) => p.map(R5) as Pt);
+        return { center: [x, y] as Pt, size: [...unit.size] as Pt3, rot: unit.rot, footprint, z: terrain ? R5(Math.min(...footprint.map((p) => terrain!.groundAt(p[0], p[1])))) : null };
+      })()
+    : null;
+
+  // --- cameras: eye height above the graded ground when the site is known
+  const cameras: DerivedCamera[] = house.cameras.map((c) => {
+    const ground = terrain ? R5(terrain.groundAt(c.position[0], c.position[1])) : null;
+    const z = c.aboveGround !== undefined && ground !== null ? R5(ground + c.aboveGround) : c.position[2];
+    return {
+      id: c.id, name: c.name, short: c.short ?? null, kind: c.kind,
+      position: [c.position[0], c.position[1], z] as Pt3, target: [...c.target] as Pt3,
+      fov: c.fov ?? null, orthoHeight: c.orthoHeight ?? null, use: [...c.use], default: c.default ?? false, defaultFor: [...(c.defaultFor ?? [])],
+      aboveGround: c.aboveGround ?? null, ground,
+    };
+  });
 
   // --- facings (the four house-frame directions)
   const facings = {} as Record<Dir, DerivedFacing>;
@@ -407,7 +627,6 @@ export function derive(house: House, options: DeriveOptions = {}): Derived {
   );
 
   // --- bounding box of the building (outline, roof eaves, ridge)
-  const eaveRects = roofs.map((r) => r.eaveRect);
   const bb = bboxOf([...(plan.outline.bbox ? [[hb.x0, hb.y0, hb.x1, hb.y1] as Rect] : []), ...eaveRects]);
   const zTop = faces.length ? Math.max(...faces.map((f) => f.zMax)) : defaultTop;
   const bbox: DerivedBBox = bb
@@ -445,5 +664,17 @@ export function derive(house: House, options: DeriveOptions = {}): Derived {
     facings,
     assemblies,
     pv,
+    attic: house.roof.attic,
+    topEnvelope: house.roof.attic === "cold" ? "ceiling" : "roof",
+    cameras,
+    groundVoids,
+    outdoorUnit,
+    catalog: {
+      groundVoidOutdoor: [...GROUND_VOID_OUTDOOR],
+      sunSampledOutdoor: [...SUN_SAMPLED_OUTDOOR],
+      waterOutdoor: [...WATER_OUTDOOR],
+      bedroomTypes: [...BEDROOM_TYPES],
+    },
+    site: site && terrain ? exportSiteLayout(site, house.outdoor, bearing, { terrain }) : null,
   };
 }

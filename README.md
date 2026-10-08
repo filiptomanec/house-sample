@@ -1,19 +1,21 @@
-# House Sample
+# Walnut House
 
 [![CI](https://github.com/filiptomanec/house-sample/actions/workflows/ci.yml/badge.svg)](https://github.com/filiptomanec/house-sample/actions/workflows/ci.yml)
 
-**One data model for a fictional house. It drives the floor plan, the 3D model, the sun, energy and budget calculations, and the renders.**
+**A single-storey family house that exists only as data. One model drives its floor plan, its 3D model, its renders and every
+calculation of sun, energy and cost, so none of them can disagree.**
 
 [Live site](https://house-sample.vercel.app) (Czech) · [English version](https://house-sample.vercel.app/en) · [Documentation](docs/README.md)
 
 <p align="center">
-  <img src="docs/img/home-desktop-light.jpg" width="860" alt="Home page of the site: the Long Roof House in morning light with the sun path in the corner">
+  <img src="docs/img/home-desktop-light.jpg" width="860" alt="Home page of the site, desktop, light scheme">
 </p>
 
-House Sample is a portfolio project about "Long Roof House", a **fictional** single-storey house on a **fictional** plot. Everything
-the site shows about it is computed from the files in [`model/`](model): areas, U-values, hours of direct sun, PV yield, quantities
-and prices, the floor plan, the interactive 3D scene, the STL for printing, and the rendered pictures. Nothing is typed into a
-page by hand, and the house and the plot are invented (the only real anchor is the region, South Moravia, with coordinates rounded to 0.1°).
+Walnut House (*Dům pod ořechem*) is a design study for a single-storey family house with a garden in South Moravia, built as a
+portfolio project (the repository is called House Sample). The house and its plot are **invented**: the only real anchor is the
+region, with coordinates rounded to 0.1°. Everything the site shows about the house is computed from the files in
+[`model/`](model): areas, U-values, hours of direct sun, solar yield, quantities and prices, the floor plan, the interactive 3D
+scene, the STL for printing and the rendered images. Nothing is typed into a page by hand.
 
 I built it to show end-to-end engineering on one coherent problem: a typed data model and kernel, numerical code with independent
 tests, a procedural Blender pipeline, a performance-conscious three.js scene, a bilingual Next.js site that works well on an
@@ -25,9 +27,9 @@ iPhone, and the build and privacy checks that keep a public repository clean.
 |---|---|
 | **Home** | Scroll through a whole day (render frames and a live sun arc), around the house, and drag a slider that compares two hours; the numbers on the page come from the model. |
 | **Floor plan** | Rooms, openings and dimensions drawn from the model; zones, measuring, an interactive furniture layer ("My furniture"), room cards with area, volume, glazing and construction. |
-| **Plot** | The invented plot: boundary, set-backs, terrain with contours and a section, access, planting, and the rules the placement is checked against. |
-| **3D model** | Orbit, walk through the house (keyboard, drag or joystick), cut the roof away or section it at any height, switch layers (roof, furniture, blinds), try facade, timber and roof looks, move the sun. **Exports:** STL for 3D printing at 1:100 to 1:200 with a bed-fit check, USDZ for AR Quick Look on iPhone, the light GLB. |
-| **Sun** | Pick any day and hour: sun path, shadows from the house, neighbours, trees and terrain (ray casting with leaf-dependent transmittance), hours of direct sun per room and on the terrace, the effect of slat screens and blinds. |
+| **Plot** | The invented plot: boundary, setbacks, terrain with contours and a section, access, planting, and the rules the placement is checked against. |
+| **3D tour** | Orbit, walk through the house (keyboard, drag or joystick), cut the roof away or section it at any height, switch layers (roof, furniture, blinds), try facade, timber and roof looks, move the sun. **Exports:** STL for 3D printing at 1:100 to 1:200 with a bed-fit check, USDZ for AR Quick Look on iPhone, the lite GLB. |
+| **Sun** | Pick any day and hour: sun path, shadows from the house, neighbours, trees and terrain (ray casting with leaf-dependent transmittance), hours of direct sun per room and on the terrace, the effect of the terrace louvres and the blinds. |
 | **Energy** | Heat demand (EN ISO 13790 monthly method), heat pump, hot water, household and EV electricity; PV production per roof plane from [PVGIS](https://joint-research-centre.ec.europa.eu/photovoltaic-geographical-information-system-pvgis_en) data, hourly self-consumption with a battery, payback. Adjustable inputs, a roof plan where you switch planes and panels on and off. |
 | **Budget** | Bill of quantities measured from the geometry, a unit-price book, reserve and VAT classes, editable lines with reset, a cost range check, materials cards, CSV export. |
 | **Gallery** | Cycles renders at different hours of the day, filters, a lightbox and an orbit video. |
@@ -88,7 +90,7 @@ flowchart LR
 * **`model/*.json`** is the only place a number about the house lives. A zod schema defines it; [`docs/HOUSE-FORMAT.md`](docs/HOUSE-FORMAT.md) explains it.
 * **The kernel** (`src/lib/model`, pure TypeScript) validates the model and derives everything geometric once: net room polygons, walls, openings with true facing, roof faces with eave, ridge and hip edges, PV layout, plot analysis. The calculations (`src/lib/calc`) and the 3D engine (`src/lib/three`) are built on it.
 * **The pipeline** (`pipeline/`, Blender's Python) never derives geometry itself. It reads `generated/derived.json` and builds the house procedurally; a second script renders from `generated/render-inputs.json`. Outputs are GLB and USDZ files and web media with manifests.
-* **The web app** reads the same kernel output, so the plan, the 3D scene, the sun, the energy figures and the pictures cannot disagree.
+* **The web app** reads the same kernel output, so the plan, the 3D scene, the sun, the energy figures and the images cannot disagree.
 
 Details: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md), [`docs/KERNEL-API.md`](docs/KERNEL-API.md), [`docs/CALC-API.md`](docs/CALC-API.md), [`docs/THREE-API.md`](docs/THREE-API.md), [`docs/PIPELINE.md`](docs/PIPELINE.md).
 
@@ -99,14 +101,14 @@ A shortened excerpt of [`model/house.json`](model/house.json) (schema `house/1`;
 ```jsonc
 {
   "schema": "house/1",
-  "id": "long-roof",
-  "name": { "cs": "Dům Dlouhá střecha", "en": "Long Roof House" },
+  "id": "walnut",
+  "name": { "cs": "Dům pod ořechem", "en": "Walnut House" },
   "fictional": true,
   "location": { /* region, coordinates rounded to 0.1°, time zone */ "houseAxisBearingDeg": 12 },
   "wall": { "ext": 0.5, "bearing": 0.3, "part": 0.15 },
   "clearHeight": 2.75,
   "rooms": [
-    { "id": "R01", "name": { "cs": "Garáž pro dvě auta", "en": "Two-car garage" },
+    { "id": "R01", "name": { "cs": "Dvojgaráž", "en": "Double garage" },
       "type": "garage", "role": "garage", "floor": "concrete", "rects": [[0, 5.4, 6.65, 11.8]] }
     // ...
   ],
@@ -189,7 +191,7 @@ bash scripts/build-media.sh                      # renders -> public/media and m
 ## Limitations
 
 * The house, the plot and the prices are invented; the location is only a region with coordinates rounded to 0.1°. The price book holds generic Czech price levels of 2026 and gives a range, not a quote.
-* The energy figures are an **indicative** monthly calculation (no cooling or summer overheating, no night set-back, typical days, a simple battery model, no price growth). It is not an energy performance certificate and not a design. The sources and simplifications are listed on the page and in [`docs/ENERGY-ASSUMPTIONS.md`](docs/ENERGY-ASSUMPTIONS.md).
+* The energy figures are an **indicative** monthly calculation (no cooling or summer overheating, no night setback, typical days, a simple battery model, no price growth). It is not an energy performance certificate and not a design. The sources and simplifications are listed on the page and in [`docs/ENERGY-ASSUMPTIONS.md`](docs/ENERGY-ASSUMPTIONS.md).
 * The structure, the details and the building services are not designed; the model is a massing and planning model with construction layers.
 * AR works in Safari on iPhone and iPad (Quick Look); other browsers download the file. The 3D pages need WebGL 2.
 * The renders are stills and a video, not a live path tracer. Rebuilding the models and renders needs Blender 5.1 and the CC0 asset cache, which is not committed.

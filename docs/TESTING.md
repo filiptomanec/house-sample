@@ -22,6 +22,7 @@ npx playwright show-report e2e/playwright-report                          # the 
 * `webServer` starts `npx next start -p 3401` and waits for it; a server that already runs on port 3401 is reused.
 * `BASE_URL=http://localhost:3400 npm run e2e` runs the suite against another server (for example `next dev`) and starts nothing.
   Prefetching, caching and some console messages differ in development; the suite is written for the production build.
+  `BASE_URL=https://<deployment>.vercel.app` runs it against a deployment (see "Checks on deployments" below).
 * Browsers: `npx playwright install chromium webkit` (once). The browsers are not part of `npm install`.
 * A whole run takes about five minutes on a laptop (four workers; two in CI). Reports and traces of failed tests are written to
   `e2e/playwright-report/` and `e2e/test-results/` (both ignored by git); CI uploads the report when the job fails.
@@ -42,10 +43,10 @@ talks plain HTTP and would only repeat itself four times), `@mobile` on the thre
 
 | File | What it checks |
 | --- | --- |
-| `smoke.spec.ts` | every page in `cs` and `en`: status 200, `<html lang>`, title, exactly one `h1`, description, canonical and `hreflang`, no console errors, no sideways scroll; titles unique per language |
-| `navigation.spec.ts` | the bar (wide screens) or the menu (phones) lists every page with the right address and marks the current one; menu keyboard behaviour; the language switch keeps the page; the 404 page |
-| `routing.spec.ts` | HTTP level: root is Czech, `/en/...`, localised slugs, other spellings redirect (308) to the canonical address, unknown addresses answer 404 |
-| `headers.spec.ts` | `model/vnd.usdz+zip` for AR Quick Look, GLB type and cache, immutable media and built assets, `robots.txt`, `sitemap.xml`, web manifest and icons |
+| `smoke.spec.ts` | every page in `cs` and `en`: status 200, `<html lang>`, title, exactly one `h1`, description, canonical, `hreflang` and `x-default` in one URL form, no console errors, no sideways scroll; titles unique per language; the server HTML alone is complete (the `h1` inside `<main>` and before the footer, no `<template id="B:` of a streamed boundary, no client-only `__next_error__` shell) |
+| `navigation.spec.ts` | the bar (wide screens) or the menu (phones) lists every page in route order with the right address (an "About" anchor is allowed) and marks the current one; menu keyboard behaviour; the language switch keeps the page; the 404 page in the language of the address, its links and language switch, and without JavaScript |
+| `routing.spec.ts` | HTTP level: root is Czech, `/en/...`, localised slugs, other spellings redirect (308) to the canonical address; unknown addresses (also `/pudorys/extra`, `/en/index.html`, `/cs/x.y`, `/index.html`, `/models/x.glb`) answer 404 with the styled page as complete server HTML |
+| `headers.spec.ts` | security headers on pages, the 404 page, files and metadata routes (`nosniff`, `Referrer-Policy`, `Permissions-Policy`, CSP `frame-ancestors` with the embed origins of `site-config.ts`, `base-uri`, `object-src`); `model/vnd.usdz+zip` for AR Quick Look, GLB type and cache, immutable media and built assets; `robots.txt`; `sitemap.xml` (every page, `x-default`, the pages' canonical URL form, no build-clock date); every share URL on the canonical host, and against a deployment that host answers; web manifest (house name, light `theme_color`) and icons |
 | `media.spec.ts` | every file named by `public/media/manifest.json` and `public/models/manifest.json` exists, has the recorded size and hash, is the right kind of file, is served, and nothing is left unreferenced |
 | `a11y.spec.ts` | landmarks, heading order, unique ids, names of all controls (from the browser's accessibility tree), skip link, visible keyboard focus |
 | `mobile.spec.ts` | touch targets of at least 44 px, text fields of at least 16 px (no iOS zoom), nothing wider than the screen after scrolling |
@@ -90,27 +91,55 @@ The guard lives in the `page` fixture, so tests that only use `request` (HTTP) o
 * The pixels of a scene are checked by the contrast of an element screenshot (`contrastOf`) and by comparing screenshots before and
   after a switch, never against stored images.
 
+## The 404 page
+
+There is no catch-all route. The proxy rewrites an unknown address into its language with status 404 (`/nic` to `/cs/nic`), no
+route matches there, and Next answers with `src/app/global-not-found.tsx` (`experimental.globalNotFound`): one static page with
+complete server HTML and status 404, the same on `next start` and on Vercel. An address whose first segment is not a language
+(`/index.html`, `/pudorys.html`) would match `[locale]` with a bogus value; `dynamicParams = false` in `[locale]/layout.tsx`
+makes it a router miss as well (without it: an empty `__next_error__` shell). It holds both languages; an inline script picks the
+one of the address before paint (without JavaScript the Czech text shows). `src/app/[locale]/not-found.tsx` only serves
+`notFound()` calls inside real pages. A streamed or client-rendered 404 would answer 200 or show nothing without JavaScript, which
+is what the `<template id="B:` and `__next_error__` assertions guard against.
+
 ## Known issues the suite reports
 
 Found by the tests, not fixed by them. They do not turn the run red, but each leaves a `known-issue` annotation in the report (the
-note while the problem exists, "FIXED: remove the entry" once it is gone). The list is `e2e/helpers/known-issues.ts` plus two
-allowances in `helpers/test.ts` and one in `routing.spec.ts` / `gallery.spec.ts`:
+note while the problem exists, "FIXED: remove the entry" once it is gone). The list is `e2e/helpers/known-issues.ts` plus the
+allowances named below:
 
-* **Language switch prefetch.** On English pages the link to the Czech page is prefetched with the segment path `/$d$locale/__PAGE__`
-  and the production server answers 404 (one failed request and one console line per page view). Suggested fix: `prefetch={false}`
-  on the links of `LanguageSwitch` (switching language changes the root layout, so it is a full page load anyway).
-* **Sideways scroll, iPhone SE, `/en/floor-plan`.** The toolbar (`.pl-bar`) is 23 px wider than the 320 px screen.
-* **Heading levels, Sun page.** The side panel uses `h3` straight after the `h1`.
-* **Touch targets.** The two point selectors of the measuring panel on the Plot page are 26 px high on touch screens; on the
-  568 px high iPhone SE the menu entries shrink to 42 px.
-* **Soft 404.** A known page with something appended (`/pudorys/extra`) is rewritten without the 404 status: the 404 page is served
-  with status 200.
-* **Unhandled view-transition rejection.** Opening and closing the gallery lightbox at once raises "Transition was skipped" as an
-  uncaught error in Chromium (`gallery/morph.ts` does not catch the rejected promises).
+* **Heading levels, Sun page.** The side panel uses `h3` straight after the `h1` (`heading-skip`).
 * **Lost context during a shader compile.** In about one run in ten of the context-loss test in Chromium, three.js throws an uncaught
-  "Cannot read properties of null (reading 'trim')" because the loss falls into the middle of a shader compile; the scene recovers.
+  "Cannot read properties of null (reading 'trim')" because the loss falls into the middle of a shader compile; the scene recovers
+  (allowance in `webgl-context-loss.spec.ts`).
 * **WebKit noise.** WebKit reports a request that a navigation cancelled as a page error "... due to access control checks";
-  the guard ignores exactly that text.
+  the guard in `helpers/test.ts` ignores exactly that text.
+
+Fixed and removed: the language-switch prefetch 404, the sideways scroll of `/en/floor-plan` on the iPhone SE, the small point
+selectors of the Plot page, the soft 404 of `/pudorys/extra` and the uncaught "Transition was skipped" of the gallery lightbox.
+They are plain assertions again.
+
+## Checks on deployments
+
+`.github/workflows/ci.yml` tests a production build with `next start`. That cannot see the platform: Vercel's routing and 404
+handling, the headers it serves, the environment variables (the canonical host) and the deployed media.
+`.github/workflows/deploy-check.yml` runs when Vercel reports a deployment as ready (`deployment_status`, preview and production):
+
+1. It reads the canonical link and `og:image` from the deployed home page and fetches `robots.txt` on the canonical host and the
+   image. A canonical host without DNS fails here.
+2. It runs `smoke`, `routing`, `headers`, `navigation` and `media` with `BASE_URL` set to the deployment, on `desktop` and
+   `iphone-15`.
+
+Setup for the owner (once, in the Vercel and GitHub settings):
+
+* **Deployment protection.** When previews are protected, create a secret under Vercel > Project > Settings > Deployment
+  Protection > Protection Bypass for Automation and store it as the GitHub Actions secret `VERCEL_AUTOMATION_BYPASS_SECRET`. The
+  workflow and `e2e/playwright.config.ts` send it as the `x-vercel-protection-bypass` header.
+* **Deployment Checks.** Vercel > Project > Settings > Deployment Checks: add the GitHub checks `deploy-check` and the CI job
+  "End-to-end (Playwright: desktop Chromium, iPhone and Android emulation)". A production deployment then gets the production
+  domain only after both have passed, so a red run no longer ships.
+* **Canonical host.** `NEXT_PUBLIC_SITE_URL` (Production environment) overrides the default `https://house-sample.vercel.app` of
+  `src/lib/site-config.ts`. Set it to the custom domain only once that domain resolves; step 1 above fails otherwise.
 
 ## Writing a test
 

@@ -21,6 +21,24 @@ export function contrast(a: string, b: string): number {
   return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05);
 }
 
+/** CIE L*a*b* (D65) of an sRGB colour: L* is perceived lightness, 0-100. */
+export function lab(hex: string): [number, number, number] {
+  const lin = parseHex(hex).map((v) => { const c = v / 255; return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; });
+  const [r, g, b] = lin;
+  const xyz = [
+    (0.4124 * r + 0.3576 * g + 0.1805 * b) / 0.95047,
+    0.2126 * r + 0.7152 * g + 0.0722 * b,
+    (0.0193 * r + 0.1192 * g + 0.9505 * b) / 1.08883,
+  ].map((t) => (t > 216 / 24389 ? Math.cbrt(t) : (24389 / 27 * t + 16) / 116));
+  return [116 * xyz[1] - 16, 500 * (xyz[0] - xyz[1]), 200 * (xyz[1] - xyz[2])];
+}
+
+/** Perceived difference of two colours (CIE76 ΔE): about 2.3 is just noticeable, 10 or more reads as a different fill. */
+export function deltaE(a: string, b: string): number {
+  const [l1, a1, b1] = lab(a), [l2, a2, b2] = lab(b);
+  return Math.hypot(l1 - l2, a1 - a2, b1 - b2);
+}
+
 /** Hue (degrees), saturation and value (both 0-1) in the HSV model. */
 export function hsv(hex: string): { h: number; s: number; v: number } {
   const [r, g, b] = parseHex(hex).map((c) => c / 255);

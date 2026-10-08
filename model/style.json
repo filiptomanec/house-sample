@@ -1,8 +1,8 @@
 {
   "schema": "style/1",
   "description": {
-    "cs": "Materiály podle rolí a varianty vzhledu pro web i rendery. Barvy jsou sladěné s tokeny webu (src/styles/tokens.css) a se vzorem: bílá omítka (i sloupy), světlé dřevo na obkladu, antracitová střecha a rámy, tmavé vstupní dveře (role frame), světlé vnitřní dveře (role door_leaf).",
-    "en": "Materials by role and look variants for the web and the renders. Colours are in step with the design tokens (src/styles/tokens.css) and with the model: white plaster (also the posts), light timber cladding, anthracite roof and frames, dark entrance door (role frame), light interior doors (role door_leaf)."
+    "cs": "Materiály podle rolí a varianty vzhledu pro web i rendery. Barvy jsou sladěné s tokeny webu (src/styles/tokens.css): omítka ve slonové kosti, světlé dřevo na obkladu, lamelách, vratech a terase u bazénu, grafitová střecha, rámy, sloupy a sokl. Žádná oranžová ani terakota.",
+    "en": "Materials by role and look variants for the web and the renders. Colours are in step with the design tokens (src/styles/tokens.css): ivory render, light timber on the cladding, louvres, garage door and pool deck, graphite roof, frames, posts and plinth. No orange or terracotta."
   },
   "palette": {
     "graphite": "#1b1e21",
@@ -23,7 +23,7 @@
         "cs": "Dřevěný obklad",
         "en": "Timber cladding"
       },
-      "color": "#d3c6a9",
+      "color": "#cfc2a4",
       "roughness": 0.7
     },
     "frame": {
@@ -56,15 +56,15 @@
     },
     "soffit": {
       "name": {
-        "cs": "Podhled přesahu",
-        "en": "Eaves soffit"
+        "cs": "Podhled střechy",
+        "en": "Soffit"
       },
       "color": "#eeeade",
       "roughness": 0.8
     },
     "fascia": {
       "name": {
-        "cs": "Okapní deska",
+        "cs": "Čelní deska",
         "en": "Fascia"
       },
       "color": "#2d3033",
@@ -86,7 +86,8 @@
         "en": "Roof covering"
       },
       "color": "#34383c",
-      "roughness": 0.75
+      "roughness": 0.42,
+      "metallic": 0.1
     },
     "ridge_cap": {
       "name": {
@@ -122,11 +123,11 @@
     },
     "slab": {
       "name": {
-        "cs": "Základová deska",
-        "en": "Floor slab"
+        "cs": "Sokl a základová deska",
+        "en": "Plinth and floor slab"
       },
-      "color": "#9b9e9d",
-      "roughness": 0.9
+      "color": "#34383c",
+      "roughness": 0.85
     },
     "floor_oak": {
       "name": {
@@ -170,7 +171,7 @@
     },
     "drive_paving": {
       "name": {
-        "cs": "Zpevněná plocha",
+        "cs": "Dlažba příjezdu",
         "en": "Driveway paving"
       },
       "color": "#7e8184",
@@ -194,26 +195,87 @@
     },
     "post": {
       "name": {
-        "cs": "Sloupky",
+        "cs": "Sloupy",
         "en": "Posts"
       },
-      "color": "#efece2",
-      "roughness": 0.85
+      "color": "#2b2e31",
+      "roughness": 0.45,
+      "metallic": 0.3
     },
     "screen_slats": {
       "name": {
-        "cs": "Latě stínění",
-        "en": "Screen slats"
+        "cs": "Lamely terasy",
+        "en": "Louvres"
       },
-      "color": "#d3c6a9",
+      "color": "#cfc2a4",
       "roughness": 0.7
+    },
+    "screen_rail": {
+      "name": {
+        "cs": "Rám lamel",
+        "en": "Louvre frame"
+      },
+      "color": "#2b2e31",
+      "roughness": 0.45,
+      "metallic": 0.3
+    },
+    "deck": {
+      "name": {
+        "cs": "Dřevěná terasa",
+        "en": "Timber deck"
+      },
+      "color": "#c8bea8",
+      "roughness": 0.75
+    },
+    "pool_coping": {
+      "name": {
+        "cs": "Lem bazénu",
+        "en": "Pool coping"
+      },
+      "color": "#d9d6cc",
+      "roughness": 0.8
+    },
+    "pool_liner": {
+      "name": {
+        "cs": "Vnitřek bazénu",
+        "en": "Pool liner"
+      },
+      "color": "#c5d3d1",
+      "roughness": 0.6
+    },
+    "water": {
+      "name": {
+        "cs": "Voda",
+        "en": "Water"
+      },
+      "color": "#7fcfc4",
+      "roughness": 0.03,
+      "metallic": 0.0,
+      "alpha": 0.55
+    },
+    "garage_door": {
+      "name": {
+        "cs": "Garážová vrata",
+        "en": "Garage door"
+      },
+      "color": "#cfc2a4",
+      "roughness": 0.7
+    },
+    "equipment": {
+      "name": {
+        "cs": "Venkovní jednotka tepelného čerpadla",
+        "en": "Heat-pump outdoor unit"
+      },
+      "color": "#34383c",
+      "roughness": 0.5,
+      "metallic": 0.2
     },
     "lawn": {
       "name": {
         "cs": "Trávník",
         "en": "Lawn"
       },
-      "color": "#7da36d",
+      "color": "#5f7f45",
       "roughness": 1.0
     },
     "mulch": {
@@ -225,11 +287,130 @@
       "roughness": 1.0
     }
   },
+  "generated": {
+    "field": {
+      "name": {
+        "cs": "Pole",
+        "en": "Field"
+      },
+      "color": "#9c9566",
+      "roughness": 1.0
+    },
+    "neighbour": {
+      "name": {
+        "cs": "Sousední zahrady",
+        "en": "Neighbouring gardens"
+      },
+      "color": "#6c8752",
+      "roughness": 1.0
+    },
+    "verge": {
+      "name": {
+        "cs": "Travnatý pás u silnice",
+        "en": "Grass verge"
+      },
+      "color": "#6c8752",
+      "roughness": 1.0
+    },
+    "pavement": {
+      "name": {
+        "cs": "Chodník u silnice",
+        "en": "Pavement"
+      },
+      "color": "#b8b6ab",
+      "roughness": 0.9
+    },
+    "carriageway": {
+      "name": {
+        "cs": "Asfalt",
+        "en": "Asphalt"
+      },
+      "color": "#5c6064",
+      "roughness": 0.95
+    },
+    "kerb": {
+      "name": {
+        "cs": "Obrubníky",
+        "en": "Kerbs"
+      },
+      "color": "#c9c7bf",
+      "roughness": 0.85
+    },
+    "foliage_tree": {
+      "name": {
+        "cs": "Listí stromů",
+        "en": "Tree foliage"
+      },
+      "color": "#4e6b3a",
+      "roughness": 0.9
+    },
+    "foliage_shrub": {
+      "name": {
+        "cs": "Listí keřů",
+        "en": "Shrub foliage"
+      },
+      "color": "#5b7a44",
+      "roughness": 0.9
+    },
+    "bark": {
+      "name": {
+        "cs": "Kůra",
+        "en": "Bark"
+      },
+      "color": "#5a4e44",
+      "roughness": 0.95
+    },
+    "neighbour_wall": {
+      "name": {
+        "cs": "Fasády sousedů",
+        "en": "Neighbouring facades"
+      },
+      "color": "#d9d5cb",
+      "roughness": 0.9
+    },
+    "neighbour_roof": {
+      "name": {
+        "cs": "Střechy sousedů",
+        "en": "Neighbouring roofs"
+      },
+      "color": "#565b60",
+      "roughness": 0.6
+    },
+    "fence_wood": {
+      "name": {
+        "cs": "Lamely plotu a bran",
+        "en": "Fence and gate boards"
+      },
+      "color": "#cfc2a4",
+      "roughness": 0.7
+    },
+    "fence_post": {
+      "name": {
+        "cs": "Sloupky plotu a rámy bran",
+        "en": "Fence posts and gate frames"
+      },
+      "color": "#2b2e31",
+      "roughness": 0.45,
+      "metallic": 0.3
+    },
+    "fence_plinth": {
+      "name": {
+        "cs": "Podezdívka plotu",
+        "en": "Fence plinth"
+      },
+      "color": "#34383c",
+      "roughness": 0.85
+    }
+  },
+  "lawnColors": [
+    "#2d4a1a",
+    "#46692a"
+  ],
   "looks": {
     "facade": {
       "label": {
         "cs": "Fasáda",
-        "en": "Façade"
+        "en": "Facade"
       },
       "options": [
         {
@@ -242,23 +423,17 @@
           "set": {
             "plaster": {
               "color": "#efece2"
-            },
-            "post": {
-              "color": "#efece2"
             }
           }
         },
         {
           "id": "pale-grey",
           "name": {
-            "cs": "Světle šedá",
-            "en": "Pale grey"
+            "cs": "Perlová šeď",
+            "en": "Pearl grey"
           },
           "set": {
             "plaster": {
-              "color": "#cfd2d0"
-            },
-            "post": {
               "color": "#cfd2d0"
             }
           }
@@ -266,14 +441,11 @@
         {
           "id": "mint-mist",
           "name": {
-            "cs": "Mátová mlha",
-            "en": "Mint mist"
+            "cs": "Máta",
+            "en": "Mint"
           },
           "set": {
             "plaster": {
-              "color": "#cfe0d6"
-            },
-            "post": {
               "color": "#cfe0d6"
             }
           }
@@ -286,9 +458,6 @@
           },
           "set": {
             "plaster": {
-              "color": "#3c4146"
-            },
-            "post": {
               "color": "#3c4146"
             }
           }
@@ -310,24 +479,30 @@
           "default": true,
           "set": {
             "wood_cladding": {
-              "color": "#d3c6a9"
+              "color": "#cfc2a4"
             },
             "screen_slats": {
-              "color": "#d3c6a9"
+              "color": "#cfc2a4"
+            },
+            "garage_door": {
+              "color": "#cfc2a4"
             }
           }
         },
         {
           "id": "weathered-silver",
           "name": {
-            "cs": "Stříbřité stárnuté",
-            "en": "Weathered silver"
+            "cs": "Šedý modřín",
+            "en": "Weathered larch"
           },
           "set": {
             "wood_cladding": {
               "color": "#8d908b"
             },
             "screen_slats": {
+              "color": "#8d908b"
+            },
+            "garage_door": {
               "color": "#8d908b"
             }
           }
@@ -335,8 +510,8 @@
         {
           "id": "charred-black",
           "name": {
-            "cs": "Opalované černé",
-            "en": "Charred black"
+            "cs": "Opalované dřevo",
+            "en": "Charred timber"
           },
           "set": {
             "wood_cladding": {
@@ -344,6 +519,10 @@
               "roughness": 0.85
             },
             "screen_slats": {
+              "color": "#2b2a28",
+              "roughness": 0.85
+            },
+            "garage_door": {
               "color": "#2b2a28",
               "roughness": 0.85
             }
@@ -352,12 +531,13 @@
         {
           "id": "none",
           "name": {
-            "cs": "Bez dřeva",
-            "en": "No timber"
+            "cs": "Bez obkladu",
+            "en": "No cladding"
           },
           "substitute": {
             "wood_cladding": "plaster",
-            "screen_slats": "frame"
+            "screen_slats": "frame",
+            "garage_door": "frame"
           }
         }
       ]
@@ -387,7 +567,7 @@
         {
           "id": "dark-grey",
           "name": {
-            "cs": "Tmavě šedá",
+            "cs": "Tmavá šeď",
             "en": "Dark grey"
           },
           "set": {
@@ -402,8 +582,8 @@
         {
           "id": "brown-grey",
           "name": {
-            "cs": "Tmavá hnědošedá",
-            "en": "Dark brown-grey"
+            "cs": "Umbra",
+            "en": "Umber"
           },
           "set": {
             "roof_tile": {

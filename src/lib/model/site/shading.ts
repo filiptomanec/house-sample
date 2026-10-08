@@ -1,7 +1,7 @@
 // Shading geometry of the surroundings: neighbour houses, trees, shrubs, hedges and fences as 3D occluders
 // (boxes, convex solids, ellipsoids) in the house frame. Consumed later by the sun analysis (raycasts).
 import { dist, type XY } from "./geometry";
-import { resolveFences, resolveHedges, type AccessGeometry } from "./layout";
+import { resolveBoundary, resolveHedges, type AccessGeometry } from "./layout";
 import {
   prismOf, roofSolid, segmentQuad, orientedRect, type EllipsoidOccluder, type Occluder, type SphereOccluder,
 } from "./occluders";
@@ -61,8 +61,10 @@ export function buildOccluders(site: SiteModel, terrain: Terrain, access: Access
       out.push(prismOf(segmentQuad(a, b, h.width), zLo, zHi + h.height, { id: h.id, role: "hedge", extinction: sp.extinction, evergreen: sp.evergreen }));
     }
   }
-  const fenceExtinction = { mesh_fence: { leafOn: 0.4, leafOff: 0.4 }, wood_fence: undefined, plinth_fence: undefined };
-  for (const f of resolveFences(site, access)) {
+  // a slat fence is close to opaque for a low sun (narrow gaps, boards seen at a slant); mesh lets most light through
+  const fenceExtinction = { mesh_fence: { leafOn: 0.4, leafOff: 0.4 }, wood_fence: undefined, plinth_fence: undefined, slat_fence: undefined };
+  const boundary = resolveBoundary(site, access);
+  for (const f of boundary.fences) {
     for (const part of f.parts) {
       for (const [a, b] of splitPath(part, maxSeg)) {
         const zLo = Math.min(ground(a[0], a[1]), ground(b[0], b[1]));
@@ -70,6 +72,15 @@ export function buildOccluders(site: SiteModel, terrain: Terrain, access: Access
         out.push(prismOf(segmentQuad(a, b, f.thickness), zLo, zHi + f.height, { id: f.id, role: "fence", extinction: fenceExtinction[f.kind] }));
       }
     }
+  }
+  // closed gate leaves and the pillars stand in the fence openings
+  for (const g of boundary.gates) {
+    const zs = g.leafPolygon.map((p) => ground(p[0], p[1]));
+    out.push(prismOf(g.leafPolygon, Math.min(...zs), Math.max(...zs) + g.height, { id: g.id, role: "fence" }));
+  }
+  for (const p of boundary.pillars) {
+    const zs = p.footprint.map((q) => ground(q[0], q[1]));
+    out.push(prismOf(p.footprint, Math.min(...zs), Math.max(...zs) + p.size[2], { id: p.id, role: "fence" }));
   }
   for (const nb of site.neighbours) {
     const { center, size, rotDeg, eaveHeight, roof } = nb.house;

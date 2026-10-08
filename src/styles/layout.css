@@ -1,48 +1,132 @@
-/* Layout primitives: page shell, sections, grids, panels, the heading block of the tool pages. */
+/* Layout primitives: page shell, sections, the 12-column grid, panels, the heading block of the tool pages (ToolHead),
+   the page index, the closing blocks of a tool page (MethodNote, NextTool).
+   One grid: secondary blocks (a lede beside a heading, index descriptions, the footer columns) start at column 8 of 12. */
 
 .shell { width: 100%; max-width: var(--shell); margin-inline: auto; padding-inline: var(--gutter-l) var(--gutter-r); }
 .section { padding-block: var(--section-y); }
 .section-sm { padding-block: var(--section-y-sm); }
 .rule { border: 0; border-top: 1px solid var(--rule); margin: 0; }
-.grid-12 { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: clamp(16px, 2vw, 28px); }
+.grid-12 { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--grid-gap); }
 .stack { display: grid; gap: 18px; }
 .cols-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-4); }
 .panel { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r-md); }
 .panel-pad { padding: clamp(16px, 2vw, 24px); }
-.split-head { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 20px 48px; align-items: end; margin-bottom: clamp(28px, 4vw, 48px); }
 
-/* kicker: small number + label above a heading */
-.kicker { display: flex; align-items: baseline; gap: 14px; margin: 0 0 clamp(20px, 3vw, 36px); }
-.kicker .n { font: var(--weight-medium) var(--fs-xs) / 1 var(--font-mono); color: var(--accent-ink); letter-spacing: 0.06em; }
+/* heading | lede: the heading takes seven columns, the lede starts at column 8 and sits on the heading's last line */
+.split-head { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--grid-gap); row-gap: 20px; align-items: end; margin-bottom: clamp(28px, 4vw, 56px); }
+.split-head > :first-child { grid-column: 1 / span 7; }
+.split-head > :last-child:not(:first-child) { grid-column: 8 / -1; }
+.split-head > .body, .split-head > .lede { padding-bottom: 0.3em; }
 
-/* the heading block of a tool page (ToolHead) */
+/* kicker: the mint hairline, then an optional page number and a label ("— 03 — Pozemek" without the dashes in the markup) */
+.kicker { display: flex; align-items: center; gap: var(--sp-3); margin: 0 0 clamp(20px, 3vw, 36px); font: var(--weight-medium) var(--fs-label) / 1.2 var(--font-mono); letter-spacing: var(--tracking-label); text-transform: uppercase; color: var(--ink-3); }
+.kicker::before { content: ""; width: var(--hairline); height: 1px; background: var(--accent); flex: none; }
+.kicker .n { font: inherit; color: var(--ink); letter-spacing: 0.06em; }
+.kicker .label { font-size: inherit; }
+/* number and label are joined by a dash drawn here, so the markup stays "03" + "Pozemek" */
+.kicker .n + :is(.label, .kicker-label)::before { content: "\2014\a0"; color: var(--ink-3); }
+.kicker .kicker-label { color: var(--ink-3); }
+
+/* ---------------------------------------------------------------- the heading block of a tool page (ToolHead)
+   kicker on its own row; the two-voice h1 on the left eight columns; the lede (and an aside) in the right column,
+   standing on the h1's last line. */
 .tool-head {
-  padding-top: calc(var(--nav-h) + env(safe-area-inset-top) + clamp(28px, 5vw, 64px));
-  padding-bottom: clamp(20px, 3vw, 36px);
-  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px 40px; align-items: end;
+  padding-top: calc(var(--nav-h) + env(safe-area-inset-top) + clamp(32px, 6vw, 88px));
+  padding-bottom: clamp(28px, 4vw, 56px);
+  display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--grid-gap); row-gap: clamp(16px, 2vw, 28px);
+  align-items: end;
 }
-.tool-head .kicker { grid-column: 1; margin: 0; }
-.tool-head .h1, .tool-head .lede { grid-column: 1; }
-.tool-head .aside { grid-column: 2; grid-row: 1 / span 3; align-self: end; text-align: right; }
+.tool-head .kicker { grid-column: 1 / -1; margin: 0; }
+.tool-head .h1 { grid-column: 1 / span 8; max-width: 16ch; }
+.tool-head .tool-side { grid-column: 9 / -1; display: grid; gap: var(--sp-4); justify-items: start; padding-bottom: 0.45em; }
+.tool-head .tool-side .lede { max-width: 40ch; }
+/* older markup (lede and aside as direct children) keeps working */
+.tool-head > .lede { grid-column: 1 / span 8; }
+.tool-head > .aside { grid-column: 9 / -1; justify-self: start; }
 
-/* index: a numbered list of pages with a one-line description (home page, section overviews) */
+/* ---------------------------------------------------------------- index: a numbered list of pages with a one-line description */
 .index { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--rule-2); }
-.index a { display: grid; grid-template-columns: 3em minmax(0, 1fr) minmax(0, 1fr) 2em; align-items: baseline; gap: var(--sp-4); padding: clamp(16px, 2vw, 26px) 0; border-bottom: 1px solid var(--rule); text-decoration: none; transition: padding var(--dur-3) var(--ease); }
-.index a:hover { padding-left: var(--sp-3); }
-.index a:hover .a { transform: translateX(6px); color: var(--accent-ink); }
-.index .n { font: var(--weight-medium) var(--fs-xs) / 1 var(--font-mono); color: var(--accent-ink); }
-.index b { font-size: clamp(1.625rem, 3.4vw, 3rem); font-weight: var(--weight-strong); letter-spacing: -0.045em; line-height: 1.05; }
-.index .d { color: var(--ink-2); font-size: 1rem; }
-.index .a { font-size: 1.375rem; justify-self: end; transition: transform var(--dur-2) var(--ease), color var(--dur-1); }
+.index a {
+  display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--grid-gap); align-items: baseline;
+  padding: clamp(18px, 2.2vw, 30px) 0; border-bottom: 1px solid var(--rule); text-decoration: none;
+  transition: background var(--dur-2) var(--ease);
+}
+.index a > * { transition: transform var(--dur-3) var(--ease), color var(--dur-1); }
+.index .n { grid-column: 1; font: var(--weight-medium) var(--fs-xs) / 1 var(--font-mono); letter-spacing: 0.06em; color: var(--ink-3); }
+.index b { grid-column: 2 / 8; font-size: var(--fs-index); font-weight: var(--weight-strong); letter-spacing: -0.045em; line-height: 1.05; }
+.index .d { grid-column: 8 / 12; color: var(--ink-2); font-size: var(--fs-base); }
+.index .a { grid-column: 12; justify-self: end; align-self: center; }
+@media (hover: hover) {
+  .index a:hover { background: color-mix(in srgb, var(--ink) 3%, transparent); }
+  .index a:hover b, .index a:hover .d { transform: translateX(12px); }
+  .index a:hover .a { transform: translateX(6px); color: var(--accent-ink); }
+}
+/* the long thin arrow (a mask, so it takes the text colour); the glyph inside stays for the markup only */
+.index .a, .arrow {
+  display: inline-block; width: 28px; height: 12px; flex: none;
+  overflow: hidden; color: inherit; text-indent: 100%; white-space: nowrap;
+  background: currentColor;
+  /* unprefixed only: Lightning CSS adds -webkit-mask where needed (see style.test.ts) */
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 12'%3E%3Cpath d='M0 6h26M21 1l5 5-5 5' fill='none' stroke='black' stroke-width='1.5'/%3E%3C/svg%3E") center / contain no-repeat;
+}
 
+/* ---------------------------------------------------------------- MethodNote: "how it is calculated", the same last block on every tool page */
+.method { border-top: 1px solid var(--rule-2); border-bottom: 1px solid var(--rule); margin-top: var(--section-y-sm); }
+.method > summary {
+  list-style: none; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: var(--sp-4);
+  min-height: var(--touch); padding-block: var(--sp-4);
+}
+.method > summary::-webkit-details-marker { display: none; }
+.method > summary .label { display: inline-flex; align-items: center; gap: var(--sp-3); color: var(--ink); }
+.method > summary .label::before { content: ""; width: var(--hairline); height: 1px; background: var(--accent); flex: none; }
+/* plus that turns into a minus */
+.method-icon { position: relative; width: 14px; height: 14px; flex: none; }
+.method-icon::before, .method-icon::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 1.5px; margin-top: -0.75px; background: currentColor; transition: transform var(--dur-2) var(--ease); }
+.method-icon::after { transform: rotate(90deg); }
+.method[open] .method-icon::after { transform: rotate(0deg); }
+.method-body { padding: var(--sp-2) 0 var(--sp-7); column-width: 34ch; column-gap: clamp(32px, 5vw, 80px); color: var(--ink-2); max-width: 140ch; }
+.method-body > * { break-inside: avoid; }
+.method-body > * + * { margin-top: var(--sp-3); }
+.method-body :is(h3, h4) { font-size: var(--fs-base); letter-spacing: -0.015em; color: var(--ink); line-height: 1.3; }
+
+/* ---------------------------------------------------------------- NextTool: the hand-off to the next page, after MethodNote */
+.next-tool { margin-top: clamp(40px, 5vw, 72px); padding-bottom: var(--section-y-sm); }
+.next-tool a {
+  display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--grid-gap); row-gap: var(--sp-3); align-items: end;
+  padding: clamp(24px, 3vw, 40px) 0; border-top: 1px solid var(--rule-2); border-bottom: 1px solid var(--rule); text-decoration: none;
+}
+.next-tool .kicker { grid-column: 1 / -1; margin: 0; }
+.next-tool b { grid-column: 1 / span 7; font-size: var(--fs-xl); font-weight: var(--weight-strong); letter-spacing: -0.044em; line-height: 1; text-wrap: balance; transition: transform var(--dur-3) var(--ease); }
+.next-tool .d { grid-column: 8 / 12; color: var(--ink-2); padding-bottom: 0.3em; }
+.next-tool .arrow { grid-column: 12; justify-self: end; margin-bottom: 0.7em; width: 40px; height: 16px; transition: transform var(--dur-3) var(--ease), color var(--dur-1); }
+@media (hover: hover) {
+  .next-tool a:hover b { transform: translateX(12px); }
+  .next-tool a:hover .arrow { transform: translateX(8px); color: var(--accent-ink); }
+}
+
+/* ---------------------------------------------------------------- narrower screens */
+@media (max-width: 1180px) {
+  .tool-head .h1 { grid-column: 1 / -1; max-width: 18ch; }
+  .tool-head .tool-side { grid-column: 1 / span 8; padding-bottom: 0; }
+  .tool-head > .aside { grid-column: 1 / -1; }
+}
 @media (max-width: 900px) {
-  .split-head { grid-template-columns: 1fr; }
-  .tool-head { grid-template-columns: 1fr; }
-  .tool-head .aside { grid-column: 1; grid-row: auto; text-align: left; }
+  .split-head > :first-child, .split-head > :last-child:not(:first-child) { grid-column: 1 / -1; }
+  .tool-head .tool-side { grid-column: 1 / -1; }
+  .index b { grid-column: 2 / 9; }
+  .index .d { grid-column: 9 / 12; font-size: var(--fs-sm); }
+  .next-tool b, .next-tool .d { grid-column: 1 / 12; }
 }
 @media (max-width: 640px) {
   .cols-2 { grid-template-columns: minmax(0, 1fr); }
-  .index a { grid-template-columns: 2.4em minmax(0, 1fr) 1.5em; }
+  .index a { grid-template-columns: 2.4em minmax(0, 1fr) 28px; row-gap: 4px; }
+  .index .n { grid-column: 1; }
+  .index b { grid-column: 2; }
   .index .d { grid-column: 2; grid-row: 2; font-size: var(--fs-sm); }
   .index .a { grid-column: 3; grid-row: 1; }
+  .next-tool a { grid-template-columns: minmax(0, 1fr) auto; }
+  .next-tool b { grid-column: 1; }
+  .next-tool .d { grid-column: 1; grid-row: 3; }
+  .next-tool .arrow { grid-column: 2; grid-row: 2; }
+  .method-body { column-width: auto; columns: 1; }
 }

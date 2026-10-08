@@ -255,8 +255,11 @@ describe("openings", () => {
     });
   });
   it("V-SEVER: a bedroom or children's room glazed to the north only", () => {
-    const cand = d.rooms.find((r) => (r.type === "bedroom" || r.type === "kids") && r.glazing.N > 0 && r.glazing.total > r.glazing.N)!;
-    wantWarning("V-SEVER", (h) => removeOpenings(h, (o) => derivedOpening(o.id).room === cand.id && derivedOpening(o.id).dir !== "N"));
+    const cand = d.rooms.find((r) => (r.type === "bedroom" || r.type === "kids") && r.glazing.N > 0 && r.glazing.total > r.glazing.N);
+    if (cand) wantWarning("V-SEVER", (h) => removeOpenings(h, (o) => derivedOpening(o.id).room === cand.id && derivedOpening(o.id).dir !== "N"));
+    // a habitable room glazed only to the north becomes a children's room
+    const north = roomIdWhere((r) => r.heated && r.glazing.N > 0 && r.glazing.total === r.glazing.N && r.type !== "kids" && r.type !== "bedroom");
+    wantWarning("V-SEVER", (h) => (room(h, (r) => r.id === north).type = "kids"));
   });
   it("V-BEZ-OKNA: a study without windows", () => {
     const office = roomIdWhere((r) => r.type === "office");
@@ -282,7 +285,7 @@ describe("roofs, outdoor areas, furniture", () => {
     wantError("E-STRECHA", (h) => (h.roofs[0].rect = [h.roofs[0].rect[0] + 3, h.roofs[0].rect[1], h.roofs[0].rect[2], h.roofs[0].rect[3]]));
   });
   it("E-TERASA: a covered area outside every roof", () =>
-    wantError("E-TERASA", (h) => h.outdoor.push({ id: "OX", type: "terrace", covered: true, rect: [100, 100, 102, 102], posts: [[100, 100]] })));
+    wantError("E-TERASA", (h) => h.outdoor.push({ id: "OX", type: "terrace", covered: true, rect: [100, 100, 102, 102], posts: [[100, 100]], postSize: 0.2 })));
   it("V-TERASA-SLOUPY and V-SLOUP-MIMO", () => {
     wantWarning("V-TERASA-SLOUPY", (h) => (h.outdoor.find((o) => o.covered)!.posts = []));
     wantWarning("V-SLOUP-MIMO", (h) => h.outdoor.find((o) => o.covered)!.posts!.push([100, 100]));
@@ -313,12 +316,55 @@ describe("extensions of house/1", () => {
   it("V-U-ZED, V-U-STRECHA, V-U-PODLAHA: too little insulation", () => {
     const thin = (a: House["assemblies"]["roof"]): void => a.layers.forEach((l) => l.role === "insulation" && (l.t = 0.01));
     wantWarning("V-U-ZED", (h) => thin(h.assemblies.exteriorWall));
-    wantWarning("V-U-STRECHA", (h) => thin(h.assemblies.roof));
+    wantWarning("V-U-STRECHA", (h) => thin(h.assemblies[d.topEnvelope])); // the roof, or the ceiling under a cold attic
+    wantWarning("V-U-STRECHA", (h) => {
+      h.roof.attic = h.roof.attic === "cold" ? "warm" : "cold";
+      thin(h.assemblies[h.roof.attic === "cold" ? "ceiling" : "roof"]);
+    });
     wantWarning("V-U-PODLAHA", (h) => thin(h.assemblies.groundFloor));
   });
   it("V-FVE-NULA: modules larger than the roof", () => wantWarning("V-FVE-NULA", (h) => (h.equipment.pv.module.width = 50)));
   it("V-SVETLOVOD-MIMO", () => wantWarning("V-SVETLOVOD-MIMO", (h) => h.lightpipes.push([-50, -50])));
   it("V-SVOD-UDOLI: no downpipe at a valley", () => wantWarning("V-SVOD-UDOLI", (h) => (h.roof.downpipes = [])));
+  it("V-SVOD-OKAP: a single downpipe for the whole gutter", () => wantWarning("V-SVOD-OKAP", (h) => (h.roof.downpipes = h.roof.downpipes.slice(0, 1))));
+  it("V-TAGLINE", () => wantWarning("V-TAGLINE", (h) => delete h.tagline));
+});
+
+describe("pool, louvres, cameras (R2)", () => {
+  const paving = () => d.outdoor.filter((o) => !o.covered && o.type === "paving").sort((a, b) => b.area - a.area)[0];
+  it("a pool inside a paved area and clear of the house is fine", () => {
+    const p = paving();
+    const r = run((h) => {
+      if (!h.zones.outdoor.types.includes("pool")) h.zones.outdoor.types.push("pool");
+      h.outdoor.push({ id: "PX", type: "pool", rect: [p.rect[0] + 0.6, p.rect[1] + 0.6, p.rect[2] - 0.6, p.rect[3] - 0.6], depth: 1.4, waterBelowTop: 0.12, coping: 0.3 });
+    });
+    expect(r.errors).toEqual([]);
+  });
+  it("E-BAZEN: a pool on the lawn, a pool in the house", () => {
+    const b = d.outline.bbox!;
+    wantError("E-BAZEN", (h) => h.outdoor.push({ id: "PX", type: "pool", rect: [b.x0 - 30, b.y0 - 30, b.x0 - 22, b.y0 - 26], depth: 1.4, waterBelowTop: 0.12, coping: 0.3 }));
+    const cx = (b.x0 + b.x1) / 2, cy = (b.y0 + b.y1) / 2;
+    wantError("E-BAZEN", (h) => h.outdoor.push({ id: "PX", type: "pool", rect: [cx - 2, cy - 1, cx + 2, cy + 1], depth: 1.4, waterBelowTop: 0.12, coping: 0.3 }));
+  });
+  it("E-TYP: a pool without its depth, pool fields on paving, posts without a size", () => {
+    const p = paving();
+    expect(run((h) => h.outdoor.push({ id: "PX", type: "pool", rect: [p.rect[0] + 1, p.rect[1] + 0.6, p.rect[0] + 3, p.rect[3] - 0.6], waterBelowTop: 0.12, coping: 0.3 })).errors).toContain("E-TYP");
+    expect(run((h) => (h.outdoor.find((o) => o.type === "paving")!.depth = 1)).errors).toContain("E-TYP");
+    expect(run((h) => delete h.outdoor.find((o) => o.posts?.length)!.postSize).errors).toContain("E-TYP");
+  });
+  it("E-LAMELY: blades narrower than the pitch, too thick, a rest angle beyond the closed stop", () => {
+    wantError("E-LAMELY", (h) => (h.shading.slats.depth = h.shading.slats.pitch * 0.9));
+    wantError("E-LAMELY", (h) => (h.shading.slats.width = h.shading.slats.pitch * 0.9));
+    wantError("E-LAMELY", (h) => (h.shading.slats.restDeg = 0));
+  });
+  it("E-KAMERA: two default views, a default view that is not on the web", () => {
+    wantError("E-KAMERA", (h) => h.cameras.slice(0, 2).forEach((c) => (c.default = true)));
+    wantError("E-KAMERA", (h) => {
+      const c = h.cameras[0];
+      c.use = ["render"];
+      c.defaultFor = ["narrow"];
+    });
+  });
 });
 
 describe("coverage of the code registry", () => {

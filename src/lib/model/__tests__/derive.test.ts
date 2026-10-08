@@ -26,21 +26,43 @@ describe("orientation", () => {
     expect(r.outline).toEqual(d.outline);
     expect(r.facings.S.azimuthDeg).toBe((180 + 100) % 360);
     expect(r.roofPlanes[0].azimuthTrue).toBe((r.roofPlanes[0].azimuth + 100) % 360);
-    // the blind rule works on true azimuth, so it can select different openings
-    expect(r.openings.filter((o) => o.blind).map((o) => o.id)).not.toEqual(d.openings.filter((o) => o.blind).map((o) => o.id));
+    // a partial blind range works on true azimuth, so turning the house can select different openings
+    const partial = (bearing: number) => {
+      const h = cloneHouse();
+      h.location.houseAxisBearingDeg = bearing;
+      h.shading.blinds.azimuthFrom = 135;
+      h.shading.blinds.azimuthTo = 315;
+      return derive(h).openings.filter((o) => o.blind).map((o) => o.id);
+    };
+    expect(partial(100)).not.toEqual(partial(house.location.houseAxisBearingDeg));
   });
 
-  it("exterior openings know the roof above them (overhang, eave height, wall top)", () => {
+  it("exterior openings know the roof in front of them: the depth reaches the edge of the roof plan", () => {
+    const eaves = d.roofs.map((r) => r.eaveRect);
+    const inside = (x: number, y: number) => eaves.some((q) => x > q[0] && x < q[2] && y > q[1] && y < q[3]);
     for (const o of d.openings) {
       if (!o.exterior) {
         expect(o.overhang).toBeNull();
         continue;
       }
       expect(o.overhang, o.id).not.toBeNull();
-      const roof = d.roofs.find((r) => r.wallTop === o.overhang!.wallTop && r.overhang === o.overhang!.depth && r.eaveHeight === o.overhang!.eaveHeight);
-      expect(roof, o.id).toBeDefined();
-      // the eave is below the head of the opening only if the roof is very low: not the case for a house with a ceiling slab
-      expect(o.overhang!.wallTop).toBeGreaterThan(o.head);
+      const ov = o.overhang!;
+      const wall = d.walls.find((w) => w.id === o.wallId)!;
+      const n = [Math.round(Math.sin(((o.azimuth as number) * Math.PI) / 180)), Math.round(Math.cos(((o.azimuth as number) * Math.PI) / 180))];
+      const face = [o.cx + (n[0] * wall.t) / 2, o.cy + (n[1] * wall.t) / 2];
+      // just before the depth the point is under a roof, just after it is not
+      expect(inside(face[0] + n[0] * (ov.depth - 0.01), face[1] + n[1] * (ov.depth - 0.01)), o.id).toBe(true);
+      expect(inside(face[0] + n[0] * (ov.depth + 0.01), face[1] + n[1] * (ov.depth + 0.01)), o.id).toBe(false);
+      // at least the overhang of the roof above, and the shading edge never above the wall top
+      const roof = d.roofs.find((r) => r.wallTop === ov.wallTop)!;
+      expect(ov.depth, o.id).toBeGreaterThanOrEqual(roof.overhang - 1e-6);
+      expect(ov.eaveHeight, o.id).toBeLessThanOrEqual(ov.wallTop + 1e-9);
+      expect(ov.wallTop).toBeGreaterThan(o.head);
+      // in front of a covered outdoor area the shading edge is the soffit
+      const near = [face[0] + n[0] * 0.1, face[1] + n[1] * 0.1];
+      const covered = house.outdoor.some((a) => a.covered && near[0] > a.rect[0] && near[0] < a.rect[2] && near[1] > a.rect[1] && near[1] < a.rect[3]);
+      if (covered) expect(ov.eaveHeight, o.id).toBe(house.clearHeight);
+      else expect(ov.eaveHeight, o.id).toBeCloseTo(roof.eaveHeight, 4);
     }
   });
 
@@ -90,7 +112,7 @@ describe("rooms", () => {
 
 describe("assemblies", () => {
   const independentU = (key: keyof typeof house.assemblies, ignoreOutside = false): number => {
-    const a = house.assemblies[key];
+    const a = house.assemblies[key]!;
     const vent = a.layers.findIndex((l) => l.ventilated);
     const layers = ignoreOutside && vent >= 0 ? a.layers.slice(vent + 1) : a.layers;
     const R = layers.reduce((s, l) => s + (l.lambda ? l.t / l.lambda : (l.r ?? 0)), 0);
@@ -107,7 +129,8 @@ describe("assemblies", () => {
 
   it("the envelope meets the low-energy targets of the project", () => {
     expect(d.assemblies.exteriorWall.U).toBeLessThanOrEqual(U_LIMITS.exteriorWall);
-    expect(d.assemblies.roof.U).toBeLessThanOrEqual(U_LIMITS.roof);
+    // the roof or, under a cold attic, the ceiling closes the heated volume at the top
+    expect(d.assemblies[d.topEnvelope].U).toBeLessThanOrEqual(U_LIMITS.roof);
     expect(d.assemblies.groundFloor.U).toBeLessThanOrEqual(U_LIMITS.groundFloor);
     expect(house.windows.Uw).toBeLessThanOrEqual(1.0);
   });
