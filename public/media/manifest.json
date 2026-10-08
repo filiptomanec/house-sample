@@ -1,5 +1,6 @@
 {
   "schema": "media/1",
+  "inputHash": "399fe6bb6974bc62d1ec5afbb8956c30aa57927c1b17b05a1c6303b48f4a3b28",
   "day": {
     "date": "2026-06-21",
     "times": [
@@ -24,189 +25,253 @@
       "19:20",
       "19:40",
       "20:00",
-      "20:15",
+      "20:10",
+      "20:20",
       "20:30",
-      "20:45",
+      "20:40",
+      "20:50",
       "21:00",
-      "21:15",
-      "21:30",
-      "21:45",
-      "22:00",
-      "22:15"
+      "21:10",
+      "21:20",
+      "21:30"
     ],
-    "stillTime": "17:40",
-    "hash": "45b4136b48",
+    "stillTime": "13:00",
+    "hash": "b0f113d9bc",
     "landscape": {
       "pattern": "media/day/l/{time}.{hash}.jpg",
-      "width": 1024,
-      "height": 576
+      "width": 1920,
+      "height": 1080
     },
     "portrait": {
       "pattern": "media/day/p/{time}.{hash}.jpg",
-      "width": 480,
-      "height": 720
+      "width": 800,
+      "height": 1200
     }
   },
   "orbit": {
     "frames": 60,
     "degPerFrame": 6,
-    "hash": "ace4e72efd",
+    "hash": "790a640781",
     "landscape": {
       "pattern": "media/orbit/l/{i}.{hash}.jpg",
-      "width": 1024,
-      "height": 576
+      "width": 1600,
+      "height": 900
     },
     "portrait": {
       "pattern": "media/orbit/p/{i}.{hash}.jpg",
-      "width": 480,
-      "height": 720
+      "width": 600,
+      "height": 900
+    },
+    "video": {
+      "file": "media/orbit/orbit.1967cc42fa.mp4",
+      "poster": "media/orbit/poster.77ed34e414.jpg",
+      "width": 1600,
+      "height": 900,
+      "fps": 24,
+      "durationS": 12.5
     }
   },
   "stills": [
     {
+      "id": "street-sunset",
+      "file": "media/stills/street-sunset.0a3c20b4fd.jpg",
+      "width": 1920,
+      "height": 1080,
+      "date": "2026-06-21",
+      "time": "20:15",
+      "category": "exterior",
+      "title": {
+        "cs": "Vstup od ulice při západu slunce",
+        "en": "Entrance from the street at sunset"
+      },
+      "alt": {
+        "cs": "Severní fasáda s vraty garáže a vstupem v zlatém večerním světle, v oknech se rozsvěcí světlo.",
+        "en": "The north facade with the garage door and the entrance in golden evening light, the windows starting to glow."
+      }
+    },
+    {
       "id": "garden-afternoon",
-      "file": "media/stills/garden-afternoon.f16b658810.jpg",
-      "width": 1024,
-      "height": 576,
+      "file": "media/stills/garden-afternoon.256f4f7186.jpg",
+      "width": 1920,
+      "height": 1080,
       "date": "2026-06-21",
-      "time": "17:30",
+      "time": "16:40",
       "category": "exterior",
       "title": {
-        "cs": "Pohled ze zahrady",
-        "en": "Garden view"
+        "cs": "Zahrada a terasa odpoledne",
+        "en": "Garden and terrace in the afternoon"
       },
       "alt": {
-        "cs": "Pohled ze zahrady (zástupný render)",
-        "en": "Garden view (placeholder render)"
+        "cs": "Krytá terasa s jídelním stolem a lehátkem, za ní zahrada a jižní fasáda domu v odpoledním slunci.",
+        "en": "The covered terrace with the dining table and the lounger, the garden and the south facade of the house in afternoon sun."
       }
     },
     {
-      "id": "garden-dusk",
-      "file": "media/stills/garden-dusk.bd340bef92.jpg",
-      "width": 1024,
-      "height": 576,
-      "date": "2026-06-21",
-      "time": "21:10",
-      "category": "exterior",
-      "title": {
-        "cs": "Pohled ze zahrady",
-        "en": "Garden view"
-      },
-      "alt": {
-        "cs": "Pohled ze zahrady (zástupný render)",
-        "en": "Garden view (placeholder render)"
-      }
-    },
-    {
-      "id": "street-morning",
-      "file": "media/stills/street-morning.266355fb82.jpg",
-      "width": 1024,
-      "height": 576,
-      "date": "2026-05-15",
-      "time": "09:30",
-      "category": "exterior",
-      "title": {
-        "cs": "Pohled od ulice",
-        "en": "Street view"
-      },
-      "alt": {
-        "cs": "Pohled od ulice (zástupný render)",
-        "en": "Street view (placeholder render)"
-      }
-    },
-    {
-      "id": "entry-morning",
-      "file": "media/stills/entry-morning.6711f640c2.jpg",
-      "width": 1024,
-      "height": 576,
-      "date": "2026-05-15",
-      "time": "10:00",
-      "category": "exterior",
-      "title": {
-        "cs": "Příchod ke vchodu",
-        "en": "Approach to the entrance"
-      },
-      "alt": {
-        "cs": "Příchod ke vchodu (zástupný render)",
-        "en": "Approach to the entrance (placeholder render)"
-      }
-    },
-    {
-      "id": "terrace-summer",
-      "file": "media/stills/terrace-summer.295d97b8db.jpg",
-      "width": 1024,
-      "height": 576,
-      "date": "2026-07-15",
-      "time": "16:30",
-      "category": "detail",
-      "title": {
-        "cs": "Krytá terasa",
-        "en": "Covered terrace"
-      },
-      "alt": {
-        "cs": "Krytá terasa (zástupný render)",
-        "en": "Covered terrace (placeholder render)"
-      }
-    },
-    {
-      "id": "aerial-south-west",
-      "file": "media/stills/aerial-south-west.22958513be.jpg",
-      "width": 1024,
-      "height": 576,
-      "date": "2026-09-23",
-      "time": "14:00",
-      "category": "aerial",
-      "title": {
-        "cs": "Z ptačí perspektivy od jihozápadu",
-        "en": "Aerial view from the south-west"
-      },
-      "alt": {
-        "cs": "Z ptačí perspektivy od jihozápadu (zástupný render)",
-        "en": "Aerial view from the south-west (placeholder render)"
-      }
-    },
-    {
-      "id": "aerial-south-east",
-      "file": "media/stills/aerial-south-east.c8702c0b6e.jpg",
-      "width": 1024,
-      "height": 576,
-      "date": "2026-09-23",
-      "time": "16:30",
-      "category": "aerial",
-      "title": {
-        "cs": "Z ptačí perspektivy od jihovýchodu",
-        "en": "Aerial view from the south-east"
-      },
-      "alt": {
-        "cs": "Z ptačí perspektivy od jihovýchodu (zástupný render)",
-        "en": "Aerial view from the south-east (placeholder render)"
-      }
-    },
-    {
-      "id": "street-dusk",
-      "file": "media/stills/street-dusk.6cff3b1bce.jpg",
-      "width": 1024,
-      "height": 576,
+      "id": "terrace-evening",
+      "file": "media/stills/terrace-evening.faab346102.jpg",
+      "width": 1920,
+      "height": 1080,
       "date": "2026-06-21",
       "time": "21:15",
       "category": "exterior",
       "title": {
-        "cs": "Pohled od ulice",
-        "en": "Street view"
+        "cs": "Osvětlená terasa za soumraku",
+        "en": "The lit terrace at dusk"
       },
       "alt": {
-        "cs": "Pohled od ulice (zástupný render)",
-        "en": "Street view (placeholder render)"
+        "cs": "Osvětlená terasa a okna obýváku po západu slunce, na obloze doznívá oranžová záře.",
+        "en": "The lit terrace and the living room windows after sunset, an orange glow fading in the sky."
+      }
+    },
+    {
+      "id": "aerial",
+      "file": "media/stills/aerial.60cac40336.jpg",
+      "width": 1920,
+      "height": 1080,
+      "date": "2026-06-21",
+      "time": "18:30",
+      "category": "aerial",
+      "title": {
+        "cs": "Dům z ptačí perspektivy",
+        "en": "The house from above"
+      },
+      "alt": {
+        "cs": "Pohled shora od jihozápadu: dlouhá valbová střecha s fotovoltaikou, zahrada, sousední domy a ulice.",
+        "en": "A view from above from the south-west: the long hip roof with solar panels, the garden, the neighbouring houses and the street."
+      }
+    },
+    {
+      "id": "terrace-detail",
+      "file": "media/stills/terrace-detail.c15009f040.jpg",
+      "width": 1920,
+      "height": 1080,
+      "date": "2026-06-21",
+      "time": "17:45",
+      "category": "exterior",
+      "title": {
+        "cs": "Detail terasy",
+        "en": "Terrace detail"
+      },
+      "alt": {
+        "cs": "Dřevěné svislé lamely stíní západní stranu terasy, závěsné lehátko a stolek s lucernou.",
+        "en": "Vertical timber slats shade the west side of the terrace, with a hanging daybed and a side table with a lantern."
+      }
+    },
+    {
+      "id": "living-garden",
+      "file": "media/stills/living-garden.da28ff4b5c.jpg",
+      "width": 1920,
+      "height": 1080,
+      "date": "2026-06-21",
+      "time": "11:00",
+      "category": "interior",
+      "title": {
+        "cs": "Obývací pokoj s kuchyní a výhledem do zahrady",
+        "en": "Living room and kitchen looking to the garden"
+      },
+      "alt": {
+        "cs": "Světlý otevřený prostor s kuchyňským ostrovem, jídelním stolem a pohovkou, prosklená stěna otevřená do zahrady.",
+        "en": "A bright open-plan space with a kitchen island, a dining table and a sofa, a glass wall opening to the garden."
+      }
+    },
+    {
+      "id": "bedroom",
+      "file": "media/stills/bedroom.3f84c13afa.jpg",
+      "width": 1920,
+      "height": 1080,
+      "date": "2026-06-21",
+      "time": "08:30",
+      "category": "interior",
+      "title": {
+        "cs": "Hlavní ložnice ráno",
+        "en": "Primary bedroom in the morning"
+      },
+      "alt": {
+        "cs": "Ložnice s dvoulůžkem a křeslem, ranní slunce proniká východním oknem a jižním oknem do zahrady.",
+        "en": "The bedroom with a double bed and an armchair, morning sun entering through the east window, the south window facing the garden."
+      }
+    },
+    {
+      "id": "garage",
+      "file": "media/stills/garage.3f2215b08e.jpg",
+      "width": 1920,
+      "height": 1080,
+      "date": "2026-06-21",
+      "time": "11:00",
+      "category": "interior",
+      "title": {
+        "cs": "Garáž pro dvě auta",
+        "en": "The two-car garage"
+      },
+      "alt": {
+        "cs": "Garáž se dvěma zaparkovanými auty, policemi a vraty, osvětlená stropními světly.",
+        "en": "The garage with two parked cars, shelving and the garage door, lit by ceiling lights."
+      }
+    },
+    {
+      "id": "south-facade",
+      "file": "media/stills/south-facade.98354a344e.jpg",
+      "width": 1920,
+      "height": 1080,
+      "date": "2026-06-21",
+      "time": "13:30",
+      "category": "exterior",
+      "title": {
+        "cs": "Jižní fasáda s fotovoltaikou a žaluziemi",
+        "en": "South facade with solar panels and blinds"
+      },
+      "alt": {
+        "cs": "Jižní strana domu v poledním slunci: 36 fotovoltaických panelů na střeše a spuštěné venkovní žaluzie.",
+        "en": "The south side of the house in midday sun: 36 solar panels on the roof and the external blinds lowered."
+      }
+    },
+    {
+      "id": "day-night-before",
+      "file": "media/stills/day-night-before.7125098cf2.jpg",
+      "width": 1920,
+      "height": 1080,
+      "date": "2026-06-21",
+      "time": "14:00",
+      "category": "interior",
+      "title": {
+        "cs": "Odpoledne",
+        "en": "Afternoon"
+      },
+      "alt": {
+        "cs": "Odpoledne. Obývací pokoj s kuchyní ve dne a večer: stejný pohled, večer svítí závěsná světla a venku se stmívá.",
+        "en": "Afternoon. The living room and kitchen by day and in the evening: the same view, with the pendant lights on and dusk outside."
+      }
+    },
+    {
+      "id": "day-night-after",
+      "file": "media/stills/day-night-after.472d1c1061.jpg",
+      "width": 1920,
+      "height": 1080,
+      "date": "2026-06-21",
+      "time": "21:20",
+      "category": "interior",
+      "title": {
+        "cs": "Večer",
+        "en": "Evening"
+      },
+      "alt": {
+        "cs": "Večer. Obývací pokoj s kuchyní ve dne a večer: stejný pohled, večer svítí závěsná světla a venku se stmívá.",
+        "en": "Evening. The living room and kitchen by day and in the evening: the same view, with the pendant lights on and dusk outside."
       }
     }
   ],
   "compare": {
-    "a": "garden-afternoon",
-    "b": "garden-dusk"
+    "a": "day-night-before",
+    "b": "day-night-after"
   },
   "og": {
-    "file": "media/og.e2f899f7e6.jpg",
+    "file": "media/og.e3f179ecd7.jpg",
     "width": 1200,
-    "height": 630
+    "height": 630,
+    "twitter": {
+      "file": "media/twitter.954f7463dd.jpg",
+      "width": 1200,
+      "height": 600
+    }
   }
 }
