@@ -54,7 +54,15 @@ const AUTHOR_DOMAIN = `${AUTHOR_HANDLE}.cz`;
 
 export function createAllowlist(local = null) {
   const extraHosts = Array.isArray(local?.hosts) ? local.hosts.map((h) => String(h).toLowerCase()) : [];
-  const entries = (Array.isArray(local?.findings) ? local.findings : []).map((e) => ({
+  // Reviewed false positives of the generic detectors in third-party or generated code (minified library chunks, the Draco
+  // decoder, Next trace files, the sitemap namespace). Paths of build output are relative to the build directory.
+  const BUILTIN_FINDINGS = [
+    { path: "public/draco/**", category: "generic/" },
+    { path: "static/chunks/**", category: "generic/" },
+    { path: "app/**/*.nft.json", category: "generic/" },
+    { path: "app/sitemap.xml.body", category: "generic/url" },
+  ];
+  const entries = [...BUILTIN_FINDINGS, ...(Array.isArray(local?.findings) ? local.findings : [])].map((e) => ({
     path: e.path ? globToRegExp(String(e.path)) : null,
     category: e.category ? String(e.category) : null,
     hash8: e.hash8 ? String(e.hash8).toLowerCase() : null,
