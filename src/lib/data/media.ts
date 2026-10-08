@@ -75,7 +75,10 @@ export const MediaSchema = z
     }),
     stills: z.array(StillSchema).min(1),
     compare: z.object({ a: z.string(), b: z.string() }),
-    og: z.object({ file: PublicPath, width: Dimension, height: Dimension }),
+    og: z.object({
+      file: PublicPath, width: Dimension, height: Dimension,
+      twitter: z.object({ file: PublicPath, width: Dimension, height: Dimension }).optional(),
+    }),
   })
   .superRefine((m, ctx) => {
     const issue = (message: string, path: (string | number)[]) => ctx.addIssue({ code: "custom", message, path });
@@ -191,6 +194,7 @@ export function allMediaPaths(m: Media = media): string[] {
   if (m.orbit.video) out.push(m.orbit.video.file, m.orbit.video.poster);
   for (const s of m.stills) out.push(s.file);
   out.push(m.og.file);
+  if (m.og.twitter) out.push(m.og.twitter.file);
   return out;
 }
 
