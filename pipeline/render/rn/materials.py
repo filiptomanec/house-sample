@@ -34,7 +34,16 @@ def clear_glass(m, tint=(0.88, 0.93, 0.95), reflect=1.0):
     gl.inputs["Roughness"].default_value = 0.02
     gl.inputs["Color"].default_value = (reflect, reflect, reflect, 1.0)
     fr = nodes.new("ShaderNodeFresnel")
-    fr.inputs["IOR"].default_value = 1.52
+    # Cycles inverts the IOR of the Fresnel node on a back face (a ray leaving the glass): past 41 degrees that is total
+    # internal reflection, a black or mirror pane. The glass here is a sheet, so both sides get the same Fresnel:
+    # IOR = 1.52 on the front, 1 / 1.52 on the back (inverted again by the node).
+    ge = nodes.new("ShaderNodeNewGeometry")
+    ior = nodes.new("ShaderNodeMath")
+    ior.operation = "MULTIPLY_ADD"
+    ior.inputs[1].default_value = 1.0 / 1.52 - 1.52
+    ior.inputs[2].default_value = 1.52
+    links.new(ge.outputs["Backfacing"], ior.inputs[0])
+    links.new(ior.outputs[0], fr.inputs["IOR"])
     mx = nodes.new("ShaderNodeMixShader")
     links.new(fr.outputs[0], mx.inputs[0])
     links.new(tr.outputs[0], mx.inputs[1])

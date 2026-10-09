@@ -65,6 +65,13 @@ if command -v npx >/dev/null 2>&1 && [ -f scripts/build-render-inputs.ts ]; then
     log "render inputs are stale: rebuilding"
     npx --no-install tsx scripts/build-render-inputs.ts >>"$LOG" 2>&1 || log "WARNING: could not rebuild generated/render-inputs.json (photo.py refuses stale inputs)"
   fi
+  # the decor lamps come from pipeline/out/furniture-report.json, which counts only when it was built from the current model
+  # hash (any model/*.json edit changes it): rebuild the GLBs (about 15 s, same files) and the inputs again
+  if python3 -c 'import json,sys; sys.exit(0 if json.load(open("generated/render-inputs.json"))["inputs"].get("furnitureReport") else 1)'; then :; else
+    log "furniture report is stale: rebuilding the models (pipeline/build_model.sh --no-trees --no-usdz)"
+    BLENDER="$BLENDER_BIN" bash pipeline/build_model.sh --no-trees --no-usdz >>"$LOG" 2>&1 || log "WARNING: model build failed"
+    npx --no-install tsx scripts/build-render-inputs.ts >>"$LOG" 2>&1 || log "WARNING: could not rebuild generated/render-inputs.json"
+  fi
 fi
 
 photo() { "$BLENDER_BIN" -b --factory-startup --python "$ROOT/pipeline/render/photo.py" -- "$@"; }

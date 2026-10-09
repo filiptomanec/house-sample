@@ -1,6 +1,6 @@
 "use client";
 // Hours of direct sun on the chosen day: the terraces (as set, and without the movable shading for the main one) and the
-// habitable rooms, longest first. When a calculation finishes, a short status line announces the main terrace.
+// habitable rooms, longest first; under each room the "sun on the window" hours (any glazed window in sun, the ČSN reading). When a calculation finishes, a short status line announces the main terrace.
 import { memo } from "react";
 import { useFormat, useLocale, useT } from "@/lib/i18n/client";
 import type { SunDayResult } from "@/lib/three";
@@ -28,6 +28,8 @@ interface Row {
   label: string;
   hours: number;
   kind: "area" | "open" | "room";
+  /** Rooms: hours with at least one window in sun (`SunDayResult.windowSun`). */
+  window?: number;
 }
 
 function SunBarsView({ result, pending, failed, unavailable, areas, primary, rooms, hasMovable, dateText, shadingText }: SunBarsProps) {
@@ -43,7 +45,9 @@ function SunBarsView({ result, pending, failed, unavailable, areas, primary, roo
       const open = result.outdoorsOpen[a.id];
       if (hasMovable && open && a.id === primary?.id) rows.push({ key: `${a.id}-open`, label: t("sun.results.withoutShading", { name: a.label[locale] }), hours: open.hours, kind: "open" });
     }
-    const lit = rooms.flatMap((r) => (result.rooms[r.id] ? [{ key: r.id, label: r.label[locale], hours: result.rooms[r.id].hours, kind: "room" as const }] : []));
+    const lit = rooms.flatMap((r) => (result.rooms[r.id]
+      ? [{ key: r.id, label: r.label[locale], hours: result.rooms[r.id].hours, kind: "room" as const, window: result.windowSun?.[r.id]?.hours }]
+      : []));
     rows.push(...lit.sort((a, b) => b.hours - a.hours));
   }
   const max = Math.max(1, ...rows.map((r) => r.hours));
@@ -60,7 +64,10 @@ function SunBarsView({ result, pending, failed, unavailable, areas, primary, roo
         <div className="bars">
           {rows.map((r) => (
             <div key={r.key} className={`bar-row sun-bar-${r.kind}`}>
-              <span>{r.label}</span>
+              <span>
+                {r.label}
+                {r.window !== undefined && <small className="sun-window">{t("sun.results.windowSunValue", { hours: f.unit(r.window, "h", 1) })}</small>}
+              </span>
               <div className="bar" aria-hidden="true"><i style={{ width: `${(r.hours / max) * 100}%` }} /></div>
               <b className="mono">{f.unit(r.hours, "h", 1)}</b>
             </div>

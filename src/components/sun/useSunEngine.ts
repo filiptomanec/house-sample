@@ -2,11 +2,14 @@
 // The link between the Stage (which owns the viewer and the house scene) and the page. The engine lives in state, so every
 // effect that applies a setting depends on it and runs again after a retry or a restore (the scene is then a new one).
 // `onDispose` is called by the Stage before the viewer goes away: the movable parts are disposed first.
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { StageHandle, StageStatus } from "@/components/three/Stage";
-import { buildSunEngine, type SunEngine } from "./engine";
+import { buildSunEngine, type SunEngine, type SunPathStart } from "./engine";
 
-export function useSunEngine() {
+/** `start` is read when a scene arrives (the day and time shown then), so it may change on every render. */
+export function useSunEngine(start: SunPathStart) {
+  const startRef = useRef(start);
+  useEffect(() => { startRef.current = start; });
   const [engine, setEngine] = useState<SunEngine | null>(null);
   const [status, setStatus] = useState<StageStatus>("loading");
   const current = useRef<{ handle: StageHandle; engine: SunEngine | null; gone: boolean } | null>(null);
@@ -14,7 +17,7 @@ export function useSunEngine() {
   const onReady = useCallback((handle: StageHandle) => {
     const entry = { handle, engine: null as SunEngine | null, gone: false };
     current.current = entry;
-    buildSunEngine(handle).then(
+    buildSunEngine(handle, startRef.current).then(
       (built) => {
         if (entry.gone) { built.dispose(); return; }
         entry.engine = built;

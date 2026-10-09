@@ -12,6 +12,11 @@ export default defineMessages({
     title: "Obejděte dům, <q>pak vejděte dovnitř</q>",
     lede: "Otáčejte, přibližujte, sundejte střechu nebo dům rozřízněte. Model si můžete i vytisknout, nebo ho postavit na stůl v rozšířené realitě.",
     teaser: "Obejděte dům ve 3D a projděte se uvnitř.",
+    // the MethodNote of the page (its title is common.method.title)
+    method: {
+      data: "Model vzniká ze stejných dat jako půdorys a rozpočet. Z jednoho popisu domu se v Blenderu postaví stěny, okna, střecha i nábytek a uloží se jako soubor GLB, který tady vykresluje three.js. Rozměry, materiály i rozmístění stromů tedy nikdo nepřepisuje ručně.",
+      light: "Slunce stojí tam, kde by nad pozemkem opravdu bylo v den letního slunovratu, a vrhá skutečné stíny; obloha se mění s jeho výškou. Lamely terasy se jen natáčejí, od zavřené polohy po 90°, a venkovní žaluzie mají tři polohy.",
+    },
     exportLink: "Export a 3D tisk",
     stage: {
       loading: "Načítám model domu…",
@@ -80,8 +85,6 @@ export default defineMessages({
       furniture: "Nábytek",
       furnitureLoading: "Načítám nábytek…",
       furnitureError: "Nábytek se nepodařilo načíst. Zkuste přepínač vypnout a znovu zapnout.",
-      blinds: "Venkovní žaluzie",
-      blindsHint: "Spustí venkovní žaluzie na oknech obytných místností.",
       pv: "Fotovoltaika",
       pvHint: {
         battery: "{panels} ({power}), baterie {capacity} v technické místnosti, podle nastavení na stránce Energie.",
@@ -96,23 +99,6 @@ export default defineMessages({
       roomLabelsHint: "Zapne řez ve výšce {height} a pohled shora, aby bylo vidět do místností.",
       roomNamesHint: "Zapne řez ve výšce {height} a pohled shora a ukáže názvy místností.",
       boundary: "Hranice pozemku",
-    },
-    /** @deprecated slide, spread and stacked: the louvres only turn (common.shading). */
-    screens: {
-      angle: "Lamely terasy: natočení",
-      slide: "Lamely terasy: posun",
-      closed: "zavřeno",
-      open: "otevřeno",
-      spread: "rozložené",
-      stacked: "složené",
-    },
-    blinds: {
-      drop: "Žaluzie: spuštění",
-      tilt: "Žaluzie: sklon lamel",
-      raised: "vytažené",
-      lowered: "stažené",
-      flat: "vodorovně",
-      closed: "zavřené",
     },
     look: {
       title: "Vzhled",
@@ -167,6 +153,10 @@ export default defineMessages({
     title: "Walk round the house, <q>then step inside</q>",
     lede: "Turn it, zoom in, lift the roof off or cut the house open. You can also print it in 3D or stand it on your table in AR.",
     teaser: "Walk round the house in 3D, then step inside.",
+    method: {
+      data: "The model is built from the same data as the floor plan and the budget. One description of the house becomes walls, windows, roof and furniture in Blender, saved as a GLB file that three.js draws here, so no size, material or tree position is copied by hand.",
+      light: "The sun stands where it would really be above the plot on the summer solstice and casts real shadows; the sky changes with its height. The terrace louvres only turn, from closed to 90°, and the external blinds have three positions.",
+    },
     exportLink: "3D printing and AR",
     stage: {
       loading: "Loading the house…",
@@ -234,8 +224,6 @@ export default defineMessages({
       furniture: "Furniture",
       furnitureLoading: "Loading furniture…",
       furnitureError: "The furniture could not be loaded. Switch it off and on again to retry.",
-      blinds: "External blinds",
-      blindsHint: "Lowers the external blinds on the windows of the living spaces.",
       pv: "Solar panels",
       pvHint: {
         battery: "{panels} ({power}) and a {capacity} battery in the plant room, as set on the Energy page.",
@@ -247,22 +235,6 @@ export default defineMessages({
       roomLabelsHint: "Cuts the house at {height} and switches to the top view so you can see into the rooms.",
       roomNamesHint: "Cuts the house at {height}, switches to the top view and shows the room names.",
       boundary: "Plot boundary",
-    },
-    screens: {
-      angle: "Terrace louvres: angle",
-      slide: "Terrace louvres: position",
-      closed: "closed",
-      open: "open",
-      spread: "spread",
-      stacked: "stacked",
-    },
-    blinds: {
-      drop: "Blinds: height",
-      tilt: "Blinds: slat angle",
-      raised: "up",
-      lowered: "down",
-      flat: "level",
-      closed: "closed",
     },
     look: {
       title: "Finishes",

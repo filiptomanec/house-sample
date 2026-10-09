@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { derived, house } from "@/lib/model/instance";
 import { defaultLook, type StyleModel } from "@/lib/three/style";
 import { daylightAt } from "./daylight";
-import { CUT_RANGE, DAY_PRESETS, DEFAULT_SETTINGS, cutMaxFor, lookSwatch, parseLook, parseSettings, presetHours } from "./settings";
+import { BLIND_DROP, BLIND_STATES, CUT_RANGE, DAY_PRESETS, DEFAULT_SETTINGS, cutMaxFor, lookSwatch, parseLook, parseSettings, presetHours } from "./settings";
 import { style } from "./stores";
 
 describe("parseSettings", () => {
@@ -15,6 +15,16 @@ describe("parseSettings", () => {
     expect(parsed).toEqual({ ...DEFAULT_SETTINGS, roof: false, day: "evening", pan: true });
     expect(parseSettings({ day: "midnight" }).day).toBe(DEFAULT_SETTINGS.day);
     expect(DAY_PRESETS).toContain(DEFAULT_SETTINGS.day);
+  });
+
+  it("keeps the blinds as one of three positions; an old on/off value or a stale slide key falls back to the default", () => {
+    expect(DEFAULT_SETTINGS.blinds).toBe("up");
+    expect(parseSettings({ blinds: "half" }).blinds).toBe("half");
+    expect(parseSettings({ blinds: true }).blinds).toBe("up");
+    expect(parseSettings({ screenSlide: 50 })).toEqual(DEFAULT_SETTINGS);
+    for (const b of BLIND_STATES) expect(BLIND_DROP[b]).toBeGreaterThanOrEqual(0);
+    expect(BLIND_DROP.up).toBe(0);
+    expect(BLIND_DROP.down).toBe(1);
   });
 
   it("is idempotent", () => {

@@ -110,9 +110,6 @@
   --sky-night-top:    #0b1422;
   --sky-night-horizon:#22324a;
   --sky-glow:         #f6ead6;
-  /* deprecated aliases of the day sky (the 3D viewer and the sun chart read them until they move to the keys above) */
-  --sky-top:          #a3c8ea;
-  --sky-bottom:       #e6eff4;
 
   /* ---------------------------------------------------------------- plot map */
   --map-plot:       #e3efd9;     /* plot fill */

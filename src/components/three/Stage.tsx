@@ -1,7 +1,7 @@
 "use client";
 // The React shell of the 3D scene: a sized container with the canvas, a loading state with progress, an error state with a
 // retry button, a lost-context state with a restore button, a compass, cleanup on unmount. Used by the Model and Sun pages.
-// Specification: docs/THREE-API.md section 11.
+// Specification: docs/THREE-API.md section 11 (views per page: section 15, R2).
 //
 //  * three.js is loaded lazily: the effect `import()`s "@/lib/three/viewer" and "@/lib/three/house", so the page shell
 //    paints first and the 3D chunk streams in after it.
@@ -13,8 +13,9 @@
 //    what it built.
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import "@/styles/components/stage.css";
-import { getHouseContext, sceneExtent, type HouseContext } from "@/lib/three/context";
-import { webViews } from "@/lib/three/views";
+import { getHouseContext, type HouseContext } from "@/lib/three/context";
+import { defaultView, pageExtent, pageLimits, pageViews, type ResolvedView, type ViewPage } from "@/lib/three/views";
+import { MQ } from "@/styles/breakpoints";
 import { isWebGlAvailable } from "@/lib/three/webgl";
 import type { BuildHouseOptions, HouseScene } from "@/lib/three/house";
 import type { Viewer, ViewerOptions } from "@/lib/three/viewer";
@@ -48,16 +49,20 @@ export interface StageHandle {
   ctx: HouseContext;
   viewer: Viewer;
   house: HouseScene;
+  /** The preset the camera opened on (`initialView`, else `defaultView` for the stage class); null when the page has none. */
+  initialView: ResolvedView | null;
 }
 
 export interface StageProps {
   labels: StageLabels;
   /** Default: `getHouseContext()`. */
   ctx?: HouseContext;
-  /** Orbit limits and shadow range: the whole plot (default) or the building with a margin. */
-  extent?: "plot" | "house";
-  backdrop?: ViewerOptions["backdrop"];
-  /** Id of a camera of `house.cameras` with use "web" to start from; default: the first one. */
+  /** The page whose presets (`pageViews`), extent and orbit limits (`pageLimits`) the stage uses: the whole plot ("model",
+   * default) or the building with a margin ("sun"). */
+  page?: ViewPage;
+  /** The sun-driven sky (the only backdrop); the same on light and dark pages. */
+  backdrop?: "sky";
+  /** Id of a preset of `pageViews(ctx, page)` to start from; default: `defaultView` (the "narrow" one on phones). */
   initialView?: string;
   /** Options of the house build, except progress and abort (the shell owns those). */
   build?: Omit<BuildHouseOptions, "onProgress" | "signal">;
@@ -120,14 +125,16 @@ export default function Stage(props: StageProps): ReactNode {
       if (cancelled) return;
       const p = latest.current;
       const ctx: HouseContext = p.ctx ?? getHouseContext();
-      const views = webViews(ctx.house.cameras);
-      const initialView = views.find((v) => v.id === p.initialView) ?? views[0];
+      const page = p.page ?? "model";
+      const views = pageViews(ctx, page);
+      const narrow = typeof matchMedia === "function" && matchMedia(MQ.maxSm).matches;
+      const initialView = views.find((v) => v.id === p.initialView) ?? defaultView(views, narrow);
       try {
         viewer = createViewer(container, {
           bearingDeg: ctx.bearingDeg,
-          extent: sceneExtent(ctx, p.extent ?? "plot"),
+          extent: pageExtent(ctx, page),
           initialView,
-          backdrop: p.backdrop ?? "stage",
+          backdrop: p.backdrop ?? "sky",
           labels: p.viewer?.labels ?? !!p.build?.formatTag,
           shadowRange: p.viewer?.shadowRange,
           keyboard: p.viewer?.keyboard,
@@ -145,6 +152,8 @@ export default function Stage(props: StageProps): ReactNode {
         return;
       }
       const v = viewer;
+      // every preset within reach of the orbit, fitted at the narrowest supported stage
+      v.setLimits(pageLimits(ctx, page, views));
       offHeading = v.onHeading((h) => {
         if (dialRef.current) dialRef.current.style.transform = `rotate(${-h}deg)`;
         compassRef.current?.setAttribute("aria-label", latest.current.labels.compass(Math.round(h)));
@@ -170,7 +179,7 @@ export default function Stage(props: StageProps): ReactNode {
       }
       // the page was left while the scene was finishing: cleanup has already run, so what was built is freed here
       if (cancelled) { house.dispose(); return; }
-      handle = { ctx, viewer: v, house };
+      handle = { ctx, viewer: v, house, initialView: initialView ?? null };
       handleRef.current = handle;
       // development hook for manual checks and the e2e tests: the handle of the current scene
       if (process.env.NODE_ENV !== "production") (window as unknown as { __stage?: StageHandle }).__stage = handle;

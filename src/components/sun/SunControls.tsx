@@ -1,11 +1,11 @@
 "use client";
 // The controls of the Sun page: the day (four reference days and a date), the time of day with "play the whole day", and the
-// movable shading the model has (terrace slats, exterior blinds). Values are in the units of the sliders; the page applies them.
+// movable shading the model has (terrace louvres, which only turn; exterior blinds in three positions). Values are in the units of the sliders; the page applies them.
 import { useId } from "react";
 import { Segmented, Slider } from "@/components/ui/controls";
 import { useFormat, useLocale, useT } from "@/lib/i18n/client";
 import type { CalendarDate } from "@/lib/calc/sun";
-import { SHADING_RANGE, TIME_STEP_MIN, parseIso, presetOf, shortDate, toIso, type DayPreset, type PresetKey, type SunSettings, type TimeRange } from "./model";
+import { BLIND_POSITIONS, SHADING_RANGE, TIME_STEP_MIN, parseIso, presetOf, shortDate, toIso, type DayPreset, type PresetKey, type SunSettings, type TimeRange } from "./model";
 
 export interface SunControlsProps {
   presets: readonly DayPreset[];
@@ -18,7 +18,8 @@ export interface SunControlsProps {
   onPlay: () => void;
   settings: SunSettings;
   onShading: (patch: Partial<SunSettings>) => void;
-  hasSlats: boolean;
+  /** The louvre range (`louvreRange`): they only turn, from the closed stop to 90 degrees. Null when the model has none. */
+  louvres: { min: number; max: number } | null;
   hasBlinds: boolean;
 }
 
@@ -64,38 +65,36 @@ function DayAndTime(p: SunControlsProps) {
 
 function Shading(p: SunControlsProps) {
   const t = useT(), f = useFormat();
-  const s = p.settings, R = SHADING_RANGE;
+  const s = p.settings, R = SHADING_RANGE, L = p.louvres;
+  const louvreAngle = L ? Math.min(L.max, Math.max(L.min, s.slatAngle)) : 0;
+  const blindLabel = { up: t("common.shading.up"), half: t("common.shading.half"), down: t("common.shading.down") } as const;
   return (
     <div className="stack sun-shading">
-      <h3 className="label sun-group" aria-level={2}>{t("sun.shading.title")}</h3>
-      {p.hasSlats && (
+      <h2 className="label sun-group">{t("common.shading.title")}</h2>
+      {L && (
         <fieldset className="sun-fieldset">
-          <legend>{t("sun.shading.slats")}</legend>
+          <legend>{t("common.shading.louvres")}</legend>
           <Slider
-            label={t("sun.shading.angle")} value={s.slatAngle} min={R.slatAngle.min} max={R.slatAngle.max} step={R.slatAngle.step}
-            format={(v) => (v === R.slatAngle.min ? t("sun.shading.closed") : v === R.slatAngle.max ? t("sun.shading.open") : f.degrees(v))}
-            hint={t("sun.shading.angleHint")} onChange={(v) => p.onShading({ slatAngle: v })}
-          />
-          <Slider
-            label={t("sun.shading.slide")} value={s.slatSlide} min={R.slatSlide.min} max={R.slatSlide.max} step={R.slatSlide.step}
-            format={(v) => (v === R.slatSlide.min ? t("sun.shading.spread") : v === R.slatSlide.max ? t("sun.shading.stacked") : f.percent(v))}
-            hint={t("sun.shading.slideHint")} onChange={(v) => p.onShading({ slatSlide: v })}
+            label={t("common.shading.louvreAngle")} value={louvreAngle} min={L.min} max={L.max} step={R.slatAngle.step}
+            format={(v) => (v <= L.min ? t("common.shading.closed") : v >= L.max ? t("common.shading.open") : f.degrees(v))}
+            hint={t("common.shading.louvreHint", { closed: f.degrees(L.min) })} onChange={(v) => p.onShading({ slatAngle: v })}
           />
         </fieldset>
       )}
       {p.hasBlinds && (
         <fieldset className="sun-fieldset">
-          <legend>{t("sun.shading.blinds")}</legend>
-          <Slider
-            label={t("sun.shading.drop")} value={s.blindDrop} min={R.blindDrop.min} max={R.blindDrop.max} step={R.blindDrop.step}
-            format={(v) => (v === R.blindDrop.min ? t("sun.shading.raised") : v === R.blindDrop.max ? t("sun.shading.lowered") : f.percent(v))}
-            onChange={(v) => p.onShading({ blindDrop: v })}
+          <legend>{t("common.shading.blinds")}</legend>
+          <Segmented<number>
+            ariaLabel={t("common.shading.blindsDrop")}
+            value={s.blindDrop}
+            options={BLIND_POSITIONS.map((b) => ({ value: b.drop, label: blindLabel[b.key] }))}
+            onChange={(blindDrop) => p.onShading({ blindDrop })}
           />
           {s.blindDrop > 0 && (
             <Slider
-              label={t("sun.shading.tilt")} value={s.blindTilt} min={R.blindTilt.min} max={R.blindTilt.max} step={R.blindTilt.step}
-              format={(v) => (v === R.blindTilt.min ? t("sun.shading.horizontal") : v === R.blindTilt.max ? t("sun.shading.closed") : f.degrees(v))}
-              hint={t("sun.shading.tiltHint")} onChange={(v) => p.onShading({ blindTilt: v })}
+              label={t("common.shading.blindsTilt")} value={s.blindTilt} min={R.blindTilt.min} max={R.blindTilt.max} step={R.blindTilt.step}
+              format={(v) => (v === R.blindTilt.min ? t("common.shading.level") : v === R.blindTilt.max ? t("common.shading.shut") : f.degrees(v))}
+              hint={t("common.shading.blindsTiltHint", { closed: f.degrees(R.blindTilt.max) })} onChange={(v) => p.onShading({ blindTilt: v })}
             />
           )}
         </fieldset>
@@ -108,7 +107,7 @@ export default function SunControls(p: SunControlsProps) {
   return (
     <div className="sun-controls">
       <DayAndTime {...p} />
-      {(p.hasSlats || p.hasBlinds) && <Shading {...p} />}
+      {(p.louvres || p.hasBlinds) && <Shading {...p} />}
     </div>
   );
 }

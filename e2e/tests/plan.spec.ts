@@ -1,7 +1,7 @@
 // Floor plan: the rooms of the drawing and the table are the rooms of the model, selecting a room (pointer, keyboard, table) changes
 // the info panel, and the numbers shown are the model's own. Expected values come from the model, not from constants.
 import { getFormatter } from "../../src/lib/i18n/format";
-import { derived } from "../../src/lib/model/instance";
+import { derived, metrics } from "../../src/lib/model/instance";
 import { pick } from "../../src/lib/model/text";
 import { parseNum } from "../../src/lib/i18n/format";
 import { LOCALES, open, routePath, type Locale } from "../helpers/site";
@@ -20,7 +20,8 @@ for (const locale of LOCALES) {
       for (const r of derived.rooms) await expect(page.locator(`svg.plan-svg [data-room="${r.id}"]`)).toHaveCount(1);
       await expect(page.locator("table.room-table tbody tr")).toHaveCount(derived.rooms.length);
       const total = derived.rooms.reduce((sum, r) => sum + r.area, 0);
-      await expect(page.locator("table.room-table tfoot td.n").first()).toHaveText(f.num(total, 1));
+      await expect(page.locator("table.room-table tr.pl-total-all td.n").last()).toHaveText(f.num(total, 2));
+      await expect(page.locator("table.room-table tfoot td.n").first()).toHaveText(f.num(metrics.heatedArea, 2));
     });
 
     test("the living room starts selected and the panel shows its facts from the model", async ({ page }) => {

@@ -10,28 +10,28 @@ import { house, derived } from "@/lib/model/instance";
 import { pick } from "@/lib/model/text";
 import type { DerivedRoom } from "@/lib/model/types";
 import type { HouseScene, WalkController } from "@/lib/three";
-import { sceneExtent } from "@/lib/three/context";
-import { orbitLimitsFor, webViews, type ResolvedView } from "@/lib/three/views";
+import { pageViews, type ResolvedView } from "@/lib/three/views";
 import ControlPanel from "./ControlPanel";
 import ExportPanel from "./ExportPanel";
 import StageTools from "./StageTools";
 import { daylightAt } from "./daylight";
-import { TOP_VIEW_FOV, limitsForViews, refitLens } from "./limits";
-import { PLAN_CUT_M, cutMaxFor, type ModelSettings } from "./settings";
+import { BLIND_DROP, PLAN_CUT_M, cutMaxFor, type ModelSettings } from "./settings";
 import { lookStore, settingsStore, style } from "./stores";
 import type { StoredStore } from "./storedStore";
 import { useEngine } from "./useEngine";
 
-/** The camera presets of the model (`house.cameras` with use "web"). */
-const VIEWS = webViews(house.cameras).map((v) => (v.ortho ? refitLens(v, TOP_VIEW_FOV) : v));
+/** The camera presets of this page (cameras with use "web", the top view refitted); the Stage opens on `defaultView`. */
+const VIEWS = pageViews({ derived }, "model");
 /** The view that looks straight down (an orthographic camera in the model): used by the room numbers. */
 const TOP_VIEW = VIEWS.find((v) => v.ortho) ?? null;
 /** The end of the section slider: the first step at or above the ridge, which means "no section". */
 const CUT_MAX = cutMaxFor(derived.bbox.z1);
-/** Default position of the exterior blinds when they are switched on, percent. */
-const BLINDS_ON_DROP = 100;
 /** What the model has, known before the scene is built (so the panel does not change shape when the movable parts arrive). */
 const HAS_SCREENS = derived.screens.length > 0;
+/** The louvres turn from their closed stop (the largest of the screens) to 90 degrees; they start at their rest angle. */
+const LOUVRE_MIN = Math.max(0, ...derived.screens.map((s) => s.closedDeg));
+const LOUVRE_MAX = 90;
+const LOUVRE_REST = Math.min(LOUVRE_MAX, Math.max(LOUVRE_MIN, derived.screens[0]?.restDeg ?? LOUVRE_MAX));
 const HAS_BLINDS = derived.openings.some((o) => o.blind);
 
 const useStored = <T,>(store: StoredStore<T>): T => useSyncExternalStore(store.subscribe, store.getSnapshot, store.getServerSnapshot);
@@ -44,13 +44,12 @@ export default function ModelTool() {
   // what is not remembered: section, room numbers, the chosen view, walking, the positions of the movable parts
   const [cut, setCut] = useState(CUT_MAX);
   const [roomLabels, setRoomLabels] = useState(false);
-  const [view, setView] = useState<string | null>(VIEWS[0]?.id ?? null);
+  const [view, setView] = useState<string | null>(null);
   const [walking, setWalking] = useState(false);
-  const [blindDrop, setBlindDrop] = useState(BLINDS_ON_DROP);
   // null = as the engine built it (the movable parts start in their own rest position)
   const [blindTilt, setBlindTilt] = useState<number | null>(null);
   const [screenAngle, setScreenAngle] = useState<number | null>(null);
-  const [screenSlide, setScreenSlide] = useState<number | null>(null);
+  const [garageOpen, setGarageOpen] = useState(false);
 
   const walkRef = useRef<WalkController | null>(null);
   const stageBox = useRef<HTMLDivElement>(null);
@@ -61,9 +60,8 @@ export default function ModelTool() {
   }, []);
   const { engine, onReady: engineReady, onDispose } = useEngine({ onGone });
   const onReady = useCallback((handle: StageHandle) => {
-    setView(VIEWS[0]?.id ?? null);
-    // every preset must be within reach of the orbit limits (a no-op unless a view lies further out than the default maximum)
-    handle.viewer.setLimits(limitsForViews(orbitLimitsFor(sceneExtent(handle.ctx, "plot")), VIEWS));
+    setView(handle.initialView?.id ?? null);
+    setGarageOpen(false); // a new scene starts with the door closed
     engineReady(handle);
   }, [engineReady]);
   const house3d: HouseScene | null = engine?.handle.house ?? null;
@@ -105,10 +103,10 @@ export default function ModelTool() {
     pv.setVisible(settings.pv);
     pv.setPanelsVisible(settings.roof); // the modules sit on the roof; the battery stays when the roof is hidden
   }, [equip, settings.pv, settings.roof]);
-  useEffect(() => { equip?.blinds?.setDrop(settings.blinds ? blindDrop / 100 : 0); }, [equip, settings.blinds, blindDrop]);
+  useEffect(() => { equip?.blinds?.setDrop(BLIND_DROP[settings.blinds]); }, [equip, settings.blinds]);
   useEffect(() => { if (blindTilt !== null) equip?.blinds?.setTilt(blindTilt); }, [equip, blindTilt]);
   useEffect(() => { if (screenAngle !== null) equip?.screens?.setAngle(screenAngle); }, [equip, screenAngle]);
-  useEffect(() => { if (screenSlide !== null) equip?.screens?.setSlide(screenSlide / 100); }, [equip, screenSlide]);
+  useEffect(() => { equip?.garage?.setOpen(garageOpen ? 1 : 0, { animate: true }); }, [equip, garageOpen]);
 
   // the chip of a preset view is lit only until the visitor moves the camera by hand
   useEffect(() => {
@@ -134,7 +132,7 @@ export default function ModelTool() {
   const goTo = useCallback((v: ResolvedView) => {
     walkRef.current?.stop();
     setView(v.id);
-    viewer?.setView(v, { animate: true }).catch(() => {}); // a newer view cancels the transition; that is not an error
+    viewer?.fit(v, undefined, { animate: true }).catch(() => {}); // a newer view cancels the transition; that is not an error
   }, [viewer]);
 
   const toggleWalk = useCallback(async () => {
@@ -190,7 +188,7 @@ export default function ModelTool() {
         <div className="model-main">
           <div className="model-stage" ref={stageBox} data-walking={walking || undefined}>
             <Stage
-              labels={labels} extent="plot" backdrop="stage" initialView={VIEWS[0]?.id} build={build} viewer={{ labels: true }}
+              labels={labels} page="model" build={build} viewer={{ labels: true }}
               onReady={onReady} onDispose={onDispose}
             >
               <StageTools
@@ -220,9 +218,10 @@ export default function ModelTool() {
           cut={cut} cutMax={CUT_MAX} onCut={onCut}
           roomLabels={roomLabels} onRoomLabels={onRoomLabels}
           furnitureHint={furnitureHint} pvHint={pvHint}
-          screens={HAS_SCREENS ? { a: screenAngle ?? equip?.screens?.angle ?? 0, b: screenSlide ?? Math.round((equip?.screens?.slide ?? 0) * 100), onA: setScreenAngle, onB: setScreenSlide } : null}
+          louvres={HAS_SCREENS ? { angle: screenAngle ?? equip?.screens?.angle ?? LOUVRE_REST, min: LOUVRE_MIN, max: LOUVRE_MAX, onAngle: setScreenAngle } : null}
           hasBlinds={HAS_BLINDS}
-          blinds={{ a: blindDrop, b: blindTilt ?? equip?.blinds?.tilt ?? 0, onA: setBlindDrop, onB: setBlindTilt }}
+          blinds={{ tilt: blindTilt ?? equip?.blinds?.tilt ?? 0, onTilt: setBlindTilt }}
+          garage={equip?.garage ? { open: garageOpen, onOpen: setGarageOpen } : null}
           style={style} look={look} onLook={(group, id) => lookStore.set({ ...lookStore.getSnapshot(), [group]: id })}
         />
       </div>

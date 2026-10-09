@@ -48,10 +48,8 @@ describe("token file structure", () => {
     expect(Object.keys(S.dark).filter((n) => fixed.test(n))).toEqual([]);
     for (const n of Object.keys(S.light).filter((k) => fixed.test(k))) expect(T[n] ? T[n].light : S.light[n], n).toBeDefined();
   });
-  it("has a sky that follows the sun, not the page: the altitude keys exist and the deprecated aliases equal the day sky", () => {
+  it("has a sky that follows the sun, not the page: the altitude keys exist", () => {
     for (const k of ["day-top", "day-horizon", "low-horizon", "dusk-top", "dusk-horizon", "night-top", "night-horizon", "glow"]) expect(T[`--sky-${k}`], k).toBeDefined();
-    expect(S.light["--sky-top"]).toBe(S.light["--sky-day-top"]);
-    expect(S.light["--sky-bottom"]).toBe(S.light["--sky-day-horizon"]);
   });
   it("sinks the night band below the dark page and lets the bar and the menu use it", () => {
     const css = tokensCss.replace(/\/\*[\s\S]*?\*\//g, "");

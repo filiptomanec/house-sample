@@ -62,7 +62,7 @@ export default defineMessages({
     },
     numbers: {
       kicker: "Dům",
-      title: "Jedno podlaží, zahrada na dosah",
+      title: "Jedno podlaží, <q>zahrada na dosah</q>",
       lede: "Plochy, rozměry a dispozice, jak je kreslí půdorys.",
       area: { unit: "m²", label: "užitná plocha bez garáže" },
       /** @deprecated The stat shows the layout code (layout.label). */
@@ -90,7 +90,7 @@ export default defineMessages({
     compass: { N: "severu", NE: "severovýchodě", E: "východě", SE: "jihovýchodě", S: "jihu", SW: "jihozápadě", W: "západě", NW: "severozápadě" },
     plan: {
       kicker: "Dispozice",
-      title: "Den, noc a provoz na jednom podlaží",
+      title: "Den, noc a provoz <q>na jednom podlaží</q>",
       text: "Barvy ukazují zóny domu. Plochy jsou čisté, bez zdí.",
       link: "Celý půdorys",
       alt: "Půdorys barevně rozdělený na zóny",
@@ -98,13 +98,13 @@ export default defineMessages({
     },
     compare: {
       kicker: "Světlo",
-      title: "Stejný dům, jiná hodina",
+      title: "Stejný dům, <q>jiná hodina</q>",
       lede: "Posuňte předěl: vlevo {a}, vpravo {b}.",
       slider: "Předěl mezi snímky, vlevo {a}, vpravo {b}",
     },
     energy: {
       kicker: "Energie",
-      title: "Teplo z čerpadla, proud ze střechy",
+      title: "Teplo z čerpadla, <q>proud ze střechy</q>",
       /** @deprecated Use ledeCount with panels = t("common.count.panels", { count }). */
       lede: "Výchozí nastavení: panely na střeše ({panels} ks, {kwp}) a tepelné čerpadlo. Vlastní předpoklady zadáte na stránce Energie.",
       ledeCount: "{panels} na střeše ({kwp}) a tepelné čerpadlo. Vlastní předpoklady zadáte na stránce Energie.",
@@ -117,7 +117,7 @@ export default defineMessages({
     },
     gallery: {
       kicker: "Galerie",
-      title: "Pohledy zvenku i zevnitř",
+      title: "Pohledy <q>zvenku i zevnitř</q>",
       label: "Rendery domu",
       link: "Celá galerie",
       prev: "Předchozí snímek",
@@ -213,7 +213,7 @@ export default defineMessages({
     },
     numbers: {
       kicker: "The house",
-      title: "One level, the garden on the doorstep",
+      title: "One level, <q>the garden on the doorstep</q>",
       lede: "Areas, dimensions and layout, as the floor plan draws them.",
       area: { unit: "m²", label: "floor area, excluding the garage" },
       rooms: { label: "rooms, garage included" },
@@ -237,7 +237,7 @@ export default defineMessages({
     compass: { N: "north", NE: "north-east", E: "east", SE: "south-east", S: "south", SW: "south-west", W: "west", NW: "north-west" },
     plan: {
       kicker: "Layout",
-      title: "Day, night and service on one level",
+      title: "Day, night and service <q>on one level</q>",
       text: "Colours mark the zones of the house. Areas are net, walls excluded.",
       link: "The full floor plan",
       alt: "Floor plan coloured by zone",
@@ -245,13 +245,13 @@ export default defineMessages({
     },
     compare: {
       kicker: "Light",
-      title: "Same house, another hour",
+      title: "Same house, <q>another hour</q>",
       lede: "Drag the divider: {a} on the left, {b} on the right.",
       slider: "Divider between the images, {a} on the left, {b} on the right",
     },
     energy: {
       kicker: "Energy",
-      title: "Heat from the pump, power from the roof",
+      title: "Heat from the pump, <q>power from the roof</q>",
       lede: "Default setup: solar panels on the roof ({panels}, {kwp}) and a heat pump. Try your own assumptions on the Energy page.",
       ledeCount: "{panels} on the roof ({kwp}) and a heat pump. Try your own assumptions on the Energy page.",
       designLoad: { unit: "kW", label: "design heat load at {outdoor}" },
@@ -263,7 +263,7 @@ export default defineMessages({
     },
     gallery: {
       kicker: "Gallery",
-      title: "Views outside and in",
+      title: "Views <q>outside and in</q>",
       label: "Renders of the house",
       link: "Open the gallery",
       prev: "Previous image",

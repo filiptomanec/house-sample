@@ -355,7 +355,7 @@
     "forms": {
       "broadleaf-round": {
         "copies": 3,
-        "spread": 1.12,
+        "spread": 0.8,
         "trunkScale": 1.6,
         "clusters": 9,
         "clusterScale": 0.5,

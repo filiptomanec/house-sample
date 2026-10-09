@@ -3,7 +3,7 @@ import { defineMessages } from "../translate";
 // Namespace "sun". Czech is typeset by t() (non-breaking spaces), so write ordinary spaces here. `meta` is read by
 // buildMetadata() and must stay; `title` (two-voice, render with accent()), `lede` and `teaser` are the page frame. Names of
 // rooms, outdoor areas and views come from the model, not from here. "slunce" is lower case in running text (docs/COPY.md).
-// The louvres only turn: the shading words shared with the 3D tour are in common.shading.
+// The louvres only turn: the shading words shared with the 3D tour are in common.shading. The method title is common.method.
 export default defineMessages({
   cs: {
     meta: { title: "Slunce", description: "{house} v kterýkoli den a hodinu: dráha slunce, stíny domu, sousedů a stromů a hodiny slunce na terase i v pokojích." },
@@ -39,27 +39,6 @@ export default defineMessages({
       pause: "Pozastavit",
       stop: "Zastavit",
     },
-    // @deprecated as a whole: slide, slideHint, spread and stacked go with the slide control; the rest moves to common.shading
-    shading: {
-      title: "Stínění",
-      slats: "Lamely terasy",
-      angle: "Natočení lamel",
-      angleHint: "Při 90° stojí lamely kolmo ke stěně a terasa je otevřená naplno.",
-      slide: "Posun lamel",
-      slideHint: "Lamely se sjedou na jednu stranu.",
-      blinds: "Venkovní žaluzie",
-      drop: "Spuštění",
-      tilt: "Sklon lamel",
-      tiltHint: "Vodorovné lamely nechají výhled ven, natočené zavřou.",
-      closed: "zavřeno",
-      open: "otevřeno",
-      spread: "rozloženo",
-      stacked: "sjeto",
-      raised: "vytaženo",
-      lowered: "staženo",
-      loweredTo: "staženo na {value}",
-      horizontal: "vodorovně",
-    },
     facts: {
       title: "Slunce právě teď",
       azimuth: "Azimut",
@@ -86,13 +65,12 @@ export default defineMessages({
       withoutShading: "{name} bez stínění",
       withShading: "{name} se stíněním",
       shadingNow: "Stínění: {summary}.",
-      shadingSlats: "lamely terasy {value}",
-      shadingBlinds: "venkovní žaluzie {drop}, lamely {tilt}",
-      shadingBlindsRaised: "venkovní žaluzie vytažené",
       note: "U každé místnosti se počítá její nejlépe osvětlené okno a podíl osluněného skla: okno osvětlené z třetiny se za hodinu počítá třetinou hodiny.",
       note2: "Stín vrhá střecha, ostění, lamely a žaluzie v nastavené poloze, sousední domy, ploty, stromy (v létě s listím) i terén. Vysoké letní slunce pod přesahem střechy osvítí jen pruh skla u podlahy, a proto mají jižní pokoje v létě slunce málo a v zimě hodně.",
       /** Column of the results table: the sunlit share of the glass. */
       windowSun: "Slunce na okně",
+      /** Under each room bar: hours with at least one window in sun (the reading of ČSN 73 4301). */
+      windowSunValue: "slunce na okně {hours}",
     },
     /** A one-sentence summary above the results: summer against winter for the living room. */
     headline: "{room} má v létě {summer} přímého slunce denně, v zimě {winter}.",
@@ -139,7 +117,6 @@ export default defineMessages({
       heatmap: "Mapa",
     },
     method: {
-      title: "Jak se to počítá",
       body: "Polohu slunce počítá algoritmus NOAA podle Meeuse s přesností na setiny stupně, v místním čase včetně letního. Každých {step} minut se z mřížky bodů na skle oken a na venkovních plochách vyšle ke slunci paprsek a zjistí se, jestli mu něco nestojí v cestě.",
     },
   },
@@ -175,26 +152,6 @@ export default defineMessages({
       pause: "Pause",
       stop: "Stop",
     },
-    shading: {
-      title: "Shading",
-      slats: "Terrace louvres",
-      angle: "Louvre angle",
-      angleHint: "At 90° the blades stand square to the wall and the terrace is fully open.",
-      slide: "Louvre position",
-      slideHint: "The louvres slide to one side.",
-      blinds: "External blinds",
-      drop: "Lowered",
-      tilt: "Slat angle",
-      tiltHint: "Level slats keep the view out; turned slats close.",
-      closed: "closed",
-      open: "open",
-      spread: "spread",
-      stacked: "stacked",
-      raised: "up",
-      lowered: "down",
-      loweredTo: "lowered to {value}",
-      horizontal: "level",
-    },
     facts: {
       title: "The sun now",
       azimuth: "Azimuth",
@@ -221,12 +178,10 @@ export default defineMessages({
       withoutShading: "{name} without shading",
       withShading: "{name} with shading",
       shadingNow: "Shading: {summary}.",
-      shadingSlats: "louvres at {value}",
-      shadingBlinds: "external blinds {drop}, slats {tilt}",
-      shadingBlindsRaised: "external blinds up",
       note: "Each room counts its best-lit window, weighted by how much of the glass is in sun: a window a third in sun for an hour counts as a third of an hour.",
       note2: "Shade comes from the roof, the reveals, the louvres and blinds as set, the neighbouring houses, fences, trees (in leaf in summer) and the terrain. The high summer sun reaches only a strip of glass under the overhang, which is why south-facing rooms get little direct sun in summer and plenty in winter.",
       windowSun: "Sun on the glass",
+      windowSunValue: "sun on the glass {hours}",
     },
     headline: "{room} gets {summer} of direct sun a day in summer and {winter} in winter.",
     norm: {
@@ -269,7 +224,6 @@ export default defineMessages({
       heatmap: "Map",
     },
     method: {
-      title: "How it is calculated",
       body: "The sun's position comes from the NOAA algorithm (after Meeus), accurate to a hundredth of a degree, in local time including summer time. Every {step} minutes a ray is cast towards the sun from a grid of points on the window glass and the outdoor areas, to see whether anything blocks it.",
     },
   },

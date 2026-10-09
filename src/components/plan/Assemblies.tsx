@@ -74,7 +74,7 @@ export function Assemblies({ locale, cards, materials, windows }: { locale: Loca
 
   const groups = [
     { key: "envelope", title: optional(t, "plan.asm.envelope"), note: optional(t, "plan.asm.envelopeNote"), cards: cards.filter((c) => c.envelope) },
-    { key: "other", title: optional(t, "plan.asm.other"), note: optional(t, "plan.asm.otherNote"), cards: cards.filter((c) => !c.envelope) },
+    { key: "other", title: optional(t, "plan.asm.rest"), note: optional(t, "plan.asm.restNote"), cards: cards.filter((c) => !c.envelope) },
   ].filter((g) => g.cards.length > 0);
 
   return (

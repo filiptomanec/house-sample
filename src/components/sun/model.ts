@@ -172,30 +172,49 @@ export function primaryArea(areas: readonly AreaRow[]): AreaRow | null {
 
 // ------------------------------------------------------------------------------------------------ remembered settings
 
-/** What the visitor chose, as kept in the browser and used as state. Shading values are in the units of the sliders (percent, degrees). */
+/** What the visitor chose, as kept in the browser and used as state. Shading values are in the units of the controls (percent, degrees). */
 export interface SunSettings {
   month: number;
   day: number;
   minute: number;
-  /** Terrace slats: turn 0 (closed) to 90 degrees (edge-on), slide 0 (spread) to 100 percent (stacked). */
+  /** Terrace louvres: they only turn, from the closed stop (`louvreRange`) to 90 degrees (edge-on, open). */
   slatAngle: number;
-  slatSlide: number;
-  /** Exterior blinds: drop 0 to 100 percent, slat tilt 0 (open) to 90 degrees (closed). */
+  /** Exterior blinds: 0 (up), 50 (half way) or 100 percent (down); slat tilt 0 (level) to 90 degrees (closed). */
   blindDrop: number;
   blindTilt: number;
 }
 
 export const SHADING_RANGE = {
   slatAngle: { min: 0, max: 90, step: 5 },
-  slatSlide: { min: 0, max: 100, step: 5 },
-  blindDrop: { min: 0, max: 100, step: 5 },
+  blindDrop: { min: 0, max: 100, step: 50 },
   blindTilt: { min: 0, max: 90, step: 5 },
 } as const;
 
-/** Slats half open, nothing lowered: the first impression shows the sun and some shade. */
-export const DEFAULT_SHADING = { slatAngle: 60, slatSlide: 0, blindDrop: 0, blindTilt: 45 } as const;
+/** The three positions of the blinds offered (percent lowered), in the order of the segmented control. */
+export const BLIND_POSITIONS = [
+  { key: "up", drop: 0 },
+  { key: "half", drop: 50 },
+  { key: "down", drop: 100 },
+] as const;
 
-/** Turns anything read from storage into complete valid settings for `year`, or null when there is no usable date. */
+/** Louvres at their rest angle, blinds up: the first impression shows the sun and some shade. */
+export const DEFAULT_SHADING = { slatAngle: 60, blindDrop: 0, blindTilt: 45 } as const;
+
+/**
+ * The range of the louvre slider from the model: the closed stop is the largest `closedDeg` of the screens (rounded up to the
+ * slider step, so 90 stays on the grid), open is 90 degrees, `rest` is where the blades start. Null when there are no screens.
+ */
+export function louvreRange(screens: readonly { closedDeg: number; restDeg: number }[]): { min: number; max: number; rest: number } | null {
+  if (!screens.length) return null;
+  const { step, max } = SHADING_RANGE.slatAngle;
+  const min = Math.min(max, Math.ceil(Math.max(0, ...screens.map((s) => s.closedDeg)) / step) * step);
+  return { min, max, rest: Math.min(max, Math.max(min, screens[0].restDeg)) };
+}
+
+/**
+ * Turns anything read from storage into complete valid settings for `year`, or null when there is no usable date. Keys of older
+ * versions (the louvre slide) are dropped, and a blind position between the three on offer snaps to the nearest one.
+ */
 export function parseSettings(data: unknown, year: number): SunSettings | null {
   if (typeof data !== "object" || data === null) return null;
   const r = data as Record<string, unknown>;
@@ -210,31 +229,7 @@ export function parseSettings(data: unknown, year: number): SunSettings | null {
     day: date.day,
     minute: finiteIn(r.minute, 0, LAST_MINUTE, 12 * 60),
     slatAngle: snap(r.slatAngle, "slatAngle"),
-    slatSlide: snap(r.slatSlide, "slatSlide"),
     blindDrop: snap(r.blindDrop, "blindDrop"),
     blindTilt: snap(r.blindTilt, "blindTilt"),
   };
-}
-
-// ------------------------------------------------------------------------------------------------ views
-
-/**
- * The camera preset to open with: the perspective view that looks at the house from the side the midday sun comes from
- * (true south in the northern hemisphere), so the first picture shows the lit facade and the shadows on the terrace.
- * `views` carry scene-frame positions (x, y up, z = -north in the house frame); `centre` is the house centre in the house frame.
- */
-export function sunnySideView<V extends { id: string; ortho: boolean; position: readonly [number, number, number] }>(
-  views: readonly V[], bearingDeg: number, centre: readonly [number, number], southern = true,
-): V | null {
-  const a = ((southern ? 180 : 0) - bearingDeg) * (Math.PI / 180);
-  const toSun = [Math.sin(a), Math.cos(a)];
-  let best: V | null = null, bestScore = -Infinity;
-  for (const v of views) {
-    if (v.ortho) continue;
-    const dx = v.position[0] - centre[0], dy = -v.position[2] - centre[1];
-    const len = Math.hypot(dx, dy) || 1;
-    const score = (dx * toSun[0] + dy * toSun[1]) / len;
-    if (score > bestScore) { best = v; bestScore = score; }
-  }
-  return best;
 }

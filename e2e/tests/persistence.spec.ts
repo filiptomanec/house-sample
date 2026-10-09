@@ -38,6 +38,7 @@ test.describe("choices survive a reload", () => {
 
   test("energy: a slider", async ({ page }) => {
     await open(page, routePath("cs", "energy"));
+    await page.locator("details.grp").nth(1).locator("summary").click();
     const slider = page.getByLabel(t("energy.settings.indoorTemp"));
     const before = await slider.inputValue();
     await slider.focus();
@@ -45,6 +46,7 @@ test.describe("choices survive a reload", () => {
     const after = await slider.inputValue();
     expect(after).not.toBe(before);
     await page.reload();
+    await page.locator("details.grp").nth(1).locator("summary").click();
     await expect(page.getByLabel(t("energy.settings.indoorTemp"))).toHaveValue(after);
   });
 

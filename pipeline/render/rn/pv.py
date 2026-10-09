@@ -30,9 +30,9 @@ def _pv_glass():
     br.inputs["Mortar"].default_value = (*hex_to_linear("#12161b"), 1)
     links.new(mp.outputs[0], br.inputs["Vector"])
     links.new(br.outputs["Color"], bs.inputs["Base Color"])
-    bs.inputs["Roughness"].default_value = 0.06
+    bs.inputs["Roughness"].default_value = 0.18
     bs.inputs["Metallic"].default_value = 0.0
-    for key, val in (("Coat Weight", 0.35), ("Coat Roughness", 0.05), ("Specular IOR Level", 0.5)):
+    for key, val in (("Coat Weight", 0.25), ("Coat Roughness", 0.3), ("Specular IOR Level", 0.5)):
         if key in bs.inputs:
             bs.inputs[key].default_value = val
     return m

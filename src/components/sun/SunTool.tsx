@@ -9,7 +9,7 @@ import { dayMonth, dayOfYear } from "@/lib/calendar";
 import { localToUtc, placeOf, sunPosition, sunTimes, type CalendarDate } from "@/lib/calc/sun";
 import { useFormat, useLocale, useT } from "@/lib/i18n/client";
 import { derived, house } from "@/lib/model/instance";
-import { webViews } from "@/lib/three/views";
+import { pageViews } from "@/lib/three/views";
 import { MQ } from "@/styles/breakpoints";
 import DayChart from "./DayChart";
 import SunBars from "./SunBars";
@@ -18,7 +18,7 @@ import SunFacts from "./SunFacts";
 import SunPath from "./SunPath";
 import YearTable from "./YearTable";
 import {
-  ANALYSIS_STEP_MIN, PLAY_FRAME_MS, PLAY_FRAME_REDUCED_MS, PLAY_MINUTES_PER_SECOND, SHADING_RANGE, YEAR_TABLE_DAY, clampMinute, habitableRooms, mainRoom, presetDays, primaryArea, sunAreas, sunnySideView, timeRange,
+  PLAY_FRAME_MS, PLAY_FRAME_REDUCED_MS, PLAY_MINUTES_PER_SECOND, SHADING_RANGE, YEAR_TABLE_DAY, clampMinute, habitableRooms, louvreRange, mainRoom, presetDays, primaryArea, sunAreas, timeRange,
   type SunSettings,
 } from "./model";
 import { createSunStore, defaultSettings } from "./store";
@@ -27,20 +27,22 @@ import { useSunEngine } from "./useSunEngine";
 
 // What the model has, known before the scene is built (so nothing changes shape when the movable parts arrive).
 const PLACE = placeOf(house);
-const VIEWS = webViews(house.cameras);
-const CENTRE: [number, number] = [(derived.bbox.x0 + derived.bbox.x1) / 2, (derived.bbox.y0 + derived.bbox.y1) / 2];
-const FIRST_VIEW = sunnySideView(VIEWS, house.location.houseAxisBearingDeg, CENTRE, PLACE.lat >= 0) ?? VIEWS[0] ?? null;
+/** The camera presets of this page (cameras with use "sun"); the Stage opens on `defaultView`. */
+const VIEWS = pageViews({ derived }, "sun");
 const ROOMS = habitableRooms(derived);
 const AREAS = sunAreas(derived);
 const PRIMARY = primaryArea(AREAS);
 const MAIN_ROOM = mainRoom(derived);
-const HAS_SLATS = derived.screens.length > 0;
+const LOUVRES = louvreRange(derived.screens);
 const HAS_BLINDS = derived.openings.some((o) => o.blind);
-const HAS_MOVABLE = HAS_SLATS || HAS_BLINDS;
+const HAS_MOVABLE = LOUVRES !== null || HAS_BLINDS;
 
 /** The scene for this page: the house with its roof (the shadows), plants and neighbours, no furniture, no plot outline. */
 const BUILD = { furniture: false, furnitureDelayMs: null, labels: false, boundary: false, vegetation: true, roof: true } as const;
-const VIEWER = { keyboard: true } as const;
+/** Hours between two labelled ticks of the sun path in the scene. */
+const SUN_PATH_LABEL_EVERY = 3;
+/** Labels on: the hour ticks of the sun path. */
+const VIEWER = { keyboard: true, labels: true } as const;
 
 export default function SunTool({ year }: { year: number }) {
   const t = useT(), f = useFormat(), locale = useLocale();
@@ -49,13 +51,6 @@ export default function SunTool({ year }: { year: number }) {
   const settings = useSyncExternalStore(store.subscribe, store.getSnapshot, store.getServerSnapshot);
   const date: CalendarDate = useMemo(() => ({ year, month: settings.month, day: settings.day }), [year, settings.month, settings.day]);
 
-  const [view, setView] = useState<string | null>(FIRST_VIEW?.id ?? null);
-  const { engine, status, onReady: engineReady, onDispose, onStatus } = useSunEngine();
-  const onReady = useCallback((handle: StageHandle) => {
-    setView(FIRST_VIEW?.id ?? null);
-    engineReady(handle);
-  }, [engineReady]);
-
   // ------------------------------------------------------------------------------------------ the day and the time
   const times = useMemo(() => sunTimes(PLACE, date), [date]);
   const range = useMemo(() => timeRange(times), [times]);
@@ -63,6 +58,16 @@ export default function SunTool({ year }: { year: number }) {
   const playing = live !== null;
   const stored = Math.min(range.max, Math.max(range.min, settings.minute));
   const minute = live ?? stored;
+
+  const [view, setView] = useState<string | null>(null);
+  const preset = VIEWS.find((v) => v.id === view) ?? null;
+  // the arc is labelled every SUN_PATH_LABEL_EVERY hours: hourly labels crowd where the arc runs towards the camera
+  const formatHour = useCallback((hour: number) => (hour % SUN_PATH_LABEL_EVERY === 0 ? f.clock(hour * 60) : ""), [f]);
+  const { engine, status, onReady: engineReady, onDispose, onStatus } = useSunEngine({ date, minute, formatHour, visible: !preset?.ortho });
+  const onReady = useCallback((handle: StageHandle) => {
+    setView(handle.initialView?.id ?? null);
+    engineReady(handle);
+  }, [engineReady]);
   const sun = useMemo(() => sunPosition(localToUtc(PLACE.tz, date, minute / 60), PLACE), [date, minute]);
 
   const chooseDate = useCallback((d: CalendarDate) => {
@@ -109,16 +114,32 @@ export default function SunTool({ year }: { year: number }) {
     engine?.handle.house.setDayOfYear(dayOfYear(date.month, date.day));
     engine?.handle.viewer.requestRender();
   }, [engine, date]);
-  useEffect(() => {
-    engine?.slats?.setAngle(settings.slatAngle);
-    engine?.slats?.setSlide(settings.slatSlide / SHADING_RANGE.slatSlide.max);
-  }, [engine, settings.slatAngle, settings.slatSlide]);
+  // the louvres only turn; a stored angle below the closed stop of the model is shown and applied as closed
+  const slatAngle = LOUVRES ? Math.min(LOUVRES.max, Math.max(LOUVRES.min, settings.slatAngle)) : settings.slatAngle;
+  useEffect(() => { engine?.slats?.setAngle(slatAngle); }, [engine, slatAngle]);
   useEffect(() => {
     engine?.blinds?.setDrop(settings.blindDrop / SHADING_RANGE.blindDrop.max);
     engine?.blinds?.setTilt(settings.blindTilt);
   }, [engine, settings.blindDrop, settings.blindTilt]);
 
-  const shadingKey = `${settings.slatAngle}|${settings.slatSlide}|${settings.blindDrop}|${settings.blindDrop > 0 ? settings.blindTilt : 0}`;
+  // the sun path follows the day and the clock, can be dragged, and is hidden in the top view (it would cover the plan)
+  const path = engine?.path ?? null;
+  useEffect(() => { path?.setDay(date); }, [path, date]);
+  useEffect(() => { path?.setMinute(minute); }, [path, minute]);
+  useEffect(() => { path?.setVisible(!preset?.ortho); }, [path, preset]);
+  useEffect(() => path?.onDrag((m) => chooseMinute(clampMinute(m, range))), [path, chooseMinute, range]);
+
+  // the chip of a preset view is lit only until the visitor moves the camera by hand
+  const viewer = engine?.handle.viewer ?? null;
+  useEffect(() => {
+    const controls = viewer?.controls;
+    if (!controls) return;
+    const moved = () => setView(null);
+    controls.addEventListener("start", moved);
+    return () => controls.removeEventListener("start", moved);
+  }, [viewer]);
+
+  const shadingKey = `${slatAngle}|${settings.blindDrop}|${settings.blindDrop > 0 ? settings.blindTilt : 0}`;
   const analysis = useSunAnalysis(engine, date, shadingKey);
 
   // ------------------------------------------------------------------------------------------ texts
@@ -134,19 +155,19 @@ export default function SunTool({ year }: { year: number }) {
   const R = SHADING_RANGE;
   const shadingText = useMemo(() => {
     const parts: string[] = [];
-    if (HAS_SLATS) {
-      const a = settings.slatAngle;
-      parts.push(t("sun.results.shadingSlats", { value: a === R.slatAngle.min ? t("sun.shading.closed") : a === R.slatAngle.max ? t("sun.shading.open") : f.degrees(a) }));
+    if (LOUVRES) {
+      const a = slatAngle;
+      parts.push(t("common.shading.summaryLouvres", { value: a <= LOUVRES.min ? t("common.shading.closed") : a >= LOUVRES.max ? t("common.shading.open") : f.degrees(a) }));
     }
     if (HAS_BLINDS) {
       const d = settings.blindDrop, tilt = settings.blindTilt;
-      parts.push(d === 0 ? t("sun.results.shadingBlindsRaised") : t("sun.results.shadingBlinds", {
-        drop: d === R.blindDrop.max ? t("sun.shading.lowered") : t("sun.shading.loweredTo", { value: f.percent(d) }),
-        tilt: tilt === R.blindTilt.min ? t("sun.shading.horizontal") : tilt === R.blindTilt.max ? t("sun.shading.closed") : f.degrees(tilt),
+      parts.push(d === 0 ? t("common.shading.summaryBlindsUp") : t("common.shading.summaryBlinds", {
+        drop: t("common.shading.downTo", { value: f.percent(d) }),
+        tilt: tilt === R.blindTilt.min ? t("common.shading.level") : tilt === R.blindTilt.max ? t("common.shading.shut") : f.degrees(tilt),
       }));
     }
     return parts.length ? t("sun.results.shadingNow", { summary: f.list(parts) }) : "";
-  }, [t, f, R, settings.slatAngle, settings.blindDrop, settings.blindTilt]);
+  }, [t, f, R, slatAngle, settings.blindDrop, settings.blindTilt]);
 
   const dayLengths = useMemo(
     () => Array.from({ length: 12 }, (_, month) => sunTimes(PLACE, { year, month, day: YEAR_TABLE_DAY }).dayLength),
@@ -160,7 +181,7 @@ export default function SunTool({ year }: { year: number }) {
         <div className="sun-main">
           <div className="sun-stage">
             <Stage
-              labels={labels} extent="house" backdrop="sky" initialView={FIRST_VIEW?.id} build={BUILD} viewer={VIEWER}
+              labels={labels} page="sun" build={BUILD} viewer={VIEWER}
               onReady={onReady} onDispose={onDispose} onStatus={onStatus}
             >
               <p className="sun-hud num" aria-hidden="true">
@@ -178,7 +199,7 @@ export default function SunTool({ year }: { year: number }) {
               const v = VIEWS.find((x) => x.id === id);
               if (!v) return;
               setView(id);
-              void engine?.handle.viewer.setView(v);
+              viewer?.fit(v, undefined, { animate: true }).catch(() => {}); // a newer view cancels the transition
             }}
           />
         </div>
@@ -186,7 +207,7 @@ export default function SunTool({ year }: { year: number }) {
           <SunControls
             presets={presets} date={date} onDate={chooseDate} range={range} minute={minute} onMinute={chooseMinute}
             playing={playing} onPlay={togglePlay} settings={settings} onShading={shade}
-            hasSlats={HAS_SLATS} hasBlinds={HAS_BLINDS}
+            louvres={LOUVRES} hasBlinds={HAS_BLINDS}
           />
           <SunFacts sun={sun} times={times} />
         </aside>
@@ -217,10 +238,6 @@ export default function SunTool({ year }: { year: number }) {
           year={analysis.year} dayLengths={dayLengths} primary={PRIMARY} rooms={ROOMS} hasMovable={HAS_MOVABLE} pending={analysis.pending}
           shadingText={shadingText}
         />
-        <div className="sun-method">
-          <h2 className="h3">{t("sun.method.title")}</h2>
-          <p className="note">{t("sun.method.body", { step: f.int(ANALYSIS_STEP_MIN) })}</p>
-        </div>
       </section>
     </div>
   );

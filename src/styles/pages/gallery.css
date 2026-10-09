@@ -104,7 +104,7 @@
 .lb-prev { inset-inline-start: max(var(--sp-3), env(safe-area-inset-left)); }
 .lb-next { inset-inline-end: max(var(--sp-3), env(safe-area-inset-right)); }
 /* wide screens: the arrows sit beside the picture, never on it */
-@media (min-width: 900px) {
+@media (min-width: 901px) {
   .lightbox { --lb-side: calc(max(var(--sp-3), env(safe-area-inset-left)) + var(--touch) + var(--sp-5)); }
   .lb-figure { padding-inline: var(--lb-side); }
 }

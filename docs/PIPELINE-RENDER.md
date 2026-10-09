@@ -46,7 +46,7 @@ BLENDER -b --factory-startup --python pipeline/render/photo.py -- --mode stills|
   `RENDER_QA_KEEP=1` (keeps the key image of `--qa` next to the frame). Driver: `CHUNK` (orbit frames per Blender process,
   default 60), `RETRIES` (restarts per chunk, default 4), `OUT`, `MIN_FREE_GB`.
 
-`run_all.sh` rebuilds `generated/render-inputs.json` when it is stale. `photo.py` refuses to run when `modelHash` differs from the
+`run_all.sh` rebuilds `generated/render-inputs.json` when it is stale, and the model GLBs (`pipeline/build_model.sh --no-trees --no-usdz`, about 15 s) when `pipeline/out/furniture-report.json` no longer matches the model hash (the decor lamps would be missing). `photo.py` refuses to run when `modelHash` differs from the
 hash of `model/*.json` or the content hash does not match (both are re-computed in Python, `rn/inputs.py`); `--no-verify` skips
 that for look development. The furniture lamps (pendants, floor and table lamps) are in the inputs only when
 `pipeline/out/furniture-report.json` was built from the current `generated/derived.json`: rebuild the furniture first
@@ -77,7 +77,7 @@ the output volume and stops (exit code 3) below `qa.minFreeDiskGB` (8 GB); start
 
 | part | module | notes |
 |---|---|---|
-| house | `rn/assemble.py` | `build_house.build_scene(Config.load(..., lod="high", for_render=True))`; the glass role is replaced by clear glass (Fresnel mix of a transparent and a glossy shader: no refraction, little noise, sun patches on the floor) |
+| house | `rn/assemble.py` | `build_house.build_scene(Config.load(..., lod="high", for_render=True))`; the glass role is replaced by clear glass (Fresnel mix of a transparent and a glossy shader: no refraction, little noise, sun patches on the floor; the same Fresnel on both sides, the IOR is swapped on a back face) and the reversed copy of every pane that the builder adds for the web (glTF culls back faces) is removed: two coincident faces drew dark triangles in the panes |
 | furniture | `rn/assemble.py`, `rn/materials.py` | `furniture.glb` as it is; woven bump and sheen on the fabrics, translucent lamp shades, clear coat on the cars |
 | sky, sun, clouds | `rn/sky.py` | Sky Texture (multiple scattering, the parameters of `render-inputs.sky`) with `sun_elevation`/`sun_rotation` from `shot.sun.blender`; below the horizon the glow is held at `belowHorizonHoldDeg` and dimmed by `belowHorizonFalloff`. Clouds (section 4) for camera and glossy rays only |
 | lamps | `rn/lights.py` | one Blender light per `lights.items[]` (spot or point, black-body colour mixed `colorMix` from white); only the power changes per shot (section 4). Garden lights (C3 kinds `pool`, `garden` with `space` `tree_uplight` / `deck_step`, `pillar`) come from the inputs; a group the inputs lack is derived from the data (`fallbackLights`) |
@@ -131,12 +131,7 @@ keys, so the foreground lawn does not strobe), plus `grassDensity` and `farTrees
 and day landscape at scale 1.333 (2560 x 1440, OG 1600 x 840), day portrait 1.0 (1080 x 1620), orbit landscape 0.833
 (1600 x 900) and portrait 0.889 (960 x 1440), motion blur 0.15. Draft: half size, 12-16 samples.
 
-The budget of the final run on the development machine (Apple M1, 8 GPU cores, Metal) is about 7.2 hours (plan section 3.5):
-stills 80 min, compare 16, OG 3, day landscape 93, day portrait 43, orbit scroll landscape 36, orbit portrait 34, orbit rest
-108. Measured in look development: a draft frame (960 x 540, 16 samples) takes 10-15 s, a scene build about 30 s (house, plants,
-landscape, the lawn of about 18 000 patches). If the run is too slow: stills at 128 samples (-20 min), orbit at 28 samples
-(-18 min), or postpone the `rest` step (the page scrolls and shows posters without it). The first frame of every process also
-compiles the shaders and builds the acceleration structures (15 to 40 s more).
+Measured on the development machine (Apple M1, 8 GPU cores, Metal; proof pass of 9 October): a draft frame takes 10-17 s (orbit 6-9 s), a scene build 35-50 s; final frames: day landscape 2560 x 1440 at 64 samples about 245 s, orbit landscape 1600 x 900 at 32 samples about 40 s, a still at 160 samples 600-1160 s. The final run therefore takes about 9 hours (up to 10.5 when the stills are slow): stills, compare and OG 2-3.5 h, day landscape 2.3 h, day portrait 1 h, orbit scroll landscape 0.7 h, orbit portrait 0.6 h, orbit rest 2 h. Everything the page needs first is done after about 7 hours; the `rest` step (the video frames) comes last and can be postponed. If the run must be shorter: stills at 96 samples (about -1 h), day at 48 samples (-0.8 h). The output needs well under 1 GB; the driver stops cleanly below `qa.minFreeDiskGB` (8 GB) free and resumes on the next start. The first frame of every process also compiles the shaders and builds the acceleration structures (15 to 40 s more).
 
 ## 6. Performance notes (what mattered)
 

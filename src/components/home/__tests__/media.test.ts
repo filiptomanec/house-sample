@@ -44,9 +44,10 @@ describe("manifest fields with fallbacks", () => {
     const bare = { orbit: { ...media.orbit } } as Pick<Media, "orbit">;
     delete (bare.orbit as { startAzimuthDeg?: number }).startAzimuthDeg;
     delete (bare.orbit as { direction?: string }).direction;
-    expect(orbitPath(bare, fallback)).toEqual({ ...fallback, degPerFrame: media.orbit.degPerFrame });
+    const win = media.orbit.captionHalfWindowDeg === undefined ? {} : { halfWindowDeg: media.orbit.captionHalfWindowDeg };
+    expect(orbitPath(bare, fallback)).toEqual({ ...fallback, degPerFrame: media.orbit.degPerFrame, ...win });
     const written = { orbit: { ...media.orbit, startAzimuthDeg: 200, direction: "counterclockwise" } } as Pick<Media, "orbit">;
-    expect(orbitPath(written, fallback)).toEqual({ startAzimuthDeg: 200, direction: "counterclockwise", degPerFrame: media.orbit.degPerFrame });
+    expect(orbitPath(written, fallback)).toEqual({ startAzimuthDeg: 200, direction: "counterclockwise", degPerFrame: media.orbit.degPerFrame, ...win });
   });
 
   it("takes the caption window from the manifest, else from the render settings, else leaves it to the default", () => {

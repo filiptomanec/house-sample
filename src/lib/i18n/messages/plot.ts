@@ -93,8 +93,12 @@ export default defineMessages({
       planting: "Stromy a keře",
       plantingValue: "{trees} · {shrubs}",
     },
+    method: {
+      areas: "Zastavěná plocha je půdorys domu s garáží a zastřešené plochy. Zpevněné plochy jsou příjezd, cesty a plochy pod širým nebem, vodní plocha je hladina bazénu a zbytek pozemku je zeleň. Všechny čtyři dávají dohromady plochu pozemku.",
+      terrain: "Terén je mírně skloněná rovina. Dům stojí na srovnané plošině a příjezd i chodník klesají k brankám, aby voda odtékala od domu. Vrstevnice, kóty i měření počítají s týmž terénem jako 3D model.",
+    },
     rules: {
-      title: "Limity a odstupy",
+      title: "Limity <q>a odstupy</q>",
       lede: "Kontrola vychází z pravidel, jaká u rodinných domů obvykle platí. Nejde o právní posouzení.",
       ok: "Splněno",
       fail: "Nesplněno",
@@ -210,8 +214,12 @@ export default defineMessages({
       planting: "Trees and shrubs",
       plantingValue: "{trees} · {shrubs}",
     },
+    method: {
+      areas: "The built-up area is the house with its garage and the roofed areas. Paving is the drive, the paths and the open-air areas, water is the pool surface, and the rest of the plot is garden. The four add up to the plot area.",
+      terrain: "The ground is a gently sloping plane. The house stands on a levelled platform, and the drive and the path fall towards their gates so that water runs away from the house. Contours, spot heights and the measuring tool use the same ground as the 3D model.",
+    },
     rules: {
-      title: "Planning checks",
+      title: "Planning <q>checks</q>",
       lede: "Checked against the rules that typically apply to a detached family house. Not a planning assessment.",
       ok: "Pass",
       fail: "Fail",

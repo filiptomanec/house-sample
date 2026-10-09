@@ -22,7 +22,7 @@ for (const locale of ["cs", "en"] as const) {
       await open(page, path);
       await expect(figures(page)).toHaveCount(4);
       for (const text of await texts(figures(page))) expect(num(text, locale), text).toBeGreaterThan(0);
-      await expect(page.locator(".energy-figures .stat.accent .k")).toContainText(f.unit(derived.pv.kwp, t("energy.units.kwp"), 2));
+      await expect(page.locator(".energy-figures .stat.signal .k")).toContainText(f.unit(derived.pv.kwp, t("energy.units.kwp"), 1));
     });
 
     test("a warmer house needs more heat, more people need more electricity, reset restores both", async ({ page }) => {
@@ -30,6 +30,7 @@ for (const locale of ["cs", "en"] as const) {
       const start = await texts(figures(page));
       const [, heat0, electricity0] = start.map((x) => num(x, locale));
 
+      await page.locator("details.grp").nth(1).locator("summary").click(); // the indoor temperature lives in "Dům a vytápění", closed on load
       const temperature = page.getByLabel(t("energy.settings.indoorTemp"));
       await temperature.focus();
       await page.keyboard.press("End");

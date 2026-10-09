@@ -95,7 +95,7 @@ describe("bladeHeights", () => {
 });
 
 describe("buildSlatScreens (rotation only)", () => {
-  it("starts at the rest angle, clamps every angle to [closedDeg, 90] and ignores the deprecated slide", () => {
+  it("starts at the rest angle, clamps every angle to [closedDeg, 90]", () => {
     const { house, viewer } = fakeScene(true);
     const screens = buildSlatScreens(viewer, house);
     const closed = Math.max(...ctx.derived.screens.map((s) => s.closedDeg));
@@ -109,8 +109,6 @@ describe("buildSlatScreens (rotation only)", () => {
     expect(screens.angle).toBe(90);
     screens.setAngle(Number.NaN);
     expect(screens.angle).toBe(90);
-    screens.setSlide(1);
-    expect(screens.slide).toBe(0);
     screens.dispose();
   });
 

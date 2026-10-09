@@ -31,7 +31,41 @@ def build_house(inputs):
     g = bpy.data.materials.get("glass")
     if g:
         MAT.clear_glass(g)
+        log("glass: %d coincident back faces removed" % single_sided_glass(g))
     return res
+
+
+def single_sided_glass(mat):
+    """The builder makes glass two sided for the web (a reversed copy of every pane, glTF culls back faces). In Cycles the
+    two coincident faces fight: per triangle the front or the back one wins, which drew dark triangles in the panes. Keeps
+    one face of each coincident pair (the shader is the same on both sides). Returns the number of faces removed."""
+    import bmesh
+    import bpy
+    removed = 0
+    for o in bpy.data.objects:
+        if o.type != "MESH" or not any(m == mat for m in o.data.materials):
+            continue
+        bm = bmesh.new()
+        bm.from_mesh(o.data)
+        seen, drop = set(), []
+        for f in bm.faces:
+            if o.material_slots and o.material_slots[f.material_index].material != mat:
+                continue
+            c = f.calc_center_median()
+            n = f.normal
+            k = (round(c.x, 3), round(c.y, 3), round(c.z, 3), round(abs(n.x), 2), round(abs(n.y), 2), round(abs(n.z), 2),
+                 len(f.verts))
+            if k in seen:
+                drop.append(f)
+            else:
+                seen.add(k)
+        if drop:
+            bmesh.ops.delete(bm, geom=drop, context="FACES")
+            bm.to_mesh(o.data)
+            o.data.update()
+            removed += len(drop)
+        bm.free()
+    return removed
 
 
 def import_furniture(inputs):

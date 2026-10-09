@@ -30,13 +30,6 @@ export interface SlatScreens {
   readonly range: { min: number; max: number; rest: number };
   /** Turns the blades; clamped to `range`. */
   setAngle(deg: number): void;
-  /**
-   * @deprecated The louvres only turn (no slide). Kept as a no-op so a page written against the old API still runs; remove
-   * the call. `slide` is always 0.
-   */
-  setSlide(t: number): void;
-  /** @deprecated Always 0 (see `setSlide`). */
-  readonly slide: number;
   /** The blade meshes at their current angle. Fresh matrices (`updateMatrixWorld`) are the caller's duty before ray casting. */
   occluders(): THREE.Object3D[];
   dispose(): void;
@@ -168,8 +161,6 @@ export function buildSlatScreens(viewer: Viewer, house: HouseScene): SlatScreens
       angle = Math.min(range.max, Math.max(range.min, deg));
       layout();
     },
-    setSlide() { /* deprecated: the louvres only turn */ },
-    slide: 0,
     occluders() { return built.map((b) => b.mesh); },
     dispose() {
       // the shared materials belong to the house scene

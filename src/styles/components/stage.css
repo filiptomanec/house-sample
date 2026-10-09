@@ -23,6 +23,12 @@
   box-shadow: var(--shadow-1);
 }
 .room-tag b { font-weight: var(--weight-strong); letter-spacing: -0.01em; }
+/* the hour ticks of the sun path in the scene (sunPath.ts): the sky is the same in both schemes, so the text sits on the scrim */
+.stage .sun-tick {
+  padding: 2px 6px; border-radius: var(--r-xs); background: var(--scrim); color: var(--ink);
+  font: var(--fs-2xs) / 1.2 var(--font-mono); white-space: nowrap; pointer-events: none;
+}
+.stage .sun-tick:empty { display: none; }
 .room-tag span { font: var(--fs-2xs) / 1.2 var(--font-mono); color: var(--ink-2); }
 
 /* overlay controls of the page (view chips, walk button, hints) sit above the canvas */
@@ -42,7 +48,7 @@
 .compass-needle { fill: var(--accent); }
 .compass-n {
   position: absolute; inset-block-start: 1px; inset-inline-start: 50%; transform: translateX(-50%);
-  font: var(--weight-strong) 0.5625rem / 1 var(--font-sans); color: var(--ink);
+  font: var(--weight-strong) calc(var(--fs-2xs) * 0.82) / 1 var(--font-sans); color: var(--ink); /* 9 px in a 40 px dial */
 }
 
 /* messages: loading with progress, error, lost context, no WebGL */

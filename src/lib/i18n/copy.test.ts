@@ -38,12 +38,11 @@ const visibleLength = (s: string) => s.replace(/<\/?[a-z]+>/g, "").replace(/\{\w
 const OLD_NAME = /Dlouh\p{L}* střech|Long Roof|long-roof/iu;
 
 /**
- * Where the old name must not appear. Wave 1 covers the files of the copy package only; at the M1 merge, once every package
- * has renamed its files, the orchestrator replaces this list with FULL_SCOPE.
+ * Where the old name must not appear. The whole repository text.
  */
-const OLD_NAME_SCOPE = ["src/lib/i18n", "docs/COPY.md", "docs/README.md", "README.md"];
-/** The target scope of the rule (the whole repository text). */
-export const FULL_SCOPE = ["src", "model", "scripts", "docs", "README.md"];
+const OLD_NAME_SCOPE = ["src", "model", "scripts", "docs", "README.md"];
+/** The scope of the rule (the whole repository text). */
+export const FULL_SCOPE = OLD_NAME_SCOPE;
 
 const TEXT_FILES = new Set([".ts", ".tsx", ".js", ".mjs", ".cjs", ".json", ".md", ".py", ".sh", ".css", ".txt", ".yml", ".yaml", ".html", ".svg"]);
 const SKIP_DIRS = new Set(["node_modules", ".next", ".git", "out"]);

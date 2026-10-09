@@ -19,11 +19,17 @@ export function cutMaxFor(ridgeHeight: number): number {
   return Math.round(Math.ceil(ridgeHeight / CUT_RANGE.step - 1e-9) * CUT_RANGE.step * 100) / 100;
 }
 
+/** The exterior blinds: a choice of three positions (up, half way, down), not a slider. */
+export const BLIND_STATES = ["up", "half", "down"] as const;
+export type BlindState = (typeof BLIND_STATES)[number];
+/** How far each position lowers the blinds, 0 (up) to 1 (down). */
+export const BLIND_DROP: Record<BlindState, number> = { up: 0, half: 0.5, down: 1 };
+
 /** Switches and choices that are remembered per browser. */
 export interface ModelSettings {
   roof: boolean;
   furniture: boolean;
-  blinds: boolean;
+  blinds: BlindState;
   pv: boolean;
   green: boolean;
   boundary: boolean;
@@ -33,17 +39,21 @@ export interface ModelSettings {
 }
 
 export const DEFAULT_SETTINGS: ModelSettings = {
-  roof: true, furniture: true, blinds: true, pv: true, green: true, boundary: true, day: "afternoon", pan: false,
+  roof: true, furniture: true, blinds: "up", pv: true, green: true, boundary: true, day: "afternoon", pan: false,
 };
 
 const bool = (v: unknown, fallback: boolean): boolean => (typeof v === "boolean" ? v : fallback);
 
-/** Complete valid settings from untrusted stored data; anything unknown or of the wrong type falls back to the default. */
+/**
+ * Complete valid settings from untrusted stored data; anything unknown or of the wrong type falls back to the default.
+ * Keys of older versions (the louvre slide, `blinds` as an on/off switch) are ignored, so no storage version bump is needed.
+ */
 export function parseSettings(data: unknown): ModelSettings {
   const d = typeof data === "object" && data !== null ? (data as Record<string, unknown>) : {};
   const day = DAY_PRESETS.find((p) => p === d.day) ?? DEFAULT_SETTINGS.day;
+  const blinds = BLIND_STATES.find((b) => b === d.blinds) ?? DEFAULT_SETTINGS.blinds;
   return {
-    roof: bool(d.roof, DEFAULT_SETTINGS.roof), furniture: bool(d.furniture, DEFAULT_SETTINGS.furniture), blinds: bool(d.blinds, DEFAULT_SETTINGS.blinds),
+    roof: bool(d.roof, DEFAULT_SETTINGS.roof), furniture: bool(d.furniture, DEFAULT_SETTINGS.furniture), blinds,
     pv: bool(d.pv, DEFAULT_SETTINGS.pv), green: bool(d.green, DEFAULT_SETTINGS.green), boundary: bool(d.boundary, DEFAULT_SETTINGS.boundary),
     day, pan: bool(d.pan, DEFAULT_SETTINGS.pan),
   };

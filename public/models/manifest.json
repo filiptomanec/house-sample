@@ -1,7 +1,7 @@
 {
   "schema": "models/1",
   "frame": "house (x east, y north, z up, metres)",
-  "inputHash": "27f3db7aa27b88aa9ff5ca20d700c6c49c64a60fa690dec785bc56b7c482f3fa",
+  "inputHash": "8cd74119b813e7b648be77487455dd3bd6c02361a05221c75b12366c953ee560",
   "hash": "318561494291a66360a09e61837181033b2724d912c096b89a8ad73a91c9730d",
   "files": {
     "furniture-footprints.json": {

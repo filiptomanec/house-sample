@@ -2,10 +2,9 @@ import { describe, expect, it } from "vitest";
 import { derived, house } from "@/lib/model/instance";
 import { HABITABLE } from "@/lib/model/catalog";
 import { placeOf, sunPosition, sunTimes, localToUtc } from "@/lib/calc/sun";
-import { webViews } from "@/lib/three/views";
 import {
-  DEFAULT_SHADING, SHADING_RANGE, TIME_MARGIN_MIN, TIME_STEP_MIN, clampMinute, defaultMinute, habitableRooms, inYear, mainRoom, parseIso,
-  parseSettings, presetDays, presetOf, primaryArea, sunAreas, sunnySideView, timeRange, toIso,
+  BLIND_POSITIONS, DEFAULT_SHADING, SHADING_RANGE, TIME_MARGIN_MIN, TIME_STEP_MIN, clampMinute, defaultMinute, habitableRooms, inYear, mainRoom, parseIso,
+  louvreRange, parseSettings, presetDays, presetOf, primaryArea, sunAreas, timeRange, toIso,
 } from "./model";
 
 const place = placeOf(house);
@@ -109,33 +108,21 @@ describe("rooms and areas come from the data", () => {
   });
 });
 
-describe("first view", () => {
-  const views = [
-    { id: "north", ortho: false, position: [0, 2, -40] as const },
-    { id: "south", ortho: false, position: [0, 2, 40] as const },
-    { id: "top", ortho: true, position: [0, 60, 0] as const },
-    { id: "east", ortho: false, position: [40, 2, 0] as const },
-  ];
-  // scene frame: z = -north of the house frame, so z = +40 is 40 m to the south of the centre
-  it("prefers the view on the side of the midday sun, ignoring orthographic views", () => {
-    expect(sunnySideView(views, 0, [0, 0])?.id).toBe("south");
-    // the house axis turned 90 degrees clockwise: true south is the house +x side
-    expect(sunnySideView(views, 90, [0, 0])?.id).toBe("east");
-    // in the southern hemisphere the midday sun is in the north
-    expect(sunnySideView(views, 0, [0, 0], false)?.id).toBe("north");
-    expect(sunnySideView([views[2]], 0, [0, 0])).toBeNull();
-  });
-  it("picks a real camera of the model on the south side", () => {
-    const all = webViews(house.cameras);
-    const pick = sunnySideView(all, house.location.houseAxisBearingDeg, [(derived.bbox.x0 + derived.bbox.x1) / 2, (derived.bbox.y0 + derived.bbox.y1) / 2]);
-    expect(pick).not.toBeNull();
-    expect(pick!.ortho).toBe(false);
-    expect(pick!.position[2]).toBeGreaterThan(0); // south of the house in the scene frame (the house frame is not rotated)
+describe("louvre range", () => {
+  it("runs from the closed stop of the model to 90 degrees, on the slider grid, and starts at the rest angle", () => {
+    const r = louvreRange(derived.screens)!;
+    expect(r.min).toBeGreaterThan(0);
+    expect(r.min % SHADING_RANGE.slatAngle.step).toBe(0);
+    expect(r.max).toBe(90);
+    expect(r.rest).toBeGreaterThanOrEqual(r.min);
+    expect(r.rest).toBeLessThanOrEqual(r.max);
+    expect(louvreRange([{ closedDeg: 12.3, restDeg: 5 }])).toEqual({ min: 15, max: 90, rest: 15 });
+    expect(louvreRange([])).toBeNull();
   });
 });
 
 describe("remembered settings", () => {
-  const good = { month: 5, day: 21, minute: 700, slatAngle: 30, slatSlide: 50, blindDrop: 80, blindTilt: 10 };
+  const good = { month: 5, day: 21, minute: 700, slatAngle: 30, blindDrop: 50, blindTilt: 10 };
   it("accepts a complete record", () => {
     expect(parseSettings(good, YEAR)).toEqual(good);
   });
@@ -145,12 +132,17 @@ describe("remembered settings", () => {
     expect(parseSettings({ month: 1, day: 30 }, YEAR)).toBeNull();
     expect(parseSettings({ month: 12, day: 1 }, YEAR)).toBeNull();
     const s = parseSettings({ month: 0, day: 1, minute: "noon", slatAngle: 1e9, slatSlide: -5, blindDrop: NaN, blindTilt: 33 }, YEAR)!;
+    expect(s).not.toHaveProperty("slatSlide");
     expect(s.minute).toBe(720);
     expect(s.slatAngle).toBe(SHADING_RANGE.slatAngle.max);
-    expect(s.slatSlide).toBe(0);
     expect(s.blindDrop).toBe(DEFAULT_SHADING.blindDrop);
     expect(s.blindTilt).toBe(35);
     for (const v of Object.values(s)) expect(Number.isFinite(v)).toBe(true);
+  });
+  it("snaps a stored blind position to one of the three on offer", () => {
+    expect(parseSettings({ ...good, blindDrop: 80 }, YEAR)!.blindDrop).toBe(100);
+    expect(parseSettings({ ...good, blindDrop: 20 }, YEAR)!.blindDrop).toBe(0);
+    expect(BLIND_POSITIONS.map((p) => p.drop)).toEqual([0, 50, 100]);
   });
   it("is idempotent", () => {
     const once = parseSettings({ month: 3, day: 9, minute: 1e6, slatAngle: 44.4, slatSlide: 12, blindDrop: 3, blindTilt: 89 }, YEAR)!;

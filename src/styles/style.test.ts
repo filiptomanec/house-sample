@@ -128,7 +128,7 @@ describe("stylesheets", () => {
 
   // Page stylesheets that are rewritten by their page packages; each is removed from this list when its page moves to the
   // type scale (the design system's own files are checked from now on).
-  const PENDING = new Set(["styles/pages/model.css", "styles/pages/sun.css", "styles/components/stage.css"]);
+  const PENDING = new Set<string>([]);
   it("sizes every font with a --fs-* token (relative em sizes and the 16 px iOS input rule excepted)", () => {
     const ok = (v: string) => /var\(--fs-[\w-]+\)/.test(v) || /^inherit$/.test(v) || /(^|\s)[\d.]+em\b/.test(v) || v === "16px !important";
     const offenders = cssFiles.filter((f) => !PENDING.has(f.name.split("\\").join("/"))).flatMap((f) =>

@@ -27,6 +27,8 @@
 .sun-fieldset > legend { padding: 0; margin-bottom: var(--sp-3); font-weight: var(--weight-medium); }
 .sun-facts { display: grid; gap: var(--sp-2); padding-top: var(--sp-4); border-top: 1px solid var(--rule); }
 .sun-facts .label { margin: 0; color: var(--ink-3); }
+/* the "sun on the window" hours under a room bar (ČSN 73 4301 reading) */
+.sun-window { display: block; color: var(--ink-3); font-size: var(--fs-xs); font-variant-numeric: tabular-nums; }
 .sun-facts .kv { margin: 0; }
 
 /* ---------------------------------------------------------------- results */
@@ -47,7 +49,6 @@
 .sun-year .table-wrap:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 .sun-year-table tbody th { font: inherit; letter-spacing: 0; text-transform: none; color: var(--ink); padding: 10px 12px 10px 0; border-bottom: 1px solid var(--rule); text-align: left; white-space: nowrap; }
 .sun-year-table th.n { white-space: normal; min-width: 7em; }
-.sun-method .note { margin: 0; }
 
 /* ---------------------------------------------------------------- the sun path diagram */
 .sun-path, .sun-day { margin: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-3); }
@@ -56,9 +57,9 @@
 .sun-ring { fill: none; stroke: var(--rule-2); stroke-dasharray: 3 4; }
 .sun-spoke { stroke: var(--rule); }
 .sun-ring-label, .sun-hour-label, .sun-tick { font-family: var(--font-mono); fill: var(--ink-3); }
-.sun-ring-label, .sun-hour-label { font-size: 11px; paint-order: stroke; stroke: var(--bg-2); stroke-width: 3px; stroke-linejoin: round; }
+.sun-ring-label, .sun-hour-label { font-size: var(--fs-2xs); paint-order: stroke; stroke: var(--bg-2); stroke-width: 3px; stroke-linejoin: round; }
 .sun-hour-label { fill: var(--ink); }
-.sun-compass { font: var(--weight-strong) 13px / 1 var(--font-sans); fill: var(--ink); }
+.sun-compass { font: var(--weight-strong) var(--fs-xs) / 1 var(--font-sans); fill: var(--ink); }
 .sun-plan-house { fill: var(--ink); opacity: 0.85; }
 .sun-plan-outdoor { fill: var(--accent); opacity: 0.85; }
 .sun-arc { fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; opacity: 0.85; }

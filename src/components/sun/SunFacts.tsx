@@ -12,7 +12,7 @@ function SunFactsView({ sun, times }: { sun: Pick<SunPosition, "azimuth" | "alti
   const up = sun.altitude > 0;
   return (
     <section className="sun-facts" aria-labelledby="sun-facts-title">
-      <h3 className="label" id="sun-facts-title" aria-level={2}>{t("sun.facts.title")}</h3>
+      <h2 className="label" id="sun-facts-title">{t("sun.facts.title")}</h2>
       <dl className="kv">
         <dt>{t("sun.facts.azimuth")}</dt>
         <dd>{f.degrees(sun.azimuth, 1)} ({t(`sun.compass.long.${compassPoint(sun.azimuth)}`)})</dd>

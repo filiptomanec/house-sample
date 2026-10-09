@@ -3,7 +3,7 @@
 import fs from "node:fs";
 import { getT } from "../../src/lib/i18n/server";
 import { open, routePath } from "../helpers/site";
-import { expect, test, type Page } from "../helpers/test";
+import { expect, test, type Locator, type Page } from "../helpers/test";
 
 const digits = (text: string) => Number(text.replace(/\D/g, ""));
 /** The cells of one CSV line (a cell with the separator in it is in double quotes, a quote inside is doubled). */
@@ -25,9 +25,14 @@ function csvCells(line: string, sep: string): string[] {
   return cells;
 }
 const sideTotal = (page: Page) => page.locator("aside.budget-side dd.sum output");
-const summaryTotal = (page: Page) => page.locator(".budget-stats .stat.accent .v");
+const summaryTotal = (page: Page) => page.locator(".budget-stats .stat.signal .v");
 const totalCzk = async (page: Page) => digits(await sideTotal(page).innerText());
 const optionalGroup = (page: Page) => page.locator("section.budget-group").filter({ has: page.locator("input[role=switch]") }).first();
+
+/** Groups are `details.bg-details`; on phones only the first one is open, so open the one holding the control first. */
+const reveal = async (group: Locator) => {
+  await group.locator("details.bg-details").first().evaluate((d) => { (d as HTMLDetailsElement).open = true; });
+};
 
 for (const locale of ["cs", "en"] as const) {
   test.describe(`budget (${locale})`, () => {
@@ -39,7 +44,9 @@ for (const locale of ["cs", "en"] as const) {
       const crowns = await totalCzk(page);
       expect(crowns).toBeGreaterThan(1_000_000);
       const million = Number(/\d+[,.]\d+/.exec(await summaryTotal(page).innerText())![0].replace(",", "."));
-      expect(Math.abs(crowns / 1e6 - million), "the million shown is the total rounded to 0.01").toBeLessThanOrEqual(0.0051);
+      // the headline is an estimate to three significant digits, so the tolerance is half a unit of the last digit shown
+      const tolerance = 0.5 * 10 ** (Math.floor(Math.log10(crowns / 1e6)) - 2) + 1e-9;
+      expect(Math.abs(crowns / 1e6 - million), "the million shown is the total rounded to three significant digits").toBeLessThanOrEqual(tolerance);
       await expect(page.locator("aside.budget-side .btn.ghost")).toBeDisabled(); // nothing changed yet
     });
 
@@ -48,6 +55,7 @@ for (const locale of ["cs", "en"] as const) {
       const start = await totalCzk(page);
       const startHeadline = await summaryTotal(page).innerText();
       const group = optionalGroup(page);
+      await reveal(group);
       const toggle = group.locator("input[role=switch]");
       const wasOn = await toggle.isChecked();
       await toggle.setChecked(!wasOn);
@@ -91,6 +99,7 @@ for (const locale of ["cs", "en"] as const) {
       await open(page, path);
       // switch an optional group off, so that the file must leave it out
       const group = optionalGroup(page);
+      await reveal(group);
       const toggle = group.locator("input[role=switch]");
       const wasOn = await toggle.isChecked();
       if (wasOn) await toggle.setChecked(false);

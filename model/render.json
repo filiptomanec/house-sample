@@ -638,14 +638,19 @@
     },
     "lifts": [
       {
-        "azimuthDeg": 158,
-        "halfWidthDeg": 60,
-        "elevationDeg": 32
+        "azimuthDeg": 120,
+        "halfWidthDeg": 45,
+        "elevationDeg": 34
+      },
+      {
+        "azimuthDeg": 165,
+        "halfWidthDeg": 45,
+        "elevationDeg": 34
       },
       {
         "azimuthDeg": 45,
-        "halfWidthDeg": 30,
-        "elevationDeg": 24
+        "halfWidthDeg": 40,
+        "elevationDeg": 30
       }
     ],
     "lights": "off",
