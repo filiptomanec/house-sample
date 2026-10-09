@@ -61,7 +61,7 @@
   "orbit": {
     "frames": 60,
     "degPerFrame": 6,
-    "hash": "353c0b7856",
+    "hash": "679a9d650f",
     "startAzimuthDeg": 225,
     "direction": "counterclockwise",
     "captionHalfWindowDeg": 30,
@@ -106,8 +106,8 @@
       "stride": 2
     },
     "video": {
-      "file": "media/orbit/orbit-1600.03df2f012b.mp4",
-      "poster": "media/orbit/poster-1600.4116278e45.jpg",
+      "file": "media/orbit/orbit-1600.9e3458cd4b.mp4",
+      "poster": "media/orbit/poster-1600.6f92dbf91f.jpg",
       "width": 1600,
       "height": 900,
       "fps": 24,
@@ -116,35 +116,35 @@
         {
           "w": 1600,
           "h": 900,
-          "file": "media/orbit/orbit-1600.03df2f012b.mp4"
+          "file": "media/orbit/orbit-1600.9e3458cd4b.mp4"
         },
         {
           "w": 960,
           "h": 540,
-          "file": "media/orbit/orbit-960.1fcf56d975.mp4"
+          "file": "media/orbit/orbit-960.0a605da5fd.mp4"
         }
       ],
       "posterVariants": [
         {
           "w": 640,
           "h": 360,
-          "avif": "media/orbit/poster-640.0e4c29f04d.avif",
-          "webp": "media/orbit/poster-640.8b0cf64fac.webp",
-          "jpg": "media/orbit/poster-640.aa52a57255.jpg"
+          "avif": "media/orbit/poster-640.931a31439a.avif",
+          "webp": "media/orbit/poster-640.9a6d93bde4.webp",
+          "jpg": "media/orbit/poster-640.a7f8fcd05c.jpg"
         },
         {
           "w": 1280,
           "h": 720,
-          "avif": "media/orbit/poster-1280.561bcbf1bd.avif",
-          "webp": "media/orbit/poster-1280.f0bf4cbb9a.webp",
-          "jpg": "media/orbit/poster-1280.fb90d76fea.jpg"
+          "avif": "media/orbit/poster-1280.8d83d3b44c.avif",
+          "webp": "media/orbit/poster-1280.c002d41d5b.webp",
+          "jpg": "media/orbit/poster-1280.4e0a037bc6.jpg"
         },
         {
           "w": 1600,
           "h": 900,
-          "avif": "media/orbit/poster-1600.4548b2ff59.avif",
-          "webp": "media/orbit/poster-1600.9c23330634.webp",
-          "jpg": "media/orbit/poster-1600.4116278e45.jpg"
+          "avif": "media/orbit/poster-1600.ed11713dcf.avif",
+          "webp": "media/orbit/poster-1600.4c44eddc84.webp",
+          "jpg": "media/orbit/poster-1600.6f92dbf91f.jpg"
         }
       ]
     }
