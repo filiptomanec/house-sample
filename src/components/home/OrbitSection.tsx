@@ -31,6 +31,10 @@ export default function OrbitSection({ frames, captions, alt, path, cta }: {
   /** The 3D tour; `heavy` routes are prefetched on intent only. */
   cta: { href: string; label: string; heavy?: boolean };
 }) {
+  // made once per render of OrbitSection, not per scroll frame: React skips the unchanged text and the link (see DayHero)
+  const bodies = captions.map((c) => <><h3 className="h2">{c.title}</h3><p className="lede">{c.text}</p></>);
+  const link = (on: boolean) => <IntentLink className="btn ghost sm orbit-cta" href={cta.href} heavy={cta.heavy} data-on={on}>{cta.label}</IntentLink>;
+  const ctaOn = link(true), ctaOff = link(false);
   return (
     <ScrollFrames frames={frames} stillIndex={0} height={ORBIT_HEIGHT} blend={false} alt={alt} className="orbit-sf" navTone="clear">
       {({ progress, drawn, still }) => {
@@ -40,15 +44,12 @@ export default function OrbitSection({ frames, captions, alt, path, cta }: {
           <div className="orbit-caps">
             <div className="orbit-list">
               {captions.map((c, i) => (
-                <div key={c.key} className="orbit-cap shell" data-on={i === active}>
-                  <h3 className="h2">{c.title}</h3>
-                  <p className="lede">{c.text}</p>
-                </div>
+                <div key={c.key} className="orbit-cap shell" data-on={i === active}>{bodies[i]}</div>
               ))}
             </div>
             <div className="orbit-foot shell">
               <div className="orbit-bar" aria-hidden><i style={{ transform: `scaleX(${progress})` }} /></div>
-              <IntentLink className="btn ghost sm orbit-cta" href={cta.href} heavy={cta.heavy} data-on={end}>{cta.label}</IntentLink>
+              {end ? ctaOn : ctaOff}
             </div>
           </div>
         );

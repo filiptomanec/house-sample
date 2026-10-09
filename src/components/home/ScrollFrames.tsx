@@ -15,11 +15,12 @@
 // last frame (the day hero: the lit house and its last caption stay before the section leaves).
 
 import { useEffect, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode } from "react";
+import { flushSync } from "react-dom";
 import type { FrameSet } from "@/lib/data/media";
 import { MQ } from "@/styles/breakpoints";
-import { browserDeps, FrameStore } from "./frames";
+import { decodesViaImage, FrameStore, makeBrowserDeps } from "./frames";
 import { useMedia } from "./useMedia";
-import { canvasScale, coarseCount, coverRect, decodeBudgetBytes, frameAt, heldProgress, lruCapacity, sectionProgress, smallVariantFits } from "./timeline";
+import { canvasScale, coarseCount, coverCrop, coverRect, decodeBudgetBytes, decodeWindow, frameAt, heldProgress, lruCapacity, sectionProgress, smallVariantFits, type Crop } from "./timeline";
 
 /** The same query decides the poster (<source media>) and the frames the script fetches. */
 export const PORTRAIT = "(max-aspect-ratio: 4/5)";
@@ -112,27 +113,49 @@ export default function ScrollFrames({ frames, stillIndex, height, alt, blend = 
 
     const seq = variant.small && smallVariantFits(innerWidth, innerHeight, devicePixelRatio || 1, variant, variant.small) ? variant.small : variant;
     const n = seq.urls.length;
-    const capacity = lruCapacity(seq.width, seq.height, decodeBudgetBytes({
+    const budget = decodeBudgetBytes({
       coarse: matchMedia(MQ.coarse).matches,
       deviceMemoryGb: (navigator as Navigator & { deviceMemory?: number }).deviceMemory,
-    }));
-    let alive = true, raf = 0, drawnKey = -1, p = 0, published = -1, drawnPub = 0, out = "", painted = false, scrollable = 0, scale = 1, released = false;
+    });
+    let alive = true, raf = 0, drawnKey = -1, out = "", painted = false, released = false;
+    // layout, measured on resize only (never on a scroll frame): where the section starts in the document, how far it scrolls
+    let wrapTop = 0, wrapH = 0, stickH = 0, scrollable = 0;
+    // the canvas size and the part of a frame it shows (decoded frames are cropped to it where that saves work, see frames.ts)
+    let crop: Crop | null = null;
+    // what React was last told, and the scroll direction (decoding runs ahead of it)
+    let pubP = -1, pubD = -1, pubWait = false, lastF = -1, dir: 1 | -1 = 1, drawn = 0;
+    let store: FrameStore<ImageBitmap> | null = null;
 
-    const store = new FrameStore(seq.urls, browserDeps, {
-      capacity,
+    const capacityFor = () => lruCapacity(crop?.sw ?? seq.width, crop?.sh ?? seq.height, budget);
+    const measure = () => {
+      wrapTop = wrapEl.getBoundingClientRect().top + scrollY;
+      wrapH = wrapEl.offsetHeight;
+      stickH = stickEl.offsetHeight;
+      scrollable = wrapH - stickH;
+      const scale = canvasScale(cv.clientWidth, cv.clientHeight, devicePixelRatio || 1, seq.width, seq.height);
+      const w = Math.round(cv.clientWidth * scale), h = Math.round(cv.clientHeight * scale);
+      if (cv.width === w && cv.height === h) return;
+      cv.width = w; cv.height = h; drawnKey = -1;
+      const next = decodesViaImage() ? coverCrop(seq.width, seq.height, w, h) : null;
+      if (next?.sx !== crop?.sx || next?.sy !== crop?.sy || next?.sw !== crop?.sw || next?.sh !== crop?.sh) {
+        crop = next;
+        // frames decoded for the old crop are dropped and decoded again for the new one
+        if (store) { store.setCapacity(capacityFor()); store.release(); }
+      }
+    };
+    measure();
+
+    const st = new FrameStore(seq.urls, makeBrowserDeps(() => crop), {
+      capacity: capacityFor(),
       onDecoded: () => { drawnKey = -1; schedule(); },
       onProgress: (settled, total) => {
-        wrapEl.style.setProperty("--sf-loaded", (settled / Math.max(1, total)).toFixed(3));
+        // only on the elements that show it: a custom property set on the section would restyle all of it per download
+        const v = (settled / Math.max(1, total)).toFixed(3);
+        wrapEl.querySelectorAll<HTMLElement>("[data-sf-loaded]").forEach((el) => el.style.setProperty("--sf-loaded", v));
         wrapEl.dataset.loading = settled < total ? "true" : "false";
       },
     });
-
-    const measure = () => {
-      scrollable = wrapEl.offsetHeight - stickEl.offsetHeight;
-      scale = canvasScale(cv.clientWidth, cv.clientHeight, devicePixelRatio || 1, seq.width, seq.height);
-      const w = Math.round(cv.clientWidth * scale), h = Math.round(cv.clientHeight * scale);
-      if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; drawnKey = -1; }
-    };
+    store = st;
 
     const paint = (bitmap: ImageBitmap, alpha: number) => {
       const r = coverRect(bitmap.width, bitmap.height, cv.width, cv.height);
@@ -140,68 +163,69 @@ export default function ScrollFrames({ frames, stillIndex, height, alt, blend = 
       ctx.drawImage(bitmap, r.x, r.y, r.w, r.h);
     };
 
-    const publishDrawn = (d: number) => {
-      if (Math.abs(d - drawnPub) < DRAWN_STEP) return;
-      drawnPub = d;
-      setState((s) => ({ ...s, drawn: d, waiting: Math.abs(s.frame - d) > WAIT_FRAMES }));
+    /** One React update per animation frame at most, and only when something it shows has moved. */
+    const publish = (progress: number, frame: number, onCanvas: number) => {
+      const waiting = Math.abs(frame - onCanvas) > WAIT_FRAMES;
+      const edge = (progress === 0 || progress === 1) && progress !== pubP;
+      if (!edge && Math.abs(progress - pubP) < PROGRESS_STEP && Math.abs(onCanvas - pubD) < DRAWN_STEP && waiting === pubWait) return;
+      pubP = progress; pubD = onCanvas; pubWait = waiting;
+      // rendered now, inside this animation frame: the clock and the captions change in the same frame as the picture, and React
+      // does not schedule a task of its own that lands in the middle of the next frame
+      flushSync(() => setState({ progress, frame, drawn: onCanvas, waiting, still: false }));
     };
 
+    // everything runs in one animation frame: read the scroll position (no layout read), draw, then tell React once
     const draw = () => {
       raf = 0;
       if (!alive) return;
-      const f = frameAt(heldProgress(p, endHold), n);
-      const cur = Math.round(f);
-      let base: number, over = -1, t = 0;
-      if (!blend) {
-        store.setCurrent(cur, [-1, 0, 1, 2]);
-        base = store.has(cur) ? cur : store.nearest(cur);
-      } else {
-        const i0 = Math.floor(f), i1 = Math.min(n - 1, i0 + 1);
-        t = f - i0;
-        store.setCurrent(cur, [-2, -1, 0, 1, 2]);
-        base = store.has(i0) && store.has(i1) ? i0 : store.nearest(cur);
-        if (base === i0 && t > 0.01 && store.has(i1)) over = i1;
-      }
-      // what is on the canvas: the base frame and the share of the next one (in percent)
-      const key = base * 1000 + (over >= 0 ? Math.round(t * 100) + 1 : 0);
-      if (base < 0 || key === drawnKey) return;
-      drawnKey = key;
-      paint(store.get(base)!, 1);
-      if (over >= 0) paint(store.get(over)!, t);
-      ctx.globalAlpha = 1;
-      publishDrawn(over >= 0 ? base + t : base);
-      if (!painted) { painted = true; setReady(true); }
-    };
-    function schedule() { if (!raf && alive) raf = requestAnimationFrame(draw); }
-
-    const onScroll = () => {
-      const r = wrapEl.getBoundingClientRect();
-      const frameTop = r.top > 0 ? r.top : Math.min(0, r.bottom - stickEl.offsetHeight);
-      const leave = (Math.round(Math.min(1, Math.max(0, -frameTop / Math.max(1, stickEl.offsetHeight))) * OUT_STEPS) / OUT_STEPS).toString();
+      const top = wrapTop - scrollY;
+      const frameTop = top > 0 ? top : Math.min(0, top + wrapH - stickH);
+      const leave = (Math.round(Math.min(1, Math.max(0, -frameTop / Math.max(1, stickH))) * OUT_STEPS) / OUT_STEPS).toString();
       if (leave !== out) { out = leave; wrapEl.style.setProperty("--sf-out", leave); }
-      if (r.bottom < -innerHeight * RELEASE_SCREENS || r.top > innerHeight * (1 + RELEASE_SCREENS)) {
+      if (top + wrapH < -innerHeight * RELEASE_SCREENS || top > innerHeight * (1 + RELEASE_SCREENS)) {
         // far off screen: give the decoded frames back (a phone must not hold two sequences), nothing else to do
-        if (!released) { released = true; store.release(); drawnKey = -1; }
+        if (!released) { released = true; st.release(); drawnKey = -1; }
         return;
       }
       if (released) { released = false; drawnKey = -1; }
-      p = sectionProgress(r.top, scrollable);
-      if (Math.abs(p - published) >= PROGRESS_STEP || ((p === 0 || p === 1) && p !== published)) {
-        published = p;
-        const fr = frameAt(heldProgress(p, endHold), n);
-        setState((s) => ({ ...s, progress: p, frame: fr, waiting: Math.abs(fr - s.drawn) > WAIT_FRAMES }));
+      const p = sectionProgress(top, scrollable);
+      const f = frameAt(heldProgress(p, endHold), n);
+      if (lastF >= 0 && Math.abs(f - lastF) > 0.001) dir = f > lastF ? 1 : -1;
+      lastF = f;
+      const cur = Math.round(f);
+      let base: number, over = -1, t = 0;
+      st.setCurrent(cur, decodeWindow(dir, blend, capacityFor()));
+      if (!blend) {
+        base = st.has(cur) ? cur : st.nearest(cur);
+      } else {
+        const i0 = Math.floor(f), i1 = Math.min(n - 1, i0 + 1);
+        t = f - i0;
+        base = st.has(i0) && st.has(i1) ? i0 : st.nearest(cur);
+        if (base === i0 && t > 0.01 && st.has(i1)) over = i1;
       }
-      schedule();
+      // what is on the canvas: the base frame and the share of the next one (in percent)
+      const key = base * 1000 + (over >= 0 ? Math.round(t * 100) + 1 : 0);
+      if (base >= 0 && key !== drawnKey) {
+        drawnKey = key;
+        paint(st.get(base)!, 1);
+        if (over >= 0) paint(st.get(over)!, t);
+        ctx.globalAlpha = 1;
+        drawn = over >= 0 ? base + t : base;
+        if (!painted) { painted = true; setReady(true); }
+      }
+      publish(p, f, drawn);
     };
+    function schedule() { if (!raf && alive) raf = requestAnimationFrame(draw); }
+    const onScroll = () => schedule();
 
     // when to fetch (see the head of the file)
     const cleanups: (() => void)[] = [];
     if (priority) {
       const intents = ["scroll", "wheel", "touchstart", "keydown"] as const;
-      const onIntent = () => { store.start(); intents.forEach((e) => removeEventListener(e, onIntent)); };
+      const onIntent = () => { st.start(); intents.forEach((e) => removeEventListener(e, onIntent)); };
       intents.forEach((e) => addEventListener(e, onIntent, { passive: true }));
       let idle = 0, timer: ReturnType<typeof setTimeout> | undefined;
-      const coarse = () => store.start(coarseCount(n));
+      const coarse = () => st.start(coarseCount(n));
       const afterLoad = () => {
         if (typeof requestIdleCallback === "function") idle = requestIdleCallback(coarse, { timeout: IDLE_TIMEOUT_MS });
         else timer = setTimeout(coarse, IDLE_FALLBACK_MS);
@@ -217,26 +241,29 @@ export default function ScrollFrames({ frames, stillIndex, height, alt, blend = 
       const io = new IntersectionObserver((entries) => {
         if (!entries.some((e) => e.isIntersecting)) return;
         io.disconnect();
-        store.start();
+        st.start();
       }, { rootMargin: "100% 0px" });
       io.observe(wrapEl);
       cleanups.push(() => io.disconnect());
     }
 
-    const ro = new ResizeObserver(() => { measure(); onScroll(); schedule(); });
+    // the section moves in the document when anything above it changes size: the body is observed too
+    const ro = new ResizeObserver(() => { measure(); schedule(); });
     ro.observe(stickEl);
-    measure();
-    onScroll();
+    ro.observe(wrapEl);
+    ro.observe(document.body);
+    const onResize = () => { measure(); schedule(); };
+    schedule();
     addEventListener("scroll", onScroll, { passive: true });
-    addEventListener("resize", onScroll);
+    addEventListener("resize", onResize);
     return () => {
       alive = false;
       cancelAnimationFrame(raf);
       cleanups.forEach((c) => c());
       ro.disconnect();
       removeEventListener("scroll", onScroll);
-      removeEventListener("resize", onScroll);
-      store.dispose();
+      removeEventListener("resize", onResize);
+      st.dispose();
       delete wrapEl.dataset.loading;
       setReady(false);
     };

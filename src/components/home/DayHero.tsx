@@ -55,6 +55,33 @@ export default function DayHero(props: DayHeroProps) {
   const t = useT();
   const f = useFormat();
   const [first, rest] = titleLines;
+  // The text does not change while scrolling: these elements are made once per render of DayHero (not per scroll frame), so
+  // React skips them when the frame state re-renders the overlay and only the styles, the clock and the arc are updated.
+  const introBody = (
+    <>
+      <p className="kicker day-kicker"><span className="label">{kicker}</span></p>
+      <h1 className="display day-title" data-lines={rest ? 2 : 1}>
+        <span className="day-line">{first}</span>
+        {rest && <>{" "}<span className="day-line accent">{rest}</span></>}
+      </h1>
+      <p className="day-sub">{lede}</p>
+      <p className="day-note">{note}</p>
+      <div className="day-actions">
+        <IntentLink className="btn mint day-cta" href={cta.href} heavy={cta.heavy}>{cta.label}</IntentLink>
+        <p className="day-hint">{hint} <i aria-hidden>↓</i></p>
+      </div>
+    </>
+  );
+  const momentBodies = moments.map((m, i) => (
+    <>
+      <h2 className="h2">{m.title}</h2>
+      <p className="lede">{m.text}</p>
+      {i === moments.length - 1 && (
+        <IntentLink className="link-arrow day-end" href={dayCta.href} heavy={dayCta.heavy}>{dayCta.label}</IntentLink>
+      )}
+    </>
+  ));
+  const loader = <div className="day-load" data-sf-loaded aria-hidden><i /></div>;
   return (
     <ScrollFrames frames={frames} stillIndex={stillIndex} height={DAY_HEIGHT} className="day-hero night" navTone="clear" endHold={END_HOLD} priority alt={t("home.hero.alt")}>
       {({ progress, drawn, waiting, still }) => {
@@ -64,35 +91,19 @@ export default function DayHero(props: DayHeroProps) {
         const vars = { "--in-slow": fade.slow, "--in-fast": fade.fast, "--after-slow": fade.afterSlow, "--after-fast": fade.afterFast } as CSSProperties;
         return (
           <>
-            <div className="day-intro shell on-media" style={vars}>
-              <p className="kicker day-kicker"><span className="label">{kicker}</span></p>
-              <h1 className="display day-title" data-lines={rest ? 2 : 1}>
-                <span className="day-line">{first}</span>
-                {rest && <>{" "}<span className="day-line accent">{rest}</span></>}
-              </h1>
-              <p className="day-sub">{lede}</p>
-              <p className="day-note">{note}</p>
-              <div className="day-actions">
-                <IntentLink className="btn mint day-cta" href={cta.href} heavy={cta.heavy}>{cta.label}</IntentLink>
-                <p className="day-hint">{hint} <i aria-hidden>↓</i></p>
-              </div>
-            </div>
+            <div className="day-intro shell on-media" style={vars}>{introBody}</div>
             <div className="day-moments">
               {moments.map((m, i) => {
                 const o = still ? 1 : momentOpacity(drawn, m, minutes);
                 return (
                   <div key={m.key} className="day-moment shell on-media" data-on={o > 0} style={{ ...vars, "--o": o } as CSSProperties}>
-                    <h2 className="h2">{m.title}</h2>
-                    <p className="lede">{m.text}</p>
-                    {i === moments.length - 1 && (
-                      <IntentLink className="link-arrow day-end" href={dayCta.href} heavy={dayCta.heavy}>{dayCta.label}</IntentLink>
-                    )}
+                    {momentBodies[i]}
                   </div>
                 );
               })}
             </div>
             <div className="day-hud shell" data-waiting={waiting}>
-              <div className="day-load" aria-hidden><i /></div>
+              {loader}
               <div className="day-clock">
                 <span className="mono">{dateLabel}<span className="day-wait" aria-hidden>{t("home.day.hud.loading")}</span></span>
                 <b className="mono">{f.clock(minute)}</b>
@@ -111,6 +122,7 @@ const ArcLabel = ({ end }: { end: ArcEnd }) => <><span className="arc-full">{end
 
 /** Drawing box of the arc (SVG user units); the labels are HTML so they keep a readable size on any width. */
 const ARC_BOX = { width: 240, height: 76, padX: 8, padTop: 8, padBottom: 8 } as const;
+const pct = (v: number) => `${(v / ARC_BOX.width) * 100}%`;
 
 /** The path of the sun that day: the part it has travelled in mint, the sun as a white disc, sunrise and sunset labelled. */
 function SunArc({ path, spot, ends }: { path: SunSpot[]; spot: SunSpot; ends: DayHeroProps["ends"] }) {
@@ -119,8 +131,16 @@ function SunArc({ path, spot, ends }: { path: SunSpot[]; spot: SunSpot; ends: Da
   const geo = useMemo(() => arcGeometry(path, ARC_BOX), [path]);
   const [x, y] = geo.project(spot.az, Math.max(-6, spot.alt));
   const done = geo.travelled(spot);
-  const pct = (v: number) => `${(v / ARC_BOX.width) * 100}%`;
-  const south = geo.cardinals.find((c) => c.az === 180);
+  const axis = useMemo(() => {
+    const south = geo.cardinals.find((c) => c.az === 180);
+    return (
+      <span className="day-arc-axis mono" aria-hidden>
+        {ends.sunrise && <span className="day-arc-end" style={{ left: pct(geo.ends.start) }}><ArcLabel end={ends.sunrise} /></span>}
+        {south && <span className="day-arc-mid" style={{ left: pct(south.x) }}>{t("home.day.hud.compass.S")}</span>}
+        {ends.sunset && <span className="day-arc-end" style={{ right: `calc(100% - ${pct(geo.ends.end)})` }}><ArcLabel end={ends.sunset} /></span>}
+      </span>
+    );
+  }, [geo, ends, t]);
   return (
     <div className="day-arc" role="img" aria-label={t("home.day.hud.sun", { altitude: f.degrees(spot.alt), azimuth: f.degrees(spot.az) })}>
       <span className="day-arc-read mono" aria-hidden>{t("home.day.hud.readout", { altitude: f.degrees(spot.alt), azimuth: f.degrees(spot.az) })}</span>
@@ -131,11 +151,7 @@ function SunArc({ path, spot, ends }: { path: SunSpot[]; spot: SunSpot; ends: Da
         <circle className="day-arc-glow" data-up={spot.alt > 0} cx={x} cy={y} r={11} />
         <circle className="day-arc-sun" data-up={spot.alt > 0} cx={x} cy={y} r={4.5} />
       </svg>
-      <span className="day-arc-axis mono" aria-hidden>
-        {ends.sunrise && <span className="day-arc-end" style={{ left: pct(geo.ends.start) }}><ArcLabel end={ends.sunrise} /></span>}
-        {south && <span className="day-arc-mid" style={{ left: pct(south.x) }}>{t("home.day.hud.compass.S")}</span>}
-        {ends.sunset && <span className="day-arc-end" style={{ right: `calc(100% - ${pct(geo.ends.end)})` }}><ArcLabel end={ends.sunset} /></span>}
-      </span>
+      {axis}
     </div>
   );
 }

@@ -4,7 +4,7 @@ import { localToUtc, placeOf, sunTimes } from "@/lib/calc/sun";
 import { dayDate, dayMinutes, media } from "@/lib/data/media";
 import { house } from "@/lib/model/instance";
 import {
-  canvasScale, captionIndex, coarseCount, coverRect, decodeBudgetBytes, evictions, frameAt, frameAtMinute, heldProgress, introFade, loadOrder, lruCapacity,
+  canvasScale, captionIndex, coarseCount, coverCrop, coverRect, decodeBudgetBytes, decodeWindow, evictions, frameAt, frameAtMinute, heldProgress, introFade, loadOrder, lruCapacity,
   minuteAtFrame, MOMENT_RAMP_FRAMES, momentOpacity, momentWindows, nearestDecoded, sectionProgress, smallVariantFits, windowOpacity,
 } from "../timeline";
 
@@ -306,6 +306,34 @@ describe("loading and memory", () => {
     const drop = evictions(keys, 10, 3);
     expect(keys.filter((k) => !drop.includes(k))).toHaveLength(3);
     expect(keys.filter((k) => !drop.includes(k)).sort((a, b) => a - b)).toEqual([5, 9, 12]);
+  });
+
+  it("keeps the frames of the decode window over closer ones left behind", () => {
+    // scrolling forward from 10: 12 and 13 are wanted, 8 and 9 are behind
+    const drop = evictions([8, 9, 10, 11, 12, 13], 10, 4, [10, 11, 12, 13]);
+    expect(drop.sort((a, b) => a - b)).toEqual([8, 9]);
+  });
+
+  it("decodes the current frame first, then ahead of the scroll direction, within the capacity", () => {
+    expect(decodeWindow(1, true, 6)).toEqual([0, 1, -1, 2, 3, -2]);
+    expect(decodeWindow(-1, true, 6)).toEqual([0, -1, 1, -2, -3, 2]);
+    expect(decodeWindow(1, false, 5)).toEqual([0, 1, 2, -1, 3]);
+    expect(decodeWindow(1, true, 1)).toHaveLength(3); // never fewer than a cross-fade needs
+    expect(decodeWindow(1, true, 99)).toHaveLength(7);
+  });
+
+  it("crops a frame to the part a cover-fitted canvas shows, in whole pixels", () => {
+    // a portrait phone: the 1080 x 1620 frame fills the height 1:1, the middle 729 px of its width show
+    expect(coverCrop(1080, 1620, 729, 1620)).toEqual({ sx: 175, sy: 0, sw: 729, sh: 1620 });
+    // scaled down (canvas pixel = 2 frame pixels): the crop is in frame pixels
+    expect(coverCrop(1920, 1080, 480, 540)).toEqual({ sx: 480, sy: 0, sw: 960, sh: 1080 });
+    // (nearly) the whole frame shows: nothing to crop
+    expect(coverCrop(1920, 1080, 1920, 1080)).toBeNull();
+    expect(coverCrop(1920, 1080, 1800, 1080)).toBeNull();
+    expect(coverCrop(1920, 1080, 0, 0)).toBeNull();
+    const c = coverCrop(1080, 1620, 747, 1620)!;
+    const r = coverRect(c.sw, c.sh, 747, 1620);
+    expect(r).toEqual({ x: 0, y: 0, w: 747, h: 1620 }); // drawn 1:1, no resampling
   });
 
   it("limits the canvas to what the frame can show", () => {

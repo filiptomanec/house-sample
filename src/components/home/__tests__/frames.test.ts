@@ -127,6 +127,32 @@ describe("FrameStore", () => {
     t.store.dispose();
   });
 
+  it("decodes a few frames at a time, nearest first, and skips frames the viewer has left", async () => {
+    const order: number[] = [];
+    let running = 0, peakDecode = 0;
+    const finish: (() => void)[] = [];
+    const store = new FrameStore<FakeBitmap>(Array.from({ length: 30 }, (_, i) => `/f/${i}`), {
+      fetchBlob: async (url) => new Blob([url.split("/")[2]]),
+      decode: async (blob) => {
+        const i = Number(await blob.text());
+        order.push(i); running++; peakDecode = Math.max(peakDecode, running);
+        await new Promise<void>((r) => finish.push(r));
+        running--;
+        return new FakeBitmap(1, 1, i);
+      },
+    }, { capacity: 6, decodeConcurrency: 2 });
+    store.start();
+    await vi.waitFor(() => expect(store.loadedCount).toBe(30));
+    store.setCurrent(5, [0, 1, -1, 2]);
+    await vi.waitFor(() => expect(order).toEqual([5, 6]));
+    store.setCurrent(20, [0, 1, -1, 2]); // the viewer jumps: 4 and 7 are never decoded
+    while (finish.length) { finish.shift()!(); await new Promise((r) => setTimeout(r, 0)); }
+    await vi.waitFor(() => expect([20, 21, 19, 22].every((i) => store.has(i))).toBe(true));
+    expect(order).toEqual([5, 6, 20, 21, 19, 22]);
+    expect(peakDecode).toBe(2);
+    store.dispose();
+  });
+
   it("finds the nearest decoded frame while the exact one is still coming", async () => {
     const t = setup(20);
     t.store.setCurrent(0);

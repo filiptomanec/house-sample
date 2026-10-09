@@ -302,10 +302,40 @@ export function decodeBudgetBytes(opts: { coarse: boolean; deviceMemoryGb?: numb
   return budget;
 }
 
-/** Keys to drop so that at most `capacity` remain: the ones farthest from the current frame go first. */
-export function evictions(keys: Iterable<number>, current: number, capacity: number): number[] {
-  const sorted = [...keys].sort((a, b) => Math.abs(b - current) - Math.abs(a - current) || b - a);
+/**
+ * Keys to drop so that at most `capacity` remain: the ones outside the decode window (`keep`) go first, then the ones farthest
+ * from the current frame (so a frame decoded ahead of the scroll direction is not dropped for one left behind).
+ */
+export function evictions(keys: Iterable<number>, current: number, capacity: number, keep: readonly number[] = []): number[] {
+  const kept = new Set(keep);
+  const sorted = [...keys].sort((a, b) => Number(kept.has(a)) - Number(kept.has(b)) || Math.abs(b - current) - Math.abs(a - current) || b - a);
   return sorted.slice(0, Math.max(0, sorted.length - capacity));
+}
+
+/**
+ * Frames to decode around the current one (offsets), in the order they are decoded: the current frame, then ahead of the scroll
+ * direction before behind it, so the next frames are ready before the scroll reaches them (a decode never lands on the frame
+ * that needs it). A cross-fade needs both neighbours of the scroll position; a cut needs the frames ahead. At most `capacity`.
+ */
+export function decodeWindow(dir: 1 | -1, blend: boolean, capacity: number): number[] {
+  const order = blend ? [0, 1, -1, 2, 3, -2, 4] : [0, 1, 2, -1, 3, 4, -2];
+  return order.slice(0, Math.max(3, Math.min(order.length, capacity))).map((d) => (d === 0 ? 0 : d * dir));
+}
+
+/** A crop rectangle in frame pixels. */
+export interface Crop { sx: number; sy: number; sw: number; sh: number }
+
+/**
+ * The part of a frame that a cover-fitted canvas shows, in whole frame pixels, or null when that is (nearly) the whole frame.
+ * Decoding only this part keeps every pixel the canvas shows (no resampling) and makes each decoded bitmap smaller: a portrait
+ * phone shows about two thirds of the width of a portrait frame.
+ */
+export function coverCrop(frameW: number, frameH: number, canvasW: number, canvasH: number, minSaving = 0.1): Crop | null {
+  if (canvasW <= 0 || canvasH <= 0 || frameW <= 0 || frameH <= 0) return null;
+  const k = Math.max(canvasW / frameW, canvasH / frameH); // canvas pixels per frame pixel
+  const sw = Math.min(frameW, Math.ceil(canvasW / k - 1e-6)), sh = Math.min(frameH, Math.ceil(canvasH / k - 1e-6));
+  if (sw * sh > frameW * frameH * (1 - minSaving)) return null;
+  return { sx: Math.floor((frameW - sw) / 2), sy: Math.floor((frameH - sh) / 2), sw, sh };
 }
 
 /**

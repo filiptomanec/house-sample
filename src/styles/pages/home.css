@@ -77,6 +77,12 @@
 .day-moments { position: absolute; inset: 0; }
 /* a caption shows only once the title has (mostly) gone (--after-*: DayHero, timeline.ts introFade), never over it */
 .day-moment { bottom: calc(clamp(140px, 22svh, 220px) + env(safe-area-inset-bottom)); gap: var(--sp-3); opacity: calc(var(--o, 0) * var(--after-slow, 1)); transform: translateY(calc((1 - var(--o, 0)) * 16px)); }
+/* The intro and the captions fade and move every scroll frame, and the HUD (clock, sun) changes every frame: each gets a layer of
+   its own, so a change neither repaints the others (their text shadows blur 22 px) nor anything else over the canvas. */
+.sf-sticky .day-moment { will-change: opacity, transform; }
+/* not `opacity` here: that would make the intro a backdrop root, and the blur of the scroll hint would no longer see the picture */
+.sf-sticky .day-intro { will-change: transform; }
+.sf-sticky .day-hud { will-change: transform; }
 /* a caption out of its window is gone for the pointer, the keyboard and the accessibility tree (its opacity is already 0) */
 .day-moment:not([data-on="true"]) { visibility: hidden; }
 .day-moment .lede { max-width: 44ch; color: color-mix(in srgb, var(--on-media) 92%, transparent); }
@@ -143,7 +149,7 @@
 .orbit-cap .lede { max-width: 46ch; color: color-mix(in srgb, var(--on-media) 88%, transparent); }
 .orbit-foot { position: absolute; left: 0; right: 0; bottom: calc(26px + env(safe-area-inset-bottom)); display: flex; align-items: center; gap: var(--sp-5); min-height: 36px; }
 .orbit-bar { flex: 1; height: 2px; border-radius: 1px; overflow: hidden; background: color-mix(in srgb, var(--on-media) 22%, transparent); }
-.orbit-bar i { display: block; height: 100%; background: var(--mint); transform-origin: left; }
+.orbit-bar i { display: block; height: 100%; background: var(--mint); transform-origin: left; will-change: transform; }
 /* glass over the render: the page has one solid mint button (the hero's), the mint here is the progress line it ends */
 .orbit-cta {
   flex: none; opacity: 0; visibility: hidden; transform: translateY(8px);
