@@ -1,8 +1,8 @@
 {
   "schema": "models/1",
   "frame": "house (x east, y north, z up, metres)",
-  "inputHash": "8cd74119b813e7b648be77487455dd3bd6c02361a05221c75b12366c953ee560",
-  "hash": "318561494291a66360a09e61837181033b2724d912c096b89a8ad73a91c9730d",
+  "inputHash": "2e24d51ae1042a95b2ed7fed2bc3059cdcebede8931a4634b1c24a777982bb7e",
+  "hash": "0c55d684b159d806e989a1686f511d4b1e88cdffc8e534f2e5e5b519cfa78d29",
   "files": {
     "furniture-footprints.json": {
       "sha256": "99319a90222ef41f93438237c67673fbb59a3cb05dcb99ca25f578cc26e17a3d",
@@ -45,8 +45,8 @@
       }
     },
     "house-lite.glb": {
-      "sha256": "d74a59dede9d2864338ceaa60b30c0ec6b51acce02dd0af9ded0eed9e38ffeb3",
-      "bytes": 425168,
+      "sha256": "b0bae436badd65f912020216e6010e14e045f8ce76a1298e73958731defec548",
+      "bytes": 425084,
       "triangles": 6379,
       "nodes": 65,
       "bbox": {
@@ -63,8 +63,8 @@
       }
     },
     "house.glb": {
-      "sha256": "35a3ba571edb7d57057e3e7c39f57631f5054a20f87008a0671f6d01dc725514",
-      "bytes": 2795780,
+      "sha256": "5eab24c19e179f72c289d555124f4c1f6c3afd2f5ef9a21ed65c87c2031b571c",
+      "bytes": 2795576,
       "triangles": 10427,
       "nodes": 65,
       "bbox": {
@@ -81,8 +81,8 @@
       }
     },
     "house.usdz": {
-      "sha256": "7bdd5eff0267e25d2218e131c8171e7135d112f770385ed9f6956193f214e9d0",
-      "bytes": 1016810
+      "sha256": "8cd89b448c2e436b2a24e8660b0c99d937c445d857b1b4173afacff48ff280a5",
+      "bytes": 945055
     },
     "tree-lite.glb": {
       "sha256": "7c10e3ffacb8011342616a2e4d61794ee52eb99c73910b07aa5a9d19819e9b24",

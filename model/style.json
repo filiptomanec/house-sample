@@ -258,8 +258,9 @@
         "cs": "Garážová vrata",
         "en": "Garage door"
       },
-      "color": "#cfc2a4",
-      "roughness": 0.7
+      "color": "#2b2e31",
+      "roughness": 0.5,
+      "metallic": 0.3
     },
     "equipment": {
       "name": {
@@ -483,9 +484,6 @@
             },
             "screen_slats": {
               "color": "#cfc2a4"
-            },
-            "garage_door": {
-              "color": "#cfc2a4"
             }
           }
         },
@@ -500,9 +498,6 @@
               "color": "#8d908b"
             },
             "screen_slats": {
-              "color": "#8d908b"
-            },
-            "garage_door": {
               "color": "#8d908b"
             }
           }
@@ -521,10 +516,6 @@
             "screen_slats": {
               "color": "#2b2a28",
               "roughness": 0.85
-            },
-            "garage_door": {
-              "color": "#2b2a28",
-              "roughness": 0.85
             }
           }
         },
@@ -536,8 +527,7 @@
           },
           "substitute": {
             "wood_cladding": "plaster",
-            "screen_slats": "frame",
-            "garage_door": "frame"
+            "screen_slats": "frame"
           }
         }
       ]

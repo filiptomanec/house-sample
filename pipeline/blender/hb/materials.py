@@ -56,8 +56,7 @@ DEFAULTS = {
                         contrast=0.35, sat=0.15),
     "pool_liner": dict(color="#C5D3D1", rough=0.6),
     "water": dict(color="#7FCFC4", rough=0.03, alpha=0.55),
-    "garage_door": dict(color="#CFC2A4", rough=0.6, tex=("ph", "japanese_cedar_planks"), tile=(1.8, 1.8), normal=0.8,
-                        contrast=0.9, sat=0.25),
+    "garage_door": dict(color="#2B2E31", rough=0.5, metal=0.3),
     "equipment": dict(color="#34383C", rough=0.5, metal=0.2),
 }
 
