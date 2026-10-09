@@ -93,10 +93,15 @@ for (const locale of ["cs", "en"] as const) {
       await open(page, path);
       const chips = page.locator(".model-views .chip");
       expect(await chips.count()).toBeGreaterThan(1);
-      await expect(page.locator('.model-views .chip[aria-pressed="true"]')).toHaveCount(1);
+      const lit = page.locator('.model-views .chip[aria-pressed="true"]');
+      // the page opens on its default view without lighting a chip; a chosen preset is lit (alone) until the camera is moved by hand
+      await chips.nth(0).click();
+      await expect(chips.nth(0)).toHaveAttribute("aria-pressed", "true");
+      await expect(lit).toHaveCount(1);
       await chips.nth(1).click();
       await expect(chips.nth(1)).toHaveAttribute("aria-pressed", "true");
-      await expect(page.locator('.model-views .chip[aria-pressed="true"]')).toHaveCount(1);
+      await expect(chips.nth(0)).toHaveAttribute("aria-pressed", "false");
+      await expect(lit).toHaveCount(1);
     });
   });
 }

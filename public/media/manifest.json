@@ -1,8 +1,7 @@
 {
   "schema": "media/1",
-  "inputHash": "8abc6381ed73cac9fe36b617e9e3dd6a12448086cbb77a5db497c6e203f00bec",
-  "builtAt": "2026-10-08",
-  "standIns": 314,
+  "inputHash": "8cd74119b813e7b648be77487455dd3bd6c02361a05221c75b12366c953ee560",
+  "builtAt": "2026-10-09",
   "day": {
     "date": "2026-06-21",
     "times": [
@@ -40,7 +39,7 @@
       "21:40"
     ],
     "stillTime": "19:20",
-    "hash": "39bd0845ae",
+    "hash": "ae2ac893f3",
     "landscape": {
       "pattern": "media/day/l/{time}.{hash}.webp",
       "width": 1920,
@@ -62,7 +61,7 @@
   "orbit": {
     "frames": 60,
     "degPerFrame": 6,
-    "hash": "680bee004c",
+    "hash": "353c0b7856",
     "startAzimuthDeg": 225,
     "direction": "counterclockwise",
     "captionHalfWindowDeg": 30,
@@ -153,7 +152,7 @@
   "stills": [
     {
       "id": "garden-walnut",
-      "file": "media/stills/garden-walnut-1920.f5ef0e1c3e.jpg",
+      "file": "media/stills/garden-walnut-1920.3eab3b1852.jpg",
       "width": 1920,
       "height": 1080,
       "date": "2026-06-21",
@@ -171,30 +170,37 @@
         {
           "w": 640,
           "h": 360,
-          "avif": "media/stills/garden-walnut-640.e0654bc2a3.avif",
-          "webp": "media/stills/garden-walnut-640.a682d91c22.webp",
-          "jpg": "media/stills/garden-walnut-640.02bddc4b13.jpg"
+          "avif": "media/stills/garden-walnut-640.31a2f59eab.avif",
+          "webp": "media/stills/garden-walnut-640.b2a835ead6.webp",
+          "jpg": "media/stills/garden-walnut-640.f76317ce00.jpg"
         },
         {
           "w": 1280,
           "h": 720,
-          "avif": "media/stills/garden-walnut-1280.d5cc30dede.avif",
-          "webp": "media/stills/garden-walnut-1280.f098fe338a.webp",
-          "jpg": "media/stills/garden-walnut-1280.1b00d496a5.jpg"
+          "avif": "media/stills/garden-walnut-1280.99e877a7e3.avif",
+          "webp": "media/stills/garden-walnut-1280.859b0d332b.webp",
+          "jpg": "media/stills/garden-walnut-1280.f4e4e01998.jpg"
         },
         {
           "w": 1920,
           "h": 1080,
-          "avif": "media/stills/garden-walnut-1920.80a2a01d06.avif",
-          "webp": "media/stills/garden-walnut-1920.06b2996d0b.webp",
-          "jpg": "media/stills/garden-walnut-1920.f5ef0e1c3e.jpg"
+          "avif": "media/stills/garden-walnut-1920.bf86216802.avif",
+          "webp": "media/stills/garden-walnut-1920.78df123bb1.webp",
+          "jpg": "media/stills/garden-walnut-1920.3eab3b1852.jpg"
+        },
+        {
+          "w": 2560,
+          "h": 1440,
+          "avif": "media/stills/garden-walnut-2560.9ff9e79df6.avif",
+          "webp": "media/stills/garden-walnut-2560.fc74b0d3d7.webp",
+          "jpg": "media/stills/garden-walnut-2560.7c0d44824e.jpg"
         }
       ],
       "gallery": true
     },
     {
       "id": "street-approach",
-      "file": "media/stills/street-approach-1920.0f133a4480.jpg",
+      "file": "media/stills/street-approach-1920.7cb9bf9513.jpg",
       "width": 1920,
       "height": 1080,
       "date": "2026-06-21",
@@ -212,30 +218,37 @@
         {
           "w": 640,
           "h": 360,
-          "avif": "media/stills/street-approach-640.51a579ec85.avif",
-          "webp": "media/stills/street-approach-640.4baae7c45e.webp",
-          "jpg": "media/stills/street-approach-640.9dc66104ca.jpg"
+          "avif": "media/stills/street-approach-640.e52546ca40.avif",
+          "webp": "media/stills/street-approach-640.212ba73579.webp",
+          "jpg": "media/stills/street-approach-640.52abe59dea.jpg"
         },
         {
           "w": 1280,
           "h": 720,
-          "avif": "media/stills/street-approach-1280.18c01b23d5.avif",
-          "webp": "media/stills/street-approach-1280.395c17c371.webp",
-          "jpg": "media/stills/street-approach-1280.1796c431ac.jpg"
+          "avif": "media/stills/street-approach-1280.23b21749d8.avif",
+          "webp": "media/stills/street-approach-1280.ded327a8ee.webp",
+          "jpg": "media/stills/street-approach-1280.5681b76935.jpg"
         },
         {
           "w": 1920,
           "h": 1080,
-          "avif": "media/stills/street-approach-1920.f5ff7ef00c.avif",
-          "webp": "media/stills/street-approach-1920.0508a664fd.webp",
-          "jpg": "media/stills/street-approach-1920.0f133a4480.jpg"
+          "avif": "media/stills/street-approach-1920.11f02873b7.avif",
+          "webp": "media/stills/street-approach-1920.a385095db5.webp",
+          "jpg": "media/stills/street-approach-1920.7cb9bf9513.jpg"
+        },
+        {
+          "w": 2560,
+          "h": 1440,
+          "avif": "media/stills/street-approach-2560.c4b02529c8.avif",
+          "webp": "media/stills/street-approach-2560.d41aa526e5.webp",
+          "jpg": "media/stills/street-approach-2560.6d901f08a9.jpg"
         }
       ],
       "gallery": true
     },
     {
       "id": "terrace-louvres",
-      "file": "media/stills/terrace-louvres-1920.da23d05ac0.jpg",
+      "file": "media/stills/terrace-louvres-1920.1f032d1276.jpg",
       "width": 1920,
       "height": 1080,
       "date": "2026-06-21",
@@ -253,30 +266,37 @@
         {
           "w": 640,
           "h": 360,
-          "avif": "media/stills/terrace-louvres-640.d5bfd20215.avif",
-          "webp": "media/stills/terrace-louvres-640.b252218a32.webp",
-          "jpg": "media/stills/terrace-louvres-640.0a78cf90f2.jpg"
+          "avif": "media/stills/terrace-louvres-640.038938c276.avif",
+          "webp": "media/stills/terrace-louvres-640.805988b46d.webp",
+          "jpg": "media/stills/terrace-louvres-640.bb5de93d3b.jpg"
         },
         {
           "w": 1280,
           "h": 720,
-          "avif": "media/stills/terrace-louvres-1280.12af79f402.avif",
-          "webp": "media/stills/terrace-louvres-1280.43eb0d2cf5.webp",
-          "jpg": "media/stills/terrace-louvres-1280.9fa956ca8e.jpg"
+          "avif": "media/stills/terrace-louvres-1280.6685d31863.avif",
+          "webp": "media/stills/terrace-louvres-1280.86a664c0b8.webp",
+          "jpg": "media/stills/terrace-louvres-1280.4eb16e3355.jpg"
         },
         {
           "w": 1920,
           "h": 1080,
-          "avif": "media/stills/terrace-louvres-1920.f3c274dcd7.avif",
-          "webp": "media/stills/terrace-louvres-1920.c258b34e9f.webp",
-          "jpg": "media/stills/terrace-louvres-1920.da23d05ac0.jpg"
+          "avif": "media/stills/terrace-louvres-1920.6419e4deb0.avif",
+          "webp": "media/stills/terrace-louvres-1920.e7452bca4c.webp",
+          "jpg": "media/stills/terrace-louvres-1920.1f032d1276.jpg"
+        },
+        {
+          "w": 2560,
+          "h": 1440,
+          "avif": "media/stills/terrace-louvres-2560.1c8b8d828f.avif",
+          "webp": "media/stills/terrace-louvres-2560.8f291ddf19.webp",
+          "jpg": "media/stills/terrace-louvres-2560.a3084788ef.jpg"
         }
       ],
       "gallery": true
     },
     {
       "id": "entrance",
-      "file": "media/stills/entrance-1920.0fc279ab60.jpg",
+      "file": "media/stills/entrance-1920.24ea6dfcb5.jpg",
       "width": 1920,
       "height": 1080,
       "date": "2026-06-21",
@@ -294,30 +314,37 @@
         {
           "w": 640,
           "h": 360,
-          "avif": "media/stills/entrance-640.a725ac4cb1.avif",
-          "webp": "media/stills/entrance-640.444155daf9.webp",
-          "jpg": "media/stills/entrance-640.16e44b714d.jpg"
+          "avif": "media/stills/entrance-640.8f23a5cadc.avif",
+          "webp": "media/stills/entrance-640.46741d9918.webp",
+          "jpg": "media/stills/entrance-640.2f158911b7.jpg"
         },
         {
           "w": 1280,
           "h": 720,
-          "avif": "media/stills/entrance-1280.9f83b36e2c.avif",
-          "webp": "media/stills/entrance-1280.21472930f4.webp",
-          "jpg": "media/stills/entrance-1280.f9ca1cd9b3.jpg"
+          "avif": "media/stills/entrance-1280.ef1cbda31f.avif",
+          "webp": "media/stills/entrance-1280.ba4397a19d.webp",
+          "jpg": "media/stills/entrance-1280.e88a3a0062.jpg"
         },
         {
           "w": 1920,
           "h": 1080,
-          "avif": "media/stills/entrance-1920.6e2b6d3bce.avif",
-          "webp": "media/stills/entrance-1920.c6787db511.webp",
-          "jpg": "media/stills/entrance-1920.0fc279ab60.jpg"
+          "avif": "media/stills/entrance-1920.5c4fa41011.avif",
+          "webp": "media/stills/entrance-1920.359d8ec43c.webp",
+          "jpg": "media/stills/entrance-1920.24ea6dfcb5.jpg"
+        },
+        {
+          "w": 2560,
+          "h": 1440,
+          "avif": "media/stills/entrance-2560.a35f513a5d.avif",
+          "webp": "media/stills/entrance-2560.ed140507f3.webp",
+          "jpg": "media/stills/entrance-2560.949cf0d15a.jpg"
         }
       ],
       "gallery": true
     },
     {
       "id": "living",
-      "file": "media/stills/living-1920.075b60946f.jpg",
+      "file": "media/stills/living-1920.ab159455c2.jpg",
       "width": 1920,
       "height": 1080,
       "date": "2026-06-21",
@@ -335,30 +362,37 @@
         {
           "w": 640,
           "h": 360,
-          "avif": "media/stills/living-640.7c378b8bde.avif",
-          "webp": "media/stills/living-640.0f5ec24006.webp",
-          "jpg": "media/stills/living-640.49aa5d5965.jpg"
+          "avif": "media/stills/living-640.45b47ab244.avif",
+          "webp": "media/stills/living-640.9abe941e42.webp",
+          "jpg": "media/stills/living-640.6070fdf20b.jpg"
         },
         {
           "w": 1280,
           "h": 720,
-          "avif": "media/stills/living-1280.1a56a436a1.avif",
-          "webp": "media/stills/living-1280.5c3c107e07.webp",
-          "jpg": "media/stills/living-1280.0a490ab79b.jpg"
+          "avif": "media/stills/living-1280.cdf3c79f17.avif",
+          "webp": "media/stills/living-1280.2358146c53.webp",
+          "jpg": "media/stills/living-1280.a8ef5bf843.jpg"
         },
         {
           "w": 1920,
           "h": 1080,
-          "avif": "media/stills/living-1920.23f4cf00a1.avif",
-          "webp": "media/stills/living-1920.e13e06b5e6.webp",
-          "jpg": "media/stills/living-1920.075b60946f.jpg"
+          "avif": "media/stills/living-1920.b2911c721c.avif",
+          "webp": "media/stills/living-1920.d2e0b1cd5b.webp",
+          "jpg": "media/stills/living-1920.ab159455c2.jpg"
+        },
+        {
+          "w": 2560,
+          "h": 1440,
+          "avif": "media/stills/living-2560.07ad9f17ca.avif",
+          "webp": "media/stills/living-2560.568fa5baca.webp",
+          "jpg": "media/stills/living-2560.31c68cc321.jpg"
         }
       ],
       "gallery": true
     },
     {
       "id": "kitchen",
-      "file": "media/stills/kitchen-1920.0096ced693.jpg",
+      "file": "media/stills/kitchen-1920.24d743c4a7.jpg",
       "width": 1920,
       "height": 1080,
       "date": "2026-06-21",
@@ -376,30 +410,37 @@
         {
           "w": 640,
           "h": 360,
-          "avif": "media/stills/kitchen-640.ffa23fc7c7.avif",
-          "webp": "media/stills/kitchen-640.f9e491cfb7.webp",
-          "jpg": "media/stills/kitchen-640.2078af1b19.jpg"
+          "avif": "media/stills/kitchen-640.4645ab614c.avif",
+          "webp": "media/stills/kitchen-640.8e6a3b7a49.webp",
+          "jpg": "media/stills/kitchen-640.68238ad078.jpg"
         },
         {
           "w": 1280,
           "h": 720,
-          "avif": "media/stills/kitchen-1280.7e5ce870aa.avif",
-          "webp": "media/stills/kitchen-1280.c8f32529b0.webp",
-          "jpg": "media/stills/kitchen-1280.5c5c2dc0af.jpg"
+          "avif": "media/stills/kitchen-1280.352cd90d40.avif",
+          "webp": "media/stills/kitchen-1280.d102c4e2cd.webp",
+          "jpg": "media/stills/kitchen-1280.64161be630.jpg"
         },
         {
           "w": 1920,
           "h": 1080,
-          "avif": "media/stills/kitchen-1920.fb01603217.avif",
-          "webp": "media/stills/kitchen-1920.a7ba50d93d.webp",
-          "jpg": "media/stills/kitchen-1920.0096ced693.jpg"
+          "avif": "media/stills/kitchen-1920.b668f11806.avif",
+          "webp": "media/stills/kitchen-1920.b1c0797e2a.webp",
+          "jpg": "media/stills/kitchen-1920.24d743c4a7.jpg"
+        },
+        {
+          "w": 2560,
+          "h": 1440,
+          "avif": "media/stills/kitchen-2560.96a8158e3d.avif",
+          "webp": "media/stills/kitchen-2560.4818269471.webp",
+          "jpg": "media/stills/kitchen-2560.040beb5aff.jpg"
         }
       ],
       "gallery": true
     },
     {
       "id": "bedroom-morning",
-      "file": "media/stills/bedroom-morning-1920.7ce307f7e2.jpg",
+      "file": "media/stills/bedroom-morning-1920.0022e25788.jpg",
       "width": 1920,
       "height": 1080,
       "date": "2026-06-21",
@@ -417,30 +458,37 @@
         {
           "w": 640,
           "h": 360,
-          "avif": "media/stills/bedroom-morning-640.e0d7fd8863.avif",
-          "webp": "media/stills/bedroom-morning-640.5027f1bd6e.webp",
-          "jpg": "media/stills/bedroom-morning-640.90e93d32ee.jpg"
+          "avif": "media/stills/bedroom-morning-640.de7115c216.avif",
+          "webp": "media/stills/bedroom-morning-640.fd427a5b9d.webp",
+          "jpg": "media/stills/bedroom-morning-640.16d7f4827b.jpg"
         },
         {
           "w": 1280,
           "h": 720,
-          "avif": "media/stills/bedroom-morning-1280.a4cc7f44c7.avif",
-          "webp": "media/stills/bedroom-morning-1280.85bd2126a5.webp",
-          "jpg": "media/stills/bedroom-morning-1280.6ab87ff719.jpg"
+          "avif": "media/stills/bedroom-morning-1280.a8a4b72d3e.avif",
+          "webp": "media/stills/bedroom-morning-1280.e4cdc06298.webp",
+          "jpg": "media/stills/bedroom-morning-1280.521b063ca3.jpg"
         },
         {
           "w": 1920,
           "h": 1080,
-          "avif": "media/stills/bedroom-morning-1920.f7cc85b77c.avif",
-          "webp": "media/stills/bedroom-morning-1920.436ee37aca.webp",
-          "jpg": "media/stills/bedroom-morning-1920.7ce307f7e2.jpg"
+          "avif": "media/stills/bedroom-morning-1920.988db4dcac.avif",
+          "webp": "media/stills/bedroom-morning-1920.a146f167af.webp",
+          "jpg": "media/stills/bedroom-morning-1920.0022e25788.jpg"
+        },
+        {
+          "w": 2560,
+          "h": 1440,
+          "avif": "media/stills/bedroom-morning-2560.3ebfd70251.avif",
+          "webp": "media/stills/bedroom-morning-2560.e60f9b7ac5.webp",
+          "jpg": "media/stills/bedroom-morning-2560.a0d710d246.jpg"
         }
       ],
       "gallery": true
     },
     {
       "id": "bathroom",
-      "file": "media/stills/bathroom-1920.c4585e6d8b.jpg",
+      "file": "media/stills/bathroom-1920.f3a5e3ab80.jpg",
       "width": 1920,
       "height": 1080,
       "date": "2026-06-21",
@@ -458,30 +506,37 @@
         {
           "w": 640,
           "h": 360,
-          "avif": "media/stills/bathroom-640.a976dbe234.avif",
-          "webp": "media/stills/bathroom-640.0704b449f2.webp",
-          "jpg": "media/stills/bathroom-640.a3fa307d44.jpg"
+          "avif": "media/stills/bathroom-640.98d0a9dadf.avif",
+          "webp": "media/stills/bathroom-640.d35514e155.webp",
+          "jpg": "media/stills/bathroom-640.376e54375f.jpg"
         },
         {
           "w": 1280,
           "h": 720,
-          "avif": "media/stills/bathroom-1280.ba29e0bebd.avif",
-          "webp": "media/stills/bathroom-1280.9d4b908836.webp",
-          "jpg": "media/stills/bathroom-1280.9448781117.jpg"
+          "avif": "media/stills/bathroom-1280.d454c71f7e.avif",
+          "webp": "media/stills/bathroom-1280.89c14c8a19.webp",
+          "jpg": "media/stills/bathroom-1280.a5727f26a7.jpg"
         },
         {
           "w": 1920,
           "h": 1080,
-          "avif": "media/stills/bathroom-1920.41725f91e7.avif",
-          "webp": "media/stills/bathroom-1920.c20d22e368.webp",
-          "jpg": "media/stills/bathroom-1920.c4585e6d8b.jpg"
+          "avif": "media/stills/bathroom-1920.6c5d88dc5b.avif",
+          "webp": "media/stills/bathroom-1920.47550d967c.webp",
+          "jpg": "media/stills/bathroom-1920.f3a5e3ab80.jpg"
+        },
+        {
+          "w": 2560,
+          "h": 1440,
+          "avif": "media/stills/bathroom-2560.aaddf4cfcc.avif",
+          "webp": "media/stills/bathroom-2560.655e729168.webp",
+          "jpg": "media/stills/bathroom-2560.9627cc4998.jpg"
         }
       ],
       "gallery": true
     },
     {
       "id": "aerial",
-      "file": "media/stills/aerial-1920.144243e9a1.jpg",
+      "file": "media/stills/aerial-1920.0e4fa2788f.jpg",
       "width": 1920,
       "height": 1080,
       "date": "2026-06-21",
@@ -499,30 +554,37 @@
         {
           "w": 640,
           "h": 360,
-          "avif": "media/stills/aerial-640.11a0757d4f.avif",
-          "webp": "media/stills/aerial-640.4af2f60432.webp",
-          "jpg": "media/stills/aerial-640.7a090f784b.jpg"
+          "avif": "media/stills/aerial-640.9330214ef6.avif",
+          "webp": "media/stills/aerial-640.2af4837f35.webp",
+          "jpg": "media/stills/aerial-640.6f397e4b6a.jpg"
         },
         {
           "w": 1280,
           "h": 720,
-          "avif": "media/stills/aerial-1280.e88c8ef7c6.avif",
-          "webp": "media/stills/aerial-1280.1a193e5d6c.webp",
-          "jpg": "media/stills/aerial-1280.fbb8077a2e.jpg"
+          "avif": "media/stills/aerial-1280.abf470bd3e.avif",
+          "webp": "media/stills/aerial-1280.17f8b69d1c.webp",
+          "jpg": "media/stills/aerial-1280.76858aac46.jpg"
         },
         {
           "w": 1920,
           "h": 1080,
-          "avif": "media/stills/aerial-1920.010c0e61cc.avif",
-          "webp": "media/stills/aerial-1920.c4ed874b17.webp",
-          "jpg": "media/stills/aerial-1920.144243e9a1.jpg"
+          "avif": "media/stills/aerial-1920.7662e64d7a.avif",
+          "webp": "media/stills/aerial-1920.1b085e8fd5.webp",
+          "jpg": "media/stills/aerial-1920.0e4fa2788f.jpg"
+        },
+        {
+          "w": 2560,
+          "h": 1440,
+          "avif": "media/stills/aerial-2560.f81e2ce38a.avif",
+          "webp": "media/stills/aerial-2560.1a1f853ae1.webp",
+          "jpg": "media/stills/aerial-2560.71ebd66640.jpg"
         }
       ],
       "gallery": true
     },
     {
       "id": "pool-terrace-before",
-      "file": "media/stills/pool-terrace-before-1920.d0363c3896.jpg",
+      "file": "media/stills/pool-terrace-before-1920.f120c97b0b.jpg",
       "width": 1920,
       "height": 1080,
       "date": "2026-06-21",
@@ -540,30 +602,37 @@
         {
           "w": 640,
           "h": 360,
-          "avif": "media/stills/pool-terrace-before-640.1c8e62e007.avif",
-          "webp": "media/stills/pool-terrace-before-640.353f544166.webp",
-          "jpg": "media/stills/pool-terrace-before-640.106de79943.jpg"
+          "avif": "media/stills/pool-terrace-before-640.3ea14e00c8.avif",
+          "webp": "media/stills/pool-terrace-before-640.63db2268a0.webp",
+          "jpg": "media/stills/pool-terrace-before-640.1ce010aecb.jpg"
         },
         {
           "w": 1280,
           "h": 720,
-          "avif": "media/stills/pool-terrace-before-1280.855641acb8.avif",
-          "webp": "media/stills/pool-terrace-before-1280.8afe6fdce0.webp",
-          "jpg": "media/stills/pool-terrace-before-1280.7977c4d832.jpg"
+          "avif": "media/stills/pool-terrace-before-1280.7cfe167adc.avif",
+          "webp": "media/stills/pool-terrace-before-1280.67aaa9b455.webp",
+          "jpg": "media/stills/pool-terrace-before-1280.0c2c253621.jpg"
         },
         {
           "w": 1920,
           "h": 1080,
-          "avif": "media/stills/pool-terrace-before-1920.88374e6201.avif",
-          "webp": "media/stills/pool-terrace-before-1920.534181a61c.webp",
-          "jpg": "media/stills/pool-terrace-before-1920.d0363c3896.jpg"
+          "avif": "media/stills/pool-terrace-before-1920.928fc37f8e.avif",
+          "webp": "media/stills/pool-terrace-before-1920.44757e4e7f.webp",
+          "jpg": "media/stills/pool-terrace-before-1920.f120c97b0b.jpg"
+        },
+        {
+          "w": 2560,
+          "h": 1440,
+          "avif": "media/stills/pool-terrace-before-2560.10bf96d56d.avif",
+          "webp": "media/stills/pool-terrace-before-2560.464c3931b5.webp",
+          "jpg": "media/stills/pool-terrace-before-2560.c0ffebea19.jpg"
         }
       ],
       "gallery": false
     },
     {
       "id": "pool-terrace-after",
-      "file": "media/stills/pool-terrace-after-1920.109c26a905.jpg",
+      "file": "media/stills/pool-terrace-after-1920.4fe6cbd1f2.jpg",
       "width": 1920,
       "height": 1080,
       "date": "2026-06-21",
@@ -581,23 +650,30 @@
         {
           "w": 640,
           "h": 360,
-          "avif": "media/stills/pool-terrace-after-640.1c8af1a747.avif",
-          "webp": "media/stills/pool-terrace-after-640.e32899841b.webp",
-          "jpg": "media/stills/pool-terrace-after-640.15b56a30bf.jpg"
+          "avif": "media/stills/pool-terrace-after-640.2b59148df6.avif",
+          "webp": "media/stills/pool-terrace-after-640.4a751c1ae9.webp",
+          "jpg": "media/stills/pool-terrace-after-640.c7098f2698.jpg"
         },
         {
           "w": 1280,
           "h": 720,
-          "avif": "media/stills/pool-terrace-after-1280.8bda969be9.avif",
-          "webp": "media/stills/pool-terrace-after-1280.420c21a8c1.webp",
-          "jpg": "media/stills/pool-terrace-after-1280.58ede0af94.jpg"
+          "avif": "media/stills/pool-terrace-after-1280.21f97bee22.avif",
+          "webp": "media/stills/pool-terrace-after-1280.f1123af603.webp",
+          "jpg": "media/stills/pool-terrace-after-1280.5db2c3f419.jpg"
         },
         {
           "w": 1920,
           "h": 1080,
-          "avif": "media/stills/pool-terrace-after-1920.3df2f92d7d.avif",
-          "webp": "media/stills/pool-terrace-after-1920.ebb7629be2.webp",
-          "jpg": "media/stills/pool-terrace-after-1920.109c26a905.jpg"
+          "avif": "media/stills/pool-terrace-after-1920.8b54e25f04.avif",
+          "webp": "media/stills/pool-terrace-after-1920.2e6bbb4f63.webp",
+          "jpg": "media/stills/pool-terrace-after-1920.4fe6cbd1f2.jpg"
+        },
+        {
+          "w": 2560,
+          "h": 1440,
+          "avif": "media/stills/pool-terrace-after-2560.dbb6a42f06.avif",
+          "webp": "media/stills/pool-terrace-after-2560.0a52eb4666.webp",
+          "jpg": "media/stills/pool-terrace-after-2560.255e194cc7.jpg"
         }
       ],
       "gallery": true
@@ -640,11 +716,11 @@
     }
   },
   "og": {
-    "file": "media/og.52696dbe20.jpg",
+    "file": "media/og.c1af8851ec.jpg",
     "width": 1200,
     "height": 630,
     "twitter": {
-      "file": "media/twitter.a375e19643.jpg",
+      "file": "media/twitter.7df84dac8e.jpg",
       "width": 1200,
       "height": 600
     },

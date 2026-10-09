@@ -22,6 +22,8 @@ test.describe("choices survive a reload", () => {
     await open(page, routePath("cs", "budget"));
     const total = page.locator("aside.budget-side dd.sum output");
     const toggle = page.locator("section.budget-group input[role=switch]").first();
+    // groups are closed `details` on phones: open the one that holds the switch
+    await toggle.evaluate((el) => { const d = el.closest("details"); if (d) d.open = true; });
     const was = await toggle.isChecked();
     await toggle.setChecked(!was);
     await page.locator("aside.budget-side input[type=range]").focus();
@@ -116,6 +118,8 @@ test.describe("storage that cannot be used", () => {
     // and a control still works for the visit
     await open(page, routePath("cs", "budget"));
     const toggle = page.locator("section.budget-group input[role=switch]").first();
+    // groups are closed `details` on phones: open the one that holds the switch
+    await toggle.evaluate((el) => { const d = el.closest("details"); if (d) d.open = true; });
     const was = await toggle.isChecked();
     await toggle.setChecked(!was);
     await expect(toggle).toBeChecked({ checked: !was });

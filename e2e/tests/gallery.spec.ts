@@ -11,33 +11,38 @@ for (const locale of LOCALES) {
   test.describe(`gallery (${locale})`, () => {
     const path = routePath(locale as Locale, "gallery");
 
-    test("every still of the manifest is a tile with its alt text", async ({ page }) => {
+    // the "before" half of the slider (gallery: false) is not a gallery picture
+    const shown = media.stills.filter((s) => s.gallery !== false);
+
+    test("every gallery still of the manifest is a tile with its alt text", async ({ page }) => {
       await open(page, path);
       const tiles = page.locator(".gal-item");
-      await expect(tiles).toHaveCount(media.stills.length);
+      await expect(tiles).toHaveCount(shown.length);
       const alts = await page.locator(".gal-item img").evaluateAll((imgs) => imgs.map((i) => (i as HTMLImageElement).alt));
-      expect(alts.sort()).toEqual(media.stills.map((s) => s.alt[locale as Locale]).sort());
+      expect(alts.sort()).toEqual(shown.map((s) => s.alt[locale as Locale]).sort());
       // the images that are in view have loaded
       await tiles.first().scrollIntoViewIfNeeded();
       await expect.poll(() => page.locator(".gal-item img").first().evaluate((i: HTMLImageElement) => i.complete && i.naturalWidth > 0)).toBe(true);
     });
 
-    test("a category filter narrows the grid to that category", async ({ page }) => {
+    test("a filter narrows the grid; filters exist only for a category of at least 3 (and fewer than all) pictures", async ({ page }) => {
       await open(page, path);
-      const chips = page.locator(".chips button.chip");
-      const category = media.stills[0].category;
-      const expected = media.stills.filter((s) => s.category === category).length;
-      // the chips are "all", the categories that exist and "evening"; the one of the first still is found by its count and position
-      const count = await chips.count();
-      expect(count).toBeGreaterThan(2);
-      let found = false;
+      const buttons = page.locator(".seg button").filter({ has: page.locator(".gal-n") });
+      const count = await buttons.count();
+      if (count === 0) return; // nothing worth choosing between: no filter control (see MIN_FILTER_ITEMS in gallery/view.ts)
+      expect(count, '"all" and at least one real choice').toBeGreaterThan(1);
+      const counts: number[] = [];
+      for (let i = 0; i < count; i++) counts.push(Number(await buttons.nth(i).locator(".gal-n").innerText()));
+      expect(counts[0], "the first filter is \"all\"").toBe(shown.length);
       for (let i = 1; i < count; i++) {
-        await chips.nth(i).click();
-        if ((await page.locator(".gal-item").count()) === expected) { found = true; break; }
+        expect(counts[i]).toBeGreaterThanOrEqual(3);
+        expect(counts[i]).toBeLessThan(shown.length);
+        await buttons.nth(i).click();
+        await expect(buttons.nth(i)).toHaveAttribute("aria-pressed", "true");
+        await expect(page.locator(".gal-item")).toHaveCount(counts[i]);
       }
-      expect(found, `a filter that shows exactly the ${expected} stills of "${category}"`).toBe(true);
-      await chips.nth(0).click(); // "all" again
-      await expect(page.locator(".gal-item")).toHaveCount(media.stills.length);
+      await buttons.nth(0).click(); // "all" again
+      await expect(page.locator(".gal-item")).toHaveCount(shown.length);
     });
 
     test("the lightbox opens, pages with the arrow keys and closes with Escape", async ({ page }) => {

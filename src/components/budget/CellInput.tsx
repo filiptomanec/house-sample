@@ -21,7 +21,8 @@ export function CellInput({ value, edited, label, resetLabel, digits, step, onCo
       <NumInput className="numin cell-in" value={value} digits={digits} step={step} min={0} max={1e12} aria-label={label}
         data-edited={edited ? "" : undefined} onChange={onCommit} onEmpty={onReset} />
       {edited && (
-        <button type="button" className="cell-reset" aria-label={resetLabel} title={resetLabel} onClick={onReset}>
+        <button type="button" className="cell-reset" aria-label={resetLabel} title={resetLabel} onClick={onReset}
+          onMouseDown={(e) => e.preventDefault() /* Safari does not focus a clicked button: the input would blur, the phone row would close and take the button with it before the click lands */}>
           <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false">
             <path d="M3 8a5 5 0 1 0 1.7-3.75M3 2.5v3h3" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
           </svg>

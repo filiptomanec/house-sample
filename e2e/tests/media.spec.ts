@@ -24,12 +24,18 @@ test.describe("media @desktop", () => {
     expect(empty, "files that are empty or suspiciously small").toEqual([]);
   });
 
-  test("every image is a JPEG, every video an MP4", () => {
+  test("every file is what its extension says: AVIF, WebP, JPEG or MP4", () => {
     for (const f of files) {
       const head = fs.readFileSync(onDisk(f)).subarray(0, 12);
       if (/\.jpe?g$/.test(f)) expect([head[0], head[1]], f).toEqual([0xff, 0xd8]);
       else if (/\.mp4$/.test(f)) expect(head.subarray(4, 8).toString("latin1"), f).toBe("ftyp");
-      else throw new Error(`unexpected media type: ${f}`);
+      else if (/\.avif$/.test(f)) {
+        expect(head.subarray(4, 8).toString("latin1"), f).toBe("ftyp");
+        expect(["avif", "avis"], f).toContain(head.subarray(8, 12).toString("latin1"));
+      } else if (/\.webp$/.test(f)) {
+        expect(head.subarray(0, 4).toString("latin1"), f).toBe("RIFF");
+        expect(head.subarray(8, 12).toString("latin1"), f).toBe("WEBP");
+      } else throw new Error(`unexpected media type: ${f}`);
     }
   });
 
@@ -45,7 +51,8 @@ test.describe("media @desktop", () => {
     for (const f of files) {
       const res = await request.fetch(`/${f}`, { method: "HEAD" });
       expect(res.status(), f).toBe(200);
-      expect(res.headers()["content-type"], f).toBe(/\.mp4$/.test(f) ? "video/mp4" : "image/jpeg");
+      const type = /\.mp4$/.test(f) ? "video/mp4" : /\.avif$/.test(f) ? "image/avif" : /\.webp$/.test(f) ? "image/webp" : "image/jpeg";
+      expect(res.headers()["content-type"], f).toBe(type);
     }
   });
 

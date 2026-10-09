@@ -35,7 +35,7 @@ input[type="range"]:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 3px var(
 /* in a toolbar (flex row) a wrapped or stacked control takes a line of its own */
 .field:has(> .seg.fit:is([data-fit="grid"], [data-fit="stack"])) { flex: 1 1 100%; }
 /* server HTML before the first measurement: scroll inside the track rather than spill out of the panel */
-.seg.fit:not([data-fit]) { overflow-x: auto; scrollbar-width: none; }
+.seg.fit:not([data-fit]) { position: relative; /* contains the absolutely placed .sr-only spans, which would otherwise widen the page while it scrolls inside */ overflow-x: auto; scrollbar-width: none; }
 .seg.fit:not([data-fit])::-webkit-scrollbar { display: none; }
 
 /* ---------------------------------------------------------------- switch */

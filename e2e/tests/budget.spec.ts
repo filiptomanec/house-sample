@@ -84,7 +84,13 @@ for (const locale of ["cs", "en"] as const) {
     test("an edited quantity changes the total and can be reset", async ({ page }) => {
       await open(page, path);
       const start = await totalCzk(page);
-      const cell = page.locator("section.budget-group table input.cell-in").first();
+      const first = page.locator("section.budget-group").first();
+      await reveal(first);
+      const cell = first.locator("table input.cell-in").first();
+      // on phones the inputs show only for the line being edited: a tap on its quantity x price button opens them
+      const qp = first.locator("table button.qp").first();
+      if (await qp.isVisible()) await qp.click();
+      await expect(cell).toBeVisible();
       const original = await cell.inputValue();
       await cell.fill(String(Math.round(digits(original) * 2 + 10)));
       await cell.press("Enter");
