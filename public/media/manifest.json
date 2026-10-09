@@ -106,8 +106,8 @@
       "stride": 2
     },
     "video": {
-      "file": "media/orbit/orbit-1600.93645d9f59.mp4",
-      "poster": "media/orbit/poster-1600.77ed34e414.jpg",
+      "file": "media/orbit/orbit-1600.03df2f012b.mp4",
+      "poster": "media/orbit/poster-1600.4116278e45.jpg",
       "width": 1600,
       "height": 900,
       "fps": 24,
@@ -116,35 +116,35 @@
         {
           "w": 1600,
           "h": 900,
-          "file": "media/orbit/orbit-1600.93645d9f59.mp4"
+          "file": "media/orbit/orbit-1600.03df2f012b.mp4"
         },
         {
           "w": 960,
           "h": 540,
-          "file": "media/orbit/orbit-960.dfe915c1b7.mp4"
+          "file": "media/orbit/orbit-960.1fcf56d975.mp4"
         }
       ],
       "posterVariants": [
         {
           "w": 640,
           "h": 360,
-          "avif": "media/orbit/poster-640.290cd14ece.avif",
-          "webp": "media/orbit/poster-640.255e2aba42.webp",
-          "jpg": "media/orbit/poster-640.f507bbcd4d.jpg"
+          "avif": "media/orbit/poster-640.0e4c29f04d.avif",
+          "webp": "media/orbit/poster-640.8b0cf64fac.webp",
+          "jpg": "media/orbit/poster-640.aa52a57255.jpg"
         },
         {
           "w": 1280,
           "h": 720,
-          "avif": "media/orbit/poster-1280.d70d6be068.avif",
-          "webp": "media/orbit/poster-1280.30a4ef9012.webp",
-          "jpg": "media/orbit/poster-1280.0d6e465c17.jpg"
+          "avif": "media/orbit/poster-1280.561bcbf1bd.avif",
+          "webp": "media/orbit/poster-1280.f0bf4cbb9a.webp",
+          "jpg": "media/orbit/poster-1280.fb90d76fea.jpg"
         },
         {
           "w": 1600,
           "h": 900,
-          "avif": "media/orbit/poster-1600.5da9b5eff8.avif",
-          "webp": "media/orbit/poster-1600.260edceb4c.webp",
-          "jpg": "media/orbit/poster-1600.77ed34e414.jpg"
+          "avif": "media/orbit/poster-1600.4548b2ff59.avif",
+          "webp": "media/orbit/poster-1600.9c23330634.webp",
+          "jpg": "media/orbit/poster-1600.4116278e45.jpg"
         }
       ]
     }
