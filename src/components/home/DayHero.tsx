@@ -5,7 +5,8 @@
 // accent voice), the tagline of the model, the one fiction note and the way into the 3D tour; the last caption hands over to the
 // Sun page. A caption fades over a fixed scroll distance (momentOpacity) and only once the title has gone (introFade), and the last
 // tenth of the scroll rests on the last frame, so the final caption and its link can be read. With reduced motion (or Save-Data)
-// the still frame stands under the intro and the captions are listed below it.
+// the still frame stands under the intro and the captions are listed below it. The HUD stays cheap per scroll frame: React writes
+// the clock and the labels only when their text changes, and the sun moves by a transform.
 
 import { useMemo, type CSSProperties } from "react";
 import IntentLink from "@/components/ui/IntentLink";
@@ -148,8 +149,11 @@ function SunArc({ path, spot, ends }: { path: SunSpot[]; spot: SunSpot; ends: Da
         <line className="day-arc-horizon" x1={0} x2={ARC_BOX.width} y1={geo.horizon} y2={geo.horizon} />
         <path className="day-arc-path" d={geo.d} />
         {done && <path className="day-arc-done" d={done} />}
-        <circle className="day-arc-glow" data-up={spot.alt > 0} cx={x} cy={y} r={11} />
-        <circle className="day-arc-sun" data-up={spot.alt > 0} cx={x} cy={y} r={4.5} />
+        {/* the sun moves by one transform on its group (rounded to a tenth of a unit), not by the geometry of two circles */}
+        <g className="day-arc-dot" transform={`translate(${x.toFixed(1)} ${y.toFixed(1)})`}>
+          <circle className="day-arc-glow" data-up={spot.alt > 0} r={11} />
+          <circle className="day-arc-sun" data-up={spot.alt > 0} r={4.5} />
+        </g>
       </svg>
       {axis}
     </div>

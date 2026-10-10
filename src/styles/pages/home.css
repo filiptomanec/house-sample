@@ -6,9 +6,12 @@
 /* ---------------------------------------------------------------- scroll sequences (day hero, orbit) */
 .sf { position: relative; height: var(--sf-h); background: var(--bg); }
 .sf-sticky { position: sticky; top: 0; height: 100vh; height: 100svh; overflow: hidden; display: grid; grid-template: minmax(0, 1fr) / minmax(0, 1fr); }
-.sf-media { grid-area: 1 / 1; position: relative; min-width: 0; min-height: 0; }
+/* isolation: the z-index of the two layer canvases (they swap places, ScrollFrames; -1 puts one under the other) stays inside the picture */
+.sf-media { grid-area: 1 / 1; position: relative; min-width: 0; min-height: 0; isolation: isolate; }
 .sf-media canvas, .sf-poster, .sf-poster img { position: absolute; inset: 0; width: 100%; height: 100%; }
 .sf-poster img { object-fit: cover; }
+/* each canvas is a compositor layer: the cross-fade is its opacity, and the compositor scales its backing store to the screen */
+.sf-media canvas { will-change: opacity; }
 /* an opaque canvas would hide the poster before its first frame has been drawn */
 .sf-media canvas { visibility: hidden; }
 .sf-media[data-ready="true"] canvas { visibility: visible; }
@@ -408,3 +411,13 @@
 .sf[data-still="true"] .orbit-foot { position: static; padding-bottom: var(--section-y-sm); }
 .sf[data-still="true"] .orbit-bar { display: none; }
 .sf[data-still="true"] .orbit-foot > .orbit-cta { opacity: 1; visibility: visible; transform: none; }
+
+/* Touch devices (iOS Safari): nothing over the scrolling frames may need a per-frame re-blur. A backdrop blur or a wide
+   text-shadow blur is recomputed whenever the picture under it changes, which drops frames on a fast scroll. The scrim
+   already carries the contrast, so the hint gets a translucent fill and the shadows a short radius. */
+@media (hover: none) and (pointer: coarse) {
+  .day-hint { backdrop-filter: none; background: color-mix(in srgb, var(--media-scrim) 70%, transparent); }
+  .day-intro, .day-moment { text-shadow: 0 1px 2px var(--media-shadow), 0 1px 6px var(--media-scrim); }
+  .day-note { text-shadow: 0 1px 2px var(--media-scrim), 0 0 4px var(--media-scrim); }
+  .orbit-cap { text-shadow: 0 1px 2px var(--media-shadow), 0 1px 6px var(--media-scrim); }
+}

@@ -428,3 +428,49 @@ export function coverRect(imageW: number, imageH: number, canvasW: number, canva
   const w = imageW * s, h = imageH * s;
   return { x: (canvasW - w) / 2, y: (canvasH - h) / 2, w, h };
 }
+
+// ------------------------------------------------------------------------------------------------ compositor layers
+
+/**
+ * Backing store of a layer canvas: the part of the frame the viewport shows (coverSource, in frame pixels), so drawImage copies
+ * the source pixels 1:1 and the compositor scales the canvas to the viewport (CSS 100 %). Never finer than 2 device pixels per
+ * CSS pixel (as canvasScale), which a frame larger than the screen needs; the source pixels are the same, nothing is lost.
+ */
+export function layerSize(cssWidth: number, cssHeight: number, dpr: number, frameWidth: number, frameHeight: number): { width: number; height: number } {
+  const s = coverSource(frameWidth, frameHeight, cssWidth, cssHeight);
+  const k = s.sw > 0 ? Math.min(1, (cssWidth * Math.max(1, Math.min(2, dpr))) / s.sw) : 1;
+  return { width: Math.max(1, Math.round(s.sw * k)), height: Math.max(1, Math.round(s.sh * k)) };
+}
+
+/** Two stacked canvases: `bottom` shown whole, `top` over it at the element opacity `opacity` (the compositor blends them). */
+export interface LayerStack { bottom: BlendLayer[]; top: BlendLayer[]; opacity: number }
+
+/**
+ * The layers of blendLayers on two stacked canvases, where the cross-fade is only the CSS opacity of the upper one: nothing is
+ * redrawn while the blend fraction changes. The first layer is the bottom canvas, the second the top canvas at its alpha. A third
+ * layer (only while a late frame fades in: the pair over the frame that stood alone) is drawn into the top canvas over the second
+ * at its alpha relative to it (t), so the top canvas holds the pair and the arrival fade is its opacity.
+ */
+export function stackLayers(layers: readonly BlendLayer[]): LayerStack {
+  const [first, second, ...rest] = layers;
+  if (!first) return { bottom: [], top: [], opacity: 0 };
+  const bottom = [{ index: first.index, alpha: 1 }];
+  if (!second) return { bottom, top: [], opacity: 0 };
+  const rel = (a: number) => (second.alpha > 0 ? clamp01(a / second.alpha) : 0);
+  return { bottom, top: [{ index: second.index, alpha: 1 }, ...rest.map((l) => ({ index: l.index, alpha: rel(l.alpha) }))], opacity: clamp01(second.alpha) };
+}
+
+/** What a canvas holds (its frames and their alphas in `steps`); a canvas is drawn only when this changes. "" is nothing. */
+export const layerKey = (layers: readonly BlendLayer[], steps = 128): string => layers.map((l) => `${l.index}:${Math.round(l.alpha * steps)}`).join(" ");
+
+/**
+ * Which of the two canvases takes the bottom picture (the other one takes the top), from what each holds (`have`, layerKey) and
+ * which one is at the bottom now (`lower`): a canvas that already holds a wanted picture keeps it, so when the pair moves on by
+ * one frame the two swap places and only one is drawn. The order changes only when that saves a drawing; an empty top ("")
+ * needs no canvas.
+ */
+export function assignLayers(have: readonly [string, string], bottom: string, top: string, lower: 0 | 1): 0 | 1 {
+  const score = (b: 0 | 1) => Number(have[b] === bottom) + Number(top !== "" && have[1 - b] === top);
+  const other: 0 | 1 = lower === 0 ? 1 : 0;
+  return score(other) > score(lower) ? other : lower;
+}

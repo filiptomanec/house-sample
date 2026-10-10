@@ -1,11 +1,15 @@
 "use client";
-// A pinned full-screen canvas whose frame follows the scroll position (the section is `height` svh tall, the frame sticks).
+// A pinned full-screen picture whose frame follows the scroll position (the section is `height` svh tall, the frame sticks).
 // Memory-safe on phones: frames are fetched as compressed files, coarse to fine, and a window around the current frame is decoded
 // first (FrameStore). With `retain` (the day hero) and frames that fit a phone (keepsAll), every frame is then fetched and decoded
 // in the background once the first one is on the canvas, and all are kept, so a fast scroll only draws. With `blend` neighbouring frames are cross-faded (a static camera: the time of day): frame i whole and
 // frame i + 1 over it at the fraction of the scroll between them, so sun, shadows and lights glide instead of stepping; a frame
-// decoded after the scroll got there fades in (ARRIVAL_FADE_MS) instead of popping. Without `blend` the nearest frame is shown
-// whole and cut (a moving camera would double-expose). Phones in portrait get portrait frames, and a canvas that a
+// decoded after the scroll got there fades in (ARRIVAL_FADE_MS) instead of popping. The cross-fade is done by the compositor: two
+// stacked canvases hold frame i and frame i + 1, and only the CSS opacity of the upper one follows the scroll. A canvas is drawn
+// only when the frame it must show changes; when the pair moves on by one frame the two canvases swap places (z-index), so one
+// drawImage per frame change, none per animation frame. Each canvas is as large as the part of the frame it shows (layerSize),
+// so a drawing is a 1:1 copy and the compositor scales it to the screen. Without `blend` the nearest frame is shown whole and
+// cut on one canvas (a moving camera would double-expose). Phones in portrait get portrait frames, and a canvas that a
 // smaller variant fills sharply gets that variant (when the manifest has one). The poster is plain HTML (a <picture> chosen by
 // media queries, also for reduced motion), so the first paint needs no JavaScript.
 //
@@ -24,8 +28,8 @@ import { MQ } from "@/styles/breakpoints";
 import { browserDeps, FrameStore, type Frame } from "./frames";
 import { useMedia } from "./useMedia";
 import {
-  arrivalFade, blendAt, blendLayers, canvasScale, clamp01, coarseCount, coverSource, decodeBudgetBytes, decodeWindow, frameAt, heldProgress, keepsAll,
-  lruCapacity, sectionProgress, smallVariantFits, type BlendLayer,
+  arrivalFade, assignLayers, blendAt, blendLayers, clamp01, coarseCount, coverSource, decodeBudgetBytes, decodeWindow, frameAt, heldProgress, keepsAll,
+  layerKey, layerSize, lruCapacity, sectionProgress, smallVariantFits, stackLayers, type BlendLayer,
 } from "./timeline";
 
 /** The same query decides the poster (<source media>) and the frames the script fetches. */
@@ -63,7 +67,7 @@ const RELEASE_SCREENS = 1;
 const IDLE_TIMEOUT_MS = 1500;
 /** Where requestIdleCallback is missing (Safari), the pause after load instead. */
 const IDLE_FALLBACK_MS = 300;
-/** Alphas of the cross-fade are quantised to this many steps: the canvas is redrawn only when one of them moves a step. */
+/** Alphas of the cross-fade are quantised to this many steps: the opacity of the upper canvas is written only when it moves a step. */
 const ALPHA_STEPS = 128;
 
 interface Props {
@@ -102,7 +106,9 @@ export default function ScrollFrames({ frames, stillIndex, height, alt, blend = 
   const scrim = useRef<HTMLDivElement>(null);
   const overlay = useRef<HTMLDivElement>(null);
   const stick = useRef<HTMLDivElement>(null);
-  const canvas = useRef<HTMLCanvasElement>(null);
+  // the two layers of the picture (the second one only for a cross-fade)
+  const canvasA = useRef<HTMLCanvasElement>(null);
+  const canvasB = useRef<HTMLCanvasElement>(null);
   const [state, setState] = useState<ScrollState>({ progress: 0, frame: 0, drawn: 0, waiting: false, still: false });
   const [ready, setReady] = useState(false);
   const saveData = useSyncExternalStore(subscribeSaveData, saveDataOn, () => false);
@@ -119,21 +125,27 @@ export default function ScrollFrames({ frames, stillIndex, height, alt, blend = 
 
   useEffect(() => {
     if (isStill) return;
-    const wrapEl = wrap.current, stickEl = stick.current, cv = canvas.current, scrimEl = scrim.current, overlayEl = overlay.current;
-    const ctx = cv?.getContext("2d", { alpha: false });
-    if (!wrapEl || !stickEl || !cv || !ctx) return;
+    const wrapEl = wrap.current, stickEl = stick.current, scrimEl = scrim.current, overlayEl = overlay.current;
+    const els = (blend ? [canvasA.current, canvasB.current] : [canvasA.current]).filter((c): c is HTMLCanvasElement => c !== null);
+    const ctxs = els.map((c) => c.getContext("2d", { alpha: false })).filter((c): c is CanvasRenderingContext2D => c !== null);
+    if (!wrapEl || !stickEl || !els.length || ctxs.length !== els.length || (blend && els.length < 2)) return;
+    const cv = els[0];
 
     const seq = variant.small && smallVariantFits(innerWidth, innerHeight, devicePixelRatio || 1, variant, variant.small) ? variant.small : variant;
     const n = seq.urls.length;
     const deviceMemoryGb = (navigator as Navigator & { deviceMemory?: number }).deviceMemory;
     const budget = decodeBudgetBytes({ coarse: matchMedia(MQ.coarse).matches, deviceMemoryGb });
     const keep = retain && keepsAll(seq, deviceMemoryGb);
-    let alive = true, raf = 0, drawnKey = "", out = -1, painted = false, released = false;
+    let alive = true, raf = 0, out = -1, painted = false, released = false;
+    // what each canvas holds (layerKey, "": nothing), the opacity last written on it, and which one is at the bottom
+    const have: [string, string] = ["", ""];
+    const opacity = [-1, -1];
+    let lower: 0 | 1 = 0;
     // cross-fade: the frame standing alone on the canvas because its partner was not decoded yet (-1: none), and the fade-in
     // from it that runs once the missing frame has arrived (the frame it fades from, -1: none, and when it started)
     let alone = -1, fadeFrom = -1, fadeAt = 0;
     // layout, measured on resize only (never on a scroll frame): where the section starts in the document, how far it scrolls
-    let wrapTop = 0, wrapH = 0, stickH = 0, scrollable = 0;
+    let wrapTop = 0, wrapH = 0, stickH = 0, scrollable = 0, viewW = 0, viewH = 0;
     // what React was last told, and the scroll direction (decoding runs ahead of it)
     let pubP = -1, pubD = -1, pubWait = false, lastF = -1, dir: 1 | -1 = 1, drawn = 0;
     // background fetch of every frame once the first is on the canvas (keep)
@@ -145,10 +157,12 @@ export default function ScrollFrames({ frames, stillIndex, height, alt, blend = 
       wrapH = wrapEl.offsetHeight;
       stickH = stickEl.offsetHeight;
       scrollable = wrapH - stickH;
-      const scale = canvasScale(cv.clientWidth, cv.clientHeight, devicePixelRatio || 1, seq.width, seq.height);
-      const w = Math.round(cv.clientWidth * scale), h = Math.round(cv.clientHeight * scale);
+      viewW = cv.clientWidth; viewH = cv.clientHeight;
+      // the backing stores: the part of the frame the screen shows, scaled to the screen by the compositor (a new size clears them)
+      const { width: w, height: h } = layerSize(viewW, viewH, devicePixelRatio || 1, seq.width, seq.height);
       if (cv.width === w && cv.height === h) return;
-      cv.width = w; cv.height = h; drawnKey = "";
+      for (const c of els) { c.width = w; c.height = h; }
+      have[0] = have[1] = "";
     };
     measure();
 
@@ -165,11 +179,23 @@ export default function ScrollFrames({ frames, stillIndex, height, alt, blend = 
       },
     });
 
-    /** The decoded frame itself, its shown part picked by the source rectangle (no copy of it is ever made). */
-    const paint = (frame: Frame, alpha: number) => {
-      const s = coverSource(frame.width, frame.height, cv.width, cv.height);
-      ctx.globalAlpha = alpha;
-      ctx.drawImage(frame.source, s.sx, s.sy, s.sw, s.sh, 0, 0, cv.width, cv.height);
+    /** Canvas k gets its picture: the decoded frames themselves, the shown part picked by the source rectangle (no copy is made). */
+    const paint = (k: number, layers: readonly BlendLayer[]) => {
+      const c = els[k], g = ctxs[k];
+      for (const l of layers) {
+        const frame = st.get(l.index)!;
+        const s = coverSource(frame.width, frame.height, viewW, viewH);
+        g.globalAlpha = l.alpha;
+        g.drawImage(frame.source, s.sx, s.sy, s.sw, s.sh, 0, 0, c.width, c.height);
+      }
+      g.globalAlpha = 1;
+    };
+    /** The only per-frame write of the picture: the opacity of a canvas, when it moves by a step. */
+    const setOpacity = (k: number, v: number) => {
+      const q = Math.round(v * ALPHA_STEPS) / ALPHA_STEPS;
+      if (q === opacity[k]) return;
+      opacity[k] = q;
+      els[k].style.opacity = String(q);
     };
     const startAll = () => {
       if (typeof requestIdleCallback === "function") idleAll = requestIdleCallback(() => st.start(), { timeout: IDLE_TIMEOUT_MS });
@@ -202,10 +228,10 @@ export default function ScrollFrames({ frames, stillIndex, height, alt, blend = 
       }
       if (top + wrapH < -innerHeight * RELEASE_SCREENS || top > innerHeight * (1 + RELEASE_SCREENS)) {
         // far off screen: give the decoded frames back (a phone must not hold two sequences; a kept sequence stays), nothing else to do
-        if (!released) { released = true; if (!keep) st.release(); drawnKey = ""; alone = -1; fadeFrom = -1; }
+        if (!released) { released = true; if (!keep) st.release(); have[0] = have[1] = ""; alone = -1; fadeFrom = -1; }
         return;
       }
-      if (released) { released = false; drawnKey = ""; }
+      if (released) { released = false; have[0] = have[1] = ""; }
       const p = sectionProgress(top, scrollable);
       const f = frameAt(heldProgress(p, endHold), n);
       if (lastF >= 0 && Math.abs(f - lastF) > 0.001) dir = f > lastF ? 1 : -1;
@@ -234,12 +260,22 @@ export default function ScrollFrames({ frames, stillIndex, height, alt, blend = 
         alone = fadeFrom < 0 && over < 0 ? base : -1;
         if (fadeFrom >= 0) schedule(); // the fade runs on its own, also when the scroll stands still
       }
-      // what is on the canvas: the frames and their alphas (in steps); nothing is drawn again while that has not changed
-      const key = layers.map((l) => `${l.index}:${Math.round(l.alpha * ALPHA_STEPS)}`).join(" ");
-      if (layers.length && key !== drawnKey) {
-        drawnKey = key;
-        for (const l of layers) paint(st.get(l.index)!, l.alpha);
-        ctx.globalAlpha = 1;
+      // the picture: a canvas is drawn only when what it must hold changes; the cross-fade is the opacity of the upper canvas
+      if (layers.length) {
+        const stack = stackLayers(layers);
+        const bottomKey = layerKey(stack.bottom, ALPHA_STEPS), topKey = layerKey(stack.top, ALPHA_STEPS);
+        if (els.length === 1) {
+          if (have[0] !== bottomKey) { paint(0, stack.bottom); have[0] = bottomKey; }
+        } else {
+          // the canvas that already holds a wanted frame keeps it: when the pair moves on by one, the two swap places
+          const b = assignLayers(have, bottomKey, topKey, lower), t = 1 - b;
+          // one write per swap: the second canvas goes under the first (z-index -1 inside the isolated .sf-media) or back over it
+          if (b !== lower) { lower = b; els[1].style.zIndex = b === 1 ? "-1" : ""; }
+          if (have[b] !== bottomKey) { paint(b, stack.bottom); have[b] = bottomKey; }
+          if (topKey && have[t] !== topKey) { paint(t, stack.top); have[t] = topKey; }
+          setOpacity(b, 1);
+          setOpacity(t, topKey ? stack.opacity : 0);
+        }
         drawn = shows;
         if (!painted) { painted = true; setReady(true); if (keep) startAll(); }
       }
@@ -291,6 +327,7 @@ export default function ScrollFrames({ frames, stillIndex, height, alt, blend = 
       cancelAnimationFrame(raf);
       if (idleAll && typeof cancelIdleCallback === "function") cancelIdleCallback(idleAll);
       if (timerAll) clearTimeout(timerAll);
+      for (const c of els) { c.style.opacity = ""; c.style.zIndex = ""; }
       if (scrimEl) scrimEl.style.opacity = "";
       if (overlayEl) overlayEl.style.opacity = "";
       cleanups.forEach((c) => c());
@@ -323,7 +360,8 @@ export default function ScrollFrames({ frames, stillIndex, height, alt, blend = 
                 decoding="async" loading={priority ? "eager" : "lazy"} fetchPriority={priority ? "high" : "auto"} />
             </picture>
           )}
-          <canvas ref={canvas} aria-hidden />
+          <canvas ref={canvasA} aria-hidden />
+          {blend && <canvas ref={canvasB} aria-hidden />}
         </div>
         <div ref={overlay} className="sf-overlay">{children?.(shown)}</div>
       </div>
