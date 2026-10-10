@@ -1,8 +1,10 @@
 "use client";
 // A pinned full-screen canvas whose frame follows the scroll position (the section is `height` svh tall, the frame sticks).
 // Memory-safe on phones: frames are fetched as compressed files, coarse to fine, and only a small window around the current frame
-// is decoded (FrameStore). With `blend` neighbouring frames are cross-faded (a static camera: the time of day); without it the
-// nearest frame is shown whole (a moving camera would double-expose). Phones in portrait get portrait frames, and a canvas that a
+// is decoded (FrameStore). With `blend` neighbouring frames are cross-faded (a static camera: the time of day): frame i whole and
+// frame i + 1 over it at the fraction of the scroll between them, so sun, shadows and lights glide instead of stepping; a frame
+// decoded after the scroll got there fades in (ARRIVAL_FADE_MS) instead of popping. Without `blend` the nearest frame is shown
+// whole and cut (a moving camera would double-expose). Phones in portrait get portrait frames, and a canvas that a
 // smaller variant fills sharply gets that variant (when the manifest has one). The poster is plain HTML (a <picture> chosen by
 // media queries, also for reduced motion), so the first paint needs no JavaScript.
 //
@@ -20,7 +22,10 @@ import type { FrameSet } from "@/lib/data/media";
 import { MQ } from "@/styles/breakpoints";
 import { decodesViaImage, FrameStore, makeBrowserDeps } from "./frames";
 import { useMedia } from "./useMedia";
-import { canvasScale, coarseCount, coverCrop, coverRect, decodeBudgetBytes, decodeWindow, frameAt, heldProgress, lruCapacity, sectionProgress, smallVariantFits, type Crop } from "./timeline";
+import {
+  arrivalFade, blendAt, blendLayers, canvasScale, coarseCount, coverCrop, coverRect, decodeBudgetBytes, decodeWindow, frameAt, heldProgress, lruCapacity,
+  sectionProgress, smallVariantFits, type BlendLayer, type Crop,
+} from "./timeline";
 
 /** The same query decides the poster (<source media>) and the frames the script fetches. */
 export const PORTRAIT = "(max-aspect-ratio: 4/5)";
@@ -57,6 +62,8 @@ const RELEASE_SCREENS = 1;
 const IDLE_TIMEOUT_MS = 1500;
 /** Where requestIdleCallback is missing (Safari), the pause after load instead. */
 const IDLE_FALLBACK_MS = 300;
+/** Alphas of the cross-fade are quantised to this many steps: the canvas is redrawn only when one of them moves a step. */
+const ALPHA_STEPS = 128;
 
 interface Props {
   frames: FrameSet | FrameSetX;
@@ -117,7 +124,10 @@ export default function ScrollFrames({ frames, stillIndex, height, alt, blend = 
       coarse: matchMedia(MQ.coarse).matches,
       deviceMemoryGb: (navigator as Navigator & { deviceMemory?: number }).deviceMemory,
     });
-    let alive = true, raf = 0, drawnKey = -1, out = "", painted = false, released = false;
+    let alive = true, raf = 0, drawnKey = "", out = "", painted = false, released = false;
+    // cross-fade: the frame standing alone on the canvas because its partner was not decoded yet (-1: none), and the fade-in
+    // from it that runs once the missing frame has arrived (the frame it fades from, -1: none, and when it started)
+    let alone = -1, fadeFrom = -1, fadeAt = 0;
     // layout, measured on resize only (never on a scroll frame): where the section starts in the document, how far it scrolls
     let wrapTop = 0, wrapH = 0, stickH = 0, scrollable = 0;
     // the canvas size and the part of a frame it shows (decoded frames are cropped to it where that saves work, see frames.ts)
@@ -135,7 +145,7 @@ export default function ScrollFrames({ frames, stillIndex, height, alt, blend = 
       const scale = canvasScale(cv.clientWidth, cv.clientHeight, devicePixelRatio || 1, seq.width, seq.height);
       const w = Math.round(cv.clientWidth * scale), h = Math.round(cv.clientHeight * scale);
       if (cv.width === w && cv.height === h) return;
-      cv.width = w; cv.height = h; drawnKey = -1;
+      cv.width = w; cv.height = h; drawnKey = "";
       const next = decodesViaImage() ? coverCrop(seq.width, seq.height, w, h) : null;
       if (next?.sx !== crop?.sx || next?.sy !== crop?.sy || next?.sw !== crop?.sw || next?.sh !== crop?.sh) {
         crop = next;
@@ -147,7 +157,7 @@ export default function ScrollFrames({ frames, stillIndex, height, alt, blend = 
 
     const st = new FrameStore(seq.urls, makeBrowserDeps(() => crop), {
       capacity: capacityFor(),
-      onDecoded: () => { drawnKey = -1; schedule(); },
+      onDecoded: () => { drawnKey = ""; schedule(); },
       onProgress: (settled, total) => {
         // only on the elements that show it: a custom property set on the section would restyle all of it per download
         const v = (settled / Math.max(1, total)).toFixed(3);
@@ -184,33 +194,45 @@ export default function ScrollFrames({ frames, stillIndex, height, alt, blend = 
       if (leave !== out) { out = leave; wrapEl.style.setProperty("--sf-out", leave); }
       if (top + wrapH < -innerHeight * RELEASE_SCREENS || top > innerHeight * (1 + RELEASE_SCREENS)) {
         // far off screen: give the decoded frames back (a phone must not hold two sequences), nothing else to do
-        if (!released) { released = true; st.release(); drawnKey = -1; }
+        if (!released) { released = true; st.release(); drawnKey = ""; alone = -1; fadeFrom = -1; }
         return;
       }
-      if (released) { released = false; drawnKey = -1; }
+      if (released) { released = false; drawnKey = ""; }
       const p = sectionProgress(top, scrollable);
       const f = frameAt(heldProgress(p, endHold), n);
       if (lastF >= 0 && Math.abs(f - lastF) > 0.001) dir = f > lastF ? 1 : -1;
       lastF = f;
-      const cur = Math.round(f);
-      let base: number, over = -1, t = 0;
-      st.setCurrent(cur, decodeWindow(dir, blend, capacityFor()));
+      let layers: BlendLayer[], shows: number;
       if (!blend) {
-        base = st.has(cur) ? cur : st.nearest(cur);
+        const cur = Math.round(f);
+        st.setCurrent(cur, decodeWindow(dir, false, capacityFor()));
+        const base = st.has(cur) ? cur : st.nearest(cur);
+        layers = base >= 0 ? [{ index: base, alpha: 1 }] : [];
+        shows = base;
       } else {
-        const i0 = Math.floor(f), i1 = Math.min(n - 1, i0 + 1);
-        t = f - i0;
-        base = st.has(i0) && st.has(i1) ? i0 : st.nearest(cur);
-        if (base === i0 && t > 0.01 && st.has(i1)) over = i1;
+        // frame i0 whole, i1 over it at alpha t; the decode window holds i0, i1 and the next frame in the scroll direction first
+        const { i0, i1, t } = blendAt(f, n);
+        st.setCurrent(i0, decodeWindow(dir, true, capacityFor()));
+        const base = st.has(i0) ? i0 : st.nearest(Math.round(f));
+        const over = base === i0 && i1 !== i0 && st.has(i1) ? i1 : -1;
+        // what the canvas should show changed by more than the scroll moved it (a frame arrived late): fade in, do not pop
+        if (fadeFrom < 0 && alone >= 0 && base >= 0 && (base !== alone || over >= 0)) { fadeFrom = alone; fadeAt = performance.now(); }
+        let k = 1;
+        if (fadeFrom >= 0) {
+          k = st.has(fadeFrom) ? arrivalFade(performance.now() - fadeAt) : 1;
+          if (k >= 1) fadeFrom = -1;
+        }
+        ({ layers, drawn: shows } = blendLayers({ base, over, t }, fadeFrom, k));
+        alone = fadeFrom < 0 && over < 0 ? base : -1;
+        if (fadeFrom >= 0) schedule(); // the fade runs on its own, also when the scroll stands still
       }
-      // what is on the canvas: the base frame and the share of the next one (in percent)
-      const key = base * 1000 + (over >= 0 ? Math.round(t * 100) + 1 : 0);
-      if (base >= 0 && key !== drawnKey) {
+      // what is on the canvas: the frames and their alphas (in steps); nothing is drawn again while that has not changed
+      const key = layers.map((l) => `${l.index}:${Math.round(l.alpha * ALPHA_STEPS)}`).join(" ");
+      if (layers.length && key !== drawnKey) {
         drawnKey = key;
-        paint(st.get(base)!, 1);
-        if (over >= 0) paint(st.get(over)!, t);
+        for (const l of layers) paint(st.get(l.index)!, l.alpha);
         ctx.globalAlpha = 1;
-        drawn = over >= 0 ? base + t : base;
+        drawn = shows;
         if (!painted) { painted = true; setReady(true); }
       }
       publish(p, f, drawn);

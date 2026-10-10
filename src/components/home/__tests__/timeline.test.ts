@@ -315,8 +315,9 @@ describe("loading and memory", () => {
   });
 
   it("decodes the current frame first, then ahead of the scroll direction, within the capacity", () => {
-    expect(decodeWindow(1, true, 6)).toEqual([0, 1, -1, 2, 3, -2]);
-    expect(decodeWindow(-1, true, 6)).toEqual([0, -1, 1, -2, -3, 2]);
+    // a cross-fade is anchored on the frame under the scroll position (i0): i0, i1 and the next one in the scroll direction first
+    expect(decodeWindow(1, true, 6)).toEqual([0, 1, 2, -1, 3, -2]);
+    expect(decodeWindow(-1, true, 6)).toEqual([0, 1, -1, -2, 2, -3]);
     expect(decodeWindow(1, false, 5)).toEqual([0, 1, 2, -1, 3]);
     expect(decodeWindow(1, true, 1)).toHaveLength(3); // never fewer than a cross-fade needs
     expect(decodeWindow(1, true, 99)).toHaveLength(7);

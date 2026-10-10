@@ -315,11 +315,60 @@ export function evictions(keys: Iterable<number>, current: number, capacity: num
 /**
  * Frames to decode around the current one (offsets), in the order they are decoded: the current frame, then ahead of the scroll
  * direction before behind it, so the next frames are ready before the scroll reaches them (a decode never lands on the frame
- * that needs it). A cross-fade needs both neighbours of the scroll position; a cut needs the frames ahead. At most `capacity`.
+ * that needs it). A cut is anchored on the nearest frame and needs the frames ahead. A cross-fade is anchored on the frame under
+ * the scroll position (`blendAt` i0): its first three are always i0, i1 (= i0 + 1) and the next frame in the scroll direction,
+ * whichever way the scroll goes. At most `capacity`, never fewer than three.
  */
 export function decodeWindow(dir: 1 | -1, blend: boolean, capacity: number): number[] {
-  const order = blend ? [0, 1, -1, 2, 3, -2, 4] : [0, 1, 2, -1, 3, 4, -2];
-  return order.slice(0, Math.max(3, Math.min(order.length, capacity))).map((d) => (d === 0 ? 0 : d * dir));
+  // `|| 0`: no -0 offsets
+  const order = !blend ? [0, 1, 2, -1, 3, 4, -2].map((d) => d * dir || 0) : dir > 0 ? [0, 1, 2, -1, 3, -2, 4] : [0, 1, -1, -2, 2, -3, 3];
+  return order.slice(0, Math.max(3, Math.min(order.length, capacity)));
+}
+
+// ------------------------------------------------------------------------------------------------ cross-fade (day sequence)
+
+/**
+ * The two frames a static camera cross-fades at a fractional frame index: i0 drawn whole, i1 = i0 + 1 over it at alpha `t` (the
+ * fraction of the scroll between the two frames' positions; linear, so the picture changes at an even rate). The last frame is
+ * the end of the last pair (t = 1), never a pair of its own, so arriving at or leaving the end is no different from any frame.
+ */
+export function blendAt(frame: number, count: number): { i0: number; i1: number; t: number } {
+  if (count <= 1) return { i0: 0, i1: 0, t: 0 };
+  const f = Math.min(count - 1, Math.max(0, frame));
+  const i0 = Math.min(count - 2, Math.floor(f));
+  return { i0, i1: i0 + 1, t: f - i0 };
+}
+
+/** Milliseconds over which a frame that arrives late (decoded after the scroll got there) fades in instead of popping. */
+export const ARRIVAL_FADE_MS = 160;
+
+/** Progress 0..1 of an arrival fade after `elapsedMs` (smoothstep: no visible start or stop). */
+export function arrivalFade(elapsedMs: number, durationMs = ARRIVAL_FADE_MS): number {
+  const k = durationMs <= 0 ? 1 : clamp01(elapsedMs / durationMs);
+  return k * k * (3 - 2 * k);
+}
+
+/** What a cross-fading player wants on the canvas: `base` whole and `over` (-1: none decoded) over it at alpha `t`. */
+export interface BlendTarget { base: number; over: number; t: number }
+/** A frame drawn over the ones before it at `alpha` (the first one is drawn whole). */
+export interface BlendLayer { index: number; alpha: number }
+
+/**
+ * The layers to draw (bottom first) for a blend target, and the fractional frame they show (the clock and the sun of the HUD
+ * follow it). While a late frame arrives (`from`: the frame that stood alone on the canvas, `k`: arrivalFade 0..1) the target
+ * fades in over `from`, so the picture and the HUD glide instead of jumping; `from` = -1 (or k = 1) is the target as it is.
+ */
+export function blendLayers(target: BlendTarget, from = -1, k = 1): { layers: BlendLayer[]; drawn: number } {
+  if (target.base < 0) return { layers: [], drawn: Math.max(0, from) };
+  const fading = from >= 0 && k < 1;
+  const e = fading ? clamp01(k) : 1;
+  const t = target.over >= 0 ? clamp01(target.t) : 0;
+  const layers: BlendLayer[] = [];
+  if (fading && from !== target.base) layers.push({ index: from, alpha: 1 });
+  layers.push({ index: target.base, alpha: layers.length ? e : 1 });
+  if (target.over >= 0 && t * e > 0) layers.push({ index: target.over, alpha: t * e });
+  const shown = target.over >= 0 ? target.base + (target.over - target.base) * t : target.base;
+  return { layers, drawn: fading ? from + (shown - from) * e : shown };
 }
 
 /** A crop rectangle in frame pixels. */
