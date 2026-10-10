@@ -1,7 +1,8 @@
 "use client";
 // A pinned full-screen canvas whose frame follows the scroll position (the section is `height` svh tall, the frame sticks).
-// Memory-safe on phones: frames are fetched as compressed files, coarse to fine, and only a small window around the current frame
-// is decoded (FrameStore). With `blend` neighbouring frames are cross-faded (a static camera: the time of day): frame i whole and
+// Memory-safe on phones: frames are fetched as compressed files, coarse to fine, and a window around the current frame is decoded
+// first (FrameStore). With `retain` (the day hero) and frames that fit a phone (keepsAll), every frame is then fetched and decoded
+// in the background once the first one is on the canvas, and all are kept, so a fast scroll only draws. With `blend` neighbouring frames are cross-faded (a static camera: the time of day): frame i whole and
 // frame i + 1 over it at the fraction of the scroll between them, so sun, shadows and lights glide instead of stepping; a frame
 // decoded after the scroll got there fades in (ARRIVAL_FADE_MS) instead of popping. Without `blend` the nearest frame is shown
 // whole and cut (a moving camera would double-expose). Phones in portrait get portrait frames, and a canvas that a
@@ -20,11 +21,11 @@ import { useEffect, useRef, useState, useSyncExternalStore, type CSSProperties, 
 import { flushSync } from "react-dom";
 import type { FrameSet } from "@/lib/data/media";
 import { MQ } from "@/styles/breakpoints";
-import { decodesViaImage, FrameStore, makeBrowserDeps } from "./frames";
+import { browserDeps, FrameStore, type Frame } from "./frames";
 import { useMedia } from "./useMedia";
 import {
-  arrivalFade, blendAt, blendLayers, canvasScale, coarseCount, coverCrop, coverRect, decodeBudgetBytes, decodeWindow, frameAt, heldProgress, lruCapacity,
-  sectionProgress, smallVariantFits, type BlendLayer, type Crop,
+  arrivalFade, blendAt, blendLayers, canvasScale, clamp01, coarseCount, coverSource, decodeBudgetBytes, decodeWindow, frameAt, heldProgress, keepsAll,
+  lruCapacity, sectionProgress, smallVariantFits, type BlendLayer,
 } from "./timeline";
 
 /** The same query decides the poster (<source media>) and the frames the script fetches. */
@@ -80,6 +81,8 @@ interface Props {
   navTone?: "clear" | "dark";
   /** Share of the scroll at the end that rests on the last frame (heldProgress), so its caption can be read. */
   endHold?: number;
+  /** Decode every frame in the background and keep them all, where the frames fit a phone (keepsAll). */
+  retain?: boolean;
   className?: string;
   children?: (state: ScrollState) => ReactNode;
 }
@@ -94,8 +97,10 @@ const subscribeSaveData = (notify: () => void) => {
 };
 const saveDataOn = (): boolean => connection()?.saveData === true;
 
-export default function ScrollFrames({ frames, stillIndex, height, alt, blend = true, priority = false, navTone, endHold = 0, className, children }: Props) {
+export default function ScrollFrames({ frames, stillIndex, height, alt, blend = true, priority = false, navTone, endHold = 0, retain = false, className, children }: Props) {
   const wrap = useRef<HTMLDivElement>(null);
+  const scrim = useRef<HTMLDivElement>(null);
+  const overlay = useRef<HTMLDivElement>(null);
   const stick = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
   const [state, setState] = useState<ScrollState>({ progress: 0, frame: 0, drawn: 0, waiting: false, still: false });
@@ -114,29 +119,27 @@ export default function ScrollFrames({ frames, stillIndex, height, alt, blend = 
 
   useEffect(() => {
     if (isStill) return;
-    const wrapEl = wrap.current, stickEl = stick.current, cv = canvas.current;
+    const wrapEl = wrap.current, stickEl = stick.current, cv = canvas.current, scrimEl = scrim.current, overlayEl = overlay.current;
     const ctx = cv?.getContext("2d", { alpha: false });
     if (!wrapEl || !stickEl || !cv || !ctx) return;
 
     const seq = variant.small && smallVariantFits(innerWidth, innerHeight, devicePixelRatio || 1, variant, variant.small) ? variant.small : variant;
     const n = seq.urls.length;
-    const budget = decodeBudgetBytes({
-      coarse: matchMedia(MQ.coarse).matches,
-      deviceMemoryGb: (navigator as Navigator & { deviceMemory?: number }).deviceMemory,
-    });
-    let alive = true, raf = 0, drawnKey = "", out = "", painted = false, released = false;
+    const deviceMemoryGb = (navigator as Navigator & { deviceMemory?: number }).deviceMemory;
+    const budget = decodeBudgetBytes({ coarse: matchMedia(MQ.coarse).matches, deviceMemoryGb });
+    const keep = retain && keepsAll(seq, deviceMemoryGb);
+    let alive = true, raf = 0, drawnKey = "", out = -1, painted = false, released = false;
     // cross-fade: the frame standing alone on the canvas because its partner was not decoded yet (-1: none), and the fade-in
     // from it that runs once the missing frame has arrived (the frame it fades from, -1: none, and when it started)
     let alone = -1, fadeFrom = -1, fadeAt = 0;
     // layout, measured on resize only (never on a scroll frame): where the section starts in the document, how far it scrolls
     let wrapTop = 0, wrapH = 0, stickH = 0, scrollable = 0;
-    // the canvas size and the part of a frame it shows (decoded frames are cropped to it where that saves work, see frames.ts)
-    let crop: Crop | null = null;
     // what React was last told, and the scroll direction (decoding runs ahead of it)
     let pubP = -1, pubD = -1, pubWait = false, lastF = -1, dir: 1 | -1 = 1, drawn = 0;
-    let store: FrameStore<ImageBitmap> | null = null;
+    // background fetch of every frame once the first is on the canvas (keep)
+    let idleAll = 0, timerAll: ReturnType<typeof setTimeout> | undefined;
 
-    const capacityFor = () => lruCapacity(crop?.sw ?? seq.width, crop?.sh ?? seq.height, budget);
+    const capacity = lruCapacity(seq.width, seq.height, budget);
     const measure = () => {
       wrapTop = wrapEl.getBoundingClientRect().top + scrollY;
       wrapH = wrapEl.offsetHeight;
@@ -146,18 +149,14 @@ export default function ScrollFrames({ frames, stillIndex, height, alt, blend = 
       const w = Math.round(cv.clientWidth * scale), h = Math.round(cv.clientHeight * scale);
       if (cv.width === w && cv.height === h) return;
       cv.width = w; cv.height = h; drawnKey = "";
-      const next = decodesViaImage() ? coverCrop(seq.width, seq.height, w, h) : null;
-      if (next?.sx !== crop?.sx || next?.sy !== crop?.sy || next?.sw !== crop?.sw || next?.sh !== crop?.sh) {
-        crop = next;
-        // frames decoded for the old crop are dropped and decoded again for the new one
-        if (store) { store.setCapacity(capacityFor()); store.release(); }
-      }
     };
     measure();
 
-    const st = new FrameStore(seq.urls, makeBrowserDeps(() => crop), {
-      capacity: capacityFor(),
-      onDecoded: () => { drawnKey = ""; schedule(); },
+    const st = new FrameStore<Frame>(seq.urls, browserDeps, {
+      capacity,
+      keepAll: keep,
+      // nothing is drawn here: the next animation frame draws once, and only if what the canvas should show has changed
+      onDecoded: () => schedule(),
       onProgress: (settled, total) => {
         // only on the elements that show it: a custom property set on the section would restyle all of it per download
         const v = (settled / Math.max(1, total)).toFixed(3);
@@ -165,12 +164,16 @@ export default function ScrollFrames({ frames, stillIndex, height, alt, blend = 
         wrapEl.dataset.loading = settled < total ? "true" : "false";
       },
     });
-    store = st;
 
-    const paint = (bitmap: ImageBitmap, alpha: number) => {
-      const r = coverRect(bitmap.width, bitmap.height, cv.width, cv.height);
+    /** The decoded frame itself, its shown part picked by the source rectangle (no copy of it is ever made). */
+    const paint = (frame: Frame, alpha: number) => {
+      const s = coverSource(frame.width, frame.height, cv.width, cv.height);
       ctx.globalAlpha = alpha;
-      ctx.drawImage(bitmap, r.x, r.y, r.w, r.h);
+      ctx.drawImage(frame.source, s.sx, s.sy, s.sw, s.sh, 0, 0, cv.width, cv.height);
+    };
+    const startAll = () => {
+      if (typeof requestIdleCallback === "function") idleAll = requestIdleCallback(() => st.start(), { timeout: IDLE_TIMEOUT_MS });
+      else timerAll = setTimeout(() => st.start(), IDLE_FALLBACK_MS);
     };
 
     /** One React update per animation frame at most, and only when something it shows has moved. */
@@ -190,11 +193,16 @@ export default function ScrollFrames({ frames, stillIndex, height, alt, blend = 
       if (!alive) return;
       const top = wrapTop - scrollY;
       const frameTop = top > 0 ? top : Math.min(0, top + wrapH - stickH);
-      const leave = (Math.round(Math.min(1, Math.max(0, -frameTop / Math.max(1, stickH))) * OUT_STEPS) / OUT_STEPS).toString();
-      if (leave !== out) { out = leave; wrapEl.style.setProperty("--sf-out", leave); }
+      const leave = Math.round(clamp01(-frameTop / Math.max(1, stickH)) * OUT_STEPS) / OUT_STEPS;
+      if (leave !== out) {
+        out = leave;
+        // opacity on the two small elements that fade, not a custom property on the section (that would restyle all of it)
+        if (scrimEl) scrimEl.style.opacity = String(Math.min(1, leave * 5));
+        if (overlayEl && navTone === "clear") overlayEl.style.opacity = String(clamp01(1.2 - leave * 4));
+      }
       if (top + wrapH < -innerHeight * RELEASE_SCREENS || top > innerHeight * (1 + RELEASE_SCREENS)) {
-        // far off screen: give the decoded frames back (a phone must not hold two sequences), nothing else to do
-        if (!released) { released = true; st.release(); drawnKey = ""; alone = -1; fadeFrom = -1; }
+        // far off screen: give the decoded frames back (a phone must not hold two sequences; a kept sequence stays), nothing else to do
+        if (!released) { released = true; if (!keep) st.release(); drawnKey = ""; alone = -1; fadeFrom = -1; }
         return;
       }
       if (released) { released = false; drawnKey = ""; }
@@ -205,14 +213,14 @@ export default function ScrollFrames({ frames, stillIndex, height, alt, blend = 
       let layers: BlendLayer[], shows: number;
       if (!blend) {
         const cur = Math.round(f);
-        st.setCurrent(cur, decodeWindow(dir, false, capacityFor()));
+        st.setCurrent(cur, decodeWindow(dir, false, capacity), dir);
         const base = st.has(cur) ? cur : st.nearest(cur);
         layers = base >= 0 ? [{ index: base, alpha: 1 }] : [];
         shows = base;
       } else {
         // frame i0 whole, i1 over it at alpha t; the decode window holds i0, i1 and the next frame in the scroll direction first
         const { i0, i1, t } = blendAt(f, n);
-        st.setCurrent(i0, decodeWindow(dir, true, capacityFor()));
+        st.setCurrent(i0, decodeWindow(dir, true, capacity), dir);
         const base = st.has(i0) ? i0 : st.nearest(Math.round(f));
         const over = base === i0 && i1 !== i0 && st.has(i1) ? i1 : -1;
         // what the canvas should show changed by more than the scroll moved it (a frame arrived late): fade in, do not pop
@@ -233,7 +241,7 @@ export default function ScrollFrames({ frames, stillIndex, height, alt, blend = 
         for (const l of layers) paint(st.get(l.index)!, l.alpha);
         ctx.globalAlpha = 1;
         drawn = shows;
-        if (!painted) { painted = true; setReady(true); }
+        if (!painted) { painted = true; setReady(true); if (keep) startAll(); }
       }
       publish(p, f, drawn);
     };
@@ -281,6 +289,10 @@ export default function ScrollFrames({ frames, stillIndex, height, alt, blend = 
     return () => {
       alive = false;
       cancelAnimationFrame(raf);
+      if (idleAll && typeof cancelIdleCallback === "function") cancelIdleCallback(idleAll);
+      if (timerAll) clearTimeout(timerAll);
+      if (scrimEl) scrimEl.style.opacity = "";
+      if (overlayEl) overlayEl.style.opacity = "";
       cleanups.forEach((c) => c());
       ro.disconnect();
       removeEventListener("scroll", onScroll);
@@ -291,12 +303,13 @@ export default function ScrollFrames({ frames, stillIndex, height, alt, blend = 
     };
     // `variant` is read through sequenceKey (its URLs are stable for a given key)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isStill, sequenceKey, blend, priority, endHold]);
+  }, [isStill, sequenceKey, blend, priority, endHold, retain, navTone]);
 
   return (
     // a still sequence is a plain picture with text under it: the bar is not clear over it (a `.night` block makes it dark glass)
     <div ref={wrap} className={`sf ${className ?? ""}`} data-nav={isStill ? undefined : navTone} data-still={isStill ? "true" : undefined}
       style={{ "--sf-h": `${height}svh` } as CSSProperties}>
+      {navTone === "clear" && <div ref={scrim} className="sf-scrim" aria-hidden />}
       <div ref={stick} className="sf-sticky">
         <div className="sf-media" role="img" aria-label={alt} data-ready={ready}>
           {/* The browser picks the poster itself (<source media>), so a phone never downloads the landscape frame, and with
@@ -312,7 +325,7 @@ export default function ScrollFrames({ frames, stillIndex, height, alt, blend = 
           )}
           <canvas ref={canvas} aria-hidden />
         </div>
-        <div className="sf-overlay">{children?.(shown)}</div>
+        <div ref={overlay} className="sf-overlay">{children?.(shown)}</div>
       </div>
     </div>
   );

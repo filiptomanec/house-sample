@@ -1,5 +1,5 @@
 /* Start page. Tokens and layout classes only (docs/DESIGN.md): every font size is a --fs-* token, every colour a token, breakpoints
-   640 / 900 / 1180. The custom properties --sf-h, --sf-out, --sf-loaded, --in-slow, --in-fast, --after-slow, --after-fast, --o and --ratio are set by
+   640 / 900 / 1180. The custom properties --sf-h, --sf-loaded, --in-slow, --in-fast, --after-slow, --after-fast, --o and --ratio are set by
    the components. Order: scroll sequences, day hero, orbit, the house, layout, light, energy, how it was made, gallery band, index,
    narrow screens, then the still layout (reduced motion, Save-Data) last so that it wins. */
 
@@ -20,17 +20,16 @@
 .sf-sticky::after { content: ""; grid-area: 1 / 1; z-index: 1; pointer-events: none; }
 
 /* Under a clear bar (data-nav="clear"): when the frame scrolls away, a scrim of its own stays under the bar (sticky within the
-   section) and fades in over the first fifth of a screen (--sf-out), so the links stay legible over bright windows. The section
+   section) and fades in over the first fifth of a screen (its opacity is set by ScrollFrames), so the links stay legible over bright windows. The section
    clips it (overflow: clip creates no scroll container, so the sticky frame keeps working): no band hangs over the next section. */
 .sf[data-nav="clear"] { overflow: clip; }
-.sf[data-nav="clear"]::before {
+.sf[data-nav="clear"] > .sf-scrim {
   --h: calc(var(--nav-h) + env(safe-area-inset-top) + 48px);
-  content: ""; display: block; position: sticky; top: 0; z-index: 3; height: var(--h); margin-bottom: calc(-1 * var(--h)); pointer-events: none;
-  opacity: min(1, calc(var(--sf-out, 0) * 5));
+  display: block; position: sticky; top: 0; z-index: 3; height: var(--h); margin-bottom: calc(-1 * var(--h)); pointer-events: none;
+  opacity: 0;
   background: linear-gradient(180deg, var(--media-scrim) 0, var(--media-scrim) calc(var(--nav-h) + env(safe-area-inset-top)), transparent 100%);
 }
-/* the overlay leaves with the frame when the section ends (--sf-out: how far the frame has left the top, 0..1) */
-.sf[data-nav="clear"] .sf-overlay { opacity: clamp(0, 1.2 - var(--sf-out, 0) * 4, 1); }
+/* the overlay leaves with the frame when the section ends: ScrollFrames sets its opacity (no custom property on the section) */
 
 /* ---------------------------------------------------------------- day hero */
 .day-hero {

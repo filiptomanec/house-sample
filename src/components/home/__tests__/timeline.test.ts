@@ -4,7 +4,7 @@ import { localToUtc, placeOf, sunTimes } from "@/lib/calc/sun";
 import { dayDate, dayMinutes, media } from "@/lib/data/media";
 import { house } from "@/lib/model/instance";
 import {
-  canvasScale, captionIndex, coarseCount, coverCrop, coverRect, decodeBudgetBytes, decodeWindow, evictions, frameAt, frameAtMinute, heldProgress, introFade, loadOrder, lruCapacity,
+  canvasScale, captionIndex, coarseCount, coverRect, coverSource, decodeBudgetBytes, decodeWindow, evictions, frameAt, frameAtMinute, heldProgress, introFade, keepAllOrder, keepsAll, loadOrder, lruCapacity,
   minuteAtFrame, MOMENT_RAMP_FRAMES, momentOpacity, momentWindows, nearestDecoded, sectionProgress, smallVariantFits, windowOpacity,
 } from "../timeline";
 
@@ -323,18 +323,47 @@ describe("loading and memory", () => {
     expect(decodeWindow(1, true, 99)).toHaveLength(7);
   });
 
-  it("crops a frame to the part a cover-fitted canvas shows, in whole pixels", () => {
-    // a portrait phone: the 1080 x 1620 frame fills the height 1:1, the middle 729 px of its width show
-    expect(coverCrop(1080, 1620, 729, 1620)).toEqual({ sx: 175, sy: 0, sw: 729, sh: 1620 });
-    // scaled down (canvas pixel = 2 frame pixels): the crop is in frame pixels
-    expect(coverCrop(1920, 1080, 480, 540)).toEqual({ sx: 480, sy: 0, sw: 960, sh: 1080 });
-    // (nearly) the whole frame shows: nothing to crop
-    expect(coverCrop(1920, 1080, 1920, 1080)).toBeNull();
-    expect(coverCrop(1920, 1080, 1800, 1080)).toBeNull();
-    expect(coverCrop(1920, 1080, 0, 0)).toBeNull();
-    const c = coverCrop(1080, 1620, 747, 1620)!;
-    const r = coverRect(c.sw, c.sh, 747, 1620);
-    expect(r).toEqual({ x: 0, y: 0, w: 747, h: 1620 }); // drawn 1:1, no resampling
+  it("picks the part of a frame a cover-fitted canvas shows as the source rectangle of drawImage", () => {
+    // a portrait phone: the 1080 x 1620 frame fills the height 1:1, the middle 729 px of its width show (drawn 1:1, no resampling)
+    expect(coverSource(1080, 1620, 729, 1620)).toEqual({ sx: 175.5, sy: 0, sw: 729, sh: 1620 });
+    // scaled down (canvas pixel = 2 frame pixels): the rectangle is in frame pixels
+    expect(coverSource(1920, 1080, 480, 540)).toEqual({ sx: 480, sy: 0, sw: 960, sh: 1080 });
+    // the same aspect: the whole frame; a wider canvas cuts top and bottom
+    expect(coverSource(1920, 1080, 1280, 720)).toEqual({ sx: 0, sy: 0, sw: 1920, sh: 1080 });
+    expect(coverSource(1920, 1080, 1920, 800)).toEqual({ sx: 0, sy: 140, sw: 1920, sh: 800 });
+    expect(coverSource(1920, 1080, 0, 0)).toEqual({ sx: 0, sy: 0, sw: 1920, sh: 1080 });
+    // the same picture as the whole frame drawn at coverRect: the rectangle maps onto the canvas exactly
+    for (const [iw, ih, cw, ch] of [[1080, 1620, 747, 1620], [1920, 1080, 1440, 1100], [960, 540, 375, 812], [1080, 1620, 1206, 2622]]) {
+      const s = coverSource(iw, ih, cw, ch), r = coverRect(iw, ih, cw, ch), k = r.w / iw;
+      expect(s.sx).toBeGreaterThanOrEqual(0);
+      expect(s.sy).toBeGreaterThanOrEqual(0);
+      expect(s.sx + s.sw).toBeLessThanOrEqual(iw + 1e-9);
+      expect(s.sy + s.sh).toBeLessThanOrEqual(ih + 1e-9);
+      expect(r.x + s.sx * k).toBeCloseTo(0, 6);
+      expect(r.y + s.sy * k).toBeCloseTo(0, 6);
+      expect(s.sw * k).toBeCloseTo(cw, 6);
+      expect(s.sh * k).toBeCloseTo(ch, 6);
+    }
+  });
+
+  it("keeps every decoded frame of portrait or narrow frames only", () => {
+    expect(keepsAll({ width: 1080, height: 1620 })).toBe(true); // phone portrait
+    expect(keepsAll({ width: 960, height: 540 })).toBe(true); // small landscape copy
+    expect(keepsAll({ width: 1600, height: 900 })).toBe(true);
+    expect(keepsAll({ width: 1920, height: 1080 })).toBe(false); // desktop landscape keeps the window
+    expect(keepsAll({ width: 1080, height: 1620 }, 2)).toBe(false); // too little memory
+    expect(keepsAll({ width: 1080, height: 1620 }, 4)).toBe(true);
+  });
+
+  it("orders the decodes of a kept sequence: the window first, then outward, ahead in the scroll direction first", () => {
+    expect(keepAllOrder(10, 16, [10, 11, 12, 9])).toEqual([10, 11, 12, 9, 8, 13, 7, 14, 6, 15, 5, 4, 3, 2, 1, 0]);
+    expect(keepAllOrder(10, 16, [10, 11, 9, 8], -1)).toEqual([10, 11, 9, 8, 12, 7, 13, 6, 14, 5, 15, 4, 3, 2, 1, 0]);
+    expect(keepAllOrder(0, 5, [0, 1, 2])).toEqual([0, 1, 2, 3, 4]);
+    expect(keepAllOrder(4, 5, [4], -1)).toEqual([4, 3, 2, 1, 0]);
+    for (const [cur, dir] of [[0, 1], [7, -1], [31, 1], [15, -1]] as const) {
+      const o = keepAllOrder(cur, 32, [cur, cur + 1, cur - 1].filter((i) => i >= 0 && i < 32), dir);
+      expect([...o].sort((x, y) => x - y)).toEqual(Array.from({ length: 32 }, (_, i) => i)); // every frame, once
+    }
   });
 
   it("limits the canvas to what the frame can show", () => {

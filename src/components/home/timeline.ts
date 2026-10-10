@@ -371,20 +371,45 @@ export function blendLayers(target: BlendTarget, from = -1, k = 1): { layers: Bl
   return { layers, drawn: fading ? from + (shown - from) * e : shown };
 }
 
-/** A crop rectangle in frame pixels. */
-export interface Crop { sx: number; sy: number; sw: number; sh: number }
+/** A source rectangle in image pixels (fractions allowed). */
+export interface SourceRect { sx: number; sy: number; sw: number; sh: number }
 
 /**
- * The part of a frame that a cover-fitted canvas shows, in whole frame pixels, or null when that is (nearly) the whole frame.
- * Decoding only this part keeps every pixel the canvas shows (no resampling) and makes each decoded bitmap smaller: a portrait
- * phone shows about two thirds of the width of a portrait frame.
+ * The part of an image that a cover-fitted canvas shows, as the source rectangle of drawImage(img, sx, sy, sw, sh, 0, 0, canvasW,
+ * canvasH): the same picture as drawing the whole image at coverRect, without copying anything first (no crop bitmap is made).
  */
-export function coverCrop(frameW: number, frameH: number, canvasW: number, canvasH: number, minSaving = 0.1): Crop | null {
-  if (canvasW <= 0 || canvasH <= 0 || frameW <= 0 || frameH <= 0) return null;
-  const k = Math.max(canvasW / frameW, canvasH / frameH); // canvas pixels per frame pixel
-  const sw = Math.min(frameW, Math.ceil(canvasW / k - 1e-6)), sh = Math.min(frameH, Math.ceil(canvasH / k - 1e-6));
-  if (sw * sh > frameW * frameH * (1 - minSaving)) return null;
-  return { sx: Math.floor((frameW - sw) / 2), sy: Math.floor((frameH - sh) / 2), sw, sh };
+export function coverSource(imageW: number, imageH: number, canvasW: number, canvasH: number): SourceRect {
+  if (canvasW <= 0 || canvasH <= 0 || imageW <= 0 || imageH <= 0) return { sx: 0, sy: 0, sw: Math.max(0, imageW), sh: Math.max(0, imageH) };
+  const s = Math.max(canvasW / imageW, canvasH / imageH); // canvas pixels per image pixel
+  const sw = Math.min(imageW, canvasW / s), sh = Math.min(imageH, canvasH / s);
+  return { sx: (imageW - sw) / 2, sy: (imageH - sh) / 2, sw, sh };
+}
+
+/** Widest frame that is kept decoded whole (a phone's portrait frames, or a 960 px copy). */
+export const KEEP_ALL_MAX_WIDTH = 1600;
+
+/**
+ * Are all decoded frames of a sequence kept (no eviction), instead of a window around the current frame? For portrait or narrow
+ * frames (32 portrait frames of 1080 x 1620 are about 224 MB decoded), not on a device that reports 2 GB of memory or less, and
+ * not for wide desktop frames (32 x 1920 x 1080 would be 265 MB).
+ */
+export function keepsAll(frame: { width: number; height: number }, deviceMemoryGb?: number): boolean {
+  if (deviceMemoryGb !== undefined && deviceMemoryGb <= 2) return false;
+  return frame.height > frame.width || frame.width <= KEEP_ALL_MAX_WIDTH;
+}
+
+/**
+ * Decode order of a sequence whose frames are all kept: the window first (absolute indices, nearest first, as decodeWindow
+ * anchors it on the frames the canvas needs now), then every other frame outward from `current`, the one ahead in the scroll
+ * direction first at each distance. Each frame once.
+ */
+export function keepAllOrder(current: number, count: number, window: readonly number[], dir: 1 | -1 = 1): number[] {
+  const seen = new Set<number>();
+  const order: number[] = [];
+  const push = (i: number) => { if (i >= 0 && i < count && !seen.has(i)) { seen.add(i); order.push(i); } };
+  window.forEach(push);
+  for (let d = 0; order.length < count && d < count; d++) { push(current + d * dir); push(current - d * dir); }
+  return order;
 }
 
 /**

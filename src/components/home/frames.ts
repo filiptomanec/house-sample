@@ -1,13 +1,18 @@
-// Frame store of a scroll sequence: downloads the compressed frames coarse to fine (a few at a time, with retries), decodes only
-// the neighbourhood of the current frame and keeps at most `capacity` decoded bitmaps (the farthest are closed first). A decoded
-// 1920 x 1080 frame is about 8 MB, so decoding everything would crash a phone; the compressed blobs are small and stay.
+// Frame store of a scroll sequence: downloads the compressed frames coarse to fine (a few at a time, with retries), decodes the
+// neighbourhood of the current frame and keeps at most `capacity` decoded frames (the farthest are closed first). A decoded
+// 1920 x 1080 frame is about 8 MB; the compressed blobs are small and stay. With `keepAll` (a phone's portrait frames, see
+// keepsAll) nothing is evicted: after the window, every other frame is decoded in the background, one at a time, nearest first
+// (keepAllOrder), so a fast scroll later finds its frames decoded and the main thread has nothing to do but draw.
 // Decodes run a few at a time, nearest first (the order of the window given to setCurrent): a fast scroll does not start a decode
 // for every frame it passes, and the main thread of a browser that decodes on it (WebKit) gets one frame of work at a time.
 // Network and decoding are injected, so the store is tested without a browser.
 
-import { evictions, loadOrder, nearestDecoded, type Crop } from "./timeline";
+import { evictions, keepAllOrder, loadOrder, nearestDecoded } from "./timeline";
 
 export interface Bitmap { width: number; height: number; close?: () => void }
+
+/** A decoded frame in the browser: what drawImage draws (an ImageBitmap, or an <img> decoded off the main thread). */
+export interface Frame extends Bitmap { source: CanvasImageSource }
 
 export interface FrameDeps<B extends Bitmap> {
   /** Resolves with the file, or null when the server answered with an error. Rejects on a network failure. */
@@ -23,8 +28,12 @@ export interface FrameStoreOptions {
   /** Extra attempts after a failed download, and the pause before the n-th retry (n x delay). */
   retries?: number;
   retryDelayMs?: number;
-  /** Decodes running at once (default 2). */
+  /** Decodes of the window running at once (default 2). */
   decodeConcurrency?: number;
+  /** Keep every decoded frame and decode the frames outside the window in the background (keepAllOrder). */
+  keepAll?: boolean;
+  /** Background decodes (outside the window, keepAll only) running at once, and only while the window has none (default 1). */
+  backgroundConcurrency?: number;
   /** Called after a frame has been decoded (so the owner can redraw). */
   onDecoded?: (index: number) => void;
   /** Called whenever a download has finished for good (arrived, or given up after the retries): `settled` of `total`. */
@@ -45,8 +54,9 @@ export class FrameStore<B extends Bitmap> {
   /** How many entries of the load order may be fetched (raised by start()). */
   private limit = 0;
   private current = 0;
-  /** The frames to decode, in order (setCurrent). */
+  /** The frames to decode, in order (setCurrent); the first `windowLen` are the window, the rest background (keepAll). */
   private wanted: number[] = [];
+  private windowLen = 0;
   /** Bumped by release(): a decode that finishes for an older epoch is closed at once. */
   private epoch = 0;
   private alive = true;
@@ -55,7 +65,7 @@ export class FrameStore<B extends Bitmap> {
   constructor(private readonly urls: readonly string[], private readonly deps: FrameDeps<B>, opts: FrameStoreOptions) {
     this.blobs = new Array<Blob | null>(urls.length).fill(null);
     this.order = loadOrder(urls.length);
-    this.opts = { concurrency: 4, decodeConcurrency: 2, retries: 2, retryDelayMs: 1200, ...opts };
+    this.opts = { concurrency: 4, decodeConcurrency: 2, keepAll: false, backgroundConcurrency: 1, retries: 2, retryDelayMs: 1200, ...opts };
   }
 
   get count(): number { return this.urls.length; }
@@ -75,11 +85,13 @@ export class FrameStore<B extends Bitmap> {
 
   /**
    * The frame the viewer is at: decoded frames far from it may be dropped, and the frames of `window` (offsets, in the order
-   * they should be decoded) are decoded when available.
+   * they should be decoded) are decoded when available. With keepAll, every other frame follows, outward in the direction `dir`.
    */
-  setCurrent(index: number, window: readonly number[] = [0, 1, -1, 2]): void {
+  setCurrent(index: number, window: readonly number[] = [0, 1, -1, 2], dir: 1 | -1 = 1): void {
     this.current = Math.max(0, Math.min(this.urls.length - 1, Math.round(index)));
-    this.wanted = window.map((d) => this.current + d).filter((i) => i >= 0 && i < this.urls.length);
+    const near = window.map((d) => this.current + d).filter((i) => i >= 0 && i < this.urls.length);
+    this.windowLen = near.length;
+    this.wanted = this.opts.keepAll ? keepAllOrder(this.current, this.urls.length, near, dir) : near;
     this.pumpDecode();
   }
 
@@ -143,11 +155,14 @@ export class FrameStore<B extends Bitmap> {
     this.pump();
   }
 
-  /** Starts the next decodes of the window, nearest first, while fewer than `decodeConcurrency` run. */
+  /**
+   * Starts the next decodes, nearest first: of the window while fewer than `decodeConcurrency` run, then (keepAll) of the rest
+   * while fewer than `backgroundConcurrency` run, so the background never holds back a frame the canvas needs.
+   */
   private pumpDecode(): void {
-    for (const i of this.wanted) {
-      if (this.decoding.size >= this.opts.decodeConcurrency) return;
-      this.decodeFrame(i);
+    for (let k = 0; k < this.wanted.length; k++) {
+      if (this.decoding.size >= (k < this.windowLen ? this.opts.decodeConcurrency : this.opts.backgroundConcurrency)) return;
+      this.decodeFrame(this.wanted[k]);
     }
   }
 
@@ -162,7 +177,7 @@ export class FrameStore<B extends Bitmap> {
         if (epoch === this.epoch) this.decoding.delete(i);
         if (!this.alive || epoch !== this.epoch) { bitmap.close?.(); return; }
         this.bitmaps.set(i, bitmap);
-        for (const k of evictions(this.bitmaps.keys(), this.current, this.opts.capacity, this.wanted)) {
+        if (!this.opts.keepAll) for (const k of evictions(this.bitmaps.keys(), this.current, this.opts.capacity, this.wanted)) {
           this.bitmaps.get(k)?.close?.();
           this.bitmaps.delete(k);
         }
@@ -176,9 +191,10 @@ export class FrameStore<B extends Bitmap> {
 
 /**
  * WebKit (Safari, and every browser on iOS) decodes createImageBitmap(blob) on the main thread: a 1080 x 1620 frame blocks it
- * for tens of milliseconds, mid-scroll. An <img> decodes off it (img.decode()), and the copy into a bitmap is cheap, cheaper still
- * when only the part the canvas shows is copied (a crop). Chromium and Firefox decode a blob off the main thread without a copy:
- * there both the <img> detour and a crop (a copy on the main thread) cost more than they save.
+ * for tens of milliseconds, mid-scroll. An <img> decodes off it (decoding="async", img.decode()) and the canvas draws the decoded
+ * <img> itself, the shown part picked by the source rectangle of drawImage (coverSource): no copy into a bitmap or a crop canvas
+ * when a decode completes, so a completed decode costs the main thread nothing. Chromium and Firefox decode a blob off the main
+ * thread into an ImageBitmap without a copy.
  */
 let viaImage: boolean | undefined;
 export const decodesViaImage = (): boolean => {
@@ -189,30 +205,27 @@ export const decodesViaImage = (): boolean => {
   return viaImage;
 };
 
-/**
- * Real network and decoding for the browser. `crop` (read at each decode) is the part of the frame the canvas shows: only that
- * part is kept, pixel for pixel (coverCrop).
- */
-export function makeBrowserDeps(crop: () => Crop | null = () => null): FrameDeps<ImageBitmap> {
-  return {
-    async fetchBlob(url, signal) {
-      const r = await fetch(url, { signal });
-      return r.ok ? r.blob() : null;
-    },
-    async decode(blob) {
-      const c = crop();
-      if (!decodesViaImage()) return c ? createImageBitmap(blob, c.sx, c.sy, c.sw, c.sh) : createImageBitmap(blob);
-      const url = URL.createObjectURL(blob);
-      try {
-        const img = new Image();
-        img.src = url;
-        await img.decode();
-        return await (c ? createImageBitmap(img, c.sx, c.sy, c.sw, c.sh) : createImageBitmap(img));
-      } finally {
-        URL.revokeObjectURL(url);
-      }
-    },
-  };
-}
-
-export const browserDeps: FrameDeps<ImageBitmap> = makeBrowserDeps();
+/** Real network and decoding for the browser. */
+export const browserDeps: FrameDeps<Frame> = {
+  async fetchBlob(url, signal) {
+    const r = await fetch(url, { signal });
+    return r.ok ? r.blob() : null;
+  },
+  async decode(blob) {
+    if (!decodesViaImage()) {
+      const bitmap = await createImageBitmap(blob);
+      return { source: bitmap, width: bitmap.width, height: bitmap.height, close: () => bitmap.close() };
+    }
+    const url = URL.createObjectURL(blob);
+    const img = new Image();
+    img.decoding = "async";
+    try {
+      img.src = url;
+      await img.decode();
+    } finally {
+      // the <img> keeps its data (decoded and compressed) after the URL is gone
+      URL.revokeObjectURL(url);
+    }
+    return { source: img, width: img.naturalWidth, height: img.naturalHeight, close: () => img.removeAttribute("src") };
+  },
+};

@@ -83,7 +83,7 @@ export default function DayHero(props: DayHeroProps) {
   ));
   const loader = <div className="day-load" data-sf-loaded aria-hidden><i /></div>;
   return (
-    <ScrollFrames frames={frames} stillIndex={stillIndex} height={DAY_HEIGHT} className="day-hero night" navTone="clear" endHold={END_HOLD} priority alt={t("home.hero.alt")}>
+    <ScrollFrames frames={frames} stillIndex={stillIndex} height={DAY_HEIGHT} className="day-hero night" navTone="clear" endHold={END_HOLD} priority retain alt={t("home.hero.alt")}>
       {({ progress, drawn, waiting, still }) => {
         const minute = minuteAtFrame(minutes, drawn);
         const spot = sunAtFrame(sun, drawn);
