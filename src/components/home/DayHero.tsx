@@ -5,7 +5,8 @@
 // accent voice), the tagline of the model, the one fiction note and the way into the 3D tour; the last caption hands over to the
 // Sun page. A caption fades over a fixed scroll distance (momentOpacity) and only once the title has gone (introFade), and the last
 // tenth of the scroll rests on the last frame, so the final caption and its link can be read. With reduced motion (or Save-Data)
-// the still frame stands under the intro and the captions are listed below it.
+// the still frame stands under the intro and the captions are listed below it. The hidden diagnostic mode (?perf=1, PerfGate)
+// is rendered before the player, so its recorder is in place when the player sets up.
 
 import { useMemo, type CSSProperties } from "react";
 import IntentLink from "@/components/ui/IntentLink";
@@ -13,6 +14,7 @@ import type { FrameSet } from "@/lib/data/media";
 import { useFormat, useT } from "@/lib/i18n/client";
 import { arcGeometry, sunAtFrame, type SunSpot } from "./sunArc";
 import type { ArcEnd } from "./content";
+import PerfGate from "./PerfGate";
 import ScrollFrames, { type FrameSetX } from "./ScrollFrames";
 import { introFade, minuteAtFrame, momentOpacity, type MomentKey } from "./timeline";
 
@@ -56,53 +58,56 @@ export default function DayHero(props: DayHeroProps) {
   const f = useFormat();
   const [first, rest] = titleLines;
   return (
-    <ScrollFrames frames={frames} stillIndex={stillIndex} height={DAY_HEIGHT} className="day-hero night" navTone="clear" endHold={END_HOLD} priority alt={t("home.hero.alt")}>
-      {({ progress, drawn, waiting, still }) => {
-        const minute = minuteAtFrame(minutes, drawn);
-        const spot = sunAtFrame(sun, drawn);
-        const fade = introFade(progress, still);
-        const vars = { "--in-slow": fade.slow, "--in-fast": fade.fast, "--after-slow": fade.afterSlow, "--after-fast": fade.afterFast } as CSSProperties;
-        return (
-          <>
-            <div className="day-intro shell on-media" style={vars}>
-              <p className="kicker day-kicker"><span className="label">{kicker}</span></p>
-              <h1 className="display day-title" data-lines={rest ? 2 : 1}>
-                <span className="day-line">{first}</span>
-                {rest && <>{" "}<span className="day-line accent">{rest}</span></>}
-              </h1>
-              <p className="day-sub">{lede}</p>
-              <p className="day-note">{note}</p>
-              <div className="day-actions">
-                <IntentLink className="btn mint day-cta" href={cta.href} heavy={cta.heavy}>{cta.label}</IntentLink>
-                <p className="day-hint">{hint} <i aria-hidden>↓</i></p>
+    <>
+      <PerfGate />
+      <ScrollFrames frames={frames} stillIndex={stillIndex} height={DAY_HEIGHT} className="day-hero night" navTone="clear" endHold={END_HOLD} priority alt={t("home.hero.alt")}>
+        {({ progress, drawn, waiting, still }) => {
+          const minute = minuteAtFrame(minutes, drawn);
+          const spot = sunAtFrame(sun, drawn);
+          const fade = introFade(progress, still);
+          const vars = { "--in-slow": fade.slow, "--in-fast": fade.fast, "--after-slow": fade.afterSlow, "--after-fast": fade.afterFast } as CSSProperties;
+          return (
+            <>
+              <div className="day-intro shell on-media" style={vars}>
+                <p className="kicker day-kicker"><span className="label">{kicker}</span></p>
+                <h1 className="display day-title" data-lines={rest ? 2 : 1}>
+                  <span className="day-line">{first}</span>
+                  {rest && <>{" "}<span className="day-line accent">{rest}</span></>}
+                </h1>
+                <p className="day-sub">{lede}</p>
+                <p className="day-note">{note}</p>
+                <div className="day-actions">
+                  <IntentLink className="btn mint day-cta" href={cta.href} heavy={cta.heavy}>{cta.label}</IntentLink>
+                  <p className="day-hint">{hint} <i aria-hidden>↓</i></p>
+                </div>
               </div>
-            </div>
-            <div className="day-moments">
-              {moments.map((m, i) => {
-                const o = still ? 1 : momentOpacity(drawn, m, minutes);
-                return (
-                  <div key={m.key} className="day-moment shell on-media" data-on={o > 0} style={{ ...vars, "--o": o } as CSSProperties}>
-                    <h2 className="h2">{m.title}</h2>
-                    <p className="lede">{m.text}</p>
-                    {i === moments.length - 1 && (
-                      <IntentLink className="link-arrow day-end" href={dayCta.href} heavy={dayCta.heavy}>{dayCta.label}</IntentLink>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-            <div className="day-hud shell" data-waiting={waiting}>
-              <div className="day-load" aria-hidden><i /></div>
-              <div className="day-clock">
-                <span className="mono">{dateLabel}<span className="day-wait" aria-hidden>{t("home.day.hud.loading")}</span></span>
-                <b className="mono">{f.clock(minute)}</b>
+              <div className="day-moments">
+                {moments.map((m, i) => {
+                  const o = still ? 1 : momentOpacity(drawn, m, minutes);
+                  return (
+                    <div key={m.key} className="day-moment shell on-media" data-on={o > 0} style={{ ...vars, "--o": o } as CSSProperties}>
+                      <h2 className="h2">{m.title}</h2>
+                      <p className="lede">{m.text}</p>
+                      {i === moments.length - 1 && (
+                        <IntentLink className="link-arrow day-end" href={dayCta.href} heavy={dayCta.heavy}>{dayCta.label}</IntentLink>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
-              <SunArc path={path} spot={spot} ends={ends} />
-            </div>
-          </>
-        );
-      }}
-    </ScrollFrames>
+              <div className="day-hud shell" data-waiting={waiting}>
+                <div className="day-load" aria-hidden><i /></div>
+                <div className="day-clock">
+                  <span className="mono">{dateLabel}<span className="day-wait" aria-hidden>{t("home.day.hud.loading")}</span></span>
+                  <b className="mono">{f.clock(minute)}</b>
+                </div>
+                <SunArc path={path} spot={spot} ends={ends} />
+              </div>
+            </>
+          );
+        }}
+      </ScrollFrames>
+    </>
   );
 }
 

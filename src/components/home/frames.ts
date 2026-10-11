@@ -158,5 +158,10 @@ export const browserDeps: FrameDeps<ImageBitmap> = {
     const r = await fetch(url, { signal });
     return r.ok ? r.blob() : null;
   },
-  decode: (blob) => createImageBitmap(blob),
+  decode: (blob) => {
+    // the diagnostic mode (?perf=1, perfSink.ts) times every decode; without it this is the bare call
+    const t0 = globalThis.__hsPerf?.now();
+    const bitmap = createImageBitmap(blob);
+    return t0 === undefined ? bitmap : bitmap.finally(() => globalThis.__hsPerf?.span("decode", t0));
+  },
 };

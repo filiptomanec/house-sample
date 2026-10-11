@@ -13,6 +13,9 @@
 // The children get the state of what is ON THE CANVAS (`drawn`), not only what the scroll asks for, so a clock or a caption never
 // runs ahead of the picture while frames are still arriving (`waiting`). With `endHold` the last share of the scroll rests on the
 // last frame (the day hero: the lit house and its last caption stay before the section leaves).
+//
+// The hidden diagnostic mode (?perf=1, perfSink.ts) hears from the first-screen sequence about draws, holds, measuring and
+// resizes through `globalThis.__hsPerf`; without it `perf` is undefined and every report is an optional call that does nothing.
 
 import { useEffect, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode } from "react";
 import type { FrameSet } from "@/lib/data/media";
@@ -116,6 +119,8 @@ export default function ScrollFrames({ frames, stillIndex, height, alt, blend = 
       coarse: matchMedia(MQ.coarse).matches,
       deviceMemoryGb: (navigator as Navigator & { deviceMemory?: number }).deviceMemory,
     }));
+    const perf = priority ? globalThis.__hsPerf : undefined;
+    perf?.seq({ width: seq.width, height: seq.height, count: n, small: seq !== variant, portrait: variant.height > variant.width, capacity, blend, priority });
     let alive = true, raf = 0, drawnKey = -1, p = 0, published = -1, drawnPub = 0, out = "", painted = false, scrollable = 0, scale = 1, released = false;
 
     const store = new FrameStore(seq.urls, browserDeps, {
@@ -128,10 +133,12 @@ export default function ScrollFrames({ frames, stillIndex, height, alt, blend = 
     });
 
     const measure = () => {
+      const t0 = perf?.now();
       scrollable = wrapEl.offsetHeight - stickEl.offsetHeight;
       scale = canvasScale(cv.clientWidth, cv.clientHeight, devicePixelRatio || 1, seq.width, seq.height);
       const w = Math.round(cv.clientWidth * scale), h = Math.round(cv.clientHeight * scale);
-      if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; drawnKey = -1; }
+      if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; drawnKey = -1; perf?.mark("realloc", w * h); }
+      perf?.span("measure", t0);
     };
 
     const paint = (bitmap: ImageBitmap, alpha: number) => {
@@ -151,24 +158,29 @@ export default function ScrollFrames({ frames, stillIndex, height, alt, blend = 
       if (!alive) return;
       const f = frameAt(heldProgress(p, endHold), n);
       const cur = Math.round(f);
+      perf?.mark("frame", cur);
       let base: number, over = -1, t = 0;
       if (!blend) {
         store.setCurrent(cur, [-1, 0, 1, 2]);
         base = store.has(cur) ? cur : store.nearest(cur);
+        if (perf && base !== cur) perf.mark("hold", cur);
       } else {
         const i0 = Math.floor(f), i1 = Math.min(n - 1, i0 + 1);
         t = f - i0;
         store.setCurrent(cur, [-2, -1, 0, 1, 2]);
         base = store.has(i0) && store.has(i1) ? i0 : store.nearest(cur);
         if (base === i0 && t > 0.01 && store.has(i1)) over = i1;
+        if (perf && (base !== i0 || (t > 0.01 && over < 0))) perf.mark("hold", cur);
       }
       // what is on the canvas: the base frame and the share of the next one (in percent)
       const key = base * 1000 + (over >= 0 ? Math.round(t * 100) + 1 : 0);
       if (base < 0 || key === drawnKey) return;
       drawnKey = key;
+      const t0 = perf?.now();
       paint(store.get(base)!, 1);
       if (over >= 0) paint(store.get(over)!, t);
       ctx.globalAlpha = 1;
+      perf?.span("draw", t0, over >= 0 ? 2 : 1);
       publishDrawn(over >= 0 ? base + t : base);
       if (!painted) { painted = true; setReady(true); }
     };
@@ -193,6 +205,7 @@ export default function ScrollFrames({ frames, stillIndex, height, alt, blend = 
       }
       schedule();
     };
+    const onScrollEvent = perf ? () => { const t0 = perf.now(); onScroll(); perf.span("handler", t0); } : onScroll;
 
     // when to fetch (see the head of the file)
     const cleanups: (() => void)[] = [];
@@ -223,19 +236,19 @@ export default function ScrollFrames({ frames, stillIndex, height, alt, blend = 
       cleanups.push(() => io.disconnect());
     }
 
-    const ro = new ResizeObserver(() => { measure(); onScroll(); schedule(); });
+    const ro = new ResizeObserver(() => { perf?.mark("ro"); measure(); onScroll(); schedule(); });
     ro.observe(stickEl);
     measure();
     onScroll();
-    addEventListener("scroll", onScroll, { passive: true });
-    addEventListener("resize", onScroll);
+    addEventListener("scroll", onScrollEvent, { passive: true });
+    addEventListener("resize", onScrollEvent);
     return () => {
       alive = false;
       cancelAnimationFrame(raf);
       cleanups.forEach((c) => c());
       ro.disconnect();
-      removeEventListener("scroll", onScroll);
-      removeEventListener("resize", onScroll);
+      removeEventListener("scroll", onScrollEvent);
+      removeEventListener("resize", onScrollEvent);
       store.dispose();
       delete wrapEl.dataset.loading;
       setReady(false);
