@@ -35,11 +35,30 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: npm
+      # Vercel's deployment protection answers 401 without the bypass secret: a production deployment is then checked on
+      # its public domain, a preview is skipped with a warning (set the secret to test previews, docs/TESTING.md)
+      - name: Reachable without protection
+        id: probe
+        run: |
+          headers=()
+          if [ -n "${VERCEL_AUTOMATION_BYPASS_SECRET}" ]; then headers=(-H "x-vercel-protection-bypass: ${VERCEL_AUTOMATION_BYPASS_SECRET}"); fi
+          code="$(curl -s -o /dev/null -w '%{http_code}' "${headers[@]}" "${BASE_URL%/}/")"
+          if [ "$code" = "401" ] || [ "$code" = "403" ]; then
+            if [ "${{ github.event.deployment.environment }}" = "Production" ]; then
+              echo "BASE_URL=https://house-sample.vercel.app" >> "$GITHUB_ENV"
+              echo "::notice::the deployment URL is protected; checking the production domain instead"
+            else
+              echo "skip=true" >> "$GITHUB_OUTPUT"
+              echo "::warning::the preview is protected by Vercel; set the secret VERCEL_AUTOMATION_BYPASS_SECRET to test previews"
+            fi
+          fi
       - run: npm ci
+        if: steps.probe.outputs.skip != 'true'
 
       # The canonical host is read from the deployed page (a preview names the production host), and it must answer:
       # every share card and search result points at it.
       - name: The canonical host answers
+        if: steps.probe.outputs.skip != 'true'
         run: |
           set -euo pipefail
           headers=()
@@ -55,7 +74,9 @@ jobs:
           curl -fsS -o /dev/null "$image"
 
       - run: npx playwright install --with-deps chromium webkit
+        if: steps.probe.outputs.skip != 'true'
       - name: End-to-end tests against the deployment
+        if: steps.probe.outputs.skip != 'true'
         run: npx playwright test -c e2e/playwright.config.ts smoke routing headers navigation media --project=desktop --project=iphone-15
       - uses: actions/upload-artifact@v4
         if: failure()

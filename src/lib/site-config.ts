@@ -40,7 +40,7 @@ export const SITE = {
   /** Colours of the browser chrome (meta theme-color, manifest). Must equal --bg of tokens.css; src/styles/tokens.test.ts checks it. */
   chrome: { light: "#f4f1e8", dark: "#14171a" },
   /** Origins (besides the site itself) that may show the site in an iframe: CSP frame-ancestors in next.config.ts. */
-  embedOrigins: ["https://filiptomanec.cz", "https://*.filiptomanec.cz"],
+  embedOrigins: [] as string[],
   /** Third-party sources and licences named in the footer (labels live in the footer dictionary). */
   credits: {
     pvgis: "https://joint-research-centre.ec.europa.eu/photovoltaic-geographical-information-system-pvgis_en",

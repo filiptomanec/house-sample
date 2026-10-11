@@ -61,6 +61,12 @@ export function createAllowlist(local = null) {
     { path: "static/chunks/**", category: "generic/" },
     { path: "app/**/*.nft.json", category: "generic/" },
     { path: "app/sitemap.xml.body", category: "generic/url" },
+    // generated geometry in metres of the house frame (the values change with every model edit, so no hash can pin them):
+    // pairs of plot coordinates look like latitude/longitude or grid coordinates to the generic detectors
+    { path: "generated/derived.json", category: "generic/latlon" },
+    { path: "public/models/*.glb", category: "generic/grid-coordinates" },
+    // the reviewed public URLs of the site configuration (site address, credits; earlier versions named embed origins)
+    { path: "src/lib/site-config.ts", category: "generic/url" },
   ];
   const entries = [...BUILTIN_FINDINGS, ...(Array.isArray(local?.findings) ? local.findings : [])].map((e) => ({
     path: e.path ? globToRegExp(String(e.path)) : null,
