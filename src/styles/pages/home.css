@@ -1,17 +1,14 @@
 /* Start page. Tokens and layout classes only (docs/DESIGN.md): every font size is a --fs-* token, every colour a token, breakpoints
-   640 / 900 / 1180. The custom properties --sf-h, --sf-loaded, --in-slow, --in-fast, --after-slow, --after-fast, --o and --ratio are set by
+   640 / 900 / 1180. The custom properties --sf-h, --sf-out, --sf-loaded, --in-slow, --in-fast, --after-slow, --after-fast, --o and --ratio are set by
    the components. Order: scroll sequences, day hero, orbit, the house, layout, light, energy, how it was made, gallery band, index,
    narrow screens, then the still layout (reduced motion, Save-Data) last so that it wins. */
 
 /* ---------------------------------------------------------------- scroll sequences (day hero, orbit) */
 .sf { position: relative; height: var(--sf-h); background: var(--bg); }
 .sf-sticky { position: sticky; top: 0; height: 100vh; height: 100svh; overflow: hidden; display: grid; grid-template: minmax(0, 1fr) / minmax(0, 1fr); }
-/* isolation: the z-index of the two layer canvases (they swap places, ScrollFrames; -1 puts one under the other) stays inside the picture */
-.sf-media { grid-area: 1 / 1; position: relative; min-width: 0; min-height: 0; isolation: isolate; }
+.sf-media { grid-area: 1 / 1; position: relative; min-width: 0; min-height: 0; }
 .sf-media canvas, .sf-poster, .sf-poster img { position: absolute; inset: 0; width: 100%; height: 100%; }
 .sf-poster img { object-fit: cover; }
-/* each canvas is a compositor layer: the cross-fade is its opacity, and the compositor scales its backing store to the screen */
-.sf-media canvas { will-change: opacity; }
 /* an opaque canvas would hide the poster before its first frame has been drawn */
 .sf-media canvas { visibility: hidden; }
 .sf-media[data-ready="true"] canvas { visibility: visible; }
@@ -23,16 +20,17 @@
 .sf-sticky::after { content: ""; grid-area: 1 / 1; z-index: 1; pointer-events: none; }
 
 /* Under a clear bar (data-nav="clear"): when the frame scrolls away, a scrim of its own stays under the bar (sticky within the
-   section) and fades in over the first fifth of a screen (its opacity is set by ScrollFrames), so the links stay legible over bright windows. The section
+   section) and fades in over the first fifth of a screen (--sf-out), so the links stay legible over bright windows. The section
    clips it (overflow: clip creates no scroll container, so the sticky frame keeps working): no band hangs over the next section. */
 .sf[data-nav="clear"] { overflow: clip; }
-.sf[data-nav="clear"] > .sf-scrim {
+.sf[data-nav="clear"]::before {
   --h: calc(var(--nav-h) + env(safe-area-inset-top) + 48px);
-  display: block; position: sticky; top: 0; z-index: 3; height: var(--h); margin-bottom: calc(-1 * var(--h)); pointer-events: none;
-  opacity: 0;
+  content: ""; display: block; position: sticky; top: 0; z-index: 3; height: var(--h); margin-bottom: calc(-1 * var(--h)); pointer-events: none;
+  opacity: min(1, calc(var(--sf-out, 0) * 5));
   background: linear-gradient(180deg, var(--media-scrim) 0, var(--media-scrim) calc(var(--nav-h) + env(safe-area-inset-top)), transparent 100%);
 }
-/* the overlay leaves with the frame when the section ends: ScrollFrames sets its opacity (no custom property on the section) */
+/* the overlay leaves with the frame when the section ends (--sf-out: how far the frame has left the top, 0..1) */
+.sf[data-nav="clear"] .sf-overlay { opacity: clamp(0, 1.2 - var(--sf-out, 0) * 4, 1); }
 
 /* ---------------------------------------------------------------- day hero */
 .day-hero {
@@ -79,12 +77,6 @@
 .day-moments { position: absolute; inset: 0; }
 /* a caption shows only once the title has (mostly) gone (--after-*: DayHero, timeline.ts introFade), never over it */
 .day-moment { bottom: calc(clamp(140px, 22svh, 220px) + env(safe-area-inset-bottom)); gap: var(--sp-3); opacity: calc(var(--o, 0) * var(--after-slow, 1)); transform: translateY(calc((1 - var(--o, 0)) * 16px)); }
-/* The intro and the captions fade and move every scroll frame, and the HUD (clock, sun) changes every frame: each gets a layer of
-   its own, so a change neither repaints the others (their text shadows blur 22 px) nor anything else over the canvas. */
-.sf-sticky .day-moment { will-change: opacity, transform; }
-/* not `opacity` here: that would make the intro a backdrop root, and the blur of the scroll hint would no longer see the picture */
-.sf-sticky .day-intro { will-change: transform; }
-.sf-sticky .day-hud { will-change: transform; }
 /* a caption out of its window is gone for the pointer, the keyboard and the accessibility tree (its opacity is already 0) */
 .day-moment:not([data-on="true"]) { visibility: hidden; }
 .day-moment .lede { max-width: 44ch; color: color-mix(in srgb, var(--on-media) 92%, transparent); }
@@ -151,7 +143,7 @@
 .orbit-cap .lede { max-width: 46ch; color: color-mix(in srgb, var(--on-media) 88%, transparent); }
 .orbit-foot { position: absolute; left: 0; right: 0; bottom: calc(26px + env(safe-area-inset-bottom)); display: flex; align-items: center; gap: var(--sp-5); min-height: 36px; }
 .orbit-bar { flex: 1; height: 2px; border-radius: 1px; overflow: hidden; background: color-mix(in srgb, var(--on-media) 22%, transparent); }
-.orbit-bar i { display: block; height: 100%; background: var(--mint); transform-origin: left; will-change: transform; }
+.orbit-bar i { display: block; height: 100%; background: var(--mint); transform-origin: left; }
 /* glass over the render: the page has one solid mint button (the hero's), the mint here is the progress line it ends */
 .orbit-cta {
   flex: none; opacity: 0; visibility: hidden; transform: translateY(8px);
@@ -411,13 +403,3 @@
 .sf[data-still="true"] .orbit-foot { position: static; padding-bottom: var(--section-y-sm); }
 .sf[data-still="true"] .orbit-bar { display: none; }
 .sf[data-still="true"] .orbit-foot > .orbit-cta { opacity: 1; visibility: visible; transform: none; }
-
-/* Touch devices (iOS Safari): nothing over the scrolling frames may need a per-frame re-blur. A backdrop blur or a wide
-   text-shadow blur is recomputed whenever the picture under it changes, which drops frames on a fast scroll. The scrim
-   already carries the contrast, so the hint gets a translucent fill and the shadows a short radius. */
-@media (hover: none) and (pointer: coarse) {
-  .day-hint { backdrop-filter: none; background: color-mix(in srgb, var(--media-scrim) 70%, transparent); }
-  .day-intro, .day-moment { text-shadow: 0 1px 2px var(--media-shadow), 0 1px 6px var(--media-scrim); }
-  .day-note { text-shadow: 0 1px 2px var(--media-scrim), 0 0 4px var(--media-scrim); }
-  .orbit-cap { text-shadow: 0 1px 2px var(--media-shadow), 0 1px 6px var(--media-scrim); }
-}

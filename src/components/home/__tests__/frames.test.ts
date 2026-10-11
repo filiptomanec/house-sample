@@ -10,7 +10,7 @@ class FakeBitmap implements Bitmap {
 }
 
 /** Fake network: every request waits until the test releases it, so concurrency can be observed. */
-function setup(n: number, opts: { capacity?: number; keepAll?: boolean; failFirst?: ReadonlySet<number>; retryDelayMs?: number; onProgress?: (settled: number, total: number) => void } = {}) {
+function setup(n: number, opts: { capacity?: number; failFirst?: ReadonlySet<number>; retryDelayMs?: number; onProgress?: (settled: number, total: number) => void } = {}) {
   const urls = Array.from({ length: n }, (_, i) => `/f/${i}`);
   const started: number[] = [];
   const pending = new Map<number, () => void>();
@@ -37,7 +37,7 @@ function setup(n: number, opts: { capacity?: number; keepAll?: boolean; failFirs
     },
   };
   const decoded: number[] = [];
-  const store = new FrameStore(urls, deps, { capacity: opts.capacity ?? 6, keepAll: opts.keepAll, retryDelayMs: opts.retryDelayMs ?? 0, onDecoded: (i) => decoded.push(i), onProgress: opts.onProgress });
+  const store = new FrameStore(urls, deps, { capacity: opts.capacity ?? 6, retryDelayMs: opts.retryDelayMs ?? 0, onDecoded: (i) => decoded.push(i), onProgress: opts.onProgress });
   const release = async (i: number) => { pending.get(i)?.(); pending.delete(i); await vi.waitFor(() => undefined); await Promise.resolve(); };
   const releaseAll = async () => { while (pending.size) for (const i of [...pending.keys()]) await release(i); await new Promise((r) => setTimeout(r, 5)); };
   return { store, started, pending, bitmaps, decoded, release, releaseAll, peak: () => peak, attempts };
@@ -125,32 +125,6 @@ describe("FrameStore", () => {
     expect(open).toHaveLength(t.store.decodedCount);
     expect(t.bitmaps.filter((b) => b.closed).length).toBeGreaterThan(0);
     t.store.dispose();
-  });
-
-  it("decodes a few frames at a time, nearest first, and skips frames the viewer has left", async () => {
-    const order: number[] = [];
-    let running = 0, peakDecode = 0;
-    const finish: (() => void)[] = [];
-    const store = new FrameStore<FakeBitmap>(Array.from({ length: 30 }, (_, i) => `/f/${i}`), {
-      fetchBlob: async (url) => new Blob([url.split("/")[2]]),
-      decode: async (blob) => {
-        const i = Number(await blob.text());
-        order.push(i); running++; peakDecode = Math.max(peakDecode, running);
-        await new Promise<void>((r) => finish.push(r));
-        running--;
-        return new FakeBitmap(1, 1, i);
-      },
-    }, { capacity: 6, decodeConcurrency: 2 });
-    store.start();
-    await vi.waitFor(() => expect(store.loadedCount).toBe(30));
-    store.setCurrent(5, [0, 1, -1, 2]);
-    await vi.waitFor(() => expect(order).toEqual([5, 6]));
-    store.setCurrent(20, [0, 1, -1, 2]); // the viewer jumps: 4 and 7 are never decoded
-    while (finish.length) { finish.shift()!(); await new Promise((r) => setTimeout(r, 0)); }
-    await vi.waitFor(() => expect([20, 21, 19, 22].every((i) => store.has(i))).toBe(true));
-    expect(order).toEqual([5, 6, 20, 21, 19, 22]);
-    expect(peakDecode).toBe(2);
-    store.dispose();
   });
 
   it("finds the nearest decoded frame while the exact one is still coming", async () => {
@@ -266,38 +240,6 @@ describe("FrameStore", () => {
     await Promise.resolve();
     expect(late.closed).toBe(true);
     expect(store.decodedCount).toBe(0);
-    store.dispose();
-  });
-
-  it("keeps every frame with keepAll: the window first, then the rest one at a time, nearest first, none evicted", async () => {
-    const order: number[] = [];
-    const running = new Set<number>();
-    let peak = 0;
-    const finish = new Map<number, () => void>();
-    const store = new FrameStore<FakeBitmap>(Array.from({ length: 8 }, (_, i) => `/f/${i}`), {
-      fetchBlob: async (url) => new Blob([url.split("/")[2]]),
-      decode: async (blob) => {
-        const i = Number(await blob.text());
-        order.push(i); running.add(i); peak = Math.max(peak, running.size);
-        await new Promise<void>((r) => finish.set(i, r));
-        running.delete(i);
-        return new FakeBitmap(10, 10, i);
-      },
-    }, { capacity: 2, keepAll: true });
-    store.start();
-    await vi.waitFor(() => expect(store.loadedCount).toBe(8));
-    store.setCurrent(4, [0, 1, -1], 1);
-    await vi.waitFor(() => expect(order).toEqual([4, 5])); // the window, two at a time
-    const step = async (i: number) => { finish.get(i)!(); finish.delete(i); await vi.waitFor(() => expect(store.has(i)).toBe(true)); };
-    await step(4);
-    await vi.waitFor(() => expect(order).toEqual([4, 5, 3])); // the rest of the window
-    await step(5);
-    await step(3);
-    // then the background, one at a time, outward from 4 (ahead first)
-    while (finish.size || order.length < 8) { await vi.waitFor(() => expect(finish.size).toBe(1)); await step([...finish.keys()][0]); }
-    expect(order).toEqual([4, 5, 3, 6, 2, 7, 1, 0]);
-    expect(peak).toBe(2);
-    expect(store.decodedCount).toBe(8); // capacity 2 is ignored: nothing is evicted
     store.dispose();
   });
 });
