@@ -21,8 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
-      # the unique URL of the deployment that just became ready
-      BASE_URL: ${{ github.event.deployment_status.environment_url || github.event.deployment_status.target_url }}
+      # BASE_URL (the URL to test) is exported by the first step: a job-level value here would win over $GITHUB_ENV
       # lets the requests through Vercel's deployment protection, when the project has it (Settings > Deployment Protection >
       # Protection Bypass for Automation); e2e/playwright.config.ts sends it as a header
       VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
@@ -40,6 +39,9 @@ jobs:
       - name: Reachable without protection
         id: probe
         run: |
+          # the unique URL of the deployment that just became ready
+          BASE_URL="${{ github.event.deployment_status.environment_url || github.event.deployment_status.target_url }}"
+          echo "BASE_URL=$BASE_URL" >> "$GITHUB_ENV"
           headers=()
           if [ -n "${VERCEL_AUTOMATION_BYPASS_SECRET}" ]; then headers=(-H "x-vercel-protection-bypass: ${VERCEL_AUTOMATION_BYPASS_SECRET}"); fi
           code="$(curl -s -o /dev/null -w '%{http_code}' "${headers[@]}" "${BASE_URL%/}/")"
