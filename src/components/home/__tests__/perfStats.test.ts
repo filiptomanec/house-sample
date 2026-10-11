@@ -4,7 +4,7 @@ import { createRecorder, MAX_EVENTS, type PerfEvent } from "../perfSink";
 import { DROP_FACTOR, Histogram, hints, nominalHz, panelLines, PerfStats, type ProbeEnv } from "../perfStats";
 
 const F60 = 1000 / 60;
-const env: ProbeEnv = { dpr: 3, viewport: "402x874", vvHeight: 800, cores: 6, reducedMotion: false, saveData: false, seq: null, canvas: null, ua: "test" };
+const env: ProbeEnv = { dpr: 3, viewport: "402x874", vvHeight: 800, cores: 6, reducedMotion: false, saveData: false, seq: null, canvas: null, decoder: null, ua: "test" };
 
 /** `count` frames `dt` ms apart after `from`, the page moving `dy` px per frame; returns where it ended. */
 function run(stats: PerfStats, from: { ts: number; y: number }, count: number, dt: number, dy = 0) {
@@ -79,6 +79,7 @@ describe("PerfStats", () => {
     s.events([
       { kind: "draw", t0: start + 1, t1: start + 3, value: 1 },
       { kind: "decode", t0: start - 30, t1: start + 20 },
+      { kind: "decodeLatency", t0: start - 30, t1: start + 20 },
       { kind: "hold", t0: start + 2, t1: start + 2, value: 40 },
       { kind: "draw", t0: start - 10, t1: start - 9, value: 1 },
     ]);
@@ -90,6 +91,8 @@ describe("PerfStats", () => {
     expect(sum.drops.worstMs).toBeCloseTo(50, 1);
     expect(sum.player.draw).toMatchObject({ n: 2, inDrops: 1, fast: 2, maxMs: 2 });
     expect(sum.player.decode).toMatchObject({ n: 1, inDrops: 1, avgMs: 50 });
+    // the latency is waiting (the worker decodes meanwhile): timed, but never blamed for a dropped frame
+    expect(sum.player.decodeLatency).toMatchObject({ n: 1, inDrops: 0, avgMs: 50, maxMs: 50 });
     expect(sum.player.hold).toMatchObject({ n: 1, inDrops: 1, fast: 1, avgMs: null });
   });
 
@@ -158,8 +161,10 @@ describe("hints and panel", () => {
   it("keeps the numbers within 38 columns", () => {
     const sum = scrolled(F60, 50);
     const seq = { width: 1080, height: 1920, count: 120, small: true, portrait: true, capacity: 12, blend: true, priority: true };
-    const lines = panelLines(sum, { ...env, seq, canvas: "1206x2622" }, "LIVE", []);
+    const lines = panelLines(sum, { ...env, seq, canvas: "1206x2622", decoder: "worker", saveData: true }, "LIVE", []);
     expect(lines.length).toBeGreaterThan(15);
+    expect(lines.some((l) => l.startsWith("decLat "))).toBe(true);
+    expect(lines).toContain("decoder worker  (decode = main thread)");
     for (const l of lines) expect(l.length, l).toBeLessThanOrEqual(38);
     expect(panelLines(sum, env, "LIVE", ["a hint"]).at(-1)).toBe("> a hint");
   });

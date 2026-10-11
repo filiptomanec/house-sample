@@ -1,7 +1,7 @@
 "use client";
 // A pinned full-screen canvas whose frame follows the scroll position (the section is `height` svh tall, the frame sticks).
 // Memory-safe on phones: frames are fetched as compressed files, coarse to fine, and only a small window around the current frame
-// is decoded (FrameStore). With `blend` neighbouring frames are cross-faded (a static camera: the time of day); without it the
+// is decoded (FrameStore), ahead of the viewer first, in a Web Worker shared by the players (frameDecoder.ts). With `blend` neighbouring frames are cross-faded (a static camera: the time of day); without it the
 // nearest frame is shown whole (a moving camera would double-expose). Phones in portrait get portrait frames, and a canvas that a
 // smaller variant fills sharply gets that variant (when the manifest has one). The poster is plain HTML (a <picture> chosen by
 // media queries, also for reduced motion), so the first paint needs no JavaScript.
@@ -117,6 +117,7 @@ export default function ScrollFrames({ frames, stillIndex, height, alt, blend = 
     const n = seq.urls.length;
     const capacity = lruCapacity(seq.width, seq.height, decodeBudgetBytes({
       coarse: matchMedia(MQ.coarse).matches,
+      blend,
       deviceMemoryGb: (navigator as Navigator & { deviceMemory?: number }).deviceMemory,
     }));
     const perf = priority ? globalThis.__hsPerf : undefined;
@@ -161,13 +162,13 @@ export default function ScrollFrames({ frames, stillIndex, height, alt, blend = 
       perf?.mark("frame", cur);
       let base: number, over = -1, t = 0;
       if (!blend) {
-        store.setCurrent(cur, [-1, 0, 1, 2]);
+        store.setCurrent(f, [-1, 0, 1, 2]);
         base = store.has(cur) ? cur : store.nearest(cur);
         if (perf && base !== cur) perf.mark("hold", cur);
       } else {
         const i0 = Math.floor(f), i1 = Math.min(n - 1, i0 + 1);
         t = f - i0;
-        store.setCurrent(cur, [-2, -1, 0, 1, 2]);
+        store.setCurrent(f, [-2, -1, 0, 1, 2]);
         base = store.has(i0) && store.has(i1) ? i0 : store.nearest(cur);
         if (base === i0 && t > 0.01 && store.has(i1)) over = i1;
         if (perf && (base !== i0 || (t > 0.01 && over < 0))) perf.mark("hold", cur);

@@ -4,7 +4,7 @@ import { localToUtc, placeOf, sunTimes } from "@/lib/calc/sun";
 import { dayDate, dayMinutes, media } from "@/lib/data/media";
 import { house } from "@/lib/model/instance";
 import {
-  canvasScale, captionIndex, coarseCount, coverRect, decodeBudgetBytes, evictions, frameAt, frameAtMinute, heldProgress, introFade, loadOrder, lruCapacity,
+  canvasScale, captionIndex, coarseCount, coverRect, decodeBudgetBytes, decodeOrder, evictions, frameAt, frameAtMinute, heldProgress, introFade, loadOrder, lruCapacity,
   minuteAtFrame, MOMENT_RAMP_FRAMES, momentOpacity, momentWindows, nearestDecoded, sectionProgress, smallVariantFits, windowOpacity,
 } from "../timeline";
 
@@ -293,6 +293,28 @@ describe("loading and memory", () => {
     expect(lruCapacity(1920, 1080, phone)).toBe(5);
     expect(lruCapacity(7680, 4320, 8 * MB)).toBe(5);
     expect(lruCapacity(10, 10, 1e12)).toBe(20);
+    // the cross-faded day hero on a phone keeps ten portrait frames (~70 MB); the cut orbit seven landscape ones, at most 1.5x
+    // the five it had; desktops and low-memory devices are unchanged
+    const dayPhone = decodeBudgetBytes({ coarse: true, blend: true });
+    expect(lruCapacity(1080, 1620, dayPhone)).toBe(10);
+    expect(lruCapacity(1080, 1620, dayPhone) * 1080 * 1620 * 4).toBeLessThanOrEqual(72 * MB);
+    expect(lruCapacity(1600, 900, phone)).toBe(7);
+    expect(lruCapacity(1600, 900, phone)).toBeLessThanOrEqual(1.5 * 5);
+    expect(decodeBudgetBytes({ coarse: false, blend: true })).toBe(desktop);
+    expect(decodeBudgetBytes({ coarse: true, blend: true, deviceMemoryGb: 2 })).toBe(24 * MB);
+  });
+
+  it("orders the decodes: the window nearest first, then what the cache keeps ahead of the viewer", () => {
+    // standing still: only the window, ties toward the start of a scroll (forward)
+    expect(decodeOrder(5, 32, [-2, -1, 0, 1, 2], 10, 0)).toEqual([5, 6, 4, 7, 3]);
+    // moving forward between 6 and 7: the blend pair first, then the kept frames ahead (the cache keeps 1..10 around 6)
+    expect(decodeOrder(6.4, 32, [-2, -1, 0, 1, 2], 10, 1)).toEqual([6, 7, 5, 8, 4, 9, 10]);
+    // moving back: ties go backward, the frames behind come next
+    expect(decodeOrder(6, 32, [-2, -1, 0, 1, 2], 10, -1)).toEqual([6, 5, 7, 4, 8, 3, 2, 1]);
+    // at the ends the window is clipped and the cache reaches further in
+    expect(decodeOrder(0, 32, [-1, 0, 1, 2], 7, 1)).toEqual([0, 1, 2, 3, 4, 5, 6]);
+    expect(decodeOrder(31, 32, [-2, -1, 0, 1, 2], 10, 1)).toEqual([31, 30, 29]);
+    expect(decodeOrder(3, 0, [0], 5, 1)).toEqual([]);
   });
 
   it("evicts the frames farthest from the current one", () => {

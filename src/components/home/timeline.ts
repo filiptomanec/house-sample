@@ -294,12 +294,37 @@ export function lruCapacity(width: number, height: number, budgetBytes: number, 
   return Math.max(min, Math.min(max, Math.floor(budgetBytes / bytes)));
 }
 
-/** Memory budget for decoded frames: small on touch phones and tablets and on devices that report little memory. */
-export function decodeBudgetBytes(opts: { coarse: boolean; deviceMemoryGb?: number }): number {
+/**
+ * Memory budget for decoded frames: smaller on touch phones and tablets than on desktops, the minimum on devices that report
+ * little memory. On a phone a cross-faded sequence (`blend`, the day hero: two frames at once, scrubbed back and forth) keeps
+ * about ten portrait frames (1080 x 1620, 7 MB each), a cut one (the orbit, 1600 x 900 landscape) about seven.
+ */
+export function decodeBudgetBytes(opts: { coarse: boolean; blend?: boolean; deviceMemoryGb?: number }): number {
   const MB = 1024 * 1024;
-  let budget = opts.coarse ? 32 * MB : 128 * MB;
+  let budget = !opts.coarse ? 128 * MB : opts.blend ? 72 * MB : 40 * MB;
   if (opts.deviceMemoryGb !== undefined && opts.deviceMemoryGb <= 2) budget = Math.min(budget, 24 * MB);
   return budget;
+}
+
+/**
+ * The frames to decode around the fractional position `at`, most urgent first: the `window` (offsets from the nearest frame) by
+ * distance from `at`, ties toward the direction of travel; then, once the viewer moves (`direction` -1 or 1), the rest of what
+ * the cache keeps (the `capacity` frames nearest to it, as `evictions` keeps them) on the side it moves to, nearest first.
+ * Kept frames on the other side are not requested (they stay while decoded, so scrubbing back costs nothing).
+ */
+export function decodeOrder(at: number, count: number, window: readonly number[], capacity: number, direction: -1 | 0 | 1): number[] {
+  if (count <= 0) return [];
+  const cur = Math.max(0, Math.min(count - 1, Math.round(at)));
+  const ahead = direction || 1;
+  const cost = (k: number) => Math.abs(k - at) + (Math.sign(k - at) === -ahead ? 1e-6 : 0);
+  const core = [...new Set(window.map((d) => cur + d))].filter((k) => k >= 0 && k < count).sort((a, b) => cost(a) - cost(b));
+  if (!direction) return core;
+  const kept: number[] = [cur];
+  for (let d = 1; kept.length < capacity && d < count; d++) {
+    for (const k of [cur - d, cur + d]) if (k >= 0 && k < count && kept.length < capacity) kept.push(k);
+  }
+  const inCore = new Set(core);
+  return [...core, ...kept.filter((k) => !inCore.has(k) && Math.sign(k - cur) === direction)];
 }
 
 /** Keys to drop so that at most `capacity` remain: the ones farthest from the current frame go first. */

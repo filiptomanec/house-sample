@@ -36,9 +36,11 @@ const MIN_SCROLL_FRAMES = 30;
 export type Bucket = "idle" | "slow" | "fast";
 /** The player's kinds in the summary ("frame" has its own block). */
 export type PlayerKind = Exclude<PerfKind, "frame">;
-const PLAYER_KINDS: readonly PlayerKind[] = ["draw", "decode", "hold", "handler", "measure", "ro", "resize", "realloc", "viewport"];
+const PLAYER_KINDS: readonly PlayerKind[] = ["draw", "decode", "decodeLatency", "hold", "handler", "measure", "ro", "resize", "realloc", "viewport"];
 /** Kinds whose events have a duration worth averaging. */
-const TIMED: ReadonlySet<PerfKind> = new Set<PerfKind>(["draw", "decode", "handler", "measure"]);
+const TIMED: ReadonlySet<PerfKind> = new Set<PerfKind>(["draw", "decode", "decodeLatency", "handler", "measure"]);
+/** Kinds that measure waiting, not work on the main thread: they span frames without delaying them, so they are not "in a drop". */
+const WAITS: ReadonlySet<PerfKind> = new Set<PerfKind>(["decodeLatency"]);
 
 const round = (v: number | null, digits: number): number | null => (v === null ? null : Number(v.toFixed(digits)));
 
@@ -182,7 +184,7 @@ export class PerfStats {
     a.n++;
     a.ms += d;
     if (d > a.maxMs) a.maxMs = d;
-    if (inDrop) a.inDrops++;
+    if (inDrop && !WAITS.has(ev.kind)) a.inDrops++;
     if (bucket) a[bucket]++;
     if (ev.kind === "frame" && ev.value !== undefined) {
       const f = this.frame;
@@ -232,6 +234,8 @@ export interface ProbeEnv {
   saveData: boolean;
   /** The hero's sequence as the player set it up. */
   seq: PerfSeq | null;
+  /** How frames are decoded: "worker", "main" (the fallback) or "probe" (frameDecoder.ts); null without a player. */
+  decoder: string | null;
   /** The canvas backing store, width x height. */
   canvas: string | null;
   ua: string;
@@ -285,6 +289,7 @@ export function panelLines(s: StatsSummary, env: ProbeEnv, head: string, notes: 
     "kind        n   avg   max drop fast",
     row("draw", p.draw),
     row("decode", p.decode),
+    row("decLat", p.decodeLatency),
     row("hold", p.hold),
     row("scrollH", p.handler),
     row("measure", p.measure),
@@ -292,6 +297,7 @@ export function panelLines(s: StatsSummary, env: ProbeEnv, head: string, notes: 
     `ro ${p.ro.n}  realloc ${p.realloc.n}  vv ${p.viewport.n} (h ${env.vvHeight ?? "-"})`,
     `dpr ${env.dpr} ${env.viewport} cores ${env.cores ?? "-"}`,
     q ? `seq ${q.width}x${q.height} x${q.count}${q.portrait ? " port" : ""}${q.small ? " small" : ""} cap ${q.capacity}` : "seq -",
+    `decoder ${env.decoder ?? "-"}  (decode = main thread)`,
     `canvas ${env.canvas ?? "-"}  rm ${env.reducedMotion ? "ON" : "off"}${env.saveData ? "  save-data" : ""}`,
     ...notes.map((n) => `> ${n}`),
   ];

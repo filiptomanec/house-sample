@@ -5,7 +5,8 @@
 
 /** What is reported. Spans have a duration (t0..t1); the others are moments (t0 === t1). */
 export type PerfKind =
-  | "decode" // createImageBitmap of one frame (span)
+  | "decode" // the main thread's share of decoding one frame (span): the worker's reply, or createImageBitmap on the fallback
+  | "decodeLatency" // a decode from the request to the bitmap, waiting included; off the main thread on the worker path (span)
   | "draw" // the drawImage calls of one canvas update (span; value: images drawn)
   | "hold" // the scroll asks for a frame that is not decoded yet (value: that frame)
   | "measure" // the player's measure(): layout reads and the canvas size (span)

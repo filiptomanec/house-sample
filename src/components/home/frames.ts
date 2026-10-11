@@ -1,16 +1,23 @@
 // Frame store of a scroll sequence: downloads the compressed frames coarse to fine (a few at a time, with retries), decodes only
-// the neighbourhood of the current frame and keeps at most `capacity` decoded bitmaps (the farthest are closed first). A decoded
-// 1920 x 1080 frame is about 8 MB, so decoding everything would crash a phone; the compressed blobs are small and stay.
-// Network and decoding are injected, so the store is tested without a browser.
+// the neighbourhood of the current frame (and, once the viewer moves, the frames ahead of it first: decodeOrder) and keeps at
+// most `capacity` decoded bitmaps (the farthest are closed first). A decoded 1920 x 1080 frame is about 8 MB, so decoding
+// everything would crash a phone; the compressed blobs are small and stay. A requested decode the viewer no longer needs is
+// aborted. Network and decoding are injected, so the store is tested without a browser; in the browser frames are decoded in a
+// shared Web Worker (frameDecoder.ts).
 
-import { evictions, loadOrder, nearestDecoded } from "./timeline";
+import { decodeFrame, releaseDecoder, retainDecoder } from "./frameDecoder";
+import { decodeOrder, evictions, loadOrder, nearestDecoded } from "./timeline";
 
 export interface Bitmap { width: number; height: number; close?: () => void }
 
 export interface FrameDeps<B extends Bitmap> {
   /** Resolves with the file, or null when the server answered with an error. Rejects on a network failure. */
   fetchBlob(url: string, signal: AbortSignal): Promise<Blob | null>;
-  decode(blob: Blob): Promise<B>;
+  /** Decodes a downloaded frame; when `signal` fires the frame is no longer needed (the promise may then reject). */
+  decode(blob: Blob, signal?: AbortSignal): Promise<B>;
+  /** Called when a store is created and when it is disposed (a shared decoder runs while any store does). */
+  retain?(): void;
+  release?(): void;
 }
 
 export interface FrameStoreOptions {
@@ -30,7 +37,8 @@ export interface FrameStoreOptions {
 export class FrameStore<B extends Bitmap> {
   private readonly blobs: (Blob | null)[];
   private readonly bitmaps = new Map<number, B>();
-  private readonly decoding = new Set<number>();
+  /** Requested decodes by frame; a result whose controller is no longer here (aborted, released) is closed at once. */
+  private readonly decoding = new Map<number, AbortController>();
   private readonly ctrl = new AbortController();
   private readonly order: number[];
   private readonly timers = new Set<ReturnType<typeof setTimeout>>();
@@ -41,8 +49,11 @@ export class FrameStore<B extends Bitmap> {
   /** How many entries of the load order may be fetched (raised by start()). */
   private limit = 0;
   private current = 0;
-  /** Bumped by release(): a decode that finishes for an older epoch is closed at once. */
-  private epoch = 0;
+  /** The fractional position of the last setCurrent() (null before the first) and the way the viewer last moved. */
+  private at: number | null = null;
+  private direction: -1 | 0 | 1 = 0;
+  /** Frames the viewer needs now (decodeOrder): a download that completes one of them is decoded. */
+  private wanted: ReadonlySet<number>;
   private alive = true;
   private readonly opts: Required<Omit<FrameStoreOptions, "onDecoded" | "onProgress">> & Pick<FrameStoreOptions, "onDecoded" | "onProgress">;
 
@@ -50,6 +61,8 @@ export class FrameStore<B extends Bitmap> {
     this.blobs = new Array<Blob | null>(urls.length).fill(null);
     this.order = loadOrder(urls.length);
     this.opts = { concurrency: 4, retries: 2, retryDelayMs: 1200, ...opts };
+    this.wanted = new Set(decodeOrder(0, urls.length, [-1, 0, 1, 2], this.opts.capacity, 0));
+    deps.retain?.();
   }
 
   get count(): number { return this.urls.length; }
@@ -67,10 +80,24 @@ export class FrameStore<B extends Bitmap> {
   /** Has start() been called? */
   get started(): boolean { return this.limit > 0; }
 
-  /** The frame the viewer is at: decoded frames far from it may be dropped, and frames near it are decoded when available. */
+  /**
+   * Where the viewer is (a fractional frame index): decoded frames far from it may be dropped; the `window` around it (offsets
+   * from the nearest frame) is decoded when available, nearest first, and once the viewer moves also the frames ahead that the
+   * cache can keep. Requested decodes that are no longer needed are aborted.
+   */
   setCurrent(index: number, window: readonly number[] = [-1, 0, 1, 2]): void {
-    this.current = Math.max(0, Math.min(this.urls.length - 1, Math.round(index)));
-    for (const d of window) this.decodeFrame(this.current + d);
+    const at = Math.max(0, Math.min(this.urls.length - 1, index));
+    if (this.at !== null && at !== this.at) this.direction = at > this.at ? 1 : -1;
+    this.at = at;
+    this.current = Math.round(at);
+    const order = decodeOrder(at, this.urls.length, window, this.opts.capacity, this.direction);
+    this.wanted = new Set(order);
+    for (const [i, ctrl] of this.decoding) {
+      if (this.wanted.has(i)) continue;
+      this.decoding.delete(i);
+      ctrl.abort();
+    }
+    for (const i of order) this.decodeFrame(i);
   }
 
   has(i: number): boolean { return this.bitmaps.has(i); }
@@ -83,20 +110,28 @@ export class FrameStore<B extends Bitmap> {
 
   /** Closes every decoded bitmap (the downloaded files stay), e.g. when the sequence is far off screen. They are decoded again on demand. */
   release(): void {
-    this.epoch++;
-    this.decoding.clear();
+    this.abortDecodes();
     for (const b of this.bitmaps.values()) b.close?.();
     this.bitmaps.clear();
   }
 
   dispose(): void {
+    if (!this.alive) return;
     this.alive = false;
     this.ctrl.abort();
+    this.abortDecodes();
     for (const t of this.timers) clearTimeout(t);
     this.timers.clear();
     for (const b of this.bitmaps.values()) b.close?.();
     this.bitmaps.clear();
     this.blobs.fill(null);
+    this.deps.release?.();
+  }
+
+  private abortDecodes(): void {
+    const ctrls = [...this.decoding.values()];
+    this.decoding.clear();
+    for (const c of ctrls) c.abort();
   }
 
   private pump(): void {
@@ -124,7 +159,7 @@ export class FrameStore<B extends Bitmap> {
     this.settled++;
     if (blob) {
       this.blobs[i] = blob;
-      if (Math.abs(i - this.current) <= 2) this.decodeFrame(i);
+      if (this.wanted.has(i)) this.decodeFrame(i);
     }
     this.opts.onProgress?.(this.settled, this.urls.length);
     this.pump();
@@ -134,12 +169,13 @@ export class FrameStore<B extends Bitmap> {
     if (i < 0 || i >= this.urls.length) return;
     const blob = this.blobs[i];
     if (!blob || this.bitmaps.has(i) || this.decoding.has(i)) return;
-    this.decoding.add(i);
-    const epoch = this.epoch;
-    this.deps.decode(blob).then(
+    const ctrl = new AbortController();
+    this.decoding.set(i, ctrl);
+    this.deps.decode(blob, ctrl.signal).then(
       (bitmap) => {
-        if (epoch === this.epoch) this.decoding.delete(i);
-        if (!this.alive || epoch !== this.epoch) { bitmap.close?.(); return; }
+        const live = this.decoding.get(i) === ctrl;
+        if (live) this.decoding.delete(i);
+        if (!live || !this.alive) { bitmap.close?.(); return; }
         this.bitmaps.set(i, bitmap);
         for (const k of evictions(this.bitmaps.keys(), this.current, this.opts.capacity)) {
           this.bitmaps.get(k)?.close?.();
@@ -147,21 +183,18 @@ export class FrameStore<B extends Bitmap> {
         }
         this.opts.onDecoded?.(i);
       },
-      () => { if (epoch === this.epoch) this.decoding.delete(i); },
+      () => { if (this.decoding.get(i) === ctrl) this.decoding.delete(i); },
     );
   }
 }
 
-/** Real network and decoding for the browser. */
+/** Real network and decoding for the browser: decodes run in the worker shared by all players (frameDecoder.ts, which also times them for ?perf=1). */
 export const browserDeps: FrameDeps<ImageBitmap> = {
   async fetchBlob(url, signal) {
     const r = await fetch(url, { signal });
     return r.ok ? r.blob() : null;
   },
-  decode: (blob) => {
-    // the diagnostic mode (?perf=1, perfSink.ts) times every decode; without it this is the bare call
-    const t0 = globalThis.__hsPerf?.now();
-    const bitmap = createImageBitmap(blob);
-    return t0 === undefined ? bitmap : bitmap.finally(() => globalThis.__hsPerf?.span("decode", t0));
-  },
+  decode: decodeFrame,
+  retain: retainDecoder,
+  release: releaseDecoder,
 };

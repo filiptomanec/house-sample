@@ -112,6 +112,40 @@ describe("FrameStore", () => {
     t.store.dispose();
   });
 
+  it("decodes ahead of the viewer once it moves and aborts the decodes it no longer needs", async () => {
+    const urls = Array.from({ length: 30 }, (_, i) => `/f/${i}`);
+    const index = new Map<Blob, number>(), asked: number[] = [], signals = new Map<number, AbortSignal>();
+    const store = new FrameStore<FakeBitmap>(urls, {
+      fetchBlob: async (url) => { const b = new Blob([url]); index.set(b, Number(url.split("/")[2])); return b; },
+      decode: (blob, signal) => { const i = index.get(blob)!; asked.push(i); signals.set(i, signal!); return new Promise<FakeBitmap>(() => undefined); },
+    }, { capacity: 10 });
+    store.start();
+    await vi.waitFor(() => expect(store.loadedCount).toBe(30));
+    expect(asked.sort((a, b) => a - b)).toEqual([0, 1, 2]); // where the viewer starts
+    asked.length = 0;
+    store.setCurrent(5, [-2, -1, 0, 1, 2]); // the first position: no direction yet, only the window
+    expect(asked).toEqual([5, 6, 4, 7, 3]);
+    expect([0, 1, 2].every((i) => signals.get(i)!.aborted)).toBe(true);
+    store.setCurrent(6.4, [-2, -1, 0, 1, 2]); // forward: the frames ahead that the cache keeps are requested too
+    expect(asked.slice(5)).toEqual([8, 9, 10]);
+    expect(signals.get(3)!.aborted).toBe(true);
+    expect([4, 5, 6, 7].some((i) => signals.get(i)!.aborted)).toBe(false);
+    store.setCurrent(5.6, [-2, -1, 0, 1, 2]); // back: the requests ahead are dropped, the frames behind come next
+    expect(signals.get(9)!.aborted && signals.get(10)!.aborted).toBe(true);
+    expect(asked.slice(8)).toEqual([3, 2, 1]);
+    store.dispose();
+    expect([...signals.values()].every((sig) => sig.aborted)).toBe(true);
+  });
+
+  it("starts and stops a shared decoder with the store", () => {
+    const deps = { fetchBlob: async () => null, decode: async () => new FakeBitmap(1, 1, 0), retain: vi.fn(), release: vi.fn() };
+    const store = new FrameStore<FakeBitmap>(["/f/0"], deps, { capacity: 3 });
+    expect(deps.retain).toHaveBeenCalledTimes(1);
+    store.dispose();
+    store.dispose();
+    expect(deps.release).toHaveBeenCalledTimes(1);
+  });
+
   it("keeps no more than `capacity` bitmaps and closes the ones it drops, farthest first", async () => {
     const t = setup(40, { capacity: 3 });
     t.store.start();

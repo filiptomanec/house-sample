@@ -11,6 +11,7 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
 import { MQ } from "@/styles/breakpoints";
+import { decoderMode } from "./frameDecoder";
 import type { PerfRecorder } from "./perfSink";
 import { hints, panelLines, PerfStats, type ProbeEnv } from "./perfStats";
 
@@ -67,7 +68,7 @@ export default function PerfProbe({ recorder }: { recorder: PerfRecorder }) {
         dpr: devicePixelRatio, viewport: `${innerWidth}x${innerHeight}`, vvHeight: vv ? Math.round(vv.height) : null,
         cores: navigator.hardwareConcurrency || null, reducedMotion: reduced.matches,
         saveData: (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData === true,
-        seq: seqs.findLast((q) => q.priority) ?? seqs.at(-1) ?? null, canvas: cv ? `${cv.width}x${cv.height}` : null, ua: navigator.userAgent,
+        seq: seqs.findLast((q) => q.priority) ?? seqs.at(-1) ?? null, canvas: cv ? `${cv.width}x${cv.height}` : null, decoder: decoderMode(), ua: navigator.userAgent,
       };
     };
     const view = () => { const s = stats.summary(), e = env(); return { s, e, h: hints(s, e) }; };
