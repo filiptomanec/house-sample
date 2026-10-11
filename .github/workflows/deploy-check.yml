@@ -39,21 +39,17 @@ jobs:
       - name: Reachable without protection
         id: probe
         run: |
-          # the unique URL of the deployment that just became ready
-          BASE_URL="${{ github.event.deployment_status.environment_url || github.event.deployment_status.target_url }}"
-          echo "BASE_URL=$BASE_URL" >> "$GITHUB_ENV"
-          headers=()
-          if [ -n "${VERCEL_AUTOMATION_BYPASS_SECRET}" ]; then headers=(-H "x-vercel-protection-bypass: ${VERCEL_AUTOMATION_BYPASS_SECRET}"); fi
-          code="$(curl -s -o /dev/null -w '%{http_code}' "${headers[@]}" "${BASE_URL%/}/")"
-          if [ "$code" = "401" ] || [ "$code" = "403" ]; then
-            if [ "${{ github.event.deployment.environment }}" = "Production" ]; then
-              echo "BASE_URL=https://house-sample.vercel.app" >> "$GITHUB_ENV"
-              echo "::notice::the deployment URL is protected; checking the production domain instead"
-            else
-              echo "skip=true" >> "$GITHUB_OUTPUT"
-              echo "::warning::the preview is protected by Vercel; set the secret VERCEL_AUTOMATION_BYPASS_SECRET to test previews"
-            fi
+          # a production deployment is checked on its public domain (the deployment's own URL is behind Vercel's
+          # deployment protection); a preview needs the bypass secret, otherwise it is skipped with a warning
+          url="${{ github.event.deployment_status.environment_url || github.event.deployment_status.target_url }}"
+          if [ "${{ github.event.deployment.environment }}" = "Production" ]; then
+            url="https://house-sample.vercel.app"
+          elif [ -z "${VERCEL_AUTOMATION_BYPASS_SECRET}" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "::warning::the preview is protected by Vercel; set the secret VERCEL_AUTOMATION_BYPASS_SECRET to test previews"
           fi
+          echo "BASE_URL=$url" >> "$GITHUB_ENV"
+          echo "testing $url"
       - run: npm ci
         if: steps.probe.outputs.skip != 'true'
 
