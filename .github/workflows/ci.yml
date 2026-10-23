@@ -17,6 +17,9 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0 # the privacy scan also reads the history
+          # on a pull request, the PR head instead of GitHub's test merge commit: that commit is authored with the account's
+          # e-mail address and would fail the identity check (the merge itself is a rebase, see docs/PRIVACY.md)
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
