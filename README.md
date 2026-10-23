@@ -148,7 +148,7 @@ rotated 12°), its glazed area, and the roof overhang above it, which the sun an
 
 ## Run it
 
-Node 22 or newer.
+Node 22.23.4 or a newer 22.x release (`.nvmrc`; the October 2026 security release is the minimum).
 
 ```bash
 npm install
