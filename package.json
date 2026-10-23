@@ -6,7 +6,7 @@
   "license": "MIT",
   "author": "Filip Tomanec",
   "engines": {
-    "node": ">=22"
+    "node": "^22.23.4"
   },
   "scripts": {
     "dev": "next dev -p 3400",
@@ -34,10 +34,10 @@
   "dependencies": {
     "geist": "^1.7.2",
     "n8ao": "^1.9.4",
-    "next": "16.3.6",
+    "next": "16.4.2",
     "polygon-clipping": "^0.15.7",
-    "react": "19.2.8",
-    "react-dom": "19.2.8",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
     "three": "^0.169.0",
     "three-mesh-bvh": "^0.8.3",
     "zod": "^4.6.5"
@@ -50,7 +50,7 @@
     "@types/react-dom": "^19",
     "@types/three": "^0.169.0",
     "eslint": "^9",
-    "eslint-config-next": "16.3.6",
+    "eslint-config-next": "16.4.2",
     "tailwindcss": "^4",
     "tsx": "^4.23.15",
     "typescript": "^5",
