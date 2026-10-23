@@ -122,6 +122,12 @@ web-flow identity is allowed for merge commits. Anything else is reported as `id
 `identity/tagger`. The trailer `Co-Authored-By: Claude ...` is allowed. Objects found clean are remembered in
 `.privacy/cache.json` (keyed by denylist, allowlist and scanner version), so repeated pushes are fast.
 
+Pull requests are not merged on GitHub: its merge button and API write the account's e-mail address into the commits they
+create (as author of a merge commit, as committer of rebased commits). A pull request whose branch is up to date with `main`
+is merged by a fast-forward push from a local clone, `git push origin <branch>:main`, which keeps the commits as they are;
+GitHub then marks the pull request as merged. The test merge commit GitHub builds for every pull request carries the same
+address, so the CI job checks out the pull request head instead.
+
 ## Local files (`.privacy/`, git-ignored, mode 600)
 
 * `denylist.local.json`: `{ "version", "salt", "categories": { "<name>": { "literals", "regexes", "numbers", "sequences" } } }`.
